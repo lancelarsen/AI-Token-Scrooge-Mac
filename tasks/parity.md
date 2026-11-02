@@ -43,3 +43,5 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 
 - In demo mode, Send Test Notification created an in-app banner and a populated Alert History entry. Show Info scrolled to the first Codex account and visibly applied the lavender card outline. The history entry opened Available Resets with two reported credits and their expiry dates. Dismiss disabled the history snooze/dismiss controls. Exit Demo restored the empty dashboard.
 - The test entry remained Recorded in History; macOS notification acceptance/display was not confirmed. These checks establish in-app navigation and dismissal only, not native notification delivery or live-provider behavior.
+
+- Alert banners now include the source provider icon/name and severity-specific title/border colors (info blue, warning yellow, critical red, default lavender), with the source dark banner background. Debug build passes; native rendering across all severity variants remains to be checked.
