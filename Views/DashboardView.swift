@@ -128,6 +128,7 @@ struct AccountCard: View {
 
 struct QuotaRow: View {
     @Environment(AppStore.self) private var store
+    @Environment(\.openURL) private var openURL
     let account: ProviderAccount
     let window: QuotaWindow
     let snapshot: QuotaSnapshot
@@ -165,7 +166,21 @@ struct QuotaRow: View {
                 if let used = window.used, window.unit != .percent { Text("Used: \(NSDecimalNumber(decimal: used).stringValue) \(window.unit.rawValue)") }
                 if let limit = window.limit { Text("Allowance: \(NSDecimalNumber(decimal: limit).stringValue) · \(window.allowanceSource.rawValue.capitalized)") }
                 Text("Resets: \(Format.date(window.resetsAt, zone: store.state.settings.zone))")
+                if !store.state.settings.privacy {
+                    Text("Account: \(account.login ?? account.subject)")
+                    Text("Scope: \(account.scope)")
+                }
+                Text("Last Successful Fetch: \(Format.date(snapshot.observedAt, zone: store.state.settings.zone))")
+                Text("Provider Data As Of: \(Format.date(snapshot.providerDataAt, zone: store.state.settings.zone))")
                 if let message = snapshot.message { Text(message).foregroundStyle(Theme.secondary) }
+                if !store.isDemo, let url = account.usageURL {
+                    Text("Provider pages use your browser’s sign-in. Check its account and workspace before comparing.").font(.caption).foregroundStyle(Theme.secondary)
+                    Button("Open Provider Usage") {
+                        openURL(url) { accepted in
+                            if !accepted { store.errorMessage = "Provider page unavailable. Open your provider’s usage page in your browser and check its connection status." }
+                        }
+                    }.buttonStyle(ScroogeButtonStyle())
+                }
             }.padding(24).frame(maxWidth: 440).preferredColorScheme(.dark)
         }
     }

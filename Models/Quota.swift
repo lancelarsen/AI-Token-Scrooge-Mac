@@ -28,6 +28,20 @@ struct ProviderAccount: Codable, Identifiable, Equatable, Sendable {
     var lineColor: String?
     var generation: UUID = UUID()
     var effectivePollingMinutes: Int { min(30, max(1, pollingMinutes)) }
+    var usageURL: URL? {
+        switch provider {
+        case .codex: return URL(string: "https://chatgpt.com/settings/usage?tab=overview")
+        case .claude: return URL(string: "https://claude.ai/new#settings/usage")
+        case .copilot:
+            if scope.lowercased().hasPrefix("organization:") {
+                let name = String(scope.dropFirst(13))
+                let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
+                guard let escaped = name.addingPercentEncoding(withAllowedCharacters: allowed), !escaped.isEmpty else { return nil }
+                return URL(string: "https://github.com/organizations/\(escaped)/settings/billing")
+            }
+            return URL(string: "https://github.com/settings/billing")
+        }
+    }
     func resolvedLineColor(plan: String?) -> String {
         if let lineColor, lineColor.count == 7, lineColor.first == "#",
            lineColor.dropFirst().allSatisfy({ $0.isASCII && $0.isHexDigit }) { return lineColor }

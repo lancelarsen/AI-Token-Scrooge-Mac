@@ -2,6 +2,17 @@ import XCTest
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testProviderUsageLinksKeepOrganizationAsEscapedPathComponent() {
+        var account = ProviderAccount(provider: .copilot, nickname: "A", subject: "s", scope: "personal")
+        XCTAssertEqual(account.usageURL?.absoluteString, "https://github.com/settings/billing")
+        account.scope = "ORGANIZATION:team/name?query#fragment"
+        XCTAssertEqual(account.usageURL?.absoluteString, "https://github.com/organizations/team%2Fname%3Fquery%23fragment/settings/billing")
+        XCTAssertEqual(account.usageURL?.host, "github.com")
+        account.provider = .claude
+        XCTAssertEqual(account.usageURL?.absoluteString, "https://claude.ai/new#settings/usage")
+        account.provider = .codex
+        XCTAssertEqual(account.usageURL?.absoluteString, "https://chatgpt.com/settings/usage?tab=overview")
+    }
     func testFirstCustomSortCapturesVisibleOrderAndLaterRestoresSavedOrder() {
         var state = DemoData.make(now: Date(timeIntervalSince1970: 1800000000)).0
         state.settings.accountOrder = ["removed-account"]
