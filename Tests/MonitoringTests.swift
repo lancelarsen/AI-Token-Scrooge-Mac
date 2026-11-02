@@ -119,4 +119,33 @@ final class MonitoringTests: XCTestCase {
         }
     }
 
+    func testReminderCatchUpChoosesNearestAndHighestSeverityTie() {
+        let now = Date(timeIntervalSince1970: 1800000000)
+        let reminders = [
+            TimedReminder(id: "day", amount: 1, unit: "Days", severity: .critical),
+            TimedReminder(id: "info", amount: 1, unit: "Hours", severity: .info),
+            TimedReminder(id: "critical", amount: 1, unit: "Hours", severity: .critical),
+            TimedReminder(id: "invalid", amount: 1, unit: "Minutes", severity: .critical)
+        ]
+        XCTAssertEqual(TimedReminder.due(reminders, at: now.addingTimeInterval(1800), now: now)?.id, "critical")
+        XCTAssertEqual(TimedReminder.due(reminders, at: now.addingTimeInterval(3601), now: now)?.id, "day")
+        XCTAssertNil(TimedReminder.due(reminders, at: now, now: now))
+        XCTAssertNil(TimedReminder.due(reminders, at: now.addingTimeInterval(-1), now: now))
+        XCTAssertNil(TimedReminder.due(reminders, at: now.addingTimeInterval(86401), now: now))
+    }
+
+    func testMovingResetEstimateDoesNotRepeatSameReminderMilestone() {
+        let now = Date(timeIntervalSince1970: 1800000000)
+        let account = ProviderAccount(provider: .codex, nickname: "Work", subject: "s", scope: "w")
+        var settings = RadarSettings()
+        settings.quotaRefreshReminders = [TimedReminder(id: "hour", amount: 1, unit: "Hours", severity: .warning)]
+        let previous = QuotaSnapshot(accountID: account.id, subject: "s", scope: "w", observedAt: now.addingTimeInterval(-120),
+            windows: [QuotaWindow(id: "q", name: "Weekly", unit: .percent, used: 10, resetsAt: now.addingTimeInterval(1800))])
+        var current = previous; current.observedAt = now
+        current.windows[0].resetsAt = now.addingTimeInterval(2100)
+        XCTAssertFalse(AlertEvaluator.evaluate(account: account, previous: previous, current: current, settings: settings, now: now).contains(where: \.isRefreshReminder))
+        current.windows[0].resetsAt = now.addingTimeInterval(3000)
+        XCTAssertTrue(AlertEvaluator.evaluate(account: account, previous: previous, current: current, settings: settings, now: now).contains(where: \.isRefreshReminder))
+    }
+
 }
