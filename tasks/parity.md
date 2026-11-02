@@ -76,3 +76,5 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Refresh scheduling now updates only after epoch/account-generation/enabled checks, so rejected old-connection results cannot alter the current connection schedule. Retry deadlines remain honored even if saving locally fails. Unit suite passes; live reconnect-during-refresh race verification remains outstanding.
 
 - Native demo privacy check verified account names become Account in cards, timeline selector labels/help, and management tooltips; quota details omit account identity and scope while retaining usage/reset/fetch information. Exited demo to restore saved state. Live notification privacy remains unverified.
+
+- Retention picker now matches source presets (7/30/60/90/180/365 days) and adds the current saved value, preventing an unlisted valid retention value from losing its picker selection. Debug build passes.

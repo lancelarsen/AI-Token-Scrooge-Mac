@@ -20,7 +20,7 @@ struct SettingsView: View {
                         Picker("Keep History and Alerts", selection: Binding(get: { store.state.settings.historyRetentionDays }, set: { days in
                             if days < store.state.settings.historyRetentionDays { pendingRetention = days }
                             else { store.edit { $0.settings.historyRetentionDays = days } }
-                        })) { ForEach([7,14,30,45,60,90,180,365], id: \.self) { Text("\($0) Days").tag($0) } }
+                        })) { ForEach(Array(Set([7,30,60,90,180,365,store.state.settings.historyRetentionDays])).sorted(), id: \.self) { Text("\($0) Days").tag($0) } }
                     }
                     SettingsCard(title: "Notifications", symbol: "bell") {
                         Toggle("Popup Notifications", isOn: binding(\.notifications))
