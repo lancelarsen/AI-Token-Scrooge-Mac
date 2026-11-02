@@ -229,6 +229,9 @@ struct HorizonView: View {
             }
         }
         .onChange(of: viewport.scrollOffset) { _, _ in hoverText = nil; hoveredSample = nil }
+        .onChange(of: store.state.settings.privacy) { _, _ in hoverText = nil; hoveredSample = nil }
+        .onChange(of: store.state.settings.hiddenHistoryAccounts) { _, _ in hoverText = nil; hoveredSample = nil }
+        .onChange(of: timelineAccounts.map(\.id)) { _, _ in hoverText = nil; hoveredSample = nil }
     }
     private var navigator: some View {
         GeometryReader { geometry in
