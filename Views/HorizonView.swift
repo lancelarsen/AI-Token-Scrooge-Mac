@@ -27,6 +27,7 @@ struct HorizonView: View {
                         GeometryReader { geometry in
                             ScrollView(.horizontal) {
                                 timeline.frame(width: viewport.contentWidth, height: timelineHeight)
+                                    .background(HistoryPointerTracking(onMove: updateHistoryHover))
                             }
                             .scrollIndicators(.hidden).scrollPosition($position)
                             .onScrollGeometryChange(for: Double.self) { $0.contentOffset.x } action: { _, value in if position.isPositionedByUser { viewport.scroll(to: value) } }
@@ -223,40 +224,37 @@ struct HorizonView: View {
                 }
             }
         }.contentShape(Rectangle())
-        .onContinuousHover { phase in
-            switch phase {
-            case .active(let location):
-                let date = viewport.date(at: location.x)
-                func distance(_ point: HistoryPoint) -> Double {
-                    let x = viewport.position(at: point.at)
-                    let y = plotTop + NSDecimalNumber(decimal: point.remaining).doubleValue / 100 * plotHeight
-                    return abs(x - location.x) + abs(y - location.y) * 0.45
-                }
-                let nearest = historySeries.flatMap { series in series.points.filter { abs(viewport.position(at: $0.at) - location.x) <= 18 }.map { (series.account, $0) } }
-                    .min { distance($0.1) < distance($1.1) }
-                let estimate = nearest == nil ? historySeries.compactMap { series in
-                    UsageHistory.estimatedPoint(points: series.points, x: location.x, y: location.y, viewport: viewport, plotTop: plotTop, plotHeight: plotHeight).map { (series.account, $0) }
-                }.first : nil
-                if store.state.settings.historyEnabled, date <= .now, (plotTop...plotBottom).contains(location.y), let (account, point) = nearest ?? estimate {
-                    hoveredSample = (account, point)
-                    var details = historyHelp(account)
-                    details += "\n\(Format.percent(100 - point.remaining)) Used · \(Format.date(point.at, zone: store.state.settings.zone))"
-                    if point.estimated { details += "\nEstimated Linear Connection From Previous Observation" }
-                    if let previous = point.replenishedFrom {
-                        details += "\nCapacity Rose From \(Format.percent(previous)) to \(Format.percent(point.remaining)) · Observed Between Polls"
-                        if let prior = point.previousObservedAt {
-                            details += "\n\(Format.date(prior, zone: store.state.settings.zone)) – \(Format.date(point.at, zone: store.state.settings.zone))"
-                        }
-                    }
-                    hoverText = details
-                } else { hoverText = nil; hoveredSample = nil }
-            case .ended: hoverText = nil; hoveredSample = nil
-            }
-        }
         .onChange(of: viewport.scrollOffset) { _, _ in hoverText = nil; hoveredSample = nil }
         .onChange(of: store.state.settings.privacy) { _, _ in hoverText = nil; hoveredSample = nil }
         .onChange(of: store.state.settings.hiddenHistoryAccounts) { _, _ in hoverText = nil; hoveredSample = nil }
         .onChange(of: timelineAccounts.map(\.id)) { _, _ in hoverText = nil; hoveredSample = nil }
+    }
+    private func updateHistoryHover(_ location: CGPoint?) {
+        guard let location else { hoverText = nil; hoveredSample = nil; return }
+        let date = viewport.date(at: location.x)
+        func distance(_ point: HistoryPoint) -> Double {
+            let x = viewport.position(at: point.at)
+            let y = plotTop + NSDecimalNumber(decimal: point.remaining).doubleValue / 100 * plotHeight
+            return abs(x - location.x) + abs(y - location.y) * 0.45
+        }
+        let nearest = historySeries.flatMap { series in series.points.filter { abs(viewport.position(at: $0.at) - location.x) <= 18 }.map { (series.account, $0) } }
+            .min { distance($0.1) < distance($1.1) }
+        let estimate = nearest == nil ? historySeries.compactMap { series in
+            UsageHistory.estimatedPoint(points: series.points, x: location.x, y: location.y, viewport: viewport, plotTop: plotTop, plotHeight: plotHeight).map { (series.account, $0) }
+        }.first : nil
+        if store.state.settings.historyEnabled, date <= .now, (plotTop...plotBottom).contains(location.y), let (account, point) = nearest ?? estimate {
+            hoveredSample = (account, point)
+            var details = historyHelp(account)
+            details += "\n\(Format.percent(100 - point.remaining)) Used · \(Format.date(point.at, zone: store.state.settings.zone))"
+            if point.estimated { details += "\nEstimated Linear Connection From Previous Observation" }
+            if let previous = point.replenishedFrom {
+                details += "\nCapacity Rose From \(Format.percent(previous)) to \(Format.percent(point.remaining)) · Observed Between Polls"
+                if let prior = point.previousObservedAt {
+                    details += "\n\(Format.date(prior, zone: store.state.settings.zone)) – \(Format.date(point.at, zone: store.state.settings.zone))"
+                }
+            }
+            hoverText = details
+        } else { hoverText = nil; hoveredSample = nil }
     }
     private var navigator: some View {
         GeometryReader { geometry in
@@ -423,4 +421,40 @@ struct HorizonView: View {
 
 private extension Date.FormatStyle {
     func withTimeZone(_ zone: TimeZone) -> Self { var style = self; style.timeZone = zone; return style }
+}
+
+/// A non-interactive tracking surface: event buttons and scrolling retain hit testing.
+struct HistoryPointerTracking: NSViewRepresentable {
+    var onMove: (CGPoint?) -> Void
+
+    func makeNSView(context: Context) -> TrackingView {
+        let view = TrackingView()
+        view.onMove = onMove
+        return view
+    }
+
+    func updateNSView(_ view: TrackingView, context: Context) { view.onMove = onMove }
+
+    final class TrackingView: NSView {
+        var onMove: ((CGPoint?) -> Void)?
+        private var area: NSTrackingArea?
+        override var isFlipped: Bool { true }
+        override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+        override func updateTrackingAreas() {
+            super.updateTrackingAreas()
+            if let area { removeTrackingArea(area) }
+            let replacement = NSTrackingArea(rect: .zero,
+                options: [.mouseMoved, .mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+                owner: self, userInfo: nil)
+            addTrackingArea(replacement)
+            area = replacement
+        }
+
+        override func mouseEntered(with event: NSEvent) { mouseMoved(with: event) }
+        override func mouseMoved(with event: NSEvent) {
+            onMove?(convert(event.locationInWindow, from: nil))
+        }
+        override func mouseExited(with event: NSEvent) { onMove?(nil) }
+    }
 }

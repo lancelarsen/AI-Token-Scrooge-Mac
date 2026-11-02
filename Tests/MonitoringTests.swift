@@ -1,8 +1,35 @@
 import XCTest
+import AppKit
 import SQLite3
 @testable import AITokenScrooge
 
 final class MonitoringTests: XCTestCase {
+    @MainActor
+    func testHistoryPointerCoordinatesAndTrackingLifecycle() throws {
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 800, height: 400),
+                              styleMask: [.borderless], backing: .buffered, defer: true)
+        let root = NSView(frame: NSRect(x: 0, y: 0, width: 800, height: 400))
+        window.contentView = root
+        let tracker = HistoryPointerTracking.TrackingView(frame: NSRect(x: 40, y: 50, width: 600, height: 300))
+        root.addSubview(tracker)
+        var locations: [CGPoint?] = []
+        tracker.onMove = { locations.append($0) }
+        tracker.updateTrackingAreas()
+        tracker.updateTrackingAreas()
+        XCTAssertEqual(tracker.trackingAreas.count, 1, "Layout updates must replace tracking areas rather than duplicate callbacks")
+        XCTAssertNil(tracker.hitTest(CGPoint(x: 75, y: 80)), "Tracking must not intercept event buttons or scrolling")
+        let event = try XCTUnwrap(NSEvent.mouseEvent(with: .mouseMoved,
+            location: CGPoint(x: 75, y: 320), modifierFlags: [], timestamp: 0,
+            windowNumber: window.windowNumber, context: nil, eventNumber: 0, clickCount: 0, pressure: 0))
+        tracker.mouseMoved(with: event)
+        XCTAssertEqual(locations.count, 1)
+        XCTAssertEqual(locations[0], CGPoint(x: 35, y: 30), "History uses top-left coordinates within the full timeline, not window coordinates")
+        tracker.mouseExited(with: event)
+        XCTAssertEqual(locations.count, 2)
+        XCTAssertNil(locations[1], "Leaving history must clear its details and guide")
+        tracker.removeFromSuperview()
+    }
+
     @MainActor
     func testFailedAlertActionSavePreservesBannerAndStoredState() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
