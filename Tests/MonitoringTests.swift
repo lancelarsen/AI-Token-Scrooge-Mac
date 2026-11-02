@@ -66,6 +66,37 @@ final class MonitoringTests: XCTestCase {
         XCTAssertEqual(persisted.alerts, store.state.alerts)
         XCTAssertEqual(persisted.snoozedAccounts[old.accountID], deadline)
     }
+    @MainActor
+    func testDemoAlertActionsDoNotOverwriteRealState() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("demo-isolation.db"))
+        let realAlert = AlertEvent(id: UUID().uuidString, accountID: "real-account", title: "Real", detail: "Test", createdAt: .now)
+        var initial = PersistedState()
+        initial.alerts = [realAlert]
+        initial.settings.sound = false
+        try await database.save(initial)
+        let store = AppStore(database: database)
+        await store.load()
+        store.dismissAlert(realAlert.id)
+        store.enterDemo()
+        await store.waitForPendingMutations()
+        XCTAssertTrue(store.isDemo)
+        let demoAlert = AlertEvent(id: UUID().uuidString, accountID: "demo-account", title: "Demo", detail: "Test", createdAt: .now)
+        store.edit { $0.alerts.append(demoAlert); $0.settings.sound = false }
+        store.snooze(demoAlert.id, minutes: 15)
+        store.exitDemo()
+        await store.waitForPendingMutations()
+        XCTAssertFalse(store.isDemo)
+        XCTAssertEqual(store.state.alerts.count, 1)
+        XCTAssertEqual(store.state.alerts.first?.id, realAlert.id)
+        XCTAssertEqual(store.state.alerts.first?.dismissed, true)
+        XCTAssertTrue(store.state.snoozedAccounts.isEmpty)
+        let persisted = try await database.load()
+        XCTAssertEqual(persisted.alerts, store.state.alerts)
+        XCTAssertTrue(persisted.snoozedAccounts.isEmpty)
+        XCTAssertNil(store.errorMessage)
+    }
     func testManualRefreshHonorsProviderThrottle() {
         let now = Date(timeIntervalSince1970: 1800000000)
         var schedule = RefreshSchedule()
