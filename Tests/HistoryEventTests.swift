@@ -2,6 +2,24 @@ import XCTest
 @testable import AITokenScrooge
 
 final class HistoryEventTests: XCTestCase {
+    func testFutureEventsPreserveQuotaIdentityForDetails() throws {
+        let now = Date(timeIntervalSince1970: 1800000000)
+        let (state, _) = DemoData.make(now: now)
+        let events = HorizonEvent.events(state: state, now: now)
+        XCTAssertTrue(events.contains { $0.expiration })
+        XCTAssertTrue(events.contains { !$0.expiration })
+        for event in events {
+            if event.expiration {
+                XCTAssertNil(event.windowID)
+            } else {
+                let windowID = try XCTUnwrap(event.windowID)
+                let snapshot = try XCTUnwrap(state.snapshots[event.account.id])
+                let window = try XCTUnwrap(snapshot.windows.first { $0.id == windowID })
+                XCTAssertEqual(window.resetsAt, event.date)
+                XCTAssertEqual(window.name, event.title)
+            }
+        }
+    }
     func testPausedHiddenAndMismatchedAccountsDoNotProduceFutureEvents() {
         let now = Date(timeIntervalSince1970: 1800000000)
         let (demo, _) = DemoData.make(now: now)

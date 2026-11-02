@@ -34,30 +34,39 @@ struct AlertHistoryView: View {
         .sheet(item: $selectedAlert) { alert in
             VStack(alignment: .leading, spacing: 16) {
                 ScrollView {
-                    if let account = store.state.accounts.first(where: { $0.id == alert.accountID }),
-                       let snapshot = store.state.snapshots[account.id], snapshot.belongs(to: account) {
-                        if alert.windowID == nil, let reserve = snapshot.reserve {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("Available Resets").font(.title2)
-                                Text(store.state.settings.privacy ? "Account Details Hidden" : "\(account.provider.rawValue) / \(account.nickname)")
-                                Text("\(reserve.availableCount.map(String.init) ?? "Unknown") Reported Available")
-                                Text("Snapshot Fetched: \(Format.date(snapshot.observedAt, zone: store.state.settings.zone))")
-                                Text(account.enabled ? snapshot.health.rawValue : "Monitoring Paused")
-                                if reserve.hasPartialDetails { Text("Provider supplied only partial credit details.") }
-                                if let credits = reserve.credits {
-                                    ForEach(credits) { credit in
-                                        Text("\(Format.date(credit.expiresAt, zone: store.state.settings.zone)) · \(credit.expiresAt.map { $0 <= Date() } == true ? "Expired Locally — Checking Provider" : credit.status)")
-                                    }
-                                } else { Text("Credit Details Unavailable") }
-                            }.frame(maxWidth: .infinity, alignment: .leading)
-                        } else if let window = snapshot.windows.first(where: { alert.windowID == nil || $0.id == alert.windowID }) {
-                            QuotaDetailsView(account: account, window: window, snapshot: snapshot)
-                        } else { unavailableDetails }
-                    } else { unavailableDetails }
+                    AccountUsageDetailsView(accountID: alert.accountID, windowID: alert.windowID)
                 }
                 Button("Close") { selectedAlert = nil }.buttonStyle(ScroogeButtonStyle())
             }.padding(24).frame(width: 500, height: 470).background(Theme.card).preferredColorScheme(.dark)
         }
+    }
+}
+
+struct AccountUsageDetailsView: View {
+    @Environment(AppStore.self) private var store
+    let accountID: String
+    let windowID: String?
+    var body: some View {
+        if let account = store.state.accounts.first(where: { $0.id == accountID }),
+           let snapshot = store.state.snapshots[account.id], snapshot.belongs(to: account) {
+            if windowID == nil, let reserve = snapshot.reserve {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Available Resets").font(.title2)
+                    Text(store.state.settings.privacy ? "Account Details Hidden" : "\(account.provider.rawValue) / \(account.nickname)")
+                    Text("\(reserve.availableCount.map(String.init) ?? "Unknown") Reported Available")
+                    Text("Snapshot Fetched: \(Format.date(snapshot.observedAt, zone: store.state.settings.zone))")
+                    Text(account.enabled ? snapshot.health.rawValue : "Monitoring Paused")
+                    if reserve.hasPartialDetails { Text("Provider supplied only partial credit details.") }
+                    if let credits = reserve.credits {
+                        ForEach(credits) { credit in
+                            Text("\(Format.date(credit.expiresAt, zone: store.state.settings.zone)) · \(credit.expiresAt.map { $0 <= Date() } == true ? "Expired Locally — Checking Provider" : credit.status)")
+                        }
+                    } else { Text("Credit Details Unavailable") }
+                }.frame(maxWidth: .infinity, alignment: .leading)
+            } else if let window = snapshot.windows.first(where: { windowID == nil || $0.id == windowID }) {
+                QuotaDetailsView(account: account, window: window, snapshot: snapshot)
+            } else { unavailableDetails }
+        } else { unavailableDetails }
     }
     private var unavailableDetails: some View {
         VStack(alignment: .leading, spacing: 12) {

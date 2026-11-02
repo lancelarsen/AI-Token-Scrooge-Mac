@@ -46,13 +46,18 @@ struct HorizonView: View {
         }
         .sheet(item: $selectedEvent) { event in
             VStack(alignment: .leading, spacing: 16) {
-                Label(event.title, systemImage: event.expiration ? "hourglass" : "arrow.clockwise").font(.title2).foregroundStyle(event.expiration ? Theme.amber : Theme.accent)
-                Text("\(event.account.provider.rawValue) · \(store.state.settings.privacy ? "Account" : event.account.nickname)")
-                Text(Format.date(event.date, zone: store.state.settings.zone))
-                if let reportedAt = event.reportedAt {
-                    Text("Reported \(Format.date(reportedAt, zone: store.state.settings.zone))").foregroundStyle(Theme.secondary)
-                    Text("This is a reported schedule, not confirmation that capacity reset or a credit was redeemed.").font(.callout)
-                } else { Text(Format.countdown(event.date)).foregroundStyle(Theme.secondary) }
+                if event.reportedAt == nil {
+                    ScrollView { AccountUsageDetailsView(accountID: event.account.id, windowID: event.windowID) }
+                        .frame(width: 450, height: 370)
+                } else {
+                    Label(event.title, systemImage: event.expiration ? "hourglass" : "arrow.clockwise").font(.title2).foregroundStyle(event.expiration ? Theme.amber : Theme.accent)
+                    Text("\(event.account.provider.rawValue) · \(store.state.settings.privacy ? "Account" : event.account.nickname)")
+                    Text(Format.date(event.date, zone: store.state.settings.zone))
+                    if let reportedAt = event.reportedAt {
+                        Text("Reported \(Format.date(reportedAt, zone: store.state.settings.zone))").foregroundStyle(Theme.secondary)
+                        Text("This is a reported schedule, not confirmation that capacity reset or a credit was redeemed.").font(.callout)
+                    } else { Text(Format.countdown(event.date)).foregroundStyle(Theme.secondary) }
+                }
                 Button("Close") { selectedEvent = nil }.buttonStyle(ScroogeButtonStyle())
             }.padding(28).frame(minWidth: 400).background(Theme.card).preferredColorScheme(.dark)
         }
