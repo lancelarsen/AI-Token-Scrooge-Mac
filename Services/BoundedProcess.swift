@@ -1,8 +1,10 @@
 import Foundation
+import Darwin
 
 /// Owns a single bounded CLI operation, drains stderr without retaining secrets, and cancels its process.
 actor BoundedProcess {
-    private let process = Process()
+    private let process: Process
+    init(process: Process = Process()) { self.process = process }
     private var output = Data()
     private var completion: CheckedContinuation<Data, Error>?
     private var exited: Int32?
@@ -62,7 +64,18 @@ actor BoundedProcess {
     private func fail(_ error: Error) {
         guard !stopped else { return }
         stopped = true; timer?.cancel()
-        if process.isRunning { process.terminate() }
+        process.stopWithDeadline()
         completion?.resume(throwing: error); completion = nil
+    }
+}
+
+extension Process {
+    /// Give the owned child time to exit, then enforce cleanup if it ignores SIGTERM.
+    func stopWithDeadline() {
+        guard isRunning else { return }
+        terminate()
+        DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 2) { [self] in
+            if isRunning { _ = Darwin.kill(processIdentifier, SIGKILL) }
+        }
     }
 }

@@ -135,7 +135,7 @@ actor CodexConnection {
         ended = true
         notificationContinuation.finish()
         try? input.close()
-        if process.isRunning { process.terminate() }
+        process.stopWithDeadline()
         for id in Array(pending.keys) { fail(id, error: ProviderFailure(message: "Codex connection ended. Reconnect to continue monitoring.")) }
         reader?.cancel(); reader = nil
     }

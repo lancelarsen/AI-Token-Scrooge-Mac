@@ -5,7 +5,7 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 ## Verified milestone
 
 - Xcode Debug build and native app launch succeed on this Mac.
-- Forty-seven tests pass (including Claude parser/version fixtures and the installed Codex CLI in a fresh signed-out profile): unknown/overage capacity, unknown billing units, workspace mismatch, reserve-only payloads, DST geometry, SQLite run compaction.
+- Forty-eight tests pass (including Claude parser/version fixtures and the installed Codex CLI in a fresh signed-out profile): unknown/overage capacity, unknown billing units, workspace mismatch, reserve-only payloads, DST geometry, SQLite run compaction.
 - Computer-use inspection confirms demo controls, provider artwork, future events, and history rendering. Native computer-use checks additionally confirm history toggle preserves selectors, navigator accessibility decrement changes dates, and historical reset details distinguish a reported schedule from an observed reset. Screenshot: artifacts/history-native-review.png (local evidence, ignored by Git). Full visual parity and live accounts are not verified.
 
 ## Implemented, awaiting complete verification
@@ -24,7 +24,7 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 
 ## Remaining before parity
 
-- Verify Codex browser login/cancellation and reconnect end-to-end with a live account; isolated transport and refresh are implemented and signed-out integration tested.
+- Verify Codex browser login/cancellation and reconnect end-to-end with a live account; isolated transport and refresh are implemented and signed-out integration tested. Owned CLI processes now enforce a two-second termination deadline; a real SIGTERM-ignoring fixture verifies timeout cleanup.
 - Verify Claude isolated auth, quota command and logout against an installed CLI and live account; implementation and parser/version fixtures are in place. Claude Code is not installed on this Mac.
 - Verify GitHub device login and rotating credential renewal end-to-end, services and UI are implemented with credential-validation fixtures. Injected replacement-write and ambiguous-network failures now verify retry without double rotation and durable reconnect after restart; live renewal remains unverified.
 - Verify scheduled refresh, native notification delivery/actions and menu/Dock badge end-to-end; scheduler, backoff, durable alert intents, quiet hours, account snooze, privacy, banner and Dock badge are implemented with policy tests. Delivery now revalidates current saved state after authorization and enqueue awaits, cancelling invalidated notifications. Menu alert indicator and queued notification routing now reopen the main window; verify both on screen.

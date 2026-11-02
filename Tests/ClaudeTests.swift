@@ -2,6 +2,21 @@ import XCTest
 @testable import AITokenScrooge
 
 final class ClaudeTests: XCTestCase {
+    func testTimedOutCommandThatIgnoresTerminationIsReaped() async throws {
+        let process = Process()
+        let command = BoundedProcess(process: process)
+        do {
+            _ = try await command.run(executable: URL(fileURLWithPath: "/bin/sh"),
+                arguments: ["-c", "trap '' TERM; exec /bin/sleep 60"],
+                directory: FileManager.default.temporaryDirectory, environment: [:], timeout: .milliseconds(200))
+            XCTFail("Expected timeout")
+        } catch { XCTAssertTrue(error is ProviderFailure) }
+        for _ in 0..<30 {
+            if !process.isRunning { break }
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        XCTAssertFalse(process.isRunning)
+    }
     private func date(_ text: String) -> Date { ISO8601DateFormatter().date(from: text)! }
     func testSupportedVersionGate() {
         XCTAssertFalse(ClaudeClient.supportsUsage("2.1.309 (Claude Code)"))
