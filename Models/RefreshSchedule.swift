@@ -34,13 +34,22 @@ enum AlertDeliveryPolicy {
 struct MonitorAvailability: Equatable {
     var needsAttention: Bool
     var notice: String?
+    var accountID: String?
+    var windowID: String?
     static func evaluate(_ state: PersistedState) -> Self {
         let enabled = state.accounts.filter(\.enabled)
         guard !enabled.isEmpty else {
-            return Self(needsAttention: true, notice: state.accounts.isEmpty ? "No Connected Accounts" : "Monitoring Paused")
+            return Self(needsAttention: true, notice: state.accounts.isEmpty ? "No Connected Accounts" : "Monitoring Paused", accountID: nil, windowID: nil)
         }
         var unavailable = false
         var paused = false
+        var limiting: (account: String, window: QuotaWindow, rank: Int)?
+        func rank(_ capacity: CapacityState) -> Int {
+            switch capacity {
+            case .exhausted: 5; case .critical: 4; case .low: 3
+            case .info: 2; case .healthy: 1; case .unknown: 0
+            }
+        }
         for account in enabled {
             guard let snapshot = state.snapshots[account.id], snapshot.belongs(to: account),
                   snapshot.health == .healthy || snapshot.health == .demo else {
@@ -51,10 +60,17 @@ struct MonitorAvailability: Equatable {
             if snapshot.windows.isEmpty { unavailable = true }
             for window in snapshot.windows {
                 let thresholds = state.settings.rule(accountID: account.id, windowID: window.id).thresholds ?? state.settings.thresholds
-                if window.capacity(thresholds) == .unknown { unavailable = true }
+                let capacity = window.capacity(thresholds)
+                if capacity == .unknown { unavailable = true }
+                let priority = rank(capacity)
+                if limiting == nil || priority > limiting!.rank ||
+                    (priority == limiting!.rank && (window.remainingPercent ?? .greatestFiniteMagnitude) < (limiting!.window.remainingPercent ?? .greatestFiniteMagnitude)) {
+                    limiting = (account.id, window, priority)
+                }
             }
         }
         return Self(needsAttention: unavailable || paused,
-                    notice: paused ? "Provider Reports Usage Is Paused" : unavailable ? "Some Current Usage Data Is Unavailable" : nil)
+                    notice: paused ? "Provider Reports Usage Is Paused" : unavailable ? "Some Current Usage Data Is Unavailable" : nil,
+                    accountID: limiting?.account, windowID: limiting?.window.id)
     }
 }

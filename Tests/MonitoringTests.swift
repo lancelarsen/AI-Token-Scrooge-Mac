@@ -89,4 +89,17 @@ final class MonitoringTests: XCTestCase {
         XCTAssertEqual(MonitorAvailability.evaluate(state).notice, "Monitoring Paused")
     }
 
+    func testMonitorSummarySelectsSeverityThenLeastRemaining() {
+        let account = ProviderAccount(provider: .codex, nickname: "a", subject: "s", scope: "w")
+        var state = PersistedState(); state.accounts = [account]
+        state.snapshots[account.id] = QuotaSnapshot(accountID: account.id, subject: "s", scope: "w", observedAt: .now,
+            windows: [QuotaWindow(id: "healthy", name: "healthy", unit: .percent, used: 10),
+                      QuotaWindow(id: "critical", name: "critical", unit: .percent, used: 95),
+                      QuotaWindow(id: "lower", name: "lower", unit: .percent, used: 98)])
+        XCTAssertEqual(MonitorAvailability.evaluate(state).windowID, "lower")
+        XCTAssertEqual(MonitorAvailability.evaluate(state).accountID, account.id)
+        state.accounts[0].enabled = false
+        XCTAssertNil(MonitorAvailability.evaluate(state).windowID)
+    }
+
 }

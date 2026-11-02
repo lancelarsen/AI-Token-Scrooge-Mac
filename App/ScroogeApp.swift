@@ -31,7 +31,7 @@ struct MenuBarContent: View {
             openWindow(id: "dashboard")
             NSApp.activate(ignoringOtherApps: true)
         }
-        if let notice = store.monitorAvailability.notice { Text(notice) }
+        Text(store.iconDescription)
         Button("Refresh All") { Task { await store.refresh() } }.disabled(store.isRefreshing)
         SettingsLink()
         Divider()

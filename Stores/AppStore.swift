@@ -42,8 +42,17 @@ import AppKit
     var iconUnavailable: Bool { state.settings.alertOnIcon && monitorAvailability.needsAttention }
     var attentionCount: Int { iconAlert != nil || iconUnavailable ? 1 : 0 }
     var iconDescription: String {
-        if let alert = iconAlert { return "AI Token Scrooge: \(alert.severity?.rawValue ?? "") quota alert" }
-        return "AI Token Scrooge" + (monitorAvailability.notice.map { ": " + $0 } ?? "")
+        let status = monitorAvailability
+        var summary = "AI Token Scrooge"
+        if let account = state.accounts.first(where: { $0.id == status.accountID }),
+           let window = state.snapshots[account.id]?.windows.first(where: { $0.id == status.windowID }) {
+            summary = "Scrooge · \(account.provider.rawValue) / \(state.settings.privacy ? "Account" : account.nickname) / \(window.name): \(Format.percent(window.remainingPercent)) Left"
+        }
+        if let notice = status.notice { summary += " · " + notice }
+        if let alert = iconAlert {
+            summary = "Scrooge · " + alert.title + " · " + (state.settings.privacy ? "Account Details Hidden" : alert.detail)
+        }
+        return isDemo ? "DEMO · " + summary : summary
     }
     private var lastPruned: Date = .distantPast
     private var lastCredentialCleanup: Date = .distantPast
