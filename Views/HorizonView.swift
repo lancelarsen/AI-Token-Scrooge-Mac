@@ -138,10 +138,13 @@ struct HorizonView: View {
                     let y = 95 + NSDecimalNumber(decimal: point.remaining).doubleValue / 100 * 200
                     return abs(x - location.x) + abs(y - location.y) * 0.45
                 }
-                let nearest = historySeries.flatMap { series in series.points.map { (series.account, $0) } }
+                let nearest = historySeries.flatMap { series in series.points.filter { abs(viewport.position(at: $0.at) - location.x) <= 18 }.map { (series.account, $0) } }
                     .min { distance($0.1) < distance($1.1) }
-                if store.state.settings.historyEnabled, date <= .now, let (account, point) = nearest, distance(point) <= 28 {
-                    hoverText = "\(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.percent(100 - point.remaining)) Used · \(Format.date(point.at, zone: store.state.settings.zone))" + (point.estimated ? " · Estimated Connection from Previous Observation" : "")
+                let estimate = nearest == nil ? historySeries.compactMap { series in
+                    UsageHistory.estimatedPoint(points: series.points, x: location.x, y: location.y, viewport: viewport).map { (series.account, $0) }
+                }.first : nil
+                if store.state.settings.historyEnabled, date <= .now, (95...295).contains(location.y), let (account, point) = nearest ?? estimate {
+                    hoverText = "\(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.percent(100 - point.remaining)) Used · \(Format.date(point.at, zone: store.state.settings.zone))" + (point.estimated ? " · Estimated Linear Connection From Previous Observation" : "")
                 } else { hoverText = Format.date(date, zone: store.state.settings.zone) }
             case .ended: hoverText = nil
             }

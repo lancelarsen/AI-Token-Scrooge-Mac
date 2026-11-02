@@ -2,6 +2,20 @@ import XCTest
 @testable import AITokenScrooge
 
 final class UsageHistoryTests: XCTestCase {
+    func testGapHoverIsExplicitEstimateAndNeverBridgesNewSegment() {
+        let now = Date(timeIntervalSince1970: 1800000000)
+        let viewport = HorizonViewport(now: now, furthestFuture: nil, zone: TimeZone(secondsFromGMT: 0)!, width: 700)
+        let before = HistoryPoint(at: now.addingTimeInterval(-7200), remaining: 80, windowID: "weekly", startsSegment: true, estimated: false)
+        var after = HistoryPoint(at: now, remaining: 40, windowID: "weekly", startsSegment: false, estimated: true)
+        let x = (viewport.position(at: before.at) + viewport.position(at: after.at)) / 2
+        let estimate = UsageHistory.estimatedPoint(points: [before, after], x: x, y: 215, viewport: viewport)
+        XCTAssertEqual(estimate?.remaining, 60)
+        XCTAssertEqual(estimate?.at, now.addingTimeInterval(-3600))
+        XCTAssertEqual(estimate?.estimated, true)
+        XCTAssertNil(UsageHistory.estimatedPoint(points: [before, after], x: x, y: 95, viewport: viewport))
+        after.startsSegment = true
+        XCTAssertNil(UsageHistory.estimatedPoint(points: [before, after], x: x, y: 215, viewport: viewport))
+    }
     func testDemoHistoryEndsAtCurrentUsageAndIncludesReportingGap() {
         let now = Date(timeIntervalSince1970: 1800000000)
         let (state, runs) = DemoData.make(now: now)
