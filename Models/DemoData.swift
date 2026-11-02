@@ -6,18 +6,27 @@ enum DemoData {
         state.settings.accountSort = .custom
         var runs: [HistoryRun] = []
         let configs: [(Provider, String, String, String, [Decimal])] = [
-            (.codex,"Personal","Plus","#D58FAF",[38,74]), (.copilot,"Work","Max","#C9DF75",[86]),
-            (.codex,"Work","Pro","#B5A0F4",[61,24]), (.claude,"Personal","Pro","#58A6FF",[93,56])
+            (.codex,"Personal","Plus","#D587A5",[38,74]), (.copilot,"Work","Max","#CDEB82",[8200]),
+            (.codex,"Work","Pro","#B99AF8",[19,58]), (.claude,"Personal","Pro","#58A6FF",[12,94])
         ]
         for (index, config) in configs.enumerated() {
             let account = ProviderAccount(id: "demo-\(index)", provider: config.0, nickname: config.1, subject: "demo-\(index)", scope: "demo", lineColor: config.3)
             state.accounts.append(account)
+            var utc = Calendar(identifier: .gregorian); utc.timeZone = TimeZone(secondsFromGMT: 0)!
+            let nextMonth = utc.date(byAdding: .month, value: 1, to: utc.date(from: utc.dateComponents([.year, .month], from: now))!)!
             let windows = config.4.enumerated().map { offset, usage in
-                QuotaWindow(id: config.0 == .copilot ? "copilot/monthly" : "window-\(offset)", name: config.0 == .copilot ? "AI Credits · Monthly" : offset == 0 ? "\(config.0 == .codex ? "Codex" : "Current Session") · 5-Hour" : "\(config.0 == .codex ? "Codex" : "Claude") · Weekly",
-                            unit: .percent, used: usage, limit: 100, resetsAt: now.addingTimeInterval(Double(offset == 0 ? 8000 + index * 5400 : 170000 + index * 32000)),
-                            durationMinutes: offset == 0 ? 300 : 10080, allowanceSource: .provider)
+                let copilot = config.0 == .copilot
+                let session = offset == 0
+                let reset: Date = copilot ? nextMonth : now.addingTimeInterval(
+                    session ? (index == 0 ? 8040 : index == 2 ? 13440 : 10800) : Double(index == 0 ? 2 : index == 2 ? 5 : 4) * 86400)
+                return QuotaWindow(id: copilot ? "copilot/monthly" : config.0 == .codex ? (session ? "codex/primary" : "codex/secondary") : (session ? "session" : "weekly"),
+                    name: copilot ? "AI Credits · Monthly (10,000)" : config.0 == .codex ? (session ? "Codex · 5-Hour" : "Codex · Weekly") : (session ? "Current Session" : "Weekly Limit"),
+                    unit: copilot ? .credits : .percent, used: usage, limit: copilot ? 10000 : 100,
+                    resetsAt: reset, durationMinutes: copilot ? nil : session ? 300 : 10080, allowanceSource: .provider)
             }
-            let reserve: ResetReserve? = config.0 == .codex ? ResetReserve(availableCount: 1, credits: [.init(id: "credit-\(index)", status: "available", expiresAt: now.addingTimeInterval(Double(3 + index * 2) * 86400))]) : nil
+            let reserve: ResetReserve? = index == 0 ? ResetReserve(availableCount: 2, credits: [
+                .init(id: "demo-r1", status: "available", expiresAt: now.addingTimeInterval(4 * 86400)),
+                .init(id: "demo-r2", status: "available", expiresAt: now.addingTimeInterval(9 * 86400))]) : nil
             let snapshot = QuotaSnapshot(accountID: account.id, subject: account.subject, scope: account.scope, observedAt: now, windows: windows, reserve: reserve, health: .demo, planType: config.2)
             state.snapshots[account.id] = snapshot
             runs += history(account: account, current: snapshot, index: index, now: now, zone: state.settings.zone)
