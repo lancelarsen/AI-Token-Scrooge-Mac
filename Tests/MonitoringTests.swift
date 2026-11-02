@@ -36,4 +36,21 @@ final class MonitoringTests: XCTestCase {
         XCTAssertFalse(AlertDeliveryPolicy.canDeliver(alert, state: state, now: now))
         XCTAssertTrue(AlertDeliveryPolicy.canDeliver(alert, state: state, now: now.addingTimeInterval(3600)))
     }
+    func testAccountSnoozeSurvivesLegacyMigrationAndHistoryRemoval() throws {
+        let now = Date(timeIntervalSince1970: 1800000000)
+        let account = ProviderAccount(provider: .codex, nickname: "a", subject: "s", scope: "w")
+        let alert = AlertEvent(id: "old", accountID: account.id, windowID: "session", title: "Low", detail: "", createdAt: now,
+                               snoozedUntil: now.addingTimeInterval(3600))
+        var state = PersistedState(); state.accounts = [account]; state.alerts = [alert]
+        let encoded = try JSONEncoder().encode(state)
+        var legacy = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        legacy.removeValue(forKey: "snoozedAccounts")
+        var migrated = try JSONDecoder().decode(PersistedState.self, from: JSONSerialization.data(withJSONObject: legacy))
+        migrated.alerts.removeAll()
+        let reopened = try JSONDecoder().decode(PersistedState.self, from: JSONEncoder().encode(migrated))
+        var next = alert; next.id = "new"; next.snoozedUntil = nil
+        XCTAssertFalse(AlertDeliveryPolicy.canDeliver(next, state: reopened, now: now))
+        XCTAssertTrue(AlertDeliveryPolicy.canDeliver(next, state: reopened, now: now.addingTimeInterval(3600)))
+    }
+
 }

@@ -25,6 +25,7 @@ enum AlertDeliveryPolicy {
         guard !alert.dismissed, state.settings.notifications, !state.settings.isQuiet(at: now),
               state.accounts.contains(where: { $0.id == alert.accountID && $0.enabled }),
               AlertEvaluator.isEnabled(alert, settings: state.settings, snapshot: state.snapshots[alert.accountID]) else { return false }
+        if let until = state.snoozedAccounts[alert.accountID] { return until <= now }
         return !state.alerts.contains { $0.accountID == alert.accountID && ($0.snoozedUntil ?? .distantPast) > now }
     }
 }

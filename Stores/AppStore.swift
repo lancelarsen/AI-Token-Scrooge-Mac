@@ -196,6 +196,9 @@ import AppKit
             guard let self, let index = state.alerts.firstIndex(where: { $0.id == id }) else { return }
             var candidate = state
             mutation(&candidate.alerts[index])
+            if cue == "snooze", let until = candidate.alerts[index].snoozedUntil {
+                candidate.snoozedAccounts[candidate.alerts[index].accountID] = until
+            }
             do {
                 if !isDemo {
                     guard localStateReady, let database else { throw StoreError.operation }
@@ -391,6 +394,7 @@ import AppKit
             candidate.accounts.removeAll { $0.id == id }
             candidate.snapshots.removeValue(forKey: id)
             candidate.alerts.removeAll { $0.accountID == id }
+            candidate.snoozedAccounts.removeValue(forKey: id)
             candidate.settings.accountOrder.removeAll { $0 == id }
             candidate.settings.hiddenHistoryAccounts.remove(id)
             candidate.settings.rules.removeAll { $0.accountID == id }

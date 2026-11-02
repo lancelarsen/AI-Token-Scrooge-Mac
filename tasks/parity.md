@@ -45,3 +45,5 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - The test entry remained Recorded in History; macOS notification acceptance/display was not confirmed. These checks establish in-app navigation and dismissal only, not native notification delivery or live-provider behavior.
 
 - Alert banners now include the source provider icon/name and severity-specific title/border colors (info blue, warning yellow, critical red, default lavender), with the source dark banner background. Debug build passes; native rendering across all severity variants remains to be checked.
+
+- Account snooze deadlines persist independently of alert history, matching the source account-level behavior. Legacy alert deadlines migrate on decode; account removal clears its deadline. A regression test covers legacy migration, history removal, reopen and exact expiry. Unit suite passes.
