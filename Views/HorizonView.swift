@@ -286,6 +286,12 @@ struct HorizonView: View {
             }
             flush()
         }
+        if nowX >= viewport.scrollOffset - 1, nowX <= viewport.scrollOffset + viewport.viewportWidth + 1 {
+            var currentTime = Path()
+            currentTime.move(to: CGPoint(x: nowX, y: 95))
+            currentTime.addLine(to: CGPoint(x: nowX, y: 95 + chartHeight))
+            context.stroke(currentTime, with: .color(Theme.accent), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
+        }
         let latest = historySeries.compactMap { series -> (UsageHistorySeries, HistoryPoint)? in
             guard let point = series.points.last(where: { viewport.position(at: $0.at) >= viewport.scrollOffset && viewport.position(at: $0.at) <= viewport.scrollOffset + viewport.viewportWidth }) else { return nil }
             return (series, point)
@@ -298,12 +304,12 @@ struct HorizonView: View {
             guard x >= viewport.scrollOffset, x <= viewport.scrollOffset + viewport.viewportWidth else { continue }
             let color = Color(hex: series.account.resolvedLineColor(plan: store.state.snapshots[series.account.id]?.planType))
             let y = 95 + NSDecimalNumber(decimal: point.remaining).doubleValue / 100 * chartHeight
+            context.fill(Path(ellipseIn: CGRect(x: x - 3, y: y - 3, width: 6, height: 6)), with: .color(color))
             let end = viewport.scrollOffset + viewport.viewportWidth
             guard nowX >= end - 80, x >= end - 70 else { continue }
             let labelX = end - 86, labelY = labels[index]
             var connector = Path(); connector.move(to: CGPoint(x: x - 4, y: y)); connector.addLine(to: CGPoint(x: labelX + 80, y: labelY + 10))
             context.stroke(connector, with: .color(color.opacity(0.6)), lineWidth: 1)
-            context.fill(Path(ellipseIn: CGRect(x: x - 3, y: y - 3, width: 6, height: 6)), with: .color(color))
             let rect = CGRect(x: labelX, y: labelY, width: 80, height: 21)
             context.fill(Path(roundedRect: rect, cornerRadius: 6), with: .color(Theme.card))
             context.stroke(Path(roundedRect: rect, cornerRadius: 6), with: .color(color.opacity(0.7)), lineWidth: 1)
