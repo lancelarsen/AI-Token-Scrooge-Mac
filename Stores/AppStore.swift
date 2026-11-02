@@ -468,7 +468,10 @@ import AppKit
         try Task.checkCancellation()
         if let appTokens { try await githubCredentials.saveApp(id: account.credentialID, subject: account.subject, tokens: appTokens) }
         else { try await secrets.save(Data(token.utf8), id: account.credentialID) }
-        do { try await acceptConnection(account, snapshot: snapshot, replacing: original) }
+        do {
+            try Task.checkCancellation()
+            try await acceptConnection(account, snapshot: snapshot, replacing: original)
+        }
         catch { try? await secrets.remove(account.credentialID); throw error }
     }
 

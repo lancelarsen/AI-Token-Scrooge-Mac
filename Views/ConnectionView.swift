@@ -11,11 +11,12 @@ struct ConnectionView: View {
     @State private var unit: UsageUnit = .credits
     @State private var advanced = false
     @State private var connecting = false
+    @State private var connectionTask: Task<Void, Never>?
     @State private var error: String?
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack { Text("Connect Account").font(.title); Spacer(); Button("Cancel") { dismiss() }.disabled(connecting) }
-            Picker("Provider", selection: $provider) { ForEach(Provider.allCases) { Text($0.rawValue).tag($0) } }
+            Picker("Provider", selection: $provider) { ForEach(Provider.allCases) { Text($0.rawValue).tag($0) } }.disabled(connecting)
             TextField("Nickname", text: $nickname)
             if provider == .codex {
                 CodexConnectView(nickname: nickname, original: store.state.accounts.first { $0.id == store.reconnectAccountID })
@@ -31,7 +32,7 @@ struct ConnectionView: View {
                 Text("Provider allowance takes precedence when available.").font(.caption).foregroundStyle(Theme.secondary)
                 Button(connecting ? "Connecting…" : "Connect Account") {
                     connecting = true; error = nil
-                    Task {
+                    connectionTask = Task {
                         defer { connecting = false }
                         do {
                             let amount = allowance.isEmpty ? nil : Decimal(string: allowance, locale: Locale(identifier: "en_US_POSIX"))
@@ -47,6 +48,7 @@ struct ConnectionView: View {
             }
             if let error { Text(error).foregroundStyle(Theme.amber) }
         }.padding(28).frame(width: 560).background(Theme.background).preferredColorScheme(.dark)
+        .onDisappear { connectionTask?.cancel(); token = "" }
         .onAppear {
             if let original = store.state.accounts.first(where: { $0.id == store.reconnectAccountID }) {
                 provider = original.provider; nickname = original.nickname; unit = original.unit

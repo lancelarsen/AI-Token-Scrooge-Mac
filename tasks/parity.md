@@ -64,3 +64,5 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - macOS app activation, workspace wake and offline-to-online network transitions now request refresh through the existing throttle-aware refresh path. Initial path discovery does not force an extra refresh; observers are disabled in test mode and cleaned up at termination. Debug build and unit suite pass. Physical sleep/wake/network recovery with live accounts remains unverified.
 
 - Forced refresh requests received during an active refresh now coalesce into one follow-up pass. The monitoring epoch rejects queued work after demo transitions; normal polling does not queue redundant work, and the follow-up still honors provider throttles. Unit suite passes; live overlapping recovery-event testing remains outstanding.
+
+- Advanced GitHub connection now tracks/cancels its task on form disappearance, clears token text, and prevents provider switching while the attempt runs. A post-Keychain cancellation check removes the new credential before account commit if cancelled. Unit suite passes; live cancellation at Keychain/network boundaries remains unverified.
