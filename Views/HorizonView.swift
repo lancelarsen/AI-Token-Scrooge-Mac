@@ -149,14 +149,21 @@ struct HorizonView: View {
                 }
             }
             ForEach(days, id: \.self) { date in
+                let dayEvents = events.filter { calendar.isDate($0.date, inSameDayAs: date) }
                 VStack(spacing: 8) {
                     Text(dayName(date)).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.accent)
                     Text(date.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone))).font(.system(size: 11)).foregroundStyle(Theme.secondary)
-                    Circle().fill(isToday(date) ? Theme.accent : Theme.card).frame(width: isToday(date) ? 15 : 8, height: isToday(date) ? 15 : 8)
-                        .overlay(Circle().stroke(Theme.accent, lineWidth: 2))
-                }.frame(width: viewport.pixelsPerDay, height: 70, alignment: .top)
-                    .position(x: viewport.dayAnchor(date), y: 35)
-                let dayEvents = events.filter { calendar.isDate($0.date, inSameDayAs: date) }
+                }.frame(width: viewport.pixelsPerDay, height: 40, alignment: .top)
+                    .position(x: viewport.dayAnchor(date), y: 20)
+                Circle()
+                    .fill(isToday(date) ? Color(hex: "#D1BEFF") : dayEvents.isEmpty ? Color(hex: "#1C1E24") : Theme.accent)
+                    .frame(width: isToday(date) ? 16 : 10, height: isToday(date) ? 16 : 10)
+                    .overlay {
+                        if !isToday(date), dayEvents.isEmpty {
+                            Circle().strokeBorder(Theme.accent, lineWidth: 2)
+                        }
+                    }
+                    .position(x: viewport.dayAnchor(date), y: 56)
                 ForEach(Array(dayEvents.enumerated()), id: \.element.id) { index, event in
                     Button { selectedEvent = event } label: {
                         VStack(spacing: 2) {
