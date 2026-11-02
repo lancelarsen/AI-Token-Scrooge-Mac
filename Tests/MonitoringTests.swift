@@ -102,4 +102,21 @@ final class MonitoringTests: XCTestCase {
         XCTAssertNil(MonitorAvailability.evaluate(state).windowID)
     }
 
+    func testTimedAlertIncludesExactLocalTimeAndRejectsNonLiveHealth() {
+        let now = Date(timeIntervalSince1970: 1800000000)
+        let reset = now.addingTimeInterval(1800)
+        let account = ProviderAccount(provider: .codex, nickname: "Work", subject: "s", scope: "w")
+        let settings = RadarSettings()
+        var snapshot = QuotaSnapshot(accountID: account.id, subject: "s", scope: "w", observedAt: now,
+            windows: [QuotaWindow(id: "q", name: "Weekly", unit: .percent, used: 10, resetsAt: reset)])
+        let reminders = AlertEvaluator.evaluate(account: account, previous: nil, current: snapshot, settings: settings, now: now).filter(\.isRefreshReminder)
+        XCTAssertEqual(reminders.count, 1)
+        XCTAssertTrue(reminders.first?.detail.contains(Format.date(reset, zone: settings.zone)) == true)
+        XCTAssertTrue(reminders.first?.detail.contains("Work") == true)
+        for health in [SourceHealth.demo, .stale, .offline, .authenticationRequired] {
+            snapshot.health = health
+            XCTAssertTrue(AlertEvaluator.evaluate(account: account, previous: nil, current: snapshot, settings: settings, now: now).isEmpty)
+        }
+    }
+
 }

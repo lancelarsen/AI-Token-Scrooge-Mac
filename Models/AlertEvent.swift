@@ -37,7 +37,7 @@ enum AlertEvaluator {
                     prior != reset && prior > now && abs(reset.timeIntervalSince(prior)) <= 600
                     && previous.map { TimedReminder.due(settings.quotaRefreshReminders, at: prior, now: $0.observedAt)?.id == reminder.id } == true
                 } ?? false
-                if !movingEstimate { alerts.append(makeReminder(account: account, windowID: window.id, target: window.id, at: reset, reminder: reminder, refresh: true, now: now, name: window.name)) }
+                if !movingEstimate { alerts.append(makeReminder(account: account, windowID: window.id, target: window.id, at: reset, reminder: reminder, refresh: true, now: now, name: window.name, settings: settings)) }
             }
             let rule = settings.rule(accountID: account.id, windowID: window.id)
             let thresholds = rule.thresholds ?? settings.thresholds
@@ -60,16 +60,16 @@ enum AlertEvaluator {
         if settings.rule(accountID: account.id).expiry, current.reserve?.availableCount != 0 {
             for credit in current.reserve?.credits ?? [] where credit.status == "available" {
                 if let expiry = credit.expiresAt, let reminder = TimedReminder.due(settings.resetExpiryReminders, at: expiry, now: now) {
-                    alerts.append(makeReminder(account: account, windowID: nil, target: credit.id, at: expiry, reminder: reminder, refresh: false, now: now, name: "Earned Reset"))
+                    alerts.append(makeReminder(account: account, windowID: nil, target: credit.id, at: expiry, reminder: reminder, refresh: false, now: now, name: "Earned Reset", settings: settings))
                 }
             }
         }
         return alerts.filter { isEnabled($0, settings: settings, snapshot: current) }
     }
-    private static func makeReminder(account: ProviderAccount, windowID: String?, target: String, at: Date, reminder: TimedReminder, refresh: Bool, now: Date, name: String) -> AlertEvent {
+    private static func makeReminder(account: ProviderAccount, windowID: String?, target: String, at: Date, reminder: TimedReminder, refresh: Bool, now: Date, name: String, settings: RadarSettings) -> AlertEvent {
         AlertEvent(id: "\(account.id)/\(refresh ? "refresh" : "credit")/\(target)/\(Int64(at.timeIntervalSince1970))/\(reminder.id)", accountID: account.id,
                    windowID: windowID, title: "\(reminder.severity.rawValue) Alert · \(refresh ? "Quota Refresh" : "Reset Expiration")",
-                   detail: "\(name) · \(Format.countdown(at, now: now)) · \(account.nickname)", createdAt: now,
+                   detail: "\(name) · \(Format.countdown(at, now: now)) · \(Format.date(at, zone: settings.zone)) · \(account.nickname)", createdAt: now,
                    severity: reminder.severity, reminderID: reminder.id, isRefreshReminder: refresh)
     }
 }

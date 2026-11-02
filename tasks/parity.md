@@ -53,3 +53,5 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Monitor availability now flags no accounts, paused monitoring, missing/stale/identity-mismatched data, unknown allowances, and provider-paused usage. Menu bar uses a distinct question-mark state and explanatory menu/accessibility text; quota severity retains priority. Unit suite passes with missing/stale/identity/paused regression cases. Native menu-bar rendering and the source limiting-quota tooltip remain to be verified/completed.
 
 - Menu-bar tooltip/menu summary now identifies the limiting account/window by source severity rank and remaining-percentage tie break, adds monitoring notices, labels demo state, and respects privacy. Current icon alerts override the summary with source alert details. Unit suite passes, including limiting-window ordering and paused exclusion. Native tooltip/menu visual verification remains outstanding.
+
+- Timed quota/reset alerts now include the exact timestamp in the selected display zone alongside the countdown, matching source reminder details. Unit suite passes with timestamp coverage and demo/stale/offline/authentication health rejection checks.
