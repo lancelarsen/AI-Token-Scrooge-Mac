@@ -12,8 +12,8 @@ struct SettingsView: View {
                 VStack(spacing: 12) {
                     if store.isDemo { Text("Demo changes stay in this preview. Notification tests use macOS.").foregroundStyle(Theme.accent) }
                     SettingsCard(title: "Time Zone", symbol: "globe") {
-                        Picker("Time Zone", selection: binding(\.timeZoneID)) {
-                            ForEach(TimeZone.knownTimeZoneIdentifiers, id: \.self) { Text($0.replacingOccurrences(of: "_", with: " ")).tag($0) }
+                        Picker("Time Zone", selection: Binding(get: { store.state.settings.zone.identifier }, set: { zone in store.edit { $0.settings.timeZoneID = zone } })) {
+                            ForEach(Array(Set(TimeZone.knownTimeZoneIdentifiers + [store.state.settings.zone.identifier])).sorted(), id: \.self) { Text($0.replacingOccurrences(of: "_", with: " ")).tag($0) }
                         }
                     }
                     SettingsCard(title: "History and Alerts", symbol: "clock.arrow.circlepath", help: "Choose how long to keep recorded usage and alerts. Increasing retention cannot recover deleted records.") {

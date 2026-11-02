@@ -78,3 +78,5 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Native demo privacy check verified account names become Account in cards, timeline selector labels/help, and management tooltips; quota details omit account identity and scope while retaining usage/reset/fetch information. Exited demo to restore saved state. Live notification privacy remains unverified.
 
 - Retention picker now matches source presets (7/30/60/90/180/365 days) and adds the current saved value, preventing an unlisted valid retention value from losing its picker selection. Debug build passes.
+
+- Time-zone picker now binds to the resolved zone used by dates/quiet hours and includes valid aliases absent from the standard zone list. Invalid saved IDs visibly resolve to Chicago rather than producing an empty picker selection. Unit suite passes with fallback/quiet-hour and UTC coverage; native invalid-ID picker verification remains outstanding.

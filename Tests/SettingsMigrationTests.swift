@@ -59,4 +59,14 @@ final class SettingsMigrationTests: XCTestCase {
         let loaded = try JSONDecoder().decode(PersistedState.self, from: JSONEncoder().encode(state))
         XCTAssertTrue(loaded.snapshots.isEmpty)
     }
+    func testUnknownSavedTimeZoneUsesSourceFallbackForQuietHours() throws {
+        let settings = try JSONDecoder().decode(RadarSettings.self,
+            from: Data(#"{"timeZoneID":"No/Such_Zone","quietHours":true,"quietStartHour":22,"quietEndHour":8}"#.utf8))
+        XCTAssertEqual(settings.zone.identifier, "America/Chicago")
+        let date = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-11-02T05:00:00Z"))
+        XCTAssertTrue(settings.isQuiet(at: date))
+        var utc = settings; utc.timeZoneID = "UTC"
+        XCTAssertEqual(utc.zone.secondsFromGMT(for: date), 0)
+    }
+
 }
