@@ -65,7 +65,7 @@ struct DashboardView: View {
         HStack(spacing: 12) {
             HStack(spacing: 0) {
                 ForEach(AccountSort.allCases, id: \.self) { sort in
-                    Button { store.edit { $0.settings.accountSort = sort } } label: {
+                    Button { store.edit { AccountPolicy.selectSort(sort, state: &$0) } } label: {
                         HStack(spacing: 10) { Image(systemName: icon(sort)).foregroundStyle(Theme.accent); Text(sort.rawValue).font(.system(size: 12)) }.frame(maxWidth: .infinity, minHeight: 44)
                     }.buttonStyle(.plain).background(store.state.settings.accountSort == sort ? Theme.accent.opacity(0.28) : Theme.control)
                 }

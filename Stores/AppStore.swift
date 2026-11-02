@@ -231,9 +231,10 @@ import AppKit
         }
     }
     func reorder(_ dragged: String, before target: String) {
-        let ids = accounts.map(\.id)
         edit { state in
-            var order = ids.filter { $0 != dragged }
+            guard state.settings.accountSort == .custom, dragged != target,
+                  state.accounts.contains(where: { $0.id == dragged }) else { return }
+            var order = AccountPolicy.ordered(state).map(\.id).filter { $0 != dragged }
             guard let index = order.firstIndex(of: target) else { return }
             order.insert(dragged, at: index); state.settings.accountOrder = order; state.settings.accountSort = .custom
         }

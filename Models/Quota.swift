@@ -108,6 +108,13 @@ struct QuotaSnapshot: Codable, Equatable, Sendable {
 }
 
 enum AccountPolicy {
+    static func selectSort(_ mode: AccountSort, state: inout PersistedState) {
+        guard mode != state.settings.accountSort else { return }
+        if mode == .custom, !state.settings.accountOrder.contains(where: { id in state.accounts.contains { $0.id == id } }) {
+            state.settings.accountOrder = ordered(state).map(\.id)
+        }
+        state.settings.accountSort = mode
+    }
     static func ordered(_ state: PersistedState) -> [ProviderAccount] {
         func remaining(_ account: ProviderAccount) -> Decimal? {
             account.enabled ? state.snapshots[account.id]?.windows.compactMap(\.remainingPercent).min() : nil

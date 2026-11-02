@@ -2,6 +2,17 @@ import XCTest
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testFirstCustomSortCapturesVisibleOrderAndLaterRestoresSavedOrder() {
+        var state = DemoData.make(now: Date(timeIntervalSince1970: 1800000000)).0
+        state.settings.accountOrder = ["removed-account"]
+        state.settings.accountSort = .leastRemaining
+        let visible = AccountPolicy.ordered(state).map(\.id)
+        AccountPolicy.selectSort(.custom, state: &state)
+        XCTAssertEqual(state.settings.accountOrder, visible)
+        AccountPolicy.selectSort(.mostRemaining, state: &state)
+        AccountPolicy.selectSort(.custom, state: &state)
+        XCTAssertEqual(AccountPolicy.ordered(state).map(\.id), visible)
+    }
     func testSortPlacesUnknownAndPausedAccountsLastAndKeepsTiesStable() {
         let now = Date(timeIntervalSince1970: 1800000000)
         var state = PersistedState()
