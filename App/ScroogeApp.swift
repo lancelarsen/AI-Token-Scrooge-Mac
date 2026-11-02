@@ -6,6 +6,14 @@ import Network
 @main struct ScroogeApp: App {
     @NSApplicationDelegateAdaptor(ScroogeAppDelegate.self) private var delegate
     @State private var store = AppStore()
+    private var statusSymbol: String {
+        switch store.iconAlert?.severity {
+        case .critical: "exclamationmark.octagon.fill"
+        case .warning: "exclamationmark.triangle.fill"
+        case .info: "info.circle.fill"
+        case nil: store.iconUnavailable ? "questionmark.circle" : "gauge.with.dots.needle.33percent"
+        }
+    }
     var body: some Scene {
         Window("AI Token Scrooge", id: "dashboard") {
             DashboardView().environment(store)
@@ -17,7 +25,7 @@ import Network
         MenuBarExtra {
             MenuBarContent().environment(store)
         } label: {
-            Image(systemName: store.iconAlert != nil ? "exclamationmark.circle.fill" : store.iconUnavailable ? "questionmark.circle" : "gauge.with.dots.needle.33percent")
+            Image(systemName: statusSymbol)
                 .accessibilityLabel(store.iconDescription)
                 .help(store.iconDescription)
         }
