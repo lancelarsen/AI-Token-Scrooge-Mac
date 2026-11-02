@@ -189,18 +189,34 @@ import AppKit
         SoundPlayer.shared.play(settings: state.settings, cue: "dismiss")
     }
     private func deliver(_ alert: AlertEvent, account: ProviderAccount, epoch: UUID) async {
-        guard !isDemo, monitoringEpoch == epoch,
-              state.accounts.contains(where: { $0.id == account.id && $0.generation == account.generation }),
-              AlertDeliveryPolicy.canDeliver(alert, state: state, now: .now) else { return }
+        func eligible() -> Bool {
+            guard !isDemo, monitoringEpoch == epoch,
+                  state.accounts.contains(where: { $0.id == account.id && $0.generation == account.generation }),
+                  let current = state.alerts.first(where: { $0.id == alert.id }), !current.delivered else { return false }
+            return AlertDeliveryPolicy.canDeliver(current, state: state, now: .now)
+        }
+        guard eligible() else { return }
         activeAlert = alert
         SoundPlayer.shared.play(settings: state.settings, cue: "alert")
         do {
-            try await NotificationService.shared.send(id: alert.id, title: alert.title,
+            try await NotificationService.shared.authorize()
+            await mutationTail?.value
+            guard eligible() else {
+                if activeAlert?.id == alert.id { activeAlert = nil }
+                return
+            }
+            try await NotificationService.shared.enqueue(id: alert.id, title: alert.title,
                 detail: state.settings.privacy ? "Account details hidden. Open AI Token Scrooge for details." : alert.detail)
+            await mutationTail?.value
+            guard eligible() else {
+                await NotificationService.shared.cancel(alert.id)
+                if activeAlert?.id == alert.id { activeAlert = nil }
+                return
+            }
             edit { state in
                 if let index = state.alerts.firstIndex(where: { $0.id == alert.id }) { state.alerts[index].delivered = true }
             }
-        } catch { errorMessage = error.localizedDescription }
+        } catch { if eligible() { errorMessage = error.localizedDescription } }
     }
     func setHistory(_ enabled: Bool) { edit { $0.settings.historyEnabled = enabled } }
     func toggleAccountHistory(_ id: String) {

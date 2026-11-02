@@ -20,9 +20,16 @@ import UserNotifications
 
 actor NotificationService {
     static let shared = NotificationService()
-    func send(id: String, title: String, detail: String, delay: TimeInterval? = nil) async throws {
+    func authorize() async throws {
         let center = UNUserNotificationCenter.current()
         guard try await center.requestAuthorization(options: [.alert, .badge]) else { throw NotificationError.denied }
+    }
+    func send(id: String, title: String, detail: String, delay: TimeInterval? = nil) async throws {
+        try await authorize()
+        try await enqueue(id: id, title: title, detail: detail, delay: delay)
+    }
+    func enqueue(id: String, title: String, detail: String, delay: TimeInterval? = nil) async throws {
+        let center = UNUserNotificationCenter.current()
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = detail
