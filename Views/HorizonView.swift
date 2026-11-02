@@ -65,6 +65,8 @@ struct HorizonView: View {
         if !store.state.settings.historyEnabled { return events.isEmpty ? "No Upcoming Events Reported" : nil }
         guard viewport.visibleStart < .now else { return nil }
         let visible = historySeries
+        if let error = store.historyError { return error }
+        if store.historyLoading && visible.allSatisfy({ $0.points.isEmpty }) { return "Loading History" }
         if visible.isEmpty { return "Select an Account to View History" }
         let end = viewport.date(at: viewport.scrollOffset + viewport.viewportWidth)
         return visible.allSatisfy { series in !series.points.contains { $0.at >= viewport.visibleStart && $0.at <= end } }

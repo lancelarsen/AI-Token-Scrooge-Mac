@@ -6,6 +6,9 @@ import AppKit
 @MainActor @Observable final class AppStore {
     private(set) var state = PersistedState()
     private(set) var history: [HistoryRun] = []
+    private(set) var historyLoading = false
+    private(set) var historyError: String?
+    private var historyRequest = UUID()
     private var historyCache: [String: HistoryRunCache] = [:]
     private(set) var isDemo = false
     private(set) var isLoading = true
@@ -94,6 +97,7 @@ import AppKit
             guard let self, !isDemo else { return }
             monitoringEpoch = UUID(); activeAlert = nil
             realState = state; let demo = DemoData.make(now: .now)
+            historyRequest = UUID(); historyLoading = false; historyError = nil
             state = demo.0; history = demo.1; isDemo = true
         }
     }
@@ -103,7 +107,7 @@ import AppKit
             await previous?.value
             guard let self, isDemo else { return }
             monitoringEpoch = UUID(); activeAlert = nil
-            state = realState; isDemo = false; schedule.reset()
+            state = realState; history = []; isDemo = false; schedule.reset()
             await reloadHistory()
         }
     }
@@ -240,6 +244,8 @@ import AppKit
     }
     func reloadHistory() async {
         guard !isDemo, let database else { return }
+        let request = UUID(); historyRequest = request; historyLoading = true; historyError = nil
+        defer { if historyRequest == request { historyLoading = false } }
         let epoch = monitoringEpoch
         let accounts = state.accounts
         let since = Date.now.addingTimeInterval(-7 * 86400)
@@ -252,10 +258,14 @@ import AppKit
                 cache.merge(delta.runs, revision: delta.revision, since: since)
                 caches[account.id] = cache; result += cache.runs
             }
-            guard !isDemo, monitoringEpoch == epoch, state.accounts == accounts else { return }
+            guard historyRequest == request, !isDemo, monitoringEpoch == epoch, state.accounts == accounts else { return }
             historyCache = caches.filter { id, _ in accounts.contains { $0.id == id } }
             history = result
-        } catch { errorMessage = error.localizedDescription }
+        } catch {
+            guard historyRequest == request, !isDemo, monitoringEpoch == epoch, state.accounts == accounts else { return }
+            historyError = "History Could Not Be Loaded. Previously Loaded Observations Are Retained."
+            errorMessage = error.localizedDescription
+        }
     }
     func refreshLoginItemStatus() {
         guard !isDemo, !isTestLaunch else { loginItemMessage = nil; loginItemNeedsApproval = false; return }
