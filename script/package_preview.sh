@@ -30,7 +30,11 @@ if [[ -n "${SCROOGE_NOTARY_PROFILE:-}" ]]; then
   xcrun stapler validate "$APP_BUNDLE"
   /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$APP_BUNDLE" "$ZIP_PATH"
 fi
-/usr/bin/shasum -a 256 "$ZIP_PATH" > "$ZIP_PATH.sha256"
+(
+  cd "$OUTPUT_DIR"
+  /usr/bin/shasum -a 256 "$(basename "$ZIP_PATH")" > "$(basename "$ZIP_PATH").sha256"
+  /usr/bin/shasum -a 256 -c "$(basename "$ZIP_PATH").sha256"
+)
 /usr/bin/codesign -dv --verbose=2 "$APP_BUNDLE" 2> "$OUTPUT_DIR/signature.txt"
 echo "Packaged: $ZIP_PATH"
 if [[ -z "${SCROOGE_SIGNING_IDENTITY:-}" ]]; then
