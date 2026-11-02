@@ -6,6 +6,7 @@ struct HorizonView: View {
     @State private var viewport = HorizonViewport(now: .now, furthestFuture: nil, zone: TimeZone(identifier: "America/Chicago")!, width: 1000)
     @State private var position = ScrollPosition(x: 0)
     @State private var selectedEvent: HorizonEvent?
+    @State private var selectedHistoricalMarker: HistoricalEventMarker?
     @State private var hoverText: String?
     @State private var hoveredSample: (account: ProviderAccount, point: HistoryPoint)?
     private var events: [HorizonEvent] { HorizonEvent.events(state: store.state, now: .now) }
@@ -62,6 +63,25 @@ struct HorizonView: View {
                 Button("Close") { selectedEvent = nil }.buttonStyle(ScroogeButtonStyle())
             }.padding(28).frame(minWidth: 400).background(Theme.card).preferredColorScheme(.dark)
         }
+        .sheet(item: $selectedHistoricalMarker) { marker in historicalDetails(marker) }
+    }
+    private func historicalDetails(_ marker: HistoricalEventMarker) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("History Event").font(.title2)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    ForEach(marker.events) { event in
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("\(event.account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : event.account.nickname) · \(Format.plan(event.account.provider, event.plan))")
+                            Text("\(event.title): \(Format.date(event.date, zone: store.state.settings.zone))")
+                            if let reported = event.reportedAt { Text("Reported \(Format.date(reported, zone: store.state.settings.zone))") }
+                        }
+                    }
+                    Text("This is a reported schedule, not confirmation that capacity reset or a credit was redeemed.").foregroundStyle(Theme.secondary)
+                }.frame(maxWidth: .infinity, alignment: .leading)
+            }
+            Button("Close") { selectedHistoricalMarker = nil }.buttonStyle(ScroogeButtonStyle())
+        }.padding(24).frame(width: 500, height: 420).background(Theme.card).preferredColorScheme(.dark)
     }
     private var historyAxis: some View {
         Canvas { context, _ in
@@ -145,13 +165,15 @@ struct HorizonView: View {
                 if store.state.settings.historyEnabled { drawHistory(context: &context, size: size) }
             }
             if store.state.settings.historyEnabled {
-                ForEach(historicalEvents) { event in
-                    Button { selectedEvent = event } label: {
-                        Image(systemName: event.expiration ? "hourglass" : "arrow.clockwise")
-                            .font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.card)
-                            .frame(width: 22, height: 22).background(event.expiration ? Theme.amber : Theme.accent).clipShape(Circle())
-                    }.buttonStyle(.plain).position(x: viewport.position(at: event.date), y: event.expiration ? 83 : 60)
-                        .help("\(event.title) · \(Format.date(event.date, zone: store.state.settings.zone))")
+                ForEach(HistoricalEventMarker.layout(events: historicalEvents, viewport: viewport, now: .now)) { marker in
+                    Button { selectedHistoricalMarker = marker } label: {
+                        Group {
+                            if marker.events.count > 1 { Text(String(marker.events.count)) }
+                            else { Image(systemName: marker.expiration ? "hourglass" : "arrow.clockwise") }
+                        }.font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.card)
+                            .frame(width: 22, height: 22).background(marker.expiration ? Theme.amber : Theme.accent).clipShape(Circle())
+                    }.buttonStyle(.plain).position(x: marker.x, y: Double(56 + marker.lane * 24))
+                        .help(marker.events.map { "\($0.title) · \(Format.date($0.date, zone: store.state.settings.zone))" }.joined(separator: "\n"))
                 }
             }
             ForEach(days, id: \.self) { date in

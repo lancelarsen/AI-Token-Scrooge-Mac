@@ -2,6 +2,23 @@ import XCTest
 @testable import AITokenScrooge
 
 final class HistoryEventTests: XCTestCase {
+    func testHistoricalMarkersGroupExactTimesAndKeepNearbyEventsInSeparateLanes() {
+        let now = Date(timeIntervalSince1970: 1800000000)
+        var viewport = HorizonViewport(now: now, furthestFuture: nil, zone: TimeZone(secondsFromGMT: 0)!, width: 700)
+        viewport.scroll(to: 0)
+        let account = ProviderAccount(provider: .codex, nickname: "Test", subject: "s", scope: "w")
+        let at = now.addingTimeInterval(-86400)
+        func event(_ id: String, _ date: Date, expiration: Bool = false) -> HorizonEvent {
+            HorizonEvent(id: id, account: account, date: date, expiration: expiration, title: "Event", reportedAt: at)
+        }
+        let markers = HistoricalEventMarker.layout(events: [event("b", at), event("a", at), event("c", at.addingTimeInterval(60)), event("d", at, expiration: true), event("future", now.addingTimeInterval(60))], viewport: viewport, now: now)
+        XCTAssertEqual(markers.count, 3)
+        XCTAssertEqual(markers[0].events.map(\.id), ["a", "b"])
+        XCTAssertEqual(markers.map(\.lane), [0, 1, 2])
+        XCTAssertEqual(markers[0].x, viewport.position(at: at))
+        XCTAssertEqual(markers[2].x, viewport.position(at: at.addingTimeInterval(60)))
+        XCTAssertTrue(markers[1].expiration)
+    }
     func testFutureEventsPreserveQuotaIdentityForDetails() throws {
         let now = Date(timeIntervalSince1970: 1800000000)
         let (state, _) = DemoData.make(now: now)

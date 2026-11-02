@@ -26,3 +26,29 @@ struct HorizonEvent: Identifiable, Sendable {
         }.sorted { $0.date < $1.date }
     }
 }
+
+struct HistoricalEventMarker: Identifiable {
+    let events: [HorizonEvent]
+    let x: Double
+    let lane: Int
+    var id: String { events.map(\.id).sorted().joined(separator: "|") }
+    var expiration: Bool { events[0].expiration }
+
+    static func layout(events: [HorizonEvent], viewport: HorizonViewport, now: Date) -> [Self] {
+        struct Key: Hashable { let date: Date; let expiration: Bool }
+        let visible = events.filter {
+            let x = viewport.position(at: $0.date) - viewport.scrollOffset
+            return $0.date <= now && x >= 10 && x <= viewport.viewportWidth - 10
+        }
+        let groups = Dictionary(grouping: visible) { Key(date: $0.date, expiration: $0.expiration) }
+        let keys = groups.keys.sorted { $0.date == $1.date ? !$0.expiration && $1.expiration : $0.date < $1.date }
+        var laneEnds: [Double] = []
+        return keys.map { key in
+            let x = viewport.position(at: key.date)
+            let lane = laneEnds.firstIndex { x - 11 >= $0 + 2 } ?? laneEnds.count
+            if lane == laneEnds.count { laneEnds.append(0) }
+            laneEnds[lane] = x + 11
+            return Self(events: groups[key]!.sorted { $0.id < $1.id }, x: x, lane: lane)
+        }
+    }
+}
