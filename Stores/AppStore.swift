@@ -186,12 +186,30 @@ import AppKit
         mutationTail = pruning; await pruning.value
     }
     func dismissAlert(_ id: String) {
-        edit { state in
-            if let index = state.alerts.firstIndex(where: { $0.id == id }) { state.alerts[index].dismissed = true }
+        saveAlertAction(id, cue: "dismiss") { $0.dismissed = true }
+    }
+    private func saveAlertAction(_ id: String, cue: String, mutation: @escaping @MainActor (inout AlertEvent) -> Void) {
+        let bannerID = activeAlert?.id
+        let previous = mutationTail
+        mutationTail = Task { [weak self] in
+            await previous?.value
+            guard let self, let index = state.alerts.firstIndex(where: { $0.id == id }) else { return }
+            var candidate = state
+            mutation(&candidate.alerts[index])
+            do {
+                if !isDemo {
+                    guard localStateReady, let database else { throw StoreError.operation }
+                    try await database.save(candidate)
+                }
+                state = candidate
+                if activeAlert?.id == bannerID,
+                   (activeAlert?.id == id || (cue == "snooze" && activeAlert?.accountID == candidate.alerts[index].accountID)) {
+                    activeAlert = nil
+                }
+                await NotificationService.shared.cancel(id)
+                SoundPlayer.shared.play(settings: state.settings, cue: cue)
+            } catch { errorMessage = error.localizedDescription }
         }
-        if activeAlert?.id == id { activeAlert = nil }
-        Task { await NotificationService.shared.cancel(id) }
-        SoundPlayer.shared.play(settings: state.settings, cue: "dismiss")
     }
     private func deliver(_ alert: AlertEvent, account: ProviderAccount, epoch: UUID) async {
         func eligible() -> Bool {
@@ -331,13 +349,10 @@ import AppKit
         } catch { errorMessage = error.localizedDescription }
     }
     func snooze(_ id: String, minutes: Int) {
-        edit { state in
-            guard let index = state.alerts.firstIndex(where: { $0.id == id }) else { return }
-            state.alerts[index].snoozedUntil = .now.addingTimeInterval(Double(minutes * 60))
+        guard minutes > 0 && minutes <= 120 else { return }
+        saveAlertAction(id, cue: "snooze") { alert in
+            alert.snoozedUntil = .now.addingTimeInterval(Double(minutes) * 60)
         }
-        if activeAlert?.accountID == state.alerts.first(where: { $0.id == id })?.accountID { activeAlert = nil }
-        Task { await NotificationService.shared.cancel(id) }
-        SoundPlayer.shared.play(settings: state.settings, cue: "snooze")
     }
     func removeAccount(_ id: String) async {
         let previous = mutationTail
