@@ -102,7 +102,7 @@ struct DashboardView: View {
         }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
     }
     private func icon(_ sort: AccountSort) -> String {
-        switch sort { case .custom: "circle.grid.2x3.fill"; case .mostRemaining: "battery.100percent"; case .leastRemaining: "battery.25percent"; case .nextReset: "clock" }
+        switch sort { case .custom: "circle.grid.3x3.fill"; case .mostRemaining: "battery.100percent"; case .leastRemaining: "battery.25percent"; case .nextReset: "clock" }
     }
 }
 
@@ -114,7 +114,7 @@ struct AccountCard: View {
     var body: some View {
         HStack(spacing: 16) {
             if store.state.settings.accountSort == .custom {
-                Image(systemName: "circle.grid.2x3.fill").foregroundStyle(Theme.accent).draggable(account.id).help("Drag to Reorder Account")
+                Image(systemName: "circle.grid.3x3.fill").foregroundStyle(Theme.accent).draggable(account.id).help("Drag to Reorder Account")
                     .accessibilityLabel("Reorder \(store.state.settings.privacy ? "Account" : account.nickname)")
             }
             let layout = wide ? AnyLayout(HStackLayout(spacing: 20)) : AnyLayout(VStackLayout(alignment: .leading, spacing: 14))
