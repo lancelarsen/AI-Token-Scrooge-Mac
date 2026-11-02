@@ -2,6 +2,15 @@ import XCTest
 @testable import AITokenScrooge
 
 final class GitHubAuthTests: XCTestCase {
+    func testRetryHeadersRespectDateAndShortProviderDeadline() {
+        let now = ISO8601DateFormatter().date(from: "2026-11-02T20:00:00Z")!
+        XCTAssertEqual(GitHubClient.retryAfter("60", now: now), now.addingTimeInterval(60))
+        XCTAssertEqual(GitHubClient.retryAfter("Mon, 02 Nov 2026 20:10:00 GMT", now: now), now.addingTimeInterval(600))
+        for value in ["nan", "inf", "-5", "", "invalid"] { XCTAssertNil(GitHubClient.retryAfter(value, now: now)) }
+        XCTAssertEqual(GitHubClient.retryDeadline(now.addingTimeInterval(60), now: now), now.addingTimeInterval(60))
+        XCTAssertEqual(GitHubClient.retryDeadline(now.addingTimeInterval(-1), now: now), now.addingTimeInterval(300))
+        XCTAssertEqual(GitHubClient.retryDeadline(nil, now: now), now.addingTimeInterval(300))
+    }
     func testStrictCredentialValidation() {
         XCTAssertTrue(GitHubDeviceFlow.validClientID("Iv23.example-1"))
         XCTAssertFalse(GitHubDeviceFlow.validClientID("https://example.test"))

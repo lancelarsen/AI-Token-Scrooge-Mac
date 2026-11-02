@@ -5,7 +5,7 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 ## Verified milestone
 
 - Xcode Debug build and native app launch succeed on this Mac.
-- Thirty-six tests pass (including Claude parser/version fixtures and the installed Codex CLI in a fresh signed-out profile): unknown/overage capacity, unknown billing units, workspace mismatch, reserve-only payloads, DST geometry, SQLite run compaction.
+- Thirty-seven tests pass (including Claude parser/version fixtures and the installed Codex CLI in a fresh signed-out profile): unknown/overage capacity, unknown billing units, workspace mismatch, reserve-only payloads, DST geometry, SQLite run compaction.
 - Computer-use inspection confirms demo controls, provider artwork, future events, and history rendering. Full visual parity and live accounts are not verified.
 
 ## Implemented, awaiting complete verification
@@ -16,7 +16,7 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - SQLite snapshots/history runs, identity validation, Keychain token storage.
 - GitHub advanced token identity and billing reads with provider/manual/unknown allowances and bounded no-redirect transport.
 - Native menu bar, login item toggle, notification test, sound previews.
-- Pure provider mapping and alert evaluation.
+- Pure provider mapping and alert evaluation. GitHub retry handling covers seconds/date headers, short future deadlines, invalid values and fallback delay with source-matched tests.
 
 ## Remaining before parity
 

@@ -24,10 +24,11 @@ actor GitHubClient {
         request.setValue("2026-03-10", forHTTPHeaderField: "X-GitHub-Api-Version")
         let (bytes, response) = try await session.bytes(for: request)
         guard let response = response as? HTTPURLResponse else { throw ProviderFailure(message: "GitHub returned an invalid response.") }
-        let retry = response.value(forHTTPHeaderField: "Retry-After").flatMap(Double.init).map { Date.now.addingTimeInterval($0) }
+        let now = Date.now
+        let retry = Self.retryAfter(response.value(forHTTPHeaderField: "Retry-After"), now: now)
         if response.statusCode == 429 || (response.statusCode == 403 && (retry != nil || response.value(forHTTPHeaderField: "X-RateLimit-Remaining") == "0")) {
-            let reset = response.value(forHTTPHeaderField: "X-RateLimit-Reset").flatMap(Double.init).map { Date(timeIntervalSince1970: $0) }
-            throw ProviderFailure(message: "GitHub asked Scrooge to wait before refreshing.", health: .stale, retryAt: max(retry ?? reset ?? .now, .now.addingTimeInterval(300)))
+            let reset = response.value(forHTTPHeaderField: "X-RateLimit-Reset").flatMap(Double.init).flatMap { $0.isFinite && $0 > 0 && $0 <= 253402300799 ? Date(timeIntervalSince1970: $0) : nil }
+            throw ProviderFailure(message: "GitHub asked Scrooge to wait before refreshing.", health: .stale, retryAt: Self.retryDeadline(retry ?? reset, now: now))
         }
         if response.statusCode == 401 { throw ProviderFailure(message: "GitHub sign-in expired. Reconnect this account.", health: .authenticationRequired) }
         if [403,404].contains(response.statusCode) { throw ProviderFailure(message: "GitHub billing access is unavailable. Personal tokens need Plan read permission; organization billing needs authorized administration access.", health: .permissionRequired) }
@@ -39,6 +40,23 @@ actor GitHubClient {
             data.append(byte)
         }
         return try JSONDecoder().decode(JSONValue.self, from: data)
+    }
+    nonisolated static func retryDeadline(_ reported: Date?, now: Date) -> Date {
+        if let reported, reported > now { return reported }
+        return now.addingTimeInterval(300)
+    }
+    nonisolated static func retryAfter(_ header: String?, now: Date) -> Date? {
+        guard let value = header?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else { return nil }
+        if let seconds = Double(value), seconds.isFinite, seconds >= 0 {
+            let date = now.addingTimeInterval(seconds)
+            return date.timeIntervalSince1970.isFinite ? date : nil
+        }
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss 'GMT'"
+        formatter.isLenient = false
+        return formatter.date(from: value)
     }
     func identify(token: String) async throws -> (subject: String, login: String) {
         let user = try await get("user", token: token)
