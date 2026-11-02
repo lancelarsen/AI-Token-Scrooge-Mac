@@ -29,6 +29,9 @@ final class UsageHistoryTests: XCTestCase {
         XCTAssertEqual(estimate?.at, now.addingTimeInterval(-3600))
         XCTAssertEqual(estimate?.estimated, true)
         XCTAssertNil(UsageHistory.estimatedPoint(points: [before, after], x: x, y: 95, viewport: viewport))
+        let taller = UsageHistory.estimatedPoint(points: [before, after], x: x, y: 388, viewport: viewport, plotTop: 88, plotHeight: 500)
+        XCTAssertEqual(taller?.remaining, 60)
+        XCTAssertNil(UsageHistory.estimatedPoint(points: [before, after], x: x, y: 215, viewport: viewport, plotTop: 88, plotHeight: 500))
         after.startsSegment = true
         XCTAssertNil(UsageHistory.estimatedPoint(points: [before, after], x: x, y: 215, viewport: viewport))
     }

@@ -15,7 +15,7 @@ struct UsageHistorySeries: Sendable {
     var status: String?
 }
 enum UsageHistory {
-    static func estimatedPoint(points: [HistoryPoint], x: Double, y: Double, viewport: HorizonViewport) -> HistoryPoint? {
+    static func estimatedPoint(points: [HistoryPoint], x: Double, y: Double, viewport: HorizonViewport, plotTop: Double = 95, plotHeight: Double = 200) -> HistoryPoint? {
         guard let index = points.firstIndex(where: { viewport.position(at: $0.at) >= x }), index > 0 else { return nil }
         let after = points[index], before = points[index - 1]
         guard after.estimated, !after.startsSegment else { return nil }
@@ -23,7 +23,7 @@ enum UsageHistory {
         guard endX > startX, x >= startX else { return nil }
         let fraction = (x - startX) / (endX - startX)
         let remaining = before.remaining + (after.remaining - before.remaining) * Decimal(fraction)
-        guard abs(95 + NSDecimalNumber(decimal: remaining).doubleValue * 2 - y) <= 24 else { return nil }
+        guard abs(plotTop + NSDecimalNumber(decimal: remaining).doubleValue / 100 * plotHeight - y) <= 24 else { return nil }
         return HistoryPoint(at: before.at.addingTimeInterval(after.at.timeIntervalSince(before.at) * fraction),
             remaining: remaining, windowID: after.windowID, startsSegment: false, estimated: true)
     }

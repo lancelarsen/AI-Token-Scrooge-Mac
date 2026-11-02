@@ -83,15 +83,18 @@ struct HorizonView: View {
             Button("Close") { selectedHistoricalMarker = nil }.buttonStyle(ScroogeButtonStyle())
         }.padding(24).frame(width: 500, height: 420).background(Theme.card).preferredColorScheme(.dark)
     }
+    private var plotTop: Double { 56 + 32 }
+    private var plotBottom: Double { timelineHeight - 8 }
+    private var plotHeight: Double { max(1, plotBottom - plotTop) }
     private var historyAxis: some View {
         Canvas { context, _ in
             guard viewport.position(at: .now) - viewport.scrollOffset > 2 else { return }
             for percent in stride(from: 0, through: 100, by: 25) {
-                let y = 95 + (1 - Double(percent) / 100) * 200
+                let y = plotTop + (1 - Double(percent) / 100) * plotHeight
                 context.draw(Text("\(percent)%").font(.system(size: 11)).foregroundStyle(Theme.secondary),
                              at: CGPoint(x: 38, y: y), anchor: .trailing)
             }
-            context.translateBy(x: 5, y: 195)
+            context.translateBy(x: 5, y: (plotTop + plotBottom) / 2)
             context.rotate(by: .degrees(-90))
             context.draw(Text("% Used").font(.system(size: 10)).foregroundStyle(Theme.secondary), at: .zero)
         }.accessibilityLabel("History axis: zero to one hundred percent used")
@@ -226,15 +229,15 @@ struct HorizonView: View {
                 let date = viewport.date(at: location.x)
                 func distance(_ point: HistoryPoint) -> Double {
                     let x = viewport.position(at: point.at)
-                    let y = 95 + NSDecimalNumber(decimal: point.remaining).doubleValue / 100 * 200
+                    let y = plotTop + NSDecimalNumber(decimal: point.remaining).doubleValue / 100 * plotHeight
                     return abs(x - location.x) + abs(y - location.y) * 0.45
                 }
                 let nearest = historySeries.flatMap { series in series.points.filter { abs(viewport.position(at: $0.at) - location.x) <= 18 }.map { (series.account, $0) } }
                     .min { distance($0.1) < distance($1.1) }
                 let estimate = nearest == nil ? historySeries.compactMap { series in
-                    UsageHistory.estimatedPoint(points: series.points, x: location.x, y: location.y, viewport: viewport).map { (series.account, $0) }
+                    UsageHistory.estimatedPoint(points: series.points, x: location.x, y: location.y, viewport: viewport, plotTop: plotTop, plotHeight: plotHeight).map { (series.account, $0) }
                 }.first : nil
-                if store.state.settings.historyEnabled, date <= .now, (95...295).contains(location.y), let (account, point) = nearest ?? estimate {
+                if store.state.settings.historyEnabled, date <= .now, (plotTop...plotBottom).contains(location.y), let (account, point) = nearest ?? estimate {
                     hoveredSample = (account, point)
                     var details = historyHelp(account)
                     details += "\n\(Format.percent(100 - point.remaining)) Used · \(Format.date(point.at, zone: store.state.settings.zone))"
@@ -302,9 +305,9 @@ struct HorizonView: View {
     }
     private func drawHistory(context: inout GraphicsContext, size: CGSize) {
         let nowX = viewport.position(at: .now)
-        let chartHeight = 200.0
+        let chartHeight = plotHeight
         for percent in stride(from: 0, through: 100, by: 25) {
-            let y = 95 + (1 - Double(percent) / 100) * chartHeight
+            let y = plotTop + (1 - Double(percent) / 100) * chartHeight
             var line = Path(); line.move(to: CGPoint(x: 0, y: y)); line.addLine(to: CGPoint(x: max(0, nowX), y: y))
             context.stroke(line, with: .color(Theme.border.opacity(0.6)), lineWidth: 1)
         }
@@ -312,13 +315,13 @@ struct HorizonView: View {
             let x = viewport.position(at: day)
             guard x >= 0, x <= nowX else { continue }
             var line = Path()
-            line.move(to: CGPoint(x: x, y: 95))
-            line.addLine(to: CGPoint(x: x, y: 95 + chartHeight))
+            line.move(to: CGPoint(x: x, y: plotTop))
+            line.addLine(to: CGPoint(x: x, y: plotTop + chartHeight))
             context.stroke(line, with: .color(Color(hex: "#30333C")), lineWidth: 1)
         }
         for event in historicalEvents {
             let x = viewport.position(at: event.date)
-            var marker = Path(); marker.move(to: CGPoint(x: x, y: 95)); marker.addLine(to: CGPoint(x: x, y: 95 + chartHeight))
+            var marker = Path(); marker.move(to: CGPoint(x: x, y: plotTop)); marker.addLine(to: CGPoint(x: x, y: plotTop + chartHeight))
             context.stroke(marker, with: .color((event.expiration ? Theme.amber : Theme.accent).opacity(0.6)), style: StrokeStyle(lineWidth: 1, dash: [4,4]))
         }
         for series in historySeries {
@@ -328,8 +331,8 @@ struct HorizonView: View {
             func flush() {
                 guard let first = segment.first, let last = segment.last else { return }
                 var path = Path(); path.addLines(segment)
-                var fill = Path(); fill.move(to: CGPoint(x: first.x, y: 95 + chartHeight))
-                fill.addLines(segment); fill.addLine(to: CGPoint(x: last.x, y: 95 + chartHeight)); fill.closeSubpath()
+                var fill = Path(); fill.move(to: CGPoint(x: first.x, y: plotTop + chartHeight))
+                fill.addLines(segment); fill.addLine(to: CGPoint(x: last.x, y: plotTop + chartHeight)); fill.closeSubpath()
                 context.fill(fill, with: .color(color.opacity(0.09)))
                 context.stroke(path, with: .color(color), lineWidth: 2)
                 if segment.count == 1 { context.fill(Path(ellipseIn: CGRect(x: first.x - 2.5, y: first.y - 2.5, width: 5, height: 5)), with: .color(color)) }
@@ -339,9 +342,9 @@ struct HorizonView: View {
                 if point.startsSegment { flush() }
                 let x = viewport.position(at: point.at)
                 if let before = point.replenishedFrom, !segment.isEmpty {
-                    segment.append(CGPoint(x: x, y: 95 + NSDecimalNumber(decimal: before).doubleValue / 100 * chartHeight))
+                    segment.append(CGPoint(x: x, y: plotTop + NSDecimalNumber(decimal: before).doubleValue / 100 * chartHeight))
                 }
-                segment.append(CGPoint(x: x, y: 95 + NSDecimalNumber(decimal: point.remaining).doubleValue / 100 * chartHeight))
+                segment.append(CGPoint(x: x, y: plotTop + NSDecimalNumber(decimal: point.remaining).doubleValue / 100 * chartHeight))
             }
             flush()
         }
@@ -349,10 +352,10 @@ struct HorizonView: View {
            timelineAccounts.contains(where: { $0.id == sample.account.id }),
            !store.state.settings.hiddenHistoryAccounts.contains(sample.account.id) {
             let x = viewport.position(at: sample.point.at)
-            let y = 95 + NSDecimalNumber(decimal: sample.point.remaining).doubleValue / 100 * chartHeight
+            let y = plotTop + NSDecimalNumber(decimal: sample.point.remaining).doubleValue / 100 * chartHeight
             var guide = Path()
-            guide.move(to: CGPoint(x: x, y: 95))
-            guide.addLine(to: CGPoint(x: x, y: 95 + chartHeight))
+            guide.move(to: CGPoint(x: x, y: plotTop))
+            guide.addLine(to: CGPoint(x: x, y: plotTop + chartHeight))
             context.stroke(guide, with: .color(Theme.secondary.opacity(0.6)), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
             let dot = Path(ellipseIn: CGRect(x: x - 4, y: y - 4, width: 8, height: 8))
             context.fill(dot, with: .color(Color(hex: sample.account.resolvedLineColor(plan: store.state.snapshots[sample.account.id]?.planType))))
@@ -360,22 +363,22 @@ struct HorizonView: View {
         }
         if nowX >= viewport.scrollOffset - 1, nowX <= viewport.scrollOffset + viewport.viewportWidth + 1 {
             var currentTime = Path()
-            currentTime.move(to: CGPoint(x: nowX, y: 95))
-            currentTime.addLine(to: CGPoint(x: nowX, y: 95 + chartHeight))
+            currentTime.move(to: CGPoint(x: nowX, y: plotTop))
+            currentTime.addLine(to: CGPoint(x: nowX, y: plotTop + chartHeight))
             context.stroke(currentTime, with: .color(Theme.accent), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
         }
         let latest = historySeries.compactMap { series -> (UsageHistorySeries, HistoryPoint)? in
             guard let point = series.points.last(where: { viewport.position(at: $0.at) >= viewport.scrollOffset && viewport.position(at: $0.at) <= viewport.scrollOffset + viewport.viewportWidth }) else { return nil }
             return (series, point)
         }.sorted { $0.1.remaining < $1.1.remaining }
-        let desired = latest.map { 95 + NSDecimalNumber(decimal: $0.1.remaining).doubleValue / 100 * chartHeight - 10 }
-        let labels = HistoryLabelLayout.positions(desired, top: 95, bottom: 95 + chartHeight - 21)
+        let desired = latest.map { plotTop + NSDecimalNumber(decimal: $0.1.remaining).doubleValue / 100 * chartHeight - 10 }
+        let labels = HistoryLabelLayout.positions(desired, top: plotTop, bottom: plotTop + chartHeight - 21)
         for (index, item) in latest.enumerated() {
             let (series, point) = item
             let x = viewport.position(at: point.at)
             guard x >= viewport.scrollOffset, x <= viewport.scrollOffset + viewport.viewportWidth else { continue }
             let color = Color(hex: series.account.resolvedLineColor(plan: store.state.snapshots[series.account.id]?.planType))
-            let y = 95 + NSDecimalNumber(decimal: point.remaining).doubleValue / 100 * chartHeight
+            let y = plotTop + NSDecimalNumber(decimal: point.remaining).doubleValue / 100 * chartHeight
             context.fill(Path(ellipseIn: CGRect(x: x - 3, y: y - 3, width: 6, height: 6)), with: .color(color))
             let end = viewport.scrollOffset + viewport.viewportWidth
             guard nowX >= end - 80, x >= end - 70 else { continue }
