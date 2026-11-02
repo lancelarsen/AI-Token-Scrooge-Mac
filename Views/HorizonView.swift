@@ -223,6 +223,14 @@ struct HorizonView: View {
             var line = Path(); line.move(to: CGPoint(x: 0, y: y)); line.addLine(to: CGPoint(x: max(0, nowX), y: y))
             context.stroke(line, with: .color(Theme.border.opacity(0.6)), lineWidth: 1)
         }
+        for day in days {
+            let x = viewport.position(at: day)
+            guard x >= 0, x <= nowX else { continue }
+            var line = Path()
+            line.move(to: CGPoint(x: x, y: 95))
+            line.addLine(to: CGPoint(x: x, y: 95 + chartHeight))
+            context.stroke(line, with: .color(Color(hex: "#30333C")), lineWidth: 1)
+        }
         for event in historicalEvents {
             let x = viewport.position(at: event.date)
             var marker = Path(); marker.move(to: CGPoint(x: x, y: 95)); marker.addLine(to: CGPoint(x: x, y: 95 + chartHeight))
