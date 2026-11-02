@@ -235,18 +235,40 @@ struct HorizonView: View {
     }
     private var navigator: some View {
         GeometryReader { geometry in
-            let overview = viewport.overview(trackWidth: geometry.size.width)
-            ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 5).fill(Theme.control).overlay(RoundedRectangle(cornerRadius: 5).stroke(Theme.border))
-                ForEach(events) { event in
-                    Circle().fill(event.expiration ? Theme.amber : Theme.accent).frame(width: 4, height: 4)
-                        .offset(x: viewport.position(at: event.date) / viewport.contentWidth * geometry.size.width)
+            let trackWidth = max(1, geometry.size.width - 2)
+            let overview = viewport.overview(trackWidth: trackWidth)
+            Canvas { context, _ in
+                let track = Path(roundedRect: CGRect(x: 1, y: 1, width: trackWidth, height: 20), cornerRadius: 5)
+                context.fill(track, with: .color(Color(hex: "#232429")))
+                context.stroke(track, with: .color(Color(hex: "#45464D")), lineWidth: 1)
+                let thumb = Path(roundedRect: CGRect(x: overview.left + 1, y: 1, width: overview.width, height: 20), cornerRadius: 5)
+                context.fill(thumb, with: .color(Color(hex: "#483A64")))
+                context.stroke(thumb, with: .color(Theme.accent), lineWidth: 1)
+                let markers = events + (store.state.settings.historyEnabled ? historicalEvents : [])
+                let groups = Dictionary(grouping: markers) { event in
+                    "\(calendar.startOfDay(for: event.date).timeIntervalSince1970)/\(event.expiration)/\(event.reportedAt == nil)"
                 }
-                RoundedRectangle(cornerRadius: 5).fill(Theme.accent.opacity(0.25))
-                    .overlay(RoundedRectangle(cornerRadius: 5).stroke(Theme.accent))
-                    .frame(width: max(1, overview.width)).offset(x: overview.left)
+                for group in groups.values {
+                    guard let event = group.first else { continue }
+                    let position = event.reportedAt == nil ? viewport.dayAnchor(event.date) : viewport.position(at: event.date)
+                    let x = 1 + position / viewport.contentWidth * trackWidth
+                    let y = event.expiration ? 14.0 : 9.0
+                    let dot = Path(ellipseIn: CGRect(x: x - 2.5, y: y - 2.5, width: 5, height: 5))
+                    context.fill(dot, with: .color(Color(hex: event.expiration ? "#EAAA51" : "#B5A0F4")))
+                }
+                let nowX = 1 + viewport.position(at: .now) / viewport.contentWidth * trackWidth
+                var nowLine = Path()
+                nowLine.move(to: CGPoint(x: nowX, y: 3)); nowLine.addLine(to: CGPoint(x: nowX, y: 19))
+                context.stroke(nowLine, with: .color(Color(hex: "#E5DCF9")), lineWidth: 1)
+                for column in -1...1 {
+                    for row in 0...1 {
+                        let x = overview.left + overview.width / 2 + Double(column * 4)
+                        let y = Double(9 + row * 4)
+                        context.fill(Path(ellipseIn: CGRect(x: x - 1, y: y - 1, width: 2, height: 2)), with: .color(Color(hex: "#D1BEFF")))
+                    }
+                }
             }.contentShape(Rectangle()).gesture(DragGesture(minimumDistance: 0).onChanged { value in
-                viewport.centerFromOverview(pointerX: value.location.x, trackWidth: geometry.size.width)
+                viewport.centerFromOverview(pointerX: value.location.x - 1, trackWidth: trackWidth)
                 position.scrollTo(x: viewport.scrollOffset)
             })
             .accessibilityLabel("Timeline Navigator").accessibilityValue(Format.date(viewport.visibleStart, zone: store.state.settings.zone))
