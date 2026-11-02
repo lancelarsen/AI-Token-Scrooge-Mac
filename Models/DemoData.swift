@@ -6,8 +6,8 @@ enum DemoData {
         state.settings.accountSort = .custom
         var runs: [HistoryRun] = []
         let configs: [(Provider, String, String, String, [Decimal])] = [
-            (.codex,"Personal","Plus","#D587A5",[38,74]), (.copilot,"Work","Max","#CDEB82",[8200]),
-            (.codex,"Work","Pro","#B99AF8",[19,58]), (.claude,"Personal","Pro","#58A6FF",[12,94])
+            (.codex,"Personal","plus","#D587A5",[38,74]), (.copilot,"Work","individual_max","#CDEB82",[8200]),
+            (.codex,"Work","pro","#B99AF8",[19,58]), (.claude,"Personal","pro","#58A6FF",[12,94])
         ]
         for (index, config) in configs.enumerated() {
             let account = ProviderAccount(id: "demo-\(index)", provider: config.0, nickname: config.1, subject: "demo-\(index)", scope: "demo", lineColor: config.3)

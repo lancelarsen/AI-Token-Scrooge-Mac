@@ -2,6 +2,16 @@ import XCTest
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testProviderPlanLabelsMatchSourceAndDoNotInventUnknownPlans() {
+        XCTAssertEqual(Format.plan(.copilot, "individual_pro"), "Pro+")
+        XCTAssertEqual(Format.plan(.copilot, "individual_max"), "Max")
+        XCTAssertEqual(Format.plan(.copilot, "individual_edu"), "Education")
+        XCTAssertEqual(Format.plan(.codex, "prolite"), "Pro Lite")
+        XCTAssertEqual(Format.plan(.codex, "promax"), "Pro Max")
+        XCTAssertEqual(Format.plan(.claude, "team"), "Team")
+        XCTAssertEqual(Format.plan(.claude, "individual_max"), "Plan unavailable")
+        XCTAssertEqual(Format.plan(.codex, nil), "Plan unavailable")
+    }
     func testCodexProtocolExcludesInferenceAndRedemption() {
         XCTAssertEqual(CodexConnection.allowed, ["initialize", "account/read", "account/rateLimits/read", "account/login/start", "account/login/cancel", "account/logout"])
         XCTAssertFalse(CodexConnection.allowed.contains("thread/start"))

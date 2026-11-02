@@ -117,7 +117,7 @@ struct AccountCard: View {
                 ProviderIcon(provider: account.provider, size: 44)
                 VStack(alignment: .leading, spacing: 5) {
                     Text(account.provider.rawValue).font(.system(size: 20, weight: .semibold))
-                    Text("\(store.state.settings.privacy ? "Account" : account.nickname) · \(snapshot?.planType ?? "Unknown")")
+                    Text("\(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot?.planType))")
                         .font(.system(size: 12)).foregroundStyle(Theme.accent).padding(.horizontal, 11).padding(.vertical, 3)
                         .background(Theme.accent.opacity(0.12)).clipShape(Capsule()).overlay(Capsule().stroke(Theme.accent.opacity(0.3)))
                 }

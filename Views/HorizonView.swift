@@ -77,7 +77,7 @@ struct HorizonView: View {
                             Text(store.state.settings.privacy ? "Account" : account.nickname).font(.system(size: 10)).lineLimit(1)
                             ProviderIcon(provider: account.provider, size: 29)
                             HStack(spacing: 4) {
-                                Text(store.state.snapshots[account.id]?.planType ?? "Unknown").font(.system(size: 10))
+                                Text(Format.plan(account.provider, store.state.snapshots[account.id]?.planType)).font(.system(size: 10))
                                 Image(systemName: store.state.settings.hiddenHistoryAccounts.contains(account.id) ? "square" : "checkmark.square.fill")
                             }
                         }.padding(5).frame(width: 72).background(Theme.control)
@@ -119,7 +119,7 @@ struct HorizonView: View {
                     Button { selectedEvent = event } label: {
                         VStack(spacing: 2) {
                             ProviderIcon(provider: event.account.provider, size: 28)
-                            Text(event.plan ?? "Unknown").font(.system(size: 9)).lineLimit(1)
+                            Text(Format.plan(event.account.provider, event.plan)).font(.system(size: 9)).lineLimit(1)
                             Text(event.date.formatted(Date.FormatStyle(date: .omitted, time: .shortened).withTimeZone(store.state.settings.zone))).font(.system(size: 9))
                         }.frame(width: 54, height: 63).background(event.expiration ? Theme.amber.opacity(0.15) : Theme.accent.opacity(0.15))
                             .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -231,7 +231,7 @@ struct HorizonView: View {
             let rect = CGRect(x: labelX, y: labelY, width: 80, height: 21)
             context.fill(Path(roundedRect: rect, cornerRadius: 6), with: .color(Theme.card))
             context.stroke(Path(roundedRect: rect, cornerRadius: 6), with: .color(color.opacity(0.7)), lineWidth: 1)
-            let plan = store.state.snapshots[series.account.id]?.planType ?? "Unknown"
+            let plan = Format.plan(series.account.provider, store.state.snapshots[series.account.id]?.planType)
             context.draw(Text("\(plan) \(Format.percent(100 - point.remaining))").font(.system(size: 11)).foregroundColor(color), at: CGPoint(x: rect.midX, y: rect.midY))
         }
     }
