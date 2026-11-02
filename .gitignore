@@ -1,0 +1,14 @@
+.DS_Store
+.build/
+build/
+artifacts/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.db
+*.db-shm
+*.db-wal
+*.p12
+*.mobileprovision
+.env
+.reference/

@@ -1,0 +1,76 @@
+name: Mac Preview
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: preview-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Report toolchain
+        run: xcodebuild -version
+      - name: Run unit and persistence tests
+        run: >-
+          xcodebuild -project AITokenScrooge.xcodeproj -scheme AITokenScrooge
+          -destination 'platform=macOS,arch=arm64' -derivedDataPath build
+          -only-testing:ScroogeTests -resultBundlePath artifacts/UnitTests.xcresult test
+      - name: Build and validate preview archive
+        run: ./script/package_preview.sh
+      - name: Upload preview
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: mac-preview
+          path: |
+            artifacts/package/*.zip
+            artifacts/package/*.sha256
+          if-no-files-found: error
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: verification-evidence
+          path: |
+            artifacts/UnitTests.xcresult
+            artifacts/package/build.log
+            artifacts/package/signature.txt
+          if-no-files-found: ignore
+  publish-preview:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: mac-preview
+          path: preview
+      - name: Publish development preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          COMMIT_SHA: ${{ github.sha }}
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        shell: bash
+        run: |
+          cat > notes.md <<'NOTES'
+          Development preview for macOS 26+ on Apple silicon.
+
+          This build is ad-hoc signed and is not notarized. Feature parity and live-provider verification remain in progress. See the repository's tasks/parity.md for known gaps.
+
+          Automated unit tests and bundle checks passed. This workflow does not claim UI or live-provider verification.
+          NOTES
+          gh release create "preview-${RUN_NUMBER}-${RUN_ATTEMPT}" preview/* \
+            --target "$COMMIT_SHA" --title "AI Token Scrooge Mac — Preview ${RUN_NUMBER}" \
+            --prerelease --notes-file notes.md

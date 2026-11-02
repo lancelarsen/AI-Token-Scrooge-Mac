@@ -1,0 +1,62 @@
+name: AITokenScrooge
+options:
+  bundleIdPrefix: com.lancelarsen
+  deploymentTarget:
+    macOS: '26.0'
+settings:
+  base:
+    SWIFT_VERSION: '6.0'
+    MACOSX_DEPLOYMENT_TARGET: '26.0'
+    ARCHS: arm64
+    CODE_SIGN_IDENTITY: '-'
+    CODE_SIGN_STYLE: Manual
+    ENABLE_APP_SANDBOX: NO
+    ENABLE_HARDENED_RUNTIME: YES
+    MARKETING_VERSION: '0.1.0'
+    CURRENT_PROJECT_VERSION: 1
+targets:
+  AITokenScrooge:
+    productName: AI Token Scrooge
+    type: application
+    platform: macOS
+    sources: [App, Models, Stores, Services, Views, Support, Resources]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lancelarsen.AITokenScrooge
+        PRODUCT_NAME: AI Token Scrooge
+        PRODUCT_MODULE_NAME: AITokenScrooge
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.developer-tools
+        INFOPLIST_KEY_CFBundleDisplayName: AI Token Scrooge
+    dependencies:
+      - sdk: libsqlite3.tbd
+  ScroogeTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources: [Tests]
+    dependencies:
+      - target: AITokenScrooge
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        ENABLE_HARDENED_RUNTIME: NO
+  ScroogeUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources: [UITests]
+    dependencies:
+      - target: AITokenScrooge
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        ENABLE_HARDENED_RUNTIME: NO
+schemes:
+  AITokenScrooge:
+    build:
+      targets:
+        AITokenScrooge: all
+    test:
+      environmentVariables:
+        SCROOGE_TEST_MODE: "1"
+      targets: [ScroogeTests, ScroogeUITests]

@@ -1,0 +1,76 @@
+import Foundation
+
+final class NoRedirects: NSObject, URLSessionTaskDelegate, Sendable {
+    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest) async -> URLRequest? { nil }
+}
+actor GitHubClient {
+    private let session: URLSession
+    init() {
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 40
+        config.timeoutIntervalForResource = 60
+        config.httpCookieStorage = nil
+        config.urlCache = nil
+        session = URLSession(configuration: config, delegate: NoRedirects(), delegateQueue: nil)
+    }
+    func get(_ path: String, token: String) async throws -> JSONValue {
+        guard let url = URL(string: "https://api.github.com/" + path), url.host == "api.github.com", !token.isEmpty else {
+            throw ProviderFailure(message: "GitHub credentials are unavailable.", health: .authenticationRequired)
+        }
+        var request = URLRequest(url: url)
+        request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
+        request.setValue("AITokenScrooge/0.1", forHTTPHeaderField: "User-Agent")
+        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        request.setValue("2026-03-10", forHTTPHeaderField: "X-GitHub-Api-Version")
+        let (bytes, response) = try await session.bytes(for: request)
+        guard let response = response as? HTTPURLResponse else { throw ProviderFailure(message: "GitHub returned an invalid response.") }
+        let retry = response.value(forHTTPHeaderField: "Retry-After").flatMap(Double.init).map { Date.now.addingTimeInterval($0) }
+        if response.statusCode == 429 || (response.statusCode == 403 && (retry != nil || response.value(forHTTPHeaderField: "X-RateLimit-Remaining") == "0")) {
+            let reset = response.value(forHTTPHeaderField: "X-RateLimit-Reset").flatMap(Double.init).map { Date(timeIntervalSince1970: $0) }
+            throw ProviderFailure(message: "GitHub asked Scrooge to wait before refreshing.", health: .stale, retryAt: max(retry ?? reset ?? .now, .now.addingTimeInterval(300)))
+        }
+        if response.statusCode == 401 { throw ProviderFailure(message: "GitHub sign-in expired. Reconnect this account.", health: .authenticationRequired) }
+        if [403,404].contains(response.statusCode) { throw ProviderFailure(message: "GitHub billing access is unavailable. Personal tokens need Plan read permission; organization billing needs authorized administration access.", health: .permissionRequired) }
+        guard (200..<300).contains(response.statusCode) else { throw ProviderFailure(message: "GitHub usage is temporarily unavailable. Last known values are retained.") }
+        guard response.expectedContentLength <= 5_000_000 else { throw ProviderFailure(message: "GitHub report exceeded the monitor's size limit.") }
+        var data = Data()
+        for try await byte in bytes {
+            guard data.count < 5_000_000 else { throw ProviderFailure(message: "GitHub report exceeded the monitor's size limit.") }
+            data.append(byte)
+        }
+        return try JSONDecoder().decode(JSONValue.self, from: data)
+    }
+    func identify(token: String) async throws -> (subject: String, login: String) {
+        let user = try await get("user", token: token)
+        guard let id = user["id"].number, id > 0,
+              let login = user["login"].string, !login.isEmpty else { throw ProviderFailure(message: "GitHub did not return an account identity.") }
+        return (NSDecimalNumber(decimal: id).stringValue, login)
+    }
+    func read(account: ProviderAccount, token: String) async throws -> QuotaSnapshot {
+        let identity = try await identify(token: token)
+        guard identity.subject == account.subject else { throw AccountError.differentIdentity }
+        let now = Date.now
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let kind = account.unit == .requests ? "premium_request" : "ai_credit"
+        let escape: (String) -> String = { $0.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? "" }
+        let query = "year=\(calendar.component(.year, from: now))&month=\(calendar.component(.month, from: now))"
+        let path = account.scope.hasPrefix("organization:")
+            ? "organizations/\(escape(String(account.scope.dropFirst(13))))/settings/billing/\(kind)/usage?\(query)&user=\(escape(identity.login))"
+            : "users/\(escape(identity.login))/settings/billing/\(kind)/usage?\(query)"
+        let report = try await get(path, token: token)
+        var allowance: Decimal?
+        var plan: String?
+        if account.scope == "personal" {
+            do {
+                let entitlement = try await get("copilot_internal/user", token: token)
+                allowance = ProviderMapping.githubAllowance(entitlement, unit: account.unit)
+                plan = entitlement["copilot_plan"].string
+            } catch let error as ProviderFailure where error.retryAt != nil || error.health == .authenticationRequired { throw error }
+            catch is CancellationError { throw CancellationError() }
+            catch { /* Optional allowance does not invalidate the billing report. */ }
+        }
+        var snapshot = try ProviderMapping.github(account: account, response: report, observed: now, allowance: allowance)
+        snapshot.planType = plan
+        return snapshot
+    }
+}
