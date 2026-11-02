@@ -31,6 +31,7 @@ actor ClaudeClient {
         return (email.lowercased(), scope, value["subscriptionType"].string ?? "unknown")
     }
     func connect(credentialID: String, nickname: String, original: ProviderAccount?) async throws -> (ProviderAccount, QuotaSnapshot) {
+        try await requireUsageSupport(credentialID)
         _ = try await run(credentialID, ["auth", "login"], timeout: .seconds(600))
         let identity = try await identity(credentialID)
         var account = ProviderAccount(provider: .claude, nickname: nickname, subject: identity.subject, scope: identity.scope, login: identity.subject, credentialID: credentialID)
@@ -43,9 +44,12 @@ actor ClaudeClient {
         return try await usage(account, plan: identity.plan)
     }
     func disconnect(_ credentialID: String) async throws { _ = try await run(credentialID, ["auth", "logout"]) }
-    private func usage(_ account: ProviderAccount, plan: String) async throws -> QuotaSnapshot {
-        let version = String(decoding: try await run(account.credentialID, ["--version"]), as: UTF8.self)
+    private func requireUsageSupport(_ credentialID: String) async throws {
+        let version = String(decoding: try await run(credentialID, ["--version"]), as: UTF8.self)
         guard Self.supportsUsage(version) else { throw ProviderFailure(message: "Update Claude Code to version 2.1.310 or later to read usage in Scrooge.", health: .unsupported) }
+    }
+    private func usage(_ account: ProviderAccount, plan: String) async throws -> QuotaSnapshot {
+        try await requireUsageSupport(account.credentialID)
         // Only the supported quota command is permitted; there is no prompt/inference fallback.
         let screen = String(decoding: try await run(account.credentialID, ["/usage"]), as: UTF8.self)
         let now = Date.now
