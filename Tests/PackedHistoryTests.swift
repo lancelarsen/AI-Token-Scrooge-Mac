@@ -3,6 +3,45 @@ import SQLite3
 @testable import AITokenScrooge
 
 final class PackedHistoryTests: XCTestCase {
+    func testVersionOneHistoryLoadsAndConvertsWhenExtended() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("legacy.db")
+        let now = Date(timeIntervalSince1970: 1800000000)
+        let account = ProviderAccount(id: "legacy-account", provider: .codex, nickname: "A", subject: "s", scope: "w")
+        var snapshot = QuotaSnapshot(accountID: account.id, subject: "s", scope: "w", observedAt: now, windows: [])
+        let run = HistoryRun(id: "legacy-run", snapshot: snapshot, lastObservedAt: now, pollingMinutes: 2, revision: 1)
+        let payload = try JSONEncoder().encode(run).map { String(format: "%02x", $0) }.joined()
+        var connection: OpaquePointer?
+        XCTAssertEqual(sqlite3_open(url.path, &connection), SQLITE_OK)
+        defer { sqlite3_close(connection) }
+        let schema = """
+        CREATE TABLE history (id TEXT PRIMARY KEY, account TEXT NOT NULL, first REAL NOT NULL, last REAL NOT NULL, revision INTEGER NOT NULL, payload BLOB NOT NULL);
+        CREATE TABLE history_clock (id INTEGER PRIMARY KEY CHECK(id=1), revision INTEGER NOT NULL);
+        INSERT INTO history_clock VALUES(1,1);
+        INSERT INTO history VALUES('legacy-run','legacy-account',1800000000,1800000000,1,X'\(payload)');
+        PRAGMA user_version=1;
+        """
+        XCTAssertEqual(sqlite3_exec(connection, schema, nil, nil, nil), SQLITE_OK)
+        let store = try LocalStore(url: url)
+        let loaded = try await store.history(accountID: account.id, since: now)
+        XCTAssertEqual(loaded, [run])
+        snapshot.observedAt = now.addingTimeInterval(120)
+        var state = PersistedState(); state.accounts = [account]
+        try await store.accept(snapshot, account: account, state: state)
+        let reopened = try LocalStore(url: url)
+        let extended = try await reopened.history(accountID: account.id, since: now)
+        XCTAssertEqual(extended.count, 1)
+        XCTAssertEqual(extended.first?.count, 2)
+        XCTAssertEqual(extended.first?.lastObservedAt, snapshot.observedAt)
+        XCTAssertEqual(extended.first?.revision, 2)
+        var query: OpaquePointer?
+        XCTAssertEqual(sqlite3_prepare_v2(connection, "SELECT count(*) FROM history_metadata", -1, &query, nil), SQLITE_OK)
+        defer { sqlite3_finalize(query) }
+        XCTAssertEqual(sqlite3_step(query), SQLITE_ROW)
+        XCTAssertEqual(sqlite3_column_int(query, 0), 1)
+    }
     func testRetentionFailureRollsBackStateAndHistoryTogether() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
