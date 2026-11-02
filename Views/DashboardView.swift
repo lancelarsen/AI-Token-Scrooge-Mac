@@ -111,7 +111,7 @@ struct AccountCard: View {
             layout {
                 identity.frame(width: wide ? 220 : nil, alignment: .leading)
                 VStack(spacing: 8) {
-                    if let snapshot, !snapshot.windows.isEmpty {
+                    if account.enabled, let snapshot, snapshot.belongs(to: account), !snapshot.windows.isEmpty {
                         ForEach(snapshot.windows) { window in QuotaRow(account: account, window: window, snapshot: snapshot, wide: wide) }
                     } else { Text(!account.enabled ? "Monitoring Disabled" : snapshot?.message ?? "Waiting for Usage Data").foregroundStyle(Theme.secondary).frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 16) }
                 }

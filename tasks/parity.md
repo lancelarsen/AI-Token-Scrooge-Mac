@@ -16,7 +16,7 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Header freshness now shows source-matched latest observation date/time/zone and pending sign-in cleanup (date/zone regression coverage).
 - Native SwiftUI dashboard/account cards; charcoal/lavender theme and bundled source artwork/sounds.
 - Source-matched sorting keeps unknown/paused accounts last and preserves ties, with custom-order normalization and first-switch visible-order capture regression coverage. Drag reordering uses current serialized state. Custom drag order, history selectors, threshold controls, settings, reminders, account editor, alert history.
-- Paused accounts are excluded from timeline selectors, curves and events; future-event fixtures cover pause, hidden selection and identity mismatch without deleting stored snapshots.
+- Paused accounts are excluded from timeline selectors, curves and events; future-event fixtures cover pause, hidden selection and identity mismatch without deleting stored snapshots. Native demo pause verified: quota rows become Monitoring Disabled, selector disappears, future counts change 7/2 to 5/0, and management stays available. Demo exit clears synthetic accounts/events.
 - Calendar-week history queries share viewport DST boundaries; cache expansion and the 169-hour fall-back week are tested, and zone changes reload history. Civil-day timeline geometry with DST handling, date rail, future reset/expiry details, overview navigation.
 - SQLite snapshots/history runs, identity validation, Keychain token storage.
 - GitHub advanced token identity and billing reads with provider/manual/unknown allowances and bounded no-redirect transport.
