@@ -13,6 +13,7 @@ import AppKit
     private(set) var isDemo = false
     private(set) var isLoading = true
     private(set) var isRefreshing = false
+    private var pendingRefreshEpoch: UUID?
     var errorMessage: String?
     var selectedAccount: ProviderAccount?
     var highlightedAccountID: String?
@@ -472,10 +473,24 @@ import AppKit
     }
 
     func refresh(force: Bool = true) async {
-        guard !isRefreshing, !isDemo else { return }
+        guard !isDemo else { return }
+        if isRefreshing {
+            if force { pendingRefreshEpoch = monitoringEpoch }
+            return
+        }
         let epoch = monitoringEpoch
         isRefreshing = true
-        defer { isRefreshing = false }
+        defer {
+            isRefreshing = false
+            let requestedEpoch = pendingRefreshEpoch
+            pendingRefreshEpoch = nil
+            if requestedEpoch == monitoringEpoch {
+                Task { [weak self] in
+                    guard let self, !isDemo, monitoringEpoch == requestedEpoch else { return }
+                    await refresh()
+                }
+            }
+        }
         for account in state.accounts where account.enabled {
             guard !isDemo, monitoringEpoch == epoch else { break }
             if !schedule.shouldRefresh(account.id, now: .now, force: force) { continue }
