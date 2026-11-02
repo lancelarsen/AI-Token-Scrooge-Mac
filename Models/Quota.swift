@@ -129,7 +129,8 @@ enum AccountPolicy {
         }
         state.settings.accountSort = mode
     }
-    static func ordered(_ state: PersistedState) -> [ProviderAccount] {
+    static func ordered(_ state: PersistedState, mode: AccountSort? = nil) -> [ProviderAccount] {
+        let mode = mode ?? state.settings.accountSort
         func remaining(_ account: ProviderAccount) -> Decimal? {
             account.enabled ? state.snapshots[account.id]?.windows.compactMap(\.remainingPercent).min() : nil
         }
@@ -138,14 +139,14 @@ enum AccountPolicy {
         }
         return state.accounts.enumerated().sorted { left, right in
             let a = left.element, b = right.element
-            switch state.settings.accountSort {
+            switch mode {
             case .custom:
                 let x = state.settings.accountOrder.firstIndex(of: a.id) ?? Int.max
                 let y = state.settings.accountOrder.firstIndex(of: b.id) ?? Int.max
                 return x == y ? left.offset < right.offset : x < y
             case .mostRemaining, .leastRemaining:
                 let x = remaining(a), y = remaining(b)
-                if let x, let y, x != y { return state.settings.accountSort == .mostRemaining ? x > y : x < y }
+                if let x, let y, x != y { return mode == .mostRemaining ? x > y : x < y }
                 if (x == nil) != (y == nil) { return x != nil }
                 return left.offset < right.offset
             case .nextReset:

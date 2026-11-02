@@ -5,7 +5,7 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 ## Verified milestone
 
 - Xcode Debug build and native app launch succeed on this Mac.
-- Forty-eight tests pass (including Claude parser/version fixtures and the installed Codex CLI in a fresh signed-out profile): unknown/overage capacity, unknown billing units, workspace mismatch, reserve-only payloads, DST geometry, SQLite run compaction.
+- Forty-nine tests pass (including Claude parser/version fixtures and the installed Codex CLI in a fresh signed-out profile): unknown/overage capacity, unknown billing units, workspace mismatch, reserve-only payloads, DST geometry, SQLite run compaction.
 - Computer-use inspection confirms demo controls, provider artwork, future events, and history rendering. Native computer-use checks additionally confirm history toggle preserves selectors, navigator accessibility decrement changes dates, and historical reset details distinguish a reported schedule from an observed reset. Screenshot: artifacts/history-native-review.png (local evidence, ignored by Git). Full visual parity and live accounts are not verified.
 
 ## Implemented, awaiting complete verification
@@ -15,7 +15,7 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Quota details include account/scope (hidden in privacy mode), fetch/provider timestamps and source provider-usage links; organization path escaping is tested, native browser handoff still to verify.
 - Header freshness now shows source-matched latest observation date/time/zone and pending sign-in cleanup (date/zone regression coverage).
 - Native SwiftUI dashboard/account cards; charcoal/lavender theme and bundled source artwork/sounds.
-- Source-matched sorting keeps unknown/paused accounts last and preserves ties, with custom-order normalization and first-switch visible-order capture regression coverage. Drag reordering uses current serialized state. Custom drag order, history selectors, threshold controls, settings, reminders, account editor, alert history.
+- Source-matched sorting keeps unknown/paused accounts last and preserves ties, with custom-order normalization and first-switch visible-order capture regression coverage. Drag reordering uses current serialized state. Timeline selectors/series follow saved custom order independently of active card sorting, with regression coverage. Custom drag order, history selectors, threshold controls, settings, reminders, account editor, alert history.
 - Paused accounts are excluded from timeline selectors, curves and events; future-event fixtures cover pause, hidden selection and identity mismatch without deleting stored snapshots. Native demo pause verified: quota rows become Monitoring Disabled, selector disappears, future counts change 7/2 to 5/0, and management stays available. Demo exit clears synthetic accounts/events.
 - Calendar-week history queries share viewport DST boundaries; cache expansion and the 169-hour fall-back week are tested, and zone changes reload history. Civil-day timeline geometry with DST handling, date rail, future reset/expiry details, overview navigation.
 - SQLite snapshots/history runs, identity validation, Keychain token storage.

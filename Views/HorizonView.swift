@@ -8,6 +8,7 @@ struct HorizonView: View {
     @State private var selectedEvent: HorizonEvent?
     @State private var hoverText: String?
     private var events: [HorizonEvent] { HorizonEvent.events(state: store.state, now: .now) }
+    private var timelineAccounts: [ProviderAccount] { AccountPolicy.ordered(store.state, mode: .custom).filter(\.enabled) }
     var body: some View {
         ScroogeCard {
             VStack(spacing: 18) {
@@ -95,7 +96,7 @@ struct HorizonView: View {
     private var selectors: some View {
         ScrollView {
             VStack(spacing: 12) {
-                ForEach(store.state.accounts.filter(\.enabled)) { account in
+                ForEach(timelineAccounts) { account in
                     Button { store.toggleAccountHistory(account.id) } label: {
                         VStack(spacing: 1) {
                             Text(store.state.settings.privacy ? "Account" : account.nickname).font(.system(size: 10)).lineLimit(1)
@@ -261,12 +262,12 @@ struct HorizonView: View {
         }
     }
     private var historicalEvents: [HorizonEvent] {
-        store.state.accounts.filter { $0.enabled && !store.state.settings.hiddenHistoryAccounts.contains($0.id) }.flatMap {
+        timelineAccounts.filter { !store.state.settings.hiddenHistoryAccounts.contains($0.id) }.flatMap {
             UsageHistory.events(account: $0, runs: store.history, from: viewport.firstDate, through: .now)
         }
     }
     private var historySeries: [UsageHistorySeries] {
-        store.state.accounts.filter { $0.enabled && !store.state.settings.hiddenHistoryAccounts.contains($0.id) }.map {
+        timelineAccounts.filter { !store.state.settings.hiddenHistoryAccounts.contains($0.id) }.map {
             UsageHistory.build(account: $0, runs: store.history, from: viewport.firstDate, through: .now)
         }
     }

@@ -27,6 +27,7 @@ final class CoreTests: XCTestCase {
         AccountPolicy.selectSort(.custom, state: &state)
         XCTAssertEqual(state.settings.accountOrder, visible)
         AccountPolicy.selectSort(.mostRemaining, state: &state)
+        XCTAssertEqual(AccountPolicy.ordered(state, mode: .custom).map(\.id), visible)
         AccountPolicy.selectSort(.custom, state: &state)
         XCTAssertEqual(AccountPolicy.ordered(state).map(\.id), visible)
     }
