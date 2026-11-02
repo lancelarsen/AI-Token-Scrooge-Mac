@@ -7,6 +7,8 @@ struct AccountSettingsView: View {
     @State private var newColor = Color(hex: "#B5A0F4")
     @State private var showColor = false
     @State private var confirmRemove = false
+    @State private var nicknameDraft = ""
+    @FocusState private var editingNickname: Bool
     private var account: ProviderAccount? { store.state.accounts.first { $0.id == accountID } }
     private var lineColors: [String] {
         var seen = Set<String>()
@@ -19,7 +21,10 @@ struct AccountSettingsView: View {
                 if let account {
                     VStack(spacing: 12) {
                         SettingsCard(title: "Account", symbol: "person.crop.circle") {
-                            TextField("Account Name", text: Binding(get: { account.nickname }, set: { value in update { $0.nickname = value } })).textFieldStyle(.roundedBorder)
+                            TextField("Account Name", text: $nicknameDraft).textFieldStyle(.roundedBorder)
+                                .focused($editingNickname)
+                                .onSubmit { saveNickname() }
+                                .onChange(of: editingNickname) { _, focused in if !focused { saveNickname() } }
                             Text("Line Color")
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 36, maximum: 40))], alignment: .leading) {
                                 ForEach(lineColors, id: \.self) { hex in
@@ -66,9 +71,18 @@ struct AccountSettingsView: View {
                 }
             }
         }.frame(width: 760, height: 760).background(Theme.background).preferredColorScheme(.dark).tint(Theme.accent)
+        .onAppear { nicknameDraft = account?.nickname ?? "" }
+        .onDisappear { saveNickname() }
         .confirmationDialog("Remove This Account?", isPresented: $confirmRemove) {
             Button("Remove Account", role: .destructive) { Task { await store.removeAccount(accountID); dismiss() } }
         } message: { Text("This removes its local history and Scrooge-owned connection. Your other apps stay signed in.") }
+    }
+    private func saveNickname() {
+        guard let account else { return }
+        let name = nicknameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { nicknameDraft = account.nickname; return }
+        nicknameDraft = name
+        if name != account.nickname { update { $0.nickname = name } }
     }
     private func update(_ change: @escaping @MainActor (inout ProviderAccount) -> Void) {
         store.edit { state in if let index = state.accounts.firstIndex(where: { $0.id == accountID }) { change(&state.accounts[index]) } }
