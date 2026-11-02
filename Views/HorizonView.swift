@@ -7,6 +7,7 @@ struct HorizonView: View {
     @State private var position = ScrollPosition(x: 0)
     @State private var selectedEvent: HorizonEvent?
     @State private var hoverText: String?
+    @State private var hoveredSample: (account: ProviderAccount, point: HistoryPoint)?
     private var events: [HorizonEvent] { HorizonEvent.events(state: store.state, now: .now) }
     private var timelineAccounts: [ProviderAccount] { AccountPolicy.ordered(store.state, mode: .custom).filter(\.enabled) }
     var body: some View {
@@ -212,11 +213,13 @@ struct HorizonView: View {
                     UsageHistory.estimatedPoint(points: series.points, x: location.x, y: location.y, viewport: viewport).map { (series.account, $0) }
                 }.first : nil
                 if store.state.settings.historyEnabled, date <= .now, (95...295).contains(location.y), let (account, point) = nearest ?? estimate {
+                    hoveredSample = (account, point)
                     hoverText = "\(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.percent(100 - point.remaining)) Used · \(Format.date(point.at, zone: store.state.settings.zone))" + (point.estimated ? " · Estimated Linear Connection From Previous Observation" : "")
-                } else { hoverText = Format.date(date, zone: store.state.settings.zone) }
-            case .ended: hoverText = nil
+                } else { hoverText = nil; hoveredSample = nil }
+            case .ended: hoverText = nil; hoveredSample = nil
             }
         }
+        .onChange(of: viewport.scrollOffset) { _, _ in hoverText = nil; hoveredSample = nil }
     }
     private var navigator: some View {
         GeometryReader { geometry in
@@ -286,6 +289,19 @@ struct HorizonView: View {
             }
             flush()
         }
+        if let sample = hoveredSample,
+           timelineAccounts.contains(where: { $0.id == sample.account.id }),
+           !store.state.settings.hiddenHistoryAccounts.contains(sample.account.id) {
+            let x = viewport.position(at: sample.point.at)
+            let y = 95 + NSDecimalNumber(decimal: sample.point.remaining).doubleValue / 100 * chartHeight
+            var guide = Path()
+            guide.move(to: CGPoint(x: x, y: 95))
+            guide.addLine(to: CGPoint(x: x, y: 95 + chartHeight))
+            context.stroke(guide, with: .color(Theme.secondary.opacity(0.6)), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
+            let dot = Path(ellipseIn: CGRect(x: x - 4, y: y - 4, width: 8, height: 8))
+            context.fill(dot, with: .color(Color(hex: sample.account.resolvedLineColor(plan: store.state.snapshots[sample.account.id]?.planType))))
+            context.stroke(dot, with: .color(.white), lineWidth: 1)
+        }
         if nowX >= viewport.scrollOffset - 1, nowX <= viewport.scrollOffset + viewport.viewportWidth + 1 {
             var currentTime = Path()
             currentTime.move(to: CGPoint(x: nowX, y: 95))
@@ -340,6 +356,7 @@ struct HorizonView: View {
     }
     private func isToday(_ date: Date) -> Bool { calendar.isDate(date, inSameDayAs: .now) }
     private func update(width: Double) {
+        hoverText = nil; hoveredSample = nil
         viewport.update(now: .now, furthestFuture: events.map(\.date).max(), zone: store.state.settings.zone, width: width, historyEnabled: store.state.settings.historyEnabled)
         position.scrollTo(x: viewport.scrollOffset)
     }
