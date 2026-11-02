@@ -2,6 +2,17 @@ import XCTest
 @testable import AITokenScrooge
 
 final class HistoryEventTests: XCTestCase {
+    func testFutureDayIconsRespectCurrentTimeBoundaryOnlyInHistoryMode() {
+        let day = Date(timeIntervalSince1970: Double(Int(1_800_000_000) / 86_400 * 86_400))
+        let zone = TimeZone(secondsFromGMT: 0)!
+        let morning = HorizonViewport(now: day.addingTimeInterval(9 * 3600), furthestFuture: nil, zone: zone, width: 700)
+        let evening = HorizonViewport(now: day.addingTimeInterval(23 * 3600), furthestFuture: nil, zone: zone, width: 700)
+        XCTAssertTrue(morning.showsFutureEvents(on: day))
+        XCTAssertFalse(evening.showsFutureEvents(on: day))
+        let withoutHistory = HorizonViewport(now: day.addingTimeInterval(23 * 3600), furthestFuture: nil, zone: zone, width: 700, historyEnabled: false)
+        XCTAssertTrue(withoutHistory.showsFutureEvents(on: day))
+        XCTAssertFalse(morning.showsFutureEvents(on: day.addingTimeInterval(30 * 86400)))
+    }
     func testHistoricalMarkersGroupExactTimesAndKeepNearbyEventsInSeparateLanes() {
         let now = Date(timeIntervalSince1970: 1800000000)
         var viewport = HorizonViewport(now: now, furthestFuture: nil, zone: TimeZone(secondsFromGMT: 0)!, width: 700)

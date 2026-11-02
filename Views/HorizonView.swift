@@ -192,7 +192,7 @@ struct HorizonView: View {
                         }
                     }
                     .position(x: viewport.dayAnchor(date), y: 56)
-                ForEach(Array(dayEvents.enumerated()), id: \.element.id) { index, event in
+                ForEach(Array((viewport.showsFutureEvents(on: date) ? dayEvents : []).enumerated()), id: \.element.id) { index, event in
                     let accent = Color(hex: event.expiration ? "#EAAA51" : "#B5A0F4")
                     let plan = Format.plan(event.account.provider, event.plan)
                     Button { selectedEvent = event } label: {
