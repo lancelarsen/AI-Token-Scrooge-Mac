@@ -214,7 +214,16 @@ struct HorizonView: View {
                 }.first : nil
                 if store.state.settings.historyEnabled, date <= .now, (95...295).contains(location.y), let (account, point) = nearest ?? estimate {
                     hoveredSample = (account, point)
-                    hoverText = "\(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.percent(100 - point.remaining)) Used · \(Format.date(point.at, zone: store.state.settings.zone))" + (point.estimated ? " · Estimated Linear Connection From Previous Observation" : "")
+                    var details = historyHelp(account)
+                    details += "\n\(Format.percent(100 - point.remaining)) Used · \(Format.date(point.at, zone: store.state.settings.zone))"
+                    if point.estimated { details += "\nEstimated Linear Connection From Previous Observation" }
+                    if let previous = point.replenishedFrom {
+                        details += "\nCapacity Rose From \(Format.percent(previous)) to \(Format.percent(point.remaining)) · Observed Between Polls"
+                        if let prior = point.previousObservedAt {
+                            details += "\n\(Format.date(prior, zone: store.state.settings.zone)) – \(Format.date(point.at, zone: store.state.settings.zone))"
+                        }
+                    }
+                    hoverText = details
                 } else { hoverText = nil; hoveredSample = nil }
             case .ended: hoverText = nil; hoveredSample = nil
             }

@@ -50,6 +50,8 @@ final class UsageHistoryTests: XCTestCase {
         let series = UsageHistory.build(account: account, runs: [run(0, 80), run(120, 10), run(3600, 50)], from: now, through: now.addingTimeInterval(3600))
         XCTAssertEqual(series.points.count, 3)
         XCTAssertEqual(series.points[1].replenishedFrom, 20)
+        XCTAssertEqual(series.points[1].previousObservedAt, series.points[0].at)
+        XCTAssertNil(series.points[0].previousObservedAt)
         XCTAssertFalse(series.points[1].estimated)
         XCTAssertTrue(series.points[2].estimated)
         XCTAssertNil(series.points[2].replenishedFrom)

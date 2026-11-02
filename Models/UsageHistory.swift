@@ -7,6 +7,7 @@ struct HistoryPoint: Equatable, Sendable {
     var startsSegment: Bool
     var estimated: Bool
     var replenishedFrom: Decimal?
+    var previousObservedAt: Date? = nil
 }
 struct UsageHistorySeries: Sendable {
     var account: ProviderAccount
@@ -64,7 +65,7 @@ enum UsageHistory {
                 || !(previousSnapshot.map { account.scopeEquals($0.scope) } ?? false)
             let estimated = !starts && (missed || snapshot.observedAt.timeIntervalSince(points.last!.at) > maxGap)
             let replenished = !starts && !estimated && remaining > points.last!.remaining ? points.last!.remaining : nil
-            points.append(HistoryPoint(at: snapshot.observedAt, remaining: remaining, windowID: window.id, startsSegment: starts, estimated: estimated, replenishedFrom: replenished))
+            points.append(HistoryPoint(at: snapshot.observedAt, remaining: remaining, windowID: window.id, startsSegment: starts, estimated: estimated, replenishedFrom: replenished, previousObservedAt: starts ? nil : points.last?.at))
             // Compacted runs provide exact observed endpoints and a measured continuity bound.
             if run.lastObservedAt > snapshot.observedAt, run.lastObservedAt <= through {
                 points.append(HistoryPoint(at: run.lastObservedAt, remaining: remaining, windowID: window.id, startsSegment: false, estimated: run.maximumGap > maxGap, replenishedFrom: nil))
