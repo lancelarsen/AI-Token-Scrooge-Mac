@@ -317,11 +317,6 @@ struct HorizonView: View {
             line.addLine(to: CGPoint(x: x, y: plotTop + chartHeight))
             context.stroke(line, with: .color(Color(hex: "#30333C")), lineWidth: 1)
         }
-        for event in historicalEvents {
-            let x = viewport.position(at: event.date)
-            var marker = Path(); marker.move(to: CGPoint(x: x, y: plotTop)); marker.addLine(to: CGPoint(x: x, y: plotTop + chartHeight))
-            context.stroke(marker, with: .color((event.expiration ? Theme.amber : Theme.accent).opacity(0.6)), style: StrokeStyle(lineWidth: 1, dash: [4,4]))
-        }
         for series in historySeries {
             let points = UsageHistory.reduce(series.points, project: viewport.position, minX: viewport.scrollOffset, maxX: viewport.scrollOffset + viewport.viewportWidth)
             let color = Color(hex: series.account.resolvedLineColor(plan: store.state.snapshots[series.account.id]?.planType))
@@ -346,6 +341,12 @@ struct HorizonView: View {
                 segment.append(CGPoint(x: x, y: plotTop + NSDecimalNumber(decimal: point.remaining).doubleValue / 100 * chartHeight))
             }
             flush()
+        }
+        for event in historicalEvents {
+            let x = viewport.position(at: event.date)
+            guard x >= viewport.scrollOffset, x <= min(nowX, viewport.scrollOffset + viewport.viewportWidth) else { continue }
+            var marker = Path(); marker.move(to: CGPoint(x: x, y: plotTop)); marker.addLine(to: CGPoint(x: x, y: plotTop + chartHeight))
+            context.stroke(marker, with: .color((event.expiration ? Theme.amber : Theme.accent).opacity(0.6)), style: StrokeStyle(lineWidth: 1, dash: [4,4]))
         }
         if let sample = hoveredSample,
            timelineAccounts.contains(where: { $0.id == sample.account.id }),
