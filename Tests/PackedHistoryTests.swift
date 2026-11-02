@@ -1,7 +1,36 @@
 import XCTest
+import SQLite3
 @testable import AITokenScrooge
 
 final class PackedHistoryTests: XCTestCase {
+    func testRetentionFailureRollsBackStateAndHistoryTogether() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("test.db")
+        let store = try LocalStore(url: url)
+        let now = Date(timeIntervalSince1970: 1800000000)
+        let account = ProviderAccount(provider: .codex, nickname: "A", subject: "s", scope: "w")
+        let snapshot = QuotaSnapshot(accountID: account.id, subject: "s", scope: "w", observedAt: now.addingTimeInterval(-172800), windows: [])
+        var original = PersistedState(); original.accounts = [account]
+        original.alerts = [AlertEvent(id: "old", accountID: account.id, title: "Old", detail: "", createdAt: snapshot.observedAt)]
+        try await store.accept(snapshot, account: account, state: original)
+        var connection: OpaquePointer?
+        XCTAssertEqual(sqlite3_open(url.path, &connection), SQLITE_OK)
+        defer { sqlite3_close(connection) }
+        XCTAssertEqual(sqlite3_exec(connection, "CREATE TRIGGER fail_prune BEFORE DELETE ON history BEGIN SELECT RAISE(ABORT, 'injected failure'); END", nil, nil, nil), SQLITE_OK)
+        var candidate = original; candidate.alerts = []
+        do { try await store.prune(now: now, days: 1, state: candidate); XCTFail("Expected injected delete failure") } catch {}
+        let retained = try await store.load()
+        let history = try await store.history(accountID: account.id, since: .distantPast)
+        XCTAssertEqual(retained, original)
+        XCTAssertEqual(history.count, 1)
+        XCTAssertEqual(sqlite3_exec(connection, "DROP TRIGGER fail_prune", nil, nil, nil), SQLITE_OK)
+        try await store.prune(now: now, days: 1, state: candidate)
+        let pruned = try await store.load()
+        let empty = try await store.history(accountID: account.id, since: .distantPast)
+        XCTAssertEqual(pruned, candidate)
+        XCTAssertTrue(empty.isEmpty)
+    }
     func testPruningAndAccountRemovalKeepSurvivingMetadataReadable() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

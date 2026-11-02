@@ -163,8 +163,7 @@ import AppKit
                 var candidate = state
                 let cutoff = Date.now.addingTimeInterval(-Double(candidate.settings.historyRetentionDays) * 86400)
                 candidate.alerts.removeAll { $0.createdAt < cutoff }
-                try await database.save(candidate)
-                try await database.prune(now: .now, days: candidate.settings.historyRetentionDays)
+                try await database.prune(now: .now, days: candidate.settings.historyRetentionDays, state: candidate)
                 state = candidate; lastPruned = .now; historyCache.removeAll()
             } catch { errorMessage = error.localizedDescription }
         }

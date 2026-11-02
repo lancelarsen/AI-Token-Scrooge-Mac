@@ -149,8 +149,9 @@ actor LocalStore {
             try collectUnusedMetadata()
         }
     }
-    func prune(now: Date, days: Int) throws {
+    func prune(now: Date, days: Int, state: PersistedState? = nil) throws {
         try transaction {
+            if let state { try saveState(state) }
             let statement = try prepare("DELETE FROM history WHERE last<?")
             defer { sqlite3_finalize(statement) }
             sqlite3_bind_double(statement, 1, now.addingTimeInterval(-Double(min(365, max(1, days))) * 86400).timeIntervalSince1970)
