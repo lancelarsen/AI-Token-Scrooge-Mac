@@ -55,3 +55,5 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Menu-bar tooltip/menu summary now identifies the limiting account/window by source severity rank and remaining-percentage tie break, adds monitoring notices, labels demo state, and respects privacy. Current icon alerts override the summary with source alert details. Unit suite passes, including limiting-window ordering and paused exclusion. Native tooltip/menu visual verification remains outstanding.
 
 - Timed quota/reset alerts now include the exact timestamp in the selected display zone alongside the countdown, matching source reminder details. Unit suite passes with timestamp coverage and demo/stale/offline/authentication health rejection checks.
+
+- Account settings reset details now label counts as reported, include snapshot fetch time/health, show credit status and locally expired notices, and distinguish unavailable details. Identity-mismatched reserves are excluded. Debug build passes; native reserve-settings review remains outstanding.

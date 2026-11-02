@@ -50,11 +50,17 @@ struct AccountSettingsView: View {
                             Toggle("Monitor This Account", isOn: Binding(get: { account.enabled }, set: { value in update { $0.enabled = value; $0.generation = UUID() } }))
                                 .help("Pause checks and alerts without removing this connection.")
                         }
-                        if let reserve = store.state.snapshots[accountID]?.reserve {
+                        if let savedSnapshot = store.state.snapshots[accountID], savedSnapshot.belongs(to: account), let reserve = savedSnapshot.reserve {
                             SettingsCard(title: "Available Resets", symbol: "hourglass") {
-                                Text("\(reserve.availableCount.map(String.init) ?? "Unknown") Available").font(.title2)
-                                ForEach(reserve.credits ?? []) { credit in Text("Expires \(Format.date(credit.expiresAt, zone: store.state.settings.zone))") }
-                                if reserve.hasPartialDetails { Text("Some reset details are not supplied by the provider.").foregroundStyle(Theme.secondary) }
+                                Text("\(reserve.availableCount.map(String.init) ?? "Unknown") Reported Available").font(.title2)
+                                Text("Snapshot Fetched: \(Format.date(savedSnapshot.observedAt, zone: store.state.settings.zone))")
+                                Text(account.enabled ? savedSnapshot.health.rawValue : "Monitoring Paused").foregroundStyle(Theme.secondary)
+                                if let credits = reserve.credits {
+                                    ForEach(credits) { credit in
+                                        Text("\(Format.date(credit.expiresAt, zone: store.state.settings.zone)) · \(credit.expiresAt.map { $0 <= Date() } == true ? "Expired Locally — Checking Provider" : credit.status)")
+                                    }
+                                } else { Text("Credit Details Unavailable").foregroundStyle(Theme.secondary) }
+                                if reserve.hasPartialDetails { Text("Provider supplied only partial credit details.").foregroundStyle(Theme.secondary) }
                             }
                         }
                         SettingsCard(title: "Other Alerts", symbol: "bell") {
