@@ -5,7 +5,7 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 ## Verified milestone
 
 - Xcode Debug build and native app launch succeed on this Mac.
-- Thirty-three full-suite tests pass, plus the new demo-history endpoint/gap regression test (including Claude parser/version fixtures and the installed Codex CLI in a fresh signed-out profile): unknown/overage capacity, unknown billing units, workspace mismatch, reserve-only payloads, DST geometry, SQLite run compaction.
+- Thirty-six tests pass (including Claude parser/version fixtures and the installed Codex CLI in a fresh signed-out profile): unknown/overage capacity, unknown billing units, workspace mismatch, reserve-only payloads, DST geometry, SQLite run compaction.
 - Computer-use inspection confirms demo controls, provider artwork, future events, and history rendering. Full visual parity and live accounts are not verified.
 
 ## Implemented, awaiting complete verification
@@ -22,7 +22,7 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 
 - Verify Codex browser login/cancellation and reconnect end-to-end with a live account; isolated transport and refresh are implemented and signed-out integration tested.
 - Verify Claude isolated auth, quota command and logout against an installed CLI and live account; implementation and parser/version fixtures are in place. Claude Code is not installed on this Mac.
-- Verify GitHub device login and rotating credential renewal end-to-end, including persistence/network fault injection; services and UI are implemented with credential-validation fixtures.
+- Verify GitHub device login and rotating credential renewal end-to-end, services and UI are implemented with credential-validation fixtures. Injected replacement-write and ambiguous-network failures now verify retry without double rotation and durable reconnect after restart; live renewal remains unverified.
 - Verify scheduled refresh, native notification delivery/actions and menu/Dock badge end-to-end; scheduler, backoff, durable alert intents, quiet hours, account snooze, privacy, banner and Dock badge are implemented with policy tests. Menu alert indicator and queued notification routing now reopen the main window; verify both on screen.
 - Verify startup login-item reconciliation and credential retirement against macOS/live providers; startup registration, approval status and Settings handoff are implemented (skipped during tests/demo). retired account records now persist and provider logout retries without touching active credentials. Connection commits and demo transitions share the mutation queue, and an epoch rejects pre-demo refresh results.
 - Verify settings migration/default decoding and retention pruning end-to-end; top-level and nested preference default decoding, identity filtering and retirement round trips have tests. Shared metadata packing, retained-history reads after pruning, and account removal/re-addition are tested; incremental revision reads/cache merges and pixel drawing reduction are implemented and tested.
