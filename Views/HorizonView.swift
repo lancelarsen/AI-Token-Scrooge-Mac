@@ -165,15 +165,29 @@ struct HorizonView: View {
                     }
                     .position(x: viewport.dayAnchor(date), y: 56)
                 ForEach(Array(dayEvents.enumerated()), id: \.element.id) { index, event in
+                    let accent = Color(hex: event.expiration ? "#EAAA51" : "#B5A0F4")
+                    let plan = Format.plan(event.account.provider, event.plan)
                     Button { selectedEvent = event } label: {
-                        VStack(spacing: 2) {
-                            ProviderIcon(provider: event.account.provider, size: 28)
-                            Text(Format.plan(event.account.provider, event.plan)).font(.system(size: 9)).lineLimit(1)
-                            Text(event.date.formatted(Date.FormatStyle(date: .omitted, time: .shortened).withTimeZone(store.state.settings.zone))).font(.system(size: 9))
-                        }.frame(width: 54, height: 63).background(event.expiration ? Theme.amber.opacity(0.15) : Theme.accent.opacity(0.15))
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(event.expiration ? Theme.amber : Theme.accent, lineWidth: 2))
-                    }.buttonStyle(.plain).position(x: viewport.dayAnchor(date), y: CGFloat(104 + index * 75))
+                        VStack(spacing: 3) {
+                            ZStack(alignment: .top) {
+                                ProviderIcon(provider: event.account.provider, size: 27)
+                                    .frame(width: 42, height: 42)
+                                    .background(Color(hex: event.expiration ? "#49321D" : "#352A50"))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(accent, lineWidth: 2))
+                            }.frame(width: 62, height: 49, alignment: .top)
+                                .overlay(alignment: .bottom) {
+                                    Text(plan == "Plan unavailable" ? "?" : plan)
+                                        .font(.system(size: 10, weight: .semibold)).lineLimit(1)
+                                        .padding(.horizontal, 5).padding(.vertical, 1)
+                                        .background(Color(hex: "#1C1E24"))
+                                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                                        .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(accent, lineWidth: 1))
+                                }
+                            Text(event.date.formatted(Date.FormatStyle(date: .omitted, time: .shortened).withTimeZone(store.state.settings.zone))).font(.system(size: 10))
+                        }.foregroundStyle(accent).frame(width: 62, height: 74, alignment: .top)
+                            .contentShape(Rectangle())
+                    }.buttonStyle(.plain).position(x: viewport.dayAnchor(date), y: CGFloat(114 + index * 76))
                         .help("\(event.title) · \(Format.date(event.date, zone: store.state.settings.zone))")
                 }
             }
