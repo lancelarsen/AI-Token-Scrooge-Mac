@@ -56,8 +56,7 @@ struct MenuBarContent: View {
                 case "snooze": store.snooze(response.id, minutes: 60)
                 case "dismiss": store.dismissAlert(response.id)
                 default:
-                    store.openDashboard?()
-                    store.selectedAccount = store.state.accounts.first { $0.id == alert.accountID }
+                    store.showAlertAccount(alert)
                 }
             }
         }

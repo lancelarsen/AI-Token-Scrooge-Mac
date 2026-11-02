@@ -10,19 +10,29 @@ struct DashboardView: View {
             VStack(spacing: 0) {
                 header(wide: geometry.size.width >= 1100)
                 Divider().overlay(Theme.border)
-                ScrollView {
-                    VStack(spacing: 20) {
-                        HorizonView()
-                        toolbar
-                        if store.accounts.isEmpty { emptyState }
-                        ForEach(store.accounts) { account in
-                            AccountCard(account: account, wide: geometry.size.width > 1200)
-                                .dropDestination(for: String.self) { items, _ in
-                                    guard let id = items.first, store.state.accounts.contains(where: { $0.id == id }), store.state.settings.accountSort == .custom else { return false }
-                                    store.reorder(id, before: account.id); return true
-                                }
-                        }
-                    }.padding(.horizontal, 32).padding(.top, 24).padding(.bottom, 32)
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            HorizonView()
+                            toolbar
+                            if store.accounts.isEmpty { emptyState }
+                            ForEach(store.accounts) { account in
+                                AccountCard(account: account, wide: geometry.size.width > 1200)
+                                    .id(account.id)
+                                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.accent, lineWidth: store.highlightedAccountID == account.id ? 3 : 0))
+                                    .dropDestination(for: String.self) { items, _ in
+                                        guard let id = items.first, store.state.accounts.contains(where: { $0.id == id }), store.state.settings.accountSort == .custom else { return false }
+                                        store.reorder(id, before: account.id); return true
+                                    }
+                            }
+                        }.padding(.horizontal, 32).padding(.top, 24).padding(.bottom, 32)
+                    }
+                    .task(id: store.accountRevealRequest) {
+                        guard let id = store.highlightedAccountID else { return }
+                        withAnimation { proxy.scrollTo(id, anchor: .center) }
+                        do { try await Task.sleep(for: .seconds(6)) } catch { return }
+                        store.highlightedAccountID = nil
+                    }
                 }
             }.background(Theme.background).foregroundStyle(Color(hex: "#F2F1F5"))
         }.frame(minWidth: 760, minHeight: 600)

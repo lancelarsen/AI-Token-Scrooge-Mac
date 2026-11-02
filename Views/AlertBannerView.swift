@@ -10,7 +10,7 @@ struct AlertBannerView: View {
                 Text(store.state.settings.privacy ? "Account Details Hidden" : alert.detail).foregroundStyle(Theme.secondary)
                 HStack {
                     Button("Show Info") {
-                        store.selectedAccount = store.state.accounts.first { $0.id == alert.accountID }
+                        store.showAlertAccount(alert)
                         store.activeAlert = nil
                         SoundPlayer.shared.play(settings: store.state.settings, cue: "info")
                     }

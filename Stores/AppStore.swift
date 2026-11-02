@@ -15,6 +15,16 @@ import AppKit
     private(set) var isRefreshing = false
     var errorMessage: String?
     var selectedAccount: ProviderAccount?
+    var highlightedAccountID: String?
+    var accountRevealRequest = UUID()
+    func showAlertAccount(_ alert: AlertEvent) {
+        selectedAccount = nil
+        showConnection = false
+        showAlertHistory = false
+        highlightedAccountID = state.accounts.contains { $0.id == alert.accountID } ? alert.accountID : nil
+        accountRevealRequest = UUID()
+        openDashboard?()
+    }
     var reconnectAccountID: String?
     var showConnection = false
     private let github = GitHubClient()
