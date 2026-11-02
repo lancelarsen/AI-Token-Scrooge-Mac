@@ -2,6 +2,22 @@ import XCTest
 @testable import AITokenScrooge
 
 final class UsageHistoryTests: XCTestCase {
+    func testOverageIsBoundedAndUnknownUsageDoesNotInventHistory() {
+        let account = ProviderAccount(provider: .codex, nickname: "Test", subject: "s", scope: "w")
+        let start = Date(timeIntervalSince1970: 1800000000)
+        func run(_ seconds: Double, _ used: Decimal?) -> HistoryRun {
+            let snapshot = QuotaSnapshot(accountID: account.id, subject: "s", scope: "w", observedAt: start.addingTimeInterval(seconds),
+                windows: [QuotaWindow(id: "codex/secondary", name: "Weekly", unit: .percent, used: used, durationMinutes: 10080)])
+            return HistoryRun(snapshot: snapshot, lastObservedAt: snapshot.observedAt, pollingMinutes: 2)
+        }
+        let runs = [run(0, 120), run(120, nil), run(240, -1), run(360, 25)]
+        let series = UsageHistory.build(account: account, runs: runs, from: start, through: start.addingTimeInterval(360))
+        XCTAssertEqual(series.points.map(\.remaining), [0, 75])
+        XCTAssertEqual(series.points.map(\.at), [start, start.addingTimeInterval(360)])
+        XCTAssertTrue(series.points[1].estimated)
+        XCTAssertNil(series.points[1].replenishedFrom)
+        XCTAssertEqual(runs[0].snapshot.windows[0].used, 120)
+    }
     func testGapHoverIsExplicitEstimateAndNeverBridgesNewSegment() {
         let now = Date(timeIntervalSince1970: 1800000000)
         let viewport = HorizonViewport(now: now, furthestFuture: nil, zone: TimeZone(secondsFromGMT: 0)!, width: 700)
