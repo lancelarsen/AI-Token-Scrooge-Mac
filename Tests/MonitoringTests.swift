@@ -1,9 +1,18 @@
 import XCTest
 import AppKit
+import UserNotifications
 import SQLite3
 @testable import AITokenScrooge
 
 final class MonitoringTests: XCTestCase {
+    func testNativeNotificationPermissionErrorProvidesSettingsRecovery() {
+        let denied = NSError(domain: UNErrorDomain, code: UNError.Code.notificationsNotAllowed.rawValue)
+        XCTAssertTrue(NotificationError.explainingPermission(denied).localizedDescription.contains("Allow notifications"))
+        let unrelated = NSError(domain: "StorageFailure", code: denied.code,
+                                userInfo: [NSLocalizedDescriptionKey: "Original storage failure"])
+        XCTAssertEqual(NotificationError.explainingPermission(unrelated).localizedDescription, "Original storage failure")
+    }
+
     @MainActor
     func testNotificationDenialKeepsUndeliveredHistoryAndBanner() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)

@@ -5,7 +5,7 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 ## Verified milestone
 
 - Xcode Debug build and native app launch succeed on this Mac.
-- Latest local unit run: 70 tests passed with zero failures (artifacts/notification-delivery-race-tests.log). Coverage includes provider/parser fixtures, signed-out Codex transport, quota uncertainty, DST/history geometry, SQLite compaction/rollback, and AppStore alert failure/recovery/queue/demo-isolation checks. This does not establish live-provider or native notification correctness.
+- Latest local unit run: 71 tests passed with zero failures (artifacts/notification-permission-message-tests.log). Coverage includes provider/parser fixtures, signed-out Codex transport, quota uncertainty, DST/history geometry, SQLite compaction/rollback, and AppStore alert failure/recovery/queue/demo-isolation checks. This does not establish live-provider or native notification correctness.
 - Computer-use inspection confirms demo controls, provider artwork, future events, and history rendering. Native computer-use checks additionally confirm history toggle preserves selectors, navigator accessibility decrement changes dates, and historical reset details distinguish a reported schedule from an observed reset. Screenshot: artifacts/history-native-review.png (local evidence, ignored by Git). Full visual parity and live accounts are not verified.
 
 ## Implemented, awaiting complete verification
@@ -162,3 +162,5 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - All 70 unit tests and canonical Debug build pass (artifacts/notification-delivery-race-tests.log and artifacts/notification-delivery-build.log). These controlled integration checks do not establish real macOS permission prompts, delivery, or action routing.
 
 - Native notification diagnosis: Send Test Notification produced the app error “Notifications are not allowed for this application.” System Settings → Notifications → AI Token Scrooge shows Allow notifications off (artifacts/notification-permission-off.png). No permission setting was changed. User confirmation to enable notifications and send one test is pending; current denial is a verified environment condition, not evidence of successful delivery.
+
+- The native permission-denied error from authorization or enqueue now maps to the explicit recovery message: System Settings → Notifications → AI Token Scrooge → Allow notifications. Other error domains remain unchanged. SDK headers confirm the native error identity; regression coverage checks permission mapping and preservation of an unrelated same-number error. Canonical Debug build and all 71 tests pass. No macOS permission was changed.

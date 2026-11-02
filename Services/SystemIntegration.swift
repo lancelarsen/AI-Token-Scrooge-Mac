@@ -34,7 +34,9 @@ actor NotificationService: NotificationDelivering {
     static let shared = NotificationService()
     func authorize() async throws {
         let center = UNUserNotificationCenter.current()
-        guard try await center.requestAuthorization(options: [.alert, .badge]) else { throw NotificationError.denied }
+        do {
+            guard try await center.requestAuthorization(options: [.alert, .badge]) else { throw NotificationError.denied }
+        } catch { throw NotificationError.explainingPermission(error) }
     }
     func send(id: String, title: String, detail: String, delay: TimeInterval? = nil) async throws {
         try await authorize()
@@ -47,7 +49,8 @@ actor NotificationService: NotificationDelivering {
         content.body = detail
         content.categoryIdentifier = "quota-alert"
         let trigger = delay.map { UNTimeIntervalNotificationTrigger(timeInterval: max(1, $0), repeats: false) }
-        try await center.add(UNNotificationRequest(identifier: id, content: content, trigger: trigger))
+        do { try await center.add(UNNotificationRequest(identifier: id, content: content, trigger: trigger)) }
+        catch { throw NotificationError.explainingPermission(error) }
     }
     func cancel(_ id: String) {
         let center = UNUserNotificationCenter.current()
@@ -57,5 +60,10 @@ actor NotificationService: NotificationDelivering {
 }
 enum NotificationError: LocalizedError {
     case denied
-    var errorDescription: String? { "Notifications are disabled for AI Token Scrooge. Enable them in System Settings → Notifications." }
+    var errorDescription: String? { "Notifications are disabled for AI Token Scrooge. In System Settings → Notifications → AI Token Scrooge, turn on Allow notifications." }
+    static func explainingPermission(_ error: Error) -> Error {
+        let native = error as NSError
+        guard native.domain == UNErrorDomain, native.code == UNError.Code.notificationsNotAllowed.rawValue else { return error }
+        return NotificationError.denied
+    }
 }
