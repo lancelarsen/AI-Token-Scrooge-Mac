@@ -16,8 +16,9 @@ import UserNotifications
         MenuBarExtra {
             MenuBarContent().environment(store)
         } label: {
-            Image(systemName: store.attentionCount > 0 ? "exclamationmark.circle.fill" : "gauge.with.dots.needle.33percent")
-                .accessibilityLabel(store.attentionCount > 0 ? "AI Token Scrooge: \(store.iconAlert?.severity?.rawValue ?? "") quota alert" : "AI Token Scrooge")
+            Image(systemName: store.iconAlert != nil ? "exclamationmark.circle.fill" : store.iconUnavailable ? "questionmark.circle" : "gauge.with.dots.needle.33percent")
+                .accessibilityLabel(store.iconDescription)
+                .help(store.iconDescription)
         }
     }
 }
@@ -30,6 +31,7 @@ struct MenuBarContent: View {
             openWindow(id: "dashboard")
             NSApp.activate(ignoringOtherApps: true)
         }
+        if let notice = store.monitorAvailability.notice { Text(notice) }
         Button("Refresh All") { Task { await store.refresh() } }.disabled(store.isRefreshing)
         SettingsLink()
         Divider()

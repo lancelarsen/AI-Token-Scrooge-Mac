@@ -29,3 +29,32 @@ enum AlertDeliveryPolicy {
         return !state.alerts.contains { $0.accountID == alert.accountID && ($0.snoozedUntil ?? .distantPast) > now }
     }
 }
+
+
+struct MonitorAvailability: Equatable {
+    var needsAttention: Bool
+    var notice: String?
+    static func evaluate(_ state: PersistedState) -> Self {
+        let enabled = state.accounts.filter(\.enabled)
+        guard !enabled.isEmpty else {
+            return Self(needsAttention: true, notice: state.accounts.isEmpty ? "No Connected Accounts" : "Monitoring Paused")
+        }
+        var unavailable = false
+        var paused = false
+        for account in enabled {
+            guard let snapshot = state.snapshots[account.id], snapshot.belongs(to: account),
+                  snapshot.health == .healthy || snapshot.health == .demo else {
+                unavailable = true
+                continue
+            }
+            paused = paused || snapshot.usageAllowed == false
+            if snapshot.windows.isEmpty { unavailable = true }
+            for window in snapshot.windows {
+                let thresholds = state.settings.rule(accountID: account.id, windowID: window.id).thresholds ?? state.settings.thresholds
+                if window.capacity(thresholds) == .unknown { unavailable = true }
+            }
+        }
+        return Self(needsAttention: unavailable || paused,
+                    notice: paused ? "Provider Reports Usage Is Paused" : unavailable ? "Some Current Usage Data Is Unavailable" : nil)
+    }
+}

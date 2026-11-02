@@ -69,4 +69,24 @@ final class MonitoringTests: XCTestCase {
         XCTAssertNil(IconAlertPolicy.evaluate(state: state, now: now))
     }
 
+    func testMonitorAvailabilityRejectsMissingStaleAndMismatchedUsage() {
+        var state = PersistedState()
+        XCTAssertEqual(MonitorAvailability.evaluate(state).notice, "No Connected Accounts")
+        let account = ProviderAccount(provider: .codex, nickname: "a", subject: "s", scope: "w")
+        state.accounts = [account]
+        XCTAssertTrue(MonitorAvailability.evaluate(state).needsAttention)
+        var snapshot = QuotaSnapshot(accountID: account.id, subject: "s", scope: "w", observedAt: .now,
+            windows: [QuotaWindow(id: "q", name: "q", unit: .percent, used: 10)])
+        state.snapshots[account.id] = snapshot
+        XCTAssertFalse(MonitorAvailability.evaluate(state).needsAttention)
+        snapshot.health = .stale; state.snapshots[account.id] = snapshot
+        XCTAssertTrue(MonitorAvailability.evaluate(state).needsAttention)
+        snapshot.health = .healthy; snapshot.usageAllowed = false; state.snapshots[account.id] = snapshot
+        XCTAssertEqual(MonitorAvailability.evaluate(state).notice, "Provider Reports Usage Is Paused")
+        snapshot.usageAllowed = true; snapshot.subject = "different"; state.snapshots[account.id] = snapshot
+        XCTAssertTrue(MonitorAvailability.evaluate(state).needsAttention)
+        state.accounts[0].enabled = false
+        XCTAssertEqual(MonitorAvailability.evaluate(state).notice, "Monitoring Paused")
+    }
+
 }

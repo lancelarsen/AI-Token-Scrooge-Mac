@@ -38,7 +38,13 @@ import AppKit
     var activeAlert: AlertEvent?
     @ObservationIgnored var openDashboard: (() -> Void)?
     var iconAlert: AlertEvent? { IconAlertPolicy.evaluate(state: state, now: .now) }
-    var attentionCount: Int { iconAlert == nil ? 0 : 1 }
+    var monitorAvailability: MonitorAvailability { MonitorAvailability.evaluate(state) }
+    var iconUnavailable: Bool { state.settings.alertOnIcon && monitorAvailability.needsAttention }
+    var attentionCount: Int { iconAlert != nil || iconUnavailable ? 1 : 0 }
+    var iconDescription: String {
+        if let alert = iconAlert { return "AI Token Scrooge: \(alert.severity?.rawValue ?? "") quota alert" }
+        return "AI Token Scrooge" + (monitorAvailability.notice.map { ": " + $0 } ?? "")
+    }
     private var lastPruned: Date = .distantPast
     private var lastCredentialCleanup: Date = .distantPast
     var showAlertHistory = false
