@@ -59,6 +59,7 @@ import AppKit
     private var lastCredentialCleanup: Date = .distantPast
     var showAlertHistory = false
     let database: LocalStore?
+    private let notifications: any NotificationDelivering
     private var realState = PersistedState()
     // Serialize state edits through one queue so awaited writes cannot lose intervening changes.
     private var mutationTail: Task<Void, Never>?
@@ -66,9 +67,13 @@ import AppKit
     private var localStateReady = false
     var accounts: [ProviderAccount] { AccountPolicy.ordered(state) }
     private var isTestLaunch: Bool { ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] == "1" }
-    init(database: LocalStore) { self.database = database }
+    init(database: LocalStore, notifications: any NotificationDelivering = NotificationService.shared) {
+        self.database = database
+        self.notifications = notifications
+    }
     func waitForPendingMutations() async { await mutationTail?.value }
     init() {
+        notifications = NotificationService.shared
         let args = ProcessInfo.processInfo.arguments
         let override = args.firstIndex(of: "--data-dir").flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil }
         let defaultBase = ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] == "1"
@@ -225,7 +230,7 @@ import AppKit
                    (activeAlert?.id == id || (cue == "snooze" && activeAlert?.accountID == candidate.alerts[index].accountID)) {
                     activeAlert = nil
                 }
-                await NotificationService.shared.cancel(id)
+                await notifications.cancel(id)
                 SoundPlayer.shared.play(settings: state.settings, cue: cue)
             } catch { errorMessage = error.localizedDescription }
         }
@@ -241,17 +246,17 @@ import AppKit
         activeAlert = alert
         SoundPlayer.shared.play(settings: state.settings, cue: "alert")
         do {
-            try await NotificationService.shared.authorize()
+            try await notifications.authorize()
             await mutationTail?.value
             guard eligible() else {
                 if activeAlert?.id == alert.id { activeAlert = nil }
                 return
             }
-            try await NotificationService.shared.enqueue(id: alert.id, title: alert.title,
+            try await notifications.enqueue(id: alert.id, title: alert.title,
                 detail: state.settings.privacy ? "Account details hidden. Open AI Token Scrooge for details." : alert.detail)
             await mutationTail?.value
             guard eligible() else {
-                await NotificationService.shared.cancel(alert.id)
+                await notifications.cancel(alert.id)
                 if activeAlert?.id == alert.id { activeAlert = nil }
                 return
             }
@@ -374,15 +379,15 @@ import AppKit
         openDashboard?()
         SoundPlayer.shared.play(settings: state.settings, cue: "alert", preview: true)
         do {
-            try await NotificationService.shared.authorize()
+            try await notifications.authorize()
             await mutationTail?.value
             guard monitoringEpoch == epoch, let current = state.alerts.first(where: { $0.id == alert.id }),
                   !current.dismissed, current.snoozedUntil == nil else { return }
-            try await NotificationService.shared.enqueue(id: alert.id, title: alert.title, detail: alert.detail)
+            try await notifications.enqueue(id: alert.id, title: alert.title, detail: alert.detail)
             await mutationTail?.value
             guard monitoringEpoch == epoch, let current = state.alerts.first(where: { $0.id == alert.id }),
                   !current.dismissed, current.snoozedUntil == nil else {
-                await NotificationService.shared.cancel(alert.id)
+                await notifications.cancel(alert.id)
                 return
             }
             edit { state in

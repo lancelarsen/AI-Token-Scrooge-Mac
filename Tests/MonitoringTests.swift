@@ -5,6 +5,78 @@ import SQLite3
 
 final class MonitoringTests: XCTestCase {
     @MainActor
+    func testNotificationDenialKeepsUndeliveredHistoryAndBanner() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("notifications.db"))
+        var original = PersistedState()
+        original.settings.soundVolume = 0
+        try await database.save(original)
+        let delivery = NotificationDeliveryFixture(denied: true)
+        let store = AppStore(database: database, notifications: delivery)
+        await store.load()
+        await store.sendTestNotification()
+        XCTAssertEqual(store.state.alerts.count, 1)
+        XCTAssertFalse(try XCTUnwrap(store.state.alerts.first).delivered)
+        XCTAssertEqual(store.activeAlert?.id, store.state.alerts.first?.id)
+        XCTAssertTrue(store.errorMessage?.contains("recorded in Alert History") == true)
+        let persisted = try await database.load()
+        XCTAssertEqual(persisted.alerts, store.state.alerts)
+        let enqueued = await delivery.enqueued
+        XCTAssertTrue(enqueued.isEmpty)
+    }
+
+    @MainActor
+    func testNotificationIsMarkedDeliveredOnlyAfterEnqueueCompletes() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("notifications.db"))
+        var original = PersistedState()
+        original.settings.soundVolume = 0
+        try await database.save(original)
+        let delivery = NotificationDeliveryFixture(denied: false)
+        let store = AppStore(database: database, notifications: delivery)
+        await store.load()
+        let sending = Task { await store.sendTestNotification() }
+        await delivery.waitForEnqueue()
+        XCTAssertFalse(try XCTUnwrap(store.state.alerts.first).delivered)
+        let before = try await database.load()
+        XCTAssertFalse(try XCTUnwrap(before.alerts.first).delivered)
+        await delivery.finishEnqueue()
+        await sending.value
+        XCTAssertTrue(try XCTUnwrap(store.state.alerts.first).delivered)
+        let after = try await database.load()
+        XCTAssertEqual(after.alerts, store.state.alerts)
+    }
+
+    @MainActor
+    func testDismissalDuringNotificationEnqueueCancelsWithoutMarkingDelivered() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("notifications.db"))
+        var original = PersistedState()
+        original.settings.soundVolume = 0
+        try await database.save(original)
+        let delivery = NotificationDeliveryFixture(denied: false)
+        let store = AppStore(database: database, notifications: delivery)
+        await store.load()
+        let sending = Task { await store.sendTestNotification() }
+        await delivery.waitForEnqueue()
+        let id = try XCTUnwrap(store.state.alerts.first?.id)
+        store.dismissAlert(id)
+        await store.waitForPendingMutations()
+        await delivery.finishEnqueue()
+        await sending.value
+        XCTAssertNil(store.activeAlert)
+        XCTAssertTrue(try XCTUnwrap(store.state.alerts.first).dismissed)
+        XCTAssertFalse(try XCTUnwrap(store.state.alerts.first).delivered)
+        let cancelled = await delivery.cancelled
+        XCTAssertTrue(cancelled.contains(id))
+        let persisted = try await database.load()
+        XCTAssertEqual(persisted.alerts, store.state.alerts)
+    }
+
+    @MainActor
     func testHistoryPointerCoordinatesAndTrackingLifecycle() throws {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 800, height: 400),
                               styleMask: [.borderless], backing: .buffered, defer: true)
@@ -307,4 +379,28 @@ final class MonitoringTests: XCTestCase {
         XCTAssertEqual(settings.rule(accountID: "b", windowID: "session").thresholds, settings.thresholds)
     }
 
+}
+
+private actor NotificationDeliveryFixture: NotificationDelivering {
+    let denied: Bool
+    private(set) var enqueued: [String] = []
+    private(set) var cancelled: [String] = []
+    private var enqueueGate: CheckedContinuation<Void, Never>?
+    private var startWaiter: CheckedContinuation<Void, Never>?
+    init(denied: Bool) { self.denied = denied }
+    func authorize() async throws { if denied { throw NotificationError.denied } }
+    func enqueue(id: String, title: String, detail: String, delay: TimeInterval?) async throws {
+        enqueued.append(id)
+        await withCheckedContinuation { continuation in
+            enqueueGate = continuation
+            startWaiter?.resume()
+            startWaiter = nil
+        }
+    }
+    func waitForEnqueue() async {
+        if !enqueued.isEmpty { return }
+        await withCheckedContinuation { startWaiter = $0 }
+    }
+    func finishEnqueue() { enqueueGate?.resume(); enqueueGate = nil }
+    func cancel(_ id: String) { cancelled.append(id) }
 }

@@ -18,7 +18,19 @@ import UserNotifications
     }
 }
 
-actor NotificationService {
+protocol NotificationDelivering: Sendable {
+    func authorize() async throws
+    func enqueue(id: String, title: String, detail: String, delay: TimeInterval?) async throws
+    func cancel(_ id: String) async
+}
+
+extension NotificationDelivering {
+    func enqueue(id: String, title: String, detail: String) async throws {
+        try await enqueue(id: id, title: title, detail: detail, delay: nil)
+    }
+}
+
+actor NotificationService: NotificationDelivering {
     static let shared = NotificationService()
     func authorize() async throws {
         let center = UNUserNotificationCenter.current()

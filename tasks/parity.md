@@ -5,7 +5,7 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 ## Verified milestone
 
 - Xcode Debug build and native app launch succeed on this Mac.
-- Latest local unit run: 67 tests passed with zero failures (artifacts/history-pointer-regression-tests.log). Coverage includes provider/parser fixtures, signed-out Codex transport, quota uncertainty, DST/history geometry, SQLite compaction/rollback, and AppStore alert failure/recovery/queue/demo-isolation checks. This does not establish live-provider or native notification correctness.
+- Latest local unit run: 70 tests passed with zero failures (artifacts/notification-delivery-race-tests.log). Coverage includes provider/parser fixtures, signed-out Codex transport, quota uncertainty, DST/history geometry, SQLite compaction/rollback, and AppStore alert failure/recovery/queue/demo-isolation checks. This does not establish live-provider or native notification correctness.
 - Computer-use inspection confirms demo controls, provider artwork, future events, and history rendering. Native computer-use checks additionally confirm history toggle preserves selectors, navigator accessibility decrement changes dates, and historical reset details distinguish a reported schedule from an observed reset. Screenshot: artifacts/history-native-review.png (local evidence, ignored by Git). Full visual parity and live accounts are not verified.
 
 ## Implemented, awaiting complete verification
@@ -154,3 +154,9 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Endpoint-label native check: paused the synthetic Codex Personal and Copilot Work accounts to shorten the future horizon, then inspected the earliest history viewport. Claude Pro 94% and Codex Pro 58% labels appeared at the right edge with separate positions, colored outlines and connectors. Evidence: artifacts/history-endpoint-labels-native.png. Exited and reentered demo to restore all four synthetic accounts. This is a two-label visual check, not proof of dense-label collision handling.
 
 - History reset/expiry dashed lines now draw after usage fills and strokes, matching the pinned source, and are bounded to the visible historical range. Canonical Debug build passes (artifacts/history-marker-layer-build.log). Native demo review shows lavender refresh and amber expiry dashes over the shaded plot (artifacts/history-marker-layer-native.png).
+
+### Notification delivery integration checks (2026-11-02)
+
+- AppStore now accepts an injectable notification-delivery service while production still uses UNUserNotificationCenter through NotificationService. Tests use no real notification requests.
+- Verified permission denial retains an undelivered durable alert and its banner, successful enqueue marks delivery only after acceptance returns, and dismissal while enqueue is suspended cancels the notification and preserves dismissed/undelivered state on disk.
+- All 70 unit tests and canonical Debug build pass (artifacts/notification-delivery-race-tests.log and artifacts/notification-delivery-build.log). These controlled integration checks do not establish real macOS permission prompts, delivery, or action routing.
