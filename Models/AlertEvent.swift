@@ -73,3 +73,22 @@ enum AlertEvaluator {
                    severity: reminder.severity, reminderID: reminder.id, isRefreshReminder: refresh)
     }
 }
+
+
+/// Current quota status is independent of popup delivery, quiet hours and snooze.
+enum IconAlertPolicy {
+    static func evaluate(state: PersistedState, now: Date) -> AlertEvent? {
+        guard state.settings.alertOnIcon else { return nil }
+        func rank(_ severity: ReminderSeverity?) -> Int {
+            switch severity { case .critical: 3; case .warning: 2; case .info: 1; case nil: 0 }
+        }
+        var highest: AlertEvent?
+        for account in state.accounts where account.enabled {
+            guard let snapshot = state.snapshots[account.id], snapshot.belongs(to: account) else { continue }
+            for alert in AlertEvaluator.evaluate(account: account, previous: nil, current: snapshot, settings: state.settings, now: now) {
+                if rank(alert.severity) > rank(highest?.severity) { highest = alert }
+            }
+        }
+        return highest
+    }
+}

@@ -17,7 +17,7 @@ import UserNotifications
             MenuBarContent().environment(store)
         } label: {
             Image(systemName: store.attentionCount > 0 ? "exclamationmark.circle.fill" : "gauge.with.dots.needle.33percent")
-                .accessibilityLabel(store.attentionCount > 0 ? "AI Token Scrooge: \(store.attentionCount) Alerts" : "AI Token Scrooge")
+                .accessibilityLabel(store.attentionCount > 0 ? "AI Token Scrooge: \(store.iconAlert?.severity?.rawValue ?? "") quota alert" : "AI Token Scrooge")
         }
     }
 }

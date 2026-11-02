@@ -37,10 +37,8 @@ import AppKit
     var loginItemNeedsApproval = false
     var activeAlert: AlertEvent?
     @ObservationIgnored var openDashboard: (() -> Void)?
-    var attentionCount: Int {
-        guard !isDemo, state.settings.alertOnIcon else { return 0 }
-        return state.alerts.filter { !$0.dismissed && $0.delivered && ($0.snoozedUntil ?? .distantPast) <= .now }.count
-    }
+    var iconAlert: AlertEvent? { IconAlertPolicy.evaluate(state: state, now: .now) }
+    var attentionCount: Int { iconAlert == nil ? 0 : 1 }
     private var lastPruned: Date = .distantPast
     private var lastCredentialCleanup: Date = .distantPast
     var showAlertHistory = false
@@ -167,7 +165,7 @@ import AppKit
     }
     private func updateBadge() {
         let count = attentionCount
-        NSApp.dockTile.badgeLabel = count == 0 ? nil : String(count)
+        NSApp.dockTile.badgeLabel = count == 0 ? nil : "!"
     }
     private func pruneHistoryIfNeeded() async {
         guard !isDemo, Date.now.timeIntervalSince(lastPruned) >= 3600 else { return }

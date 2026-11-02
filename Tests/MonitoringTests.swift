@@ -53,4 +53,20 @@ final class MonitoringTests: XCTestCase {
         XCTAssertTrue(AlertDeliveryPolicy.canDeliver(next, state: reopened, now: now.addingTimeInterval(3600)))
     }
 
+    func testIconReflectsCurrentQuotaIndependentlyOfPopupDelivery() {
+        let now = Date(timeIntervalSince1970: 1800000000)
+        let account = ProviderAccount(provider: .codex, nickname: "a", subject: "s", scope: "w")
+        var state = PersistedState(); state.accounts = [account]
+        state.settings.notifications = false; state.settings.quietHours = true
+        state.snoozedAccounts[account.id] = now.addingTimeInterval(3600)
+        state.snapshots[account.id] = QuotaSnapshot(accountID: account.id, subject: "s", scope: "w", observedAt: now,
+            windows: [QuotaWindow(id: "q", name: "q", unit: .percent, used: 95)])
+        XCTAssertEqual(IconAlertPolicy.evaluate(state: state, now: now)?.severity, .critical)
+        state.accounts[0].enabled = false
+        XCTAssertNil(IconAlertPolicy.evaluate(state: state, now: now))
+        state.accounts[0].enabled = true
+        state.settings.alertOnIcon = false
+        XCTAssertNil(IconAlertPolicy.evaluate(state: state, now: now))
+    }
+
 }
