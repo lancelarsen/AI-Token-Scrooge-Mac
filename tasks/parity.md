@@ -22,7 +22,7 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - SQLite snapshots/history runs, identity validation, Keychain token storage.
 - GitHub advanced token identity and billing reads with provider/manual/unknown allowances and bounded no-redirect transport.
 - Native menu bar, login item toggle, notification test, sound previews.
-- Alert history displays recorded versus macOS-delivered status. Clicking an entry opens shared quota details or earned-reset availability/expiry details; removed accounts/windows show the source unavailable message. Debug build passes; native history-sheet interaction remains unverified.
+- Alert history displays recorded versus macOS-delivered status. Clicking an entry opens shared quota details or earned-reset availability/expiry details; removed accounts/windows show the source unavailable message. Debug build passes. Native CUA check verified Settings → Alert History → No Alerts Yet → Close, and the extracted quota popover showed demo Codex 38% used/62% left with fetch/reset timestamps. Exit Demo restored the empty connected-account dashboard. Populated history entries, reserve sheets and notification actions remain unverified.
 - Pure provider mapping and alert evaluation. GitHub retry handling covers seconds/date headers, short future deadlines, invalid values and fallback delay with source-matched tests.
 
 ## Remaining before parity
