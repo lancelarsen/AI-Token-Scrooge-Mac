@@ -2,6 +2,20 @@ import XCTest
 @testable import AITokenScrooge
 
 final class UsageHistoryTests: XCTestCase {
+    func testDemoHistoryEndsAtCurrentUsageAndIncludesReportingGap() {
+        let now = Date(timeIntervalSince1970: 1800000000)
+        let (state, runs) = DemoData.make(now: now)
+        for account in state.accounts {
+            let current = state.snapshots[account.id]!
+            let window = UsageHistory.selectWindow(provider: account.provider, windows: current.windows).window!
+            let history = runs.filter { $0.snapshot.accountID == account.id }
+            XCTAssertEqual(history.last?.snapshot.observedAt, now)
+            XCTAssertEqual(history.last?.snapshot.windows.first?.remainingPercent, window.remainingPercent)
+            let series = UsageHistory.build(account: account, runs: history, from: now.addingTimeInterval(-8 * 86400), through: now)
+            XCTAssertEqual(series.points.last?.remaining, window.remainingPercent)
+            if account.provider == .claude { XCTAssertTrue(series.points.contains(where: \.estimated)) }
+        }
+    }
     func testWeeklySelectionPrefersCanonicalBucketAndRejectsAmbiguity() {
         let session = QuotaWindow(id: "codex/primary", name: "Session", unit: .percent, used: 20, durationMinutes: 300)
         let weekly = QuotaWindow(id: "codex/secondary", name: "Weekly", unit: .percent, used: 70, durationMinutes: 10080)

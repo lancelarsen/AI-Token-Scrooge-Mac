@@ -5,7 +5,7 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 ## Verified milestone
 
 - Xcode Debug build and native app launch succeed on this Mac.
-- Thirty-three tests pass (including Claude parser/version fixtures and the installed Codex CLI in a fresh signed-out profile): unknown/overage capacity, unknown billing units, workspace mismatch, reserve-only payloads, DST geometry, SQLite run compaction.
+- Thirty-three full-suite tests pass, plus the new demo-history endpoint/gap regression test (including Claude parser/version fixtures and the installed Codex CLI in a fresh signed-out profile): unknown/overage capacity, unknown billing units, workspace mismatch, reserve-only payloads, DST geometry, SQLite run compaction.
 - Computer-use inspection confirms demo controls, provider artwork, future events, and history rendering. Full visual parity and live accounts are not verified.
 
 ## Implemented, awaiting complete verification
@@ -28,6 +28,6 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Verify settings migration/default decoding and retention pruning end-to-end; top-level and nested preference default decoding, identity filtering and retirement round trips have tests. Shared metadata packing, retained-history reads after pruning, and account removal/re-addition are tested; incremental revision reads/cache merges and pixel drawing reduction are implemented and tested.
 - Verify source-matched weekly/monthly history selection and hover details visually; selection, replenishment/gap semantics and pixel reduction have tests. Historical reset/expiry markers are implemented and tested; latest-series labels and source-based event stacking height are implemented. Verify marker interaction and labels while navigating history visually.
 - Account color swatches now use the exact source palette in source order (local Debug build passed). Native keyboard accessibility and visual review against the source screenshots at multiple window widths. Automated UI smoke test added with isolated storage; runner signing fixed, but UI automation initialization timed out before tests began (artifacts/ui-tests.log). Unit test launch now disables real-account monitoring through SCROOGE_TEST_MODE.
-- Run the new GitHub preview workflow after publication and verify its prerelease/artifacts. Local Release ZIP packaging, arm64/resource/signature checks pass. Optional Developer ID/notarytool support is scripted and documented; no distribution identity/notarization has been verified.
-- GitHub CLI is authenticated as lancelarsen with verified push access. Initial source published as 69d013d; hosted workflow run 41532806611 is in progress.
+- First hosted preview workflow succeeded; preview-1-1 contains the ZIP and SHA-256 asset at source 69d013d. Verify subsequent previews after updates. Local Release ZIP packaging, arm64/resource/signature checks pass. Optional Developer ID/notarytool support is scripted and documented; no distribution identity/notarization has been verified.
+- GitHub CLI is authenticated as lancelarsen with verified push access. Initial source published as 69d013d; hosted workflow run 41532806611 succeeded and published preview-1-1.
 - Live account tests with user-authorized credentials. Never call demo results live verification.
