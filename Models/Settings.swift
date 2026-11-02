@@ -17,6 +17,15 @@ struct AlertThresholds: Codable, Equatable, Sendable {
     }
 }
 enum ReminderSeverity: String, Codable, CaseIterable, Sendable { case info = "Info", warning = "Warning", critical = "Critical" }
+extension AlertThresholds {
+    init(from decoder: Decoder) throws {
+        self.init()
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        warning = try values.decodeIfPresent(Decimal.self, forKey: .warning) ?? warning
+        critical = try values.decodeIfPresent(Decimal.self, forKey: .critical) ?? critical
+        info = try values.decodeIfPresent(Decimal.self, forKey: .info) ?? info
+    }
+}
 struct TimedReminder: Codable, Identifiable, Equatable, Sendable {
     var id: String = UUID().uuidString
     var amount: Int
@@ -52,6 +61,20 @@ struct AlertRule: Codable, Equatable, Sendable {
     var expiry = true
 }
 struct QuotaAlertSection: Codable, Equatable, Sendable { var accountID: String; var windowID: String }
+extension AlertRule {
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(accountID: try values.decode(String.self, forKey: .accountID))
+        windowID = try values.decodeIfPresent(String.self, forKey: .windowID)
+        thresholds = try values.decodeIfPresent(AlertThresholds.self, forKey: .thresholds)
+        info = try values.decodeIfPresent(Bool.self, forKey: .info) ?? info
+        low = try values.decodeIfPresent(Bool.self, forKey: .low) ?? low
+        critical = try values.decodeIfPresent(Bool.self, forKey: .critical) ?? critical
+        exhausted = try values.decodeIfPresent(Bool.self, forKey: .exhausted) ?? exhausted
+        restored = try values.decodeIfPresent(Bool.self, forKey: .restored) ?? restored
+        expiry = try values.decodeIfPresent(Bool.self, forKey: .expiry) ?? expiry
+    }
+}
 
 struct RadarSettings: Codable, Equatable, Sendable {
     // Defaults match RadarSettings.cs at the pinned Windows commit, not a user's saved preferences.

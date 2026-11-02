@@ -8,7 +8,7 @@ enum Theme {
     static let accent = Color(hex: "#C3ADF8")
     static let secondary = Color(hex: "#B6B8C8")
     static let amber = Color(hex: "#EAAA51")
-    static let palette = ["#D58FAF", "#C9DF75", "#B5A0F4", "#58A6FF", "#4DCE8A", "#F2C94C", "#F05B69"]
+    static let palette = ["#B99AF8", "#CDEB82", "#58A6FF", "#D587A5", "#55C9BD", "#F2C94C", "#F05B69"]
     static func colors(_ state: CapacityState) -> [Color] {
         switch state {
         case .healthy: [Color(hex: "#208455"), Color(hex: "#4DCE8A")]

@@ -8,6 +8,10 @@ struct AccountSettingsView: View {
     @State private var showColor = false
     @State private var confirmRemove = false
     private var account: ProviderAccount? { store.state.accounts.first { $0.id == accountID } }
+    private var lineColors: [String] {
+        var seen = Set<String>()
+        return (Theme.palette + store.state.settings.customColors).filter { seen.insert($0.uppercased()).inserted }
+    }
     var body: some View {
         VStack(spacing: 0) {
             HStack { Text("Account Settings").font(.system(size: 26, weight: .semibold)).foregroundStyle(Theme.accent); Spacer(); Button("Close") { dismiss() }.buttonStyle(ScroogeButtonStyle()) }.padding(24)
@@ -18,7 +22,7 @@ struct AccountSettingsView: View {
                             TextField("Account Name", text: Binding(get: { account.nickname }, set: { value in update { $0.nickname = value } })).textFieldStyle(.roundedBorder)
                             Text("Line Color")
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 36, maximum: 40))], alignment: .leading) {
-                                ForEach(Array(Set(Theme.palette + store.state.settings.customColors)).sorted(), id: \.self) { hex in
+                                ForEach(lineColors, id: \.self) { hex in
                                     Button { update { $0.lineColor = hex } } label: {
                                         ZStack { RoundedRectangle(cornerRadius: 5).fill(Color(hex: hex)); if account.lineColor == hex { Image(systemName: "checkmark").foregroundStyle(.black) } }.frame(width: 32, height: 32)
                                     }.buttonStyle(.plain).accessibilityLabel("Line Color \(hex)")
