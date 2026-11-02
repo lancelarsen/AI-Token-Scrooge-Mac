@@ -38,3 +38,8 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Hosted run 41536206147 succeeded at 2c24bfd and published preview-8-1. Its actual downloaded release ZIP passes checksum verification, strict code-signature verification and arm64 inspection. Current local Release packaging also passes; verify subsequent previews after updates. Local Release ZIP packaging, arm64/resource/signature checks pass. Optional Developer ID/notarytool support is scripted and documented; no distribution identity/notarization has been verified.
 - GitHub CLI is authenticated as lancelarsen with verified push access. Initial source published as 69d013d; hosted workflow run 41532806611 succeeded and published preview-1-1.
 - Live account tests with user-authorized credentials. Never call demo results live verification.
+
+### Native alert checks (2026-11-02)
+
+- In demo mode, Send Test Notification created an in-app banner and a populated Alert History entry. Show Info scrolled to the first Codex account and visibly applied the lavender card outline. The history entry opened Available Resets with two reported credits and their expiry dates. Dismiss disabled the history snooze/dismiss controls. Exit Demo restored the empty dashboard.
+- The test entry remained Recorded in History; macOS notification acceptance/display was not confirmed. These checks establish in-app navigation and dismissal only, not native notification delivery or live-provider behavior.
