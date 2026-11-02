@@ -22,6 +22,7 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - SQLite snapshots/history runs, identity validation, Keychain token storage.
 - GitHub advanced token identity and billing reads with provider/manual/unknown allowances and bounded no-redirect transport.
 - Native menu bar, login item toggle, notification test, sound previews.
+- Alert history displays recorded versus macOS-delivered status. Clicking an entry opens shared quota details or earned-reset availability/expiry details; removed accounts/windows show the source unavailable message. Debug build passes; native history-sheet interaction remains unverified.
 - Pure provider mapping and alert evaluation. GitHub retry handling covers seconds/date headers, short future deadlines, invalid values and fallback delay with source-matched tests.
 
 ## Remaining before parity
