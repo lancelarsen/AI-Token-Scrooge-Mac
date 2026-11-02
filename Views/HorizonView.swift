@@ -84,7 +84,7 @@ struct HorizonView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType)), lineWidth: 2))
                             .opacity(store.state.settings.hiddenHistoryAccounts.contains(account.id) ? 0.4 : 1)
-                    }.buttonStyle(.plain).accessibilityLabel("Show \(account.provider.rawValue) \(account.nickname) on Timeline")
+                    }.buttonStyle(.plain).accessibilityLabel("Show \(account.provider.rawValue) \(store.state.settings.privacy ? "Account" : account.nickname) on Timeline")
                 }
             }
         }.scrollIndicators(.hidden)

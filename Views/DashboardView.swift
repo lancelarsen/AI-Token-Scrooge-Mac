@@ -96,7 +96,7 @@ struct AccountCard: View {
         HStack(spacing: 16) {
             if store.state.settings.accountSort == .custom {
                 Image(systemName: "circle.grid.2x3.fill").foregroundStyle(Theme.accent).draggable(account.id).help("Drag to Reorder Account")
-                    .accessibilityLabel("Reorder \(account.nickname)")
+                    .accessibilityLabel("Reorder \(store.state.settings.privacy ? "Account" : account.nickname)")
             }
             let layout = wide ? AnyLayout(HStackLayout(spacing: 20)) : AnyLayout(VStackLayout(alignment: .leading, spacing: 14))
             layout {
@@ -107,7 +107,7 @@ struct AccountCard: View {
                     } else { Text(!account.enabled ? "Monitoring Disabled" : snapshot?.message ?? "Waiting for Usage Data").foregroundStyle(Theme.secondary).frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 16) }
                 }
             }
-            Button { store.selectedAccount = account } label: { ActionLabel(title: "", symbol: "gearshape") }.buttonStyle(ScroogeButtonStyle()).help("Manage \(account.nickname)")
+            Button { store.selectedAccount = account } label: { ActionLabel(title: "", symbol: "gearshape") }.buttonStyle(ScroogeButtonStyle()).help("Manage \(store.state.settings.privacy ? "Account" : account.nickname)")
         }.padding(.horizontal, 20).padding(.vertical, 12).background(Theme.card)
             .clipShape(RoundedRectangle(cornerRadius: 13)).overlay(RoundedRectangle(cornerRadius: 13).stroke(Theme.border))
     }
