@@ -72,3 +72,5 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Reminder regression tests now verify nearest-milestone catch-up, highest-severity ties, invalid-unit exclusion, exact/past deadline rejection, and suppression of repeated milestones when a rolling reset estimate shifts by five minutes (with a larger shift remaining eligible). Full unit suite passes.
 
 - Alert rule regressions verify that muting one quota preserves other-window and reserve alerts, muting all windows suppresses reserve reminders, stored alerts revalidate against current mute settings, and window/account/global thresholds remain isolated. Full unit suite passes.
+
+- Refresh scheduling now updates only after epoch/account-generation/enabled checks, so rejected old-connection results cannot alter the current connection schedule. Retry deadlines remain honored even if saving locally fails. Unit suite passes; live reconnect-during-refresh race verification remains outstanding.

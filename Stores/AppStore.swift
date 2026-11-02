@@ -499,6 +499,8 @@ import AppKit
             if !schedule.shouldRefresh(account.id, now: .now, force: force) { continue }
             var freshAlerts: [AlertEvent] = []
             var snapshot: QuotaSnapshot
+            var requestSucceeded = false
+            var retryAt: Date?
             do {
                 switch account.provider {
                 case .codex:
@@ -513,19 +515,25 @@ import AppKit
                     snapshot = try await ClaudeClient().refresh(account)
                 }
                 guard snapshot.belongs(to: account) else { throw AccountError.differentIdentity }
-                schedule.succeeded(snapshot, account: account, now: .now)
+                requestSucceeded = true
             } catch {
                 let failure = error as? ProviderFailure
-                schedule.failed(account.id, now: .now, retryAt: failure?.retryAt)
+                retryAt = failure?.retryAt
                 snapshot = state.snapshots[account.id] ?? QuotaSnapshot(accountID: account.id, subject: account.subject, scope: account.scope, observedAt: .now, windows: [])
                 snapshot.health = failure?.health ?? (error is AccountError ? .authenticationRequired : .offline)
                 snapshot.message = failure?.message ?? "Refresh failed. Last known values are retained."
             }
             let result = snapshot
+            let succeeded = requestSucceeded
+            let retryDeadline = retryAt
             let previous = mutationTail
             let acceptance = Task { [weak self] in
                 await previous?.value
                 guard let self, !isDemo, monitoringEpoch == epoch, state.accounts.contains(where: { $0.id == account.id && $0.generation == account.generation && $0.enabled }) else { return }
+                // Only the current connection may change scheduling. Preserve provider
+                // throttles even when the subsequent local persistence fails.
+                if succeeded { schedule.succeeded(result, account: account, now: .now) }
+                else { schedule.failed(account.id, now: .now, retryAt: retryDeadline) }
                 var candidate = state
                 let alerts = AlertEvaluator.evaluate(account: account, previous: candidate.snapshots[account.id], current: result, settings: candidate.settings, now: .now)
                 candidate.snapshots[account.id] = result
