@@ -70,3 +70,5 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Quiet-hour boundary handles now support keyboard focus with visible outlines and source-matched Left/Down decrement, Right/Up increment, wrapping across midnight. Dragging focuses the adjusted boundary. Debug build passes. Native keyboard check verified Right 10 PM→11 PM, Up→Midnight, Left/Down→10 PM, Tab→end boundary, Right 8 AM→9 AM and Left→8 AM. Focus ring visually confirmed. Restored values and exited demo.
 
 - Reminder regression tests now verify nearest-milestone catch-up, highest-severity ties, invalid-unit exclusion, exact/past deadline rejection, and suppression of repeated milestones when a rolling reset estimate shifts by five minutes (with a larger shift remaining eligible). Full unit suite passes.
+
+- Alert rule regressions verify that muting one quota preserves other-window and reserve alerts, muting all windows suppresses reserve reminders, stored alerts revalidate against current mute settings, and window/account/global thresholds remain isolated. Full unit suite passes.

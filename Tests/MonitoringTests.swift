@@ -148,4 +148,31 @@ final class MonitoringTests: XCTestCase {
         XCTAssertTrue(AlertEvaluator.evaluate(account: account, previous: previous, current: current, settings: settings, now: now).contains(where: \.isRefreshReminder))
     }
 
+    func testWindowMutePreservesOtherQuotaAndMutesReserveOnlyWhenAllMuted() {
+        let now = Date(timeIntervalSince1970: 1800000000)
+        let account = ProviderAccount(provider: .codex, nickname: "Work", subject: "s", scope: "w")
+        var settings = RadarSettings()
+        let snapshot = QuotaSnapshot(accountID: account.id, subject: "s", scope: "w", observedAt: now,
+            windows: [QuotaWindow(id: "session", name: "Session", unit: .percent, used: 95),
+                      QuotaWindow(id: "weekly", name: "Weekly", unit: .percent, used: 98)],
+            reserve: ResetReserve(availableCount: 1, credits: [ResetCredit(id: "credit", status: "available", expiresAt: now.addingTimeInterval(1800))]))
+        settings.disabledCapacityAlerts = [.init(accountID: account.id, windowID: "session")]
+        let partial = AlertEvaluator.evaluate(account: account, previous: nil, current: snapshot, settings: settings, now: now)
+        XCTAssertFalse(partial.contains { $0.windowID == "session" })
+        XCTAssertTrue(partial.contains { $0.windowID == "weekly" })
+        XCTAssertTrue(partial.contains { $0.reminderID != nil && !$0.isRefreshReminder })
+        settings.disabledCapacityAlerts.append(.init(accountID: account.id, windowID: "weekly"))
+        XCTAssertTrue(AlertEvaluator.evaluate(account: account, previous: nil, current: snapshot, settings: settings, now: now).isEmpty)
+        XCTAssertFalse(AlertEvaluator.isEnabled(partial.first { $0.windowID == "weekly" }!, settings: settings, snapshot: snapshot))
+    }
+
+    func testWindowThresholdOverridesDoNotLeakToOtherAccountsOrWindows() {
+        var settings = RadarSettings()
+        settings.rules = [AlertRule(accountID: "a", thresholds: AlertThresholds(warning: 40, critical: 20, info: 60)),
+                          AlertRule(accountID: "a", windowID: "session", thresholds: AlertThresholds(warning: 25, critical: 5, info: 45))]
+        XCTAssertEqual(settings.rule(accountID: "a", windowID: "session").thresholds?.critical, 5)
+        XCTAssertEqual(settings.rule(accountID: "a", windowID: "weekly").thresholds?.critical, 20)
+        XCTAssertEqual(settings.rule(accountID: "b", windowID: "session").thresholds, settings.thresholds)
+    }
+
 }
