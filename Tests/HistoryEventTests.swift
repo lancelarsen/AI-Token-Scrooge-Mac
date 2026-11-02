@@ -2,6 +2,22 @@ import XCTest
 @testable import AITokenScrooge
 
 final class HistoryEventTests: XCTestCase {
+    func testPausedHiddenAndMismatchedAccountsDoNotProduceFutureEvents() {
+        let now = Date(timeIntervalSince1970: 1800000000)
+        let (demo, _) = DemoData.make(now: now)
+        var state = demo
+        let account = state.accounts[0]
+        XCTAssertFalse(HorizonEvent.events(state: state, now: now).filter { $0.account.id == account.id }.isEmpty)
+        state.accounts[0].enabled = false
+        XCTAssertFalse(HorizonEvent.events(state: state, now: now).contains { $0.account.id == account.id })
+        XCTAssertNotNil(state.snapshots[account.id])
+        state.accounts[0].enabled = true
+        state.settings.hiddenHistoryAccounts.insert(account.id)
+        XCTAssertFalse(HorizonEvent.events(state: state, now: now).contains { $0.account.id == account.id })
+        state.settings.hiddenHistoryAccounts.remove(account.id)
+        state.snapshots[account.id]?.subject = "different-subject"
+        XCTAssertFalse(HorizonEvent.events(state: state, now: now).contains { $0.account.id == account.id })
+    }
     func testEarlyRevisionReplacesScheduleButDueRevisionRetainsIt() {
         let account = ProviderAccount(provider: .codex, nickname: "A", subject: "s", scope: "w")
         let start = Date(timeIntervalSince1970: 1800000000)

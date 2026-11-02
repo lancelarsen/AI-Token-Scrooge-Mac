@@ -51,7 +51,7 @@ struct HorizonView: View {
     }
     private var timelineHeight: Double {
         let groups = Dictionary(grouping: events, by: { calendar.startOfDay(for: $0.date) })
-        let accounts = max(3, store.state.accounts.count)
+        let accounts = max(3, store.state.accounts.filter(\.enabled).count)
         let selectors = 16 + Double(accounts * 66 + (accounts - 1) * 6)
         let future = 56 + 21 + Double(max(1, groups.values.map(\.count).max() ?? 0)) * 76
         return store.state.settings.historyEnabled ? max(selectors, future) : future
@@ -71,7 +71,7 @@ struct HorizonView: View {
     private var selectors: some View {
         ScrollView {
             VStack(spacing: 12) {
-                ForEach(store.state.accounts) { account in
+                ForEach(store.state.accounts.filter(\.enabled)) { account in
                     Button { store.toggleAccountHistory(account.id) } label: {
                         VStack(spacing: 1) {
                             Text(store.state.settings.privacy ? "Account" : account.nickname).font(.system(size: 10)).lineLimit(1)
@@ -236,12 +236,12 @@ struct HorizonView: View {
         }
     }
     private var historicalEvents: [HorizonEvent] {
-        store.state.accounts.filter { !store.state.settings.hiddenHistoryAccounts.contains($0.id) }.flatMap {
+        store.state.accounts.filter { $0.enabled && !store.state.settings.hiddenHistoryAccounts.contains($0.id) }.flatMap {
             UsageHistory.events(account: $0, runs: store.history, from: viewport.firstDate, through: .now)
         }
     }
     private var historySeries: [UsageHistorySeries] {
-        store.state.accounts.filter { !store.state.settings.hiddenHistoryAccounts.contains($0.id) }.map {
+        store.state.accounts.filter { $0.enabled && !store.state.settings.hiddenHistoryAccounts.contains($0.id) }.map {
             UsageHistory.build(account: $0, runs: store.history, from: viewport.firstDate, through: .now)
         }
     }

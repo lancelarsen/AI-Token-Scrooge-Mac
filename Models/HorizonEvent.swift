@@ -9,8 +9,8 @@ struct HorizonEvent: Identifiable, Sendable {
     var plan: String?
     var reportedAt: Date? = nil
     static func events(state: PersistedState, now: Date) -> [Self] {
-        state.accounts.filter { !state.settings.hiddenHistoryAccounts.contains($0.id) }.flatMap { account -> [Self] in
-            guard let snapshot = state.snapshots[account.id] else { return [] }
+        state.accounts.filter { $0.enabled && !state.settings.hiddenHistoryAccounts.contains($0.id) }.flatMap { account -> [Self] in
+            guard let snapshot = state.snapshots[account.id], snapshot.belongs(to: account) else { return [] }
             var events = snapshot.windows.compactMap { window -> Self? in
                 guard let date = window.resetsAt, date > now else { return nil }
                 return Self(id: "\(account.id)/\(window.id)", account: account, date: date, expiration: false, title: window.name, plan: snapshot.planType)
