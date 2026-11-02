@@ -192,6 +192,7 @@ struct QuotaDetailsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(window.name).font(.title2)
+            Text("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname)")
             Text("\(Format.percent(window.usedPercent)) Used / \(Format.percent(window.remainingPercent)) Left")
             if let used = window.used, window.unit != .percent { Text("Used: \(NSDecimalNumber(decimal: used).stringValue) \(window.unit.rawValue)") }
             if let limit = window.limit { Text("Allowance: \(NSDecimalNumber(decimal: limit).stringValue) · \(window.allowanceSource.rawValue.capitalized)") }

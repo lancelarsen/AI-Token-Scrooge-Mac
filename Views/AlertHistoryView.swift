@@ -52,7 +52,7 @@ struct AccountUsageDetailsView: View {
             if windowID == nil, let reserve = snapshot.reserve {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Available Resets").font(.title2)
-                    Text(store.state.settings.privacy ? "Account Details Hidden" : "\(account.provider.rawValue) / \(account.nickname)")
+                    Text("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))")
                     Text("\(reserve.availableCount.map(String.init) ?? "Unknown") Reported Available")
                     Text("Snapshot Fetched: \(Format.date(snapshot.observedAt, zone: store.state.settings.zone))")
                     Text(account.enabled ? snapshot.health.rawValue : "Monitoring Paused")
