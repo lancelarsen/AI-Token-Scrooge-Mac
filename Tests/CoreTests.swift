@@ -2,6 +2,12 @@ import XCTest
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testFreshnessUsesSelectedZoneAndDaySuffix() {
+        let date = ISO8601DateFormatter().date(from: "2026-11-02T18:00:00Z")!
+        XCTAssertEqual(Format.updated(date, zone: TimeZone(identifier: "America/Chicago")!), "Updated 12:00 PM CST\nMonday, Nov 2nd")
+        let eleventh = ISO8601DateFormatter().date(from: "2026-11-11T18:00:00Z")!
+        XCTAssertTrue(Format.updated(eleventh, zone: TimeZone(secondsFromGMT: 0)!).hasSuffix("Nov 11th"))
+    }
     func testProviderUsageLinksKeepOrganizationAsEscapedPathComponent() {
         var account = ProviderAccount(provider: .copilot, nickname: "A", subject: "s", scope: "personal")
         XCTAssertEqual(account.usageURL?.absoluteString, "https://github.com/settings/billing")

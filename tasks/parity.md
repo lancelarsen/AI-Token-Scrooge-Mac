@@ -13,6 +13,7 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Four-account demo values, quota IDs/units, reset periods, credit ownership and line colors now match the pinned source history demo.
 - Source plan-label mapping is used throughout account cards, history selectors, labels and future events; unknown plans stay unavailable.
 - Quota details include account/scope (hidden in privacy mode), fetch/provider timestamps and source provider-usage links; organization path escaping is tested, native browser handoff still to verify.
+- Header freshness now shows source-matched latest observation date/time/zone and pending sign-in cleanup (date/zone regression coverage).
 - Native SwiftUI dashboard/account cards; charcoal/lavender theme and bundled source artwork/sounds.
 - Source-matched sorting keeps unknown/paused accounts last and preserves ties, with custom-order normalization and first-switch visible-order capture regression coverage. Drag reordering uses current serialized state. Custom drag order, history selectors, threshold controls, settings, reminders, account editor, alert history.
 - Paused accounts are excluded from timeline selectors, curves and events; future-event fixtures cover pause, hidden selection and identity mismatch without deleting stored snapshots.

@@ -1,6 +1,16 @@
 import Foundation
 
 enum Format {
+    static func updated(_ date: Date, zone: TimeZone) -> String {
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = zone
+        let day = calendar.component(.day, from: date)
+        let suffix = (11...13).contains(day) ? "th" : day % 10 == 1 ? "st" : day % 10 == 2 ? "nd" : day % 10 == 3 ? "rd" : "th"
+        let formatter = DateFormatter(); formatter.locale = Locale(identifier: "en_US_POSIX"); formatter.timeZone = zone
+        formatter.dateFormat = "h:mm a"
+        let time = formatter.string(from: date)
+        formatter.dateFormat = "EEEE, MMM"
+        return "Updated \(time) \(zone.abbreviation(for: date) ?? zone.identifier)\n\(formatter.string(from: date)) \(day)\(suffix)"
+    }
     static func plan(_ provider: Provider, _ value: String?) -> String {
         let labels: [String: String]
         switch provider {

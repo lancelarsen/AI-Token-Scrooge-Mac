@@ -53,13 +53,22 @@ struct DashboardView: View {
                 Spacer(minLength: 0)
             }
             HStack(spacing: 14) {
-                Text(store.isDemo ? "DEMO DATA · Live Monitoring Paused" : store.accounts.isEmpty ? "Connect an Account to Start Monitoring" : "\(store.accounts.count) Accounts")
+                Text(freshness)
                     .font(.system(size: 12)).foregroundStyle(Theme.secondary).frame(maxWidth: .infinity, alignment: .trailing)
                 Button { Task { await store.refresh() } } label: { ActionLabel(title: "Refresh", symbol: "arrow.clockwise") }
                     .disabled(store.isRefreshing).accessibilityIdentifier("refreshButton")
                 Button { openSettings() } label: { ActionLabel(title: "Settings", symbol: "gearshape") }.accessibilityIdentifier("settingsButton")
             }.frame(maxWidth: wide ? 500 : .infinity).buttonStyle(ScroogeButtonStyle())
         }.padding(.horizontal, 32).padding(.vertical, 18)
+    }
+    private var freshness: String {
+        var text = store.isDemo ? "DEMO DATA · Live Monitoring Paused" : store.state.snapshots.values.map(\.observedAt).max().map {
+            Format.updated($0, zone: store.state.settings.zone)
+        } ?? "Connect an Account to Start Monitoring"
+        if !store.isDemo && (!store.state.retiredAccounts.isEmpty || !store.state.retiredCredentialIDs.isEmpty) {
+            text += " · Previous Sign-in Cleanup Pending"
+        }
+        return text
     }
     private var toolbar: some View {
         HStack(spacing: 12) {
