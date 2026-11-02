@@ -140,3 +140,5 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - AppStore demo-isolation regression queues a real dismissal before demo entry, then a demo alert edit/snooze before exit. Exit restores the dismissed real alert, discards demo alerts/deadlines and leaves the database equal to real state. Full unit suite passes (artifacts/alert-demo-isolation-tests.log). The test uses isolated local storage and no live providers.
 
 - Menu-bar alert severity now uses distinct native symbols (info circle, warning triangle, critical octagon), preserving the source's severity distinction without relying on color. Unavailable-data question mark and normal gauge remain. Debug build passes (artifacts/menu-severity-symbols-build.log); native status-item rendering across all states remains unverified.
+
+- Extended the SQLite alert-save failure test through recovery: after removing the failing trigger, retrying Dismiss saves successfully and clears the old banner without persisting the failed snooze. Full unit suite passes (artifacts/alert-save-recovery-tests.log). Native menu-bar inspection via SystemUIServer timed out; status-item rendering remains unverified.

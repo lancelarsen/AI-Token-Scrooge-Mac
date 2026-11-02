@@ -35,6 +35,16 @@ final class MonitoringTests: XCTestCase {
         let persisted = try await database.load()
         XCTAssertEqual(persisted.alerts, [alert])
         XCTAssertTrue(persisted.snoozedAccounts.isEmpty)
+        XCTAssertEqual(sqlite3_exec(connection, "DROP TRIGGER reject_alert_save;", nil, nil, nil), SQLITE_OK)
+        store.errorMessage = nil
+        store.dismissAlert(alert.id)
+        await store.waitForPendingMutations()
+        XCTAssertNil(store.activeAlert)
+        XCTAssertTrue(store.state.alerts[0].dismissed)
+        XCTAssertNil(store.errorMessage)
+        let recovered = try await database.load()
+        XCTAssertTrue(recovered.alerts[0].dismissed)
+        XCTAssertTrue(recovered.snoozedAccounts.isEmpty)
     }
     @MainActor
     func testQueuedAlertActionsPreserveNewerBannerAndEachOthersChanges() async throws {
