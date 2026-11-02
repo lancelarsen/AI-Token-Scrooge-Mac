@@ -21,7 +21,7 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Calendar-week history queries share viewport DST boundaries; cache expansion and the 169-hour fall-back week are tested, and zone changes reload history. Civil-day timeline geometry with DST handling, date rail, future reset/expiry details, overview navigation.
 - SQLite snapshots/history runs, identity validation, Keychain token storage.
 - GitHub advanced token identity and billing reads with provider/manual/unknown allowances and bounded no-redirect transport.
-- Native menu bar, login item toggle, notification test, sound previews.
+- Native menu bar, login item toggle, notification test, sound previews. Notification tests now record intent before sending, show an in-app test banner, and mark delivery only after macOS accepts the notification; errors retain the history entry. Epoch and dismissal/snooze checks guard authorization/enqueue waits. Debug build and unit suite pass; native permission/delivery validation remains outstanding.
 - Alert history displays recorded versus macOS-delivered status. Clicking an entry opens shared quota details or earned-reset availability/expiry details; removed accounts/windows show the source unavailable message. Debug build passes. Native CUA check verified Settings → Alert History → No Alerts Yet → Close, and the extracted quota popover showed demo Codex 38% used/62% left with fetch/reset timestamps. Exit Demo restored the empty connected-account dashboard. Populated history entries, reserve sheets and notification actions remain unverified.
 - Pure provider mapping and alert evaluation. GitHub retry handling covers seconds/date headers, short future deadlines, invalid values and fallback delay with source-matched tests.
 

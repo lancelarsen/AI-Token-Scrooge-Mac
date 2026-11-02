@@ -343,10 +343,38 @@ import AppKit
         }
     }
     func sendTestNotification() async {
+        let epoch = monitoringEpoch
+        let alert = AlertEvent(id: "test/" + UUID().uuidString,
+            accountID: state.accounts.first?.id ?? "test", windowID: nil,
+            title: "Scrooge Notification Test",
+            detail: "This is a test. Your account usage has not changed.", createdAt: .now)
+        edit { $0.alerts.append(alert) }
+        await mutationTail?.value
+        guard monitoringEpoch == epoch, state.alerts.contains(where: { $0.id == alert.id }) else { return }
+        activeAlert = alert
+        openDashboard?()
+        SoundPlayer.shared.play(settings: state.settings, cue: "alert", preview: true)
         do {
-            try await NotificationService.shared.send(id: UUID().uuidString, title: "AI Token Scrooge", detail: "Notifications are ready. Your tokens are being watched.")
-            SoundPlayer.shared.play(settings: state.settings, cue: "alert", preview: true)
-        } catch { errorMessage = error.localizedDescription }
+            try await NotificationService.shared.authorize()
+            await mutationTail?.value
+            guard monitoringEpoch == epoch, let current = state.alerts.first(where: { $0.id == alert.id }),
+                  !current.dismissed, current.snoozedUntil == nil else { return }
+            try await NotificationService.shared.enqueue(id: alert.id, title: alert.title, detail: alert.detail)
+            await mutationTail?.value
+            guard monitoringEpoch == epoch, let current = state.alerts.first(where: { $0.id == alert.id }),
+                  !current.dismissed, current.snoozedUntil == nil else {
+                await NotificationService.shared.cancel(alert.id)
+                return
+            }
+            edit { state in
+                if let index = state.alerts.firstIndex(where: { $0.id == alert.id }) { state.alerts[index].delivered = true }
+            }
+            await mutationTail?.value
+        } catch {
+            if monitoringEpoch == epoch {
+                errorMessage = "macOS did not accept the test notification. The test is recorded in Alert History. " + error.localizedDescription
+            }
+        }
     }
     func snooze(_ id: String, minutes: Int) {
         guard minutes > 0 && minutes <= 120 else { return }

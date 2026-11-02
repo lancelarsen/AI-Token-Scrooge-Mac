@@ -58,7 +58,7 @@ struct SettingsView: View {
                         Toggle("Keep Monitoring After Closing", isOn: binding(\.closeToMenuBar))
                         Toggle("Privacy Mode", isOn: binding(\.privacy))
                         Button("Alert History") { store.showAlertHistory = true }.buttonStyle(ScroogeButtonStyle())
-                        Button("Send Test Notification") { Task { await store.sendTestNotification() } }.buttonStyle(ScroogeButtonStyle())
+                        Button("Send Test Notification") { dismiss(); Task { await store.sendTestNotification() } }.buttonStyle(ScroogeButtonStyle())
                     }
                 }.frame(maxWidth: 960).padding(24).frame(maxWidth: .infinity)
             }
