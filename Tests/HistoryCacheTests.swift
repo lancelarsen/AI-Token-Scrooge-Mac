@@ -2,6 +2,18 @@ import XCTest
 @testable import AITokenScrooge
 
 final class HistoryCacheTests: XCTestCase {
+    func testExpandedCalendarRangeRequiresFullReload() {
+        let zone = TimeZone(identifier: "America/Chicago")!
+        let now = ISO8601DateFormatter().date(from: "2026-11-02T18:00:00Z")!
+        let since = HorizonViewport(now: now, furthestFuture: nil, zone: zone, width: 700).date(at: 0)
+        XCTAssertEqual(now.timeIntervalSince(since), 7 * 86400 + 3600, accuracy: 0.01)
+        var cache = HistoryRunCache()
+        XCTAssertFalse(cache.covers(since: since))
+        cache.merge([], revision: 1, since: now.addingTimeInterval(-7 * 86400))
+        XCTAssertFalse(cache.covers(since: since))
+        cache.merge([], revision: 2, since: since)
+        XCTAssertTrue(cache.covers(since: since.addingTimeInterval(60)))
+    }
     func testIncrementalReadReplacesExtendedRunAndEmptyDeltaPreservesIt() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

@@ -86,7 +86,9 @@ import AppKit
                     try await database.save(candidate)
                 }
                 if candidate.settings.historyRetentionDays != state.settings.historyRetentionDays { lastPruned = .distantPast }
+                let zoneChanged = candidate.settings.timeZoneID != state.settings.timeZoneID
                 state = candidate
+                if zoneChanged && !isDemo { historyCache.removeAll(); await reloadHistory() }
             } catch { errorMessage = error.localizedDescription }
         }
     }
@@ -248,21 +250,23 @@ import AppKit
         defer { if historyRequest == request { historyLoading = false } }
         let epoch = monitoringEpoch
         let accounts = state.accounts
-        let since = Date.now.addingTimeInterval(-7 * 86400)
+        let zone = state.settings.zone
+        let since = HorizonViewport(now: .now, furthestFuture: nil, zone: zone, width: 700).date(at: 0)
         do {
             var caches = historyCache
             var result: [HistoryRun] = []
             for account in accounts {
                 var cache = caches[account.id] ?? HistoryRunCache()
+                if !cache.covers(since: since) { cache = HistoryRunCache() }
                 let delta = try await database.historyChanges(accountID: account.id, since: since, afterRevision: cache.revision)
                 cache.merge(delta.runs, revision: delta.revision, since: since)
                 caches[account.id] = cache; result += cache.runs
             }
-            guard historyRequest == request, !isDemo, monitoringEpoch == epoch, state.accounts == accounts else { return }
+            guard historyRequest == request, !isDemo, monitoringEpoch == epoch, state.accounts == accounts, state.settings.zone == zone else { return }
             historyCache = caches.filter { id, _ in accounts.contains { $0.id == id } }
             history = result
         } catch {
-            guard historyRequest == request, !isDemo, monitoringEpoch == epoch, state.accounts == accounts else { return }
+            guard historyRequest == request, !isDemo, monitoringEpoch == epoch, state.accounts == accounts, state.settings.zone == zone else { return }
             historyError = "History Could Not Be Loaded. Previously Loaded Observations Are Retained."
             errorMessage = error.localizedDescription
         }
