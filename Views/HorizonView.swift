@@ -330,7 +330,8 @@ struct HorizonView: View {
                 guard let first = segment.first, let last = segment.last else { return }
                 var path = Path(); path.addLines(segment)
                 var fill = Path(); fill.move(to: CGPoint(x: first.x, y: plotTop + chartHeight))
-                fill.addLines(segment); fill.addLine(to: CGPoint(x: last.x, y: plotTop + chartHeight)); fill.closeSubpath()
+                for point in segment { fill.addLine(to: point) }
+                fill.addLine(to: CGPoint(x: last.x, y: plotTop + chartHeight)); fill.closeSubpath()
                 context.fill(fill, with: .color(color.opacity(0.09)))
                 context.stroke(path, with: .color(color), lineWidth: 2)
                 if segment.count == 1 { context.fill(Path(ellipseIn: CGRect(x: first.x - 2.5, y: first.y - 2.5, width: 5, height: 5)), with: .color(color)) }
