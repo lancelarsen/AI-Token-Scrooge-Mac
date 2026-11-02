@@ -60,3 +60,5 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 
 - Native demo check verified account reset counts, fetched time and available-credit status; pausing monitoring changed the status to Monitoring Paused. Restored monitoring and exited demo.
 - Hosted run 41539142189 succeeded at de5c03c and published preview-20-1. The downloaded ZIP passes its checksum, strict extracted-app signature check and arm64 inspection. This preview precedes the exact-reminder-time and account-reset-detail changes.
+
+- macOS app activation, workspace wake and offline-to-online network transitions now request refresh through the existing throttle-aware refresh path. Initial path discovery does not force an extra refresh; observers are disabled in test mode and cleaned up at termination. Debug build and unit suite pass. Physical sleep/wake/network recovery with live accounts remains unverified.

@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import UserNotifications
+import Network
 
 @main struct ScroogeApp: App {
     @NSApplicationDelegateAdaptor(ScroogeAppDelegate.self) private var delegate
@@ -43,6 +44,19 @@ struct MenuBarContent: View {
     weak var store: AppStore? { didSet { drainWhenReady() } }
     private var queuedResponses: [(id: String, action: String)] = []
     private var draining = false
+    private var pathMonitor: NWPathMonitor?
+    private var wakeObserver: NSObjectProtocol?
+    private var networkWasAvailable: Bool?
+    private func refreshAfterResume() {
+        guard ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] != "1",
+              let store, !store.isLoading, !store.isDemo else { return }
+        Task { await store.refresh() }
+    }
+    func applicationDidBecomeActive(_ notification: Notification) { refreshAfterResume() }
+    func applicationWillTerminate(_ notification: Notification) {
+        pathMonitor?.cancel()
+        if let wakeObserver { NSWorkspace.shared.notificationCenter.removeObserver(wakeObserver) }
+    }
     private func drainWhenReady() {
         guard !draining, store != nil else { return }
         draining = true
@@ -72,6 +86,22 @@ struct MenuBarContent: View {
             UNNotificationAction(identifier: "dismiss", title: "Dismiss")
         ], intentIdentifiers: [])
         center.setNotificationCategories([category])
+        guard ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] != "1" else { return }
+        wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor [weak self] in self?.refreshAfterResume() }
+        }
+        let monitor = NWPathMonitor()
+        monitor.pathUpdateHandler = { [weak self] path in
+            let available = path.status == .satisfied
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                let reconnected = networkWasAvailable == false && available
+                networkWasAvailable = available
+                if reconnected { refreshAfterResume() }
+            }
+        }
+        pathMonitor = monitor
+        monitor.start(queue: DispatchQueue(label: "com.lancelarsen.AITokenScrooge.network"))
     }
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions { [.list] }
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
