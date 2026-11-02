@@ -33,6 +33,10 @@ struct HorizonView: View {
                     }
                 }.frame(height: timelineHeight)
                 navigator.frame(height: 22)
+                if let historyStatus {
+                    Text(historyStatus).font(.callout).foregroundStyle(Theme.secondary)
+                        .frame(maxWidth: .infinity).accessibilityIdentifier("historyStatus")
+                }
                 if let hoverText { Text(hoverText).font(.caption).foregroundStyle(Theme.secondary).frame(maxWidth: .infinity, alignment: .leading) }
             }
         }
@@ -57,6 +61,24 @@ struct HorizonView: View {
         return store.state.settings.historyEnabled ? max(selectors, future) : future
     }
     private var heading: some View { HStack { Image(systemName: "clock.arrow.circlepath").foregroundStyle(Theme.accent); Text("Reset Horizon").fontWeight(.semibold) }.font(.system(size: 24)) }
+    private var historyStatus: String? {
+        if !store.state.settings.historyEnabled { return events.isEmpty ? "No Upcoming Events Reported" : nil }
+        guard viewport.visibleStart < .now else { return nil }
+        let visible = historySeries
+        if visible.isEmpty { return "Select an Account to View History" }
+        let end = viewport.date(at: viewport.scrollOffset + viewport.viewportWidth)
+        return visible.allSatisfy { series in !series.points.contains { $0.at >= viewport.visibleStart && $0.at <= end } }
+            ? "No Recorded Usage in This Period" : nil
+    }
+    private func historyHelp(_ account: ProviderAccount) -> String {
+        let series = UsageHistory.build(account: account, runs: store.history, from: viewport.firstDate, through: .now)
+        let name = store.state.settings.privacy ? "Account" : account.nickname
+        let period = account.provider == .copilot ? "Monthly" : "Weekly"
+        var text = "\(account.provider.rawValue) / \(name) · \(Format.plan(account.provider, store.state.snapshots[account.id]?.planType))\n\(period) History"
+        if let first = series.points.first, first.at > viewport.firstDate { text += "\nHistory Begins \(Format.date(first.at, zone: store.state.settings.zone))" }
+        if let status = series.status { text += "\n\(status)" }
+        return text
+    }
     private var legend: some View {
         HStack(spacing: 22) {
             Label("Quota Refresh (\(events.filter { !$0.expiration }.count))", systemImage: "circle.fill").foregroundStyle(Theme.accent)
@@ -85,6 +107,7 @@ struct HorizonView: View {
                             .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType)), lineWidth: 2))
                             .opacity(store.state.settings.hiddenHistoryAccounts.contains(account.id) ? 0.4 : 1)
                     }.buttonStyle(.plain).accessibilityLabel("Show \(account.provider.rawValue) \(store.state.settings.privacy ? "Account" : account.nickname) on Timeline")
+                        .help(historyHelp(account))
                 }
             }
         }.scrollIndicators(.hidden)
