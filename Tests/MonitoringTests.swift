@@ -1,7 +1,41 @@
 import XCTest
+import SQLite3
 @testable import AITokenScrooge
 
 final class MonitoringTests: XCTestCase {
+    @MainActor
+    func testFailedAlertActionSavePreservesBannerAndStoredState() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("alerts.db")
+        let database = try LocalStore(url: url)
+        let alert = AlertEvent(id: "test-save-failure", accountID: "account", title: "Test", detail: "Test", createdAt: .now)
+        var original = PersistedState()
+        original.alerts = [alert]
+        try await database.save(original)
+        let store = AppStore(database: database)
+        await store.load()
+        store.activeAlert = alert
+        var connection: OpaquePointer?
+        XCTAssertEqual(sqlite3_open(url.path, &connection), SQLITE_OK)
+        defer { sqlite3_close(connection) }
+        XCTAssertEqual(sqlite3_exec(connection, "CREATE TRIGGER reject_alert_save BEFORE UPDATE ON state BEGIN SELECT RAISE(ABORT, 'injected save failure'); END;", nil, nil, nil), SQLITE_OK)
+        store.dismissAlert(alert.id)
+        await store.waitForPendingMutations()
+        XCTAssertEqual(store.activeAlert, alert)
+        XCTAssertEqual(store.state.alerts, [alert])
+        XCTAssertNotNil(store.errorMessage)
+        store.errorMessage = nil
+        store.snooze(alert.id, minutes: 15)
+        await store.waitForPendingMutations()
+        XCTAssertEqual(store.activeAlert, alert)
+        XCTAssertEqual(store.state.alerts, [alert])
+        XCTAssertTrue(store.state.snoozedAccounts.isEmpty)
+        XCTAssertNotNil(store.errorMessage)
+        let persisted = try await database.load()
+        XCTAssertEqual(persisted.alerts, [alert])
+        XCTAssertTrue(persisted.snoozedAccounts.isEmpty)
+    }
     func testManualRefreshHonorsProviderThrottle() {
         let now = Date(timeIntervalSince1970: 1800000000)
         var schedule = RefreshSchedule()

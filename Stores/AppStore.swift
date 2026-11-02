@@ -66,6 +66,8 @@ import AppKit
     private var localStateReady = false
     var accounts: [ProviderAccount] { AccountPolicy.ordered(state) }
     private var isTestLaunch: Bool { ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] == "1" }
+    init(database: LocalStore) { self.database = database }
+    func waitForPendingMutations() async { await mutationTail?.value }
     init() {
         let args = ProcessInfo.processInfo.arguments
         let override = args.firstIndex(of: "--data-dir").flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil }
