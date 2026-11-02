@@ -6,6 +6,7 @@ struct UsageBar: View {
     let changed: (AlertThresholds) -> Void
     let details: () -> Void
     @State private var editing: AlertThresholds?
+    @FocusState private var focusedThreshold: ReminderSeverity?
     var body: some View {
         GeometryReader { geometry in
             let current = editing ?? thresholds
@@ -21,6 +22,16 @@ struct UsageBar: View {
                     let value = value(level, current)
                     Capsule().fill(color(level)).frame(width: 5, height: 30)
                         .frame(width: 18, height: 44).contentShape(Rectangle())
+                        .overlay(RoundedRectangle(cornerRadius: 5).stroke(focusedThreshold == level ? Theme.accent : .clear, lineWidth: 2))
+                        .focusable()
+                        .focused($focusedThreshold, equals: level)
+                        .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { press in
+                            let increase = press.key == .leftArrow || press.key == .upArrow
+                            var next = thresholds
+                            next.move(level, to: value + (increase ? 1 : -1))
+                            changed(next)
+                            return .handled
+                        }
                         .position(x: (1 - NSDecimalNumber(decimal: value).doubleValue / 100) * geometry.size.width, y: 24)
                         .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .named("usageBar")).onChanged { drag in
                             var next = editing ?? thresholds
