@@ -80,3 +80,5 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Retention picker now matches source presets (7/30/60/90/180/365 days) and adds the current saved value, preventing an unlisted valid retention value from losing its picker selection. Debug build passes.
 
 - Time-zone picker now binds to the resolved zone used by dates/quiet hours and includes valid aliases absent from the standard zone list. Invalid saved IDs visibly resolve to Chicago rather than producing an empty picker selection. Unit suite passes with fallback/quiet-hour and UTC coverage; native invalid-ID picker verification remains outstanding.
+
+- Native compact-width review at about 900 points verified the wrapped header and stacked Codex/Copilot account cards, readable usage/reset labels and management controls. Today-history lines still overlap today event cards; exact source visual comparison/resolution remains open. Exited demo after review.
