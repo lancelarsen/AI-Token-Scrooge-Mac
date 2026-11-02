@@ -82,7 +82,7 @@ struct HorizonView: View {
                             }
                         }.padding(5).frame(width: 72).background(Theme.control)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: account.lineColor), lineWidth: 2))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType)), lineWidth: 2))
                             .opacity(store.state.settings.hiddenHistoryAccounts.contains(account.id) ? 0.4 : 1)
                     }.buttonStyle(.plain).accessibilityLabel("Show \(account.provider.rawValue) \(account.nickname) on Timeline")
                 }
@@ -188,7 +188,7 @@ struct HorizonView: View {
         }
         for series in historySeries {
             let points = UsageHistory.reduce(series.points, project: viewport.position, minX: viewport.scrollOffset, maxX: viewport.scrollOffset + viewport.viewportWidth)
-            let color = Color(hex: series.account.lineColor)
+            let color = Color(hex: series.account.resolvedLineColor(plan: store.state.snapshots[series.account.id]?.planType))
             var segment: [CGPoint] = []
             func flush() {
                 guard let first = segment.first, let last = segment.last else { return }
@@ -220,7 +220,7 @@ struct HorizonView: View {
             let (series, point) = item
             let x = viewport.position(at: point.at)
             guard x >= viewport.scrollOffset, x <= viewport.scrollOffset + viewport.viewportWidth else { continue }
-            let color = Color(hex: series.account.lineColor)
+            let color = Color(hex: series.account.resolvedLineColor(plan: store.state.snapshots[series.account.id]?.planType))
             let y = 95 + NSDecimalNumber(decimal: point.remaining).doubleValue / 100 * chartHeight
             let end = viewport.scrollOffset + viewport.viewportWidth
             guard nowX >= end - 80, x >= end - 70 else { continue }

@@ -2,6 +2,20 @@ import XCTest
 @testable import AITokenScrooge
 
 final class SettingsMigrationTests: XCTestCase {
+    func testAccountColorDefaultsFollowProviderAndPlanWithoutOverwritingCustomChoice() throws {
+        var account = ProviderAccount(provider: .codex, nickname: "A", subject: "s", scope: "w")
+        XCTAssertEqual(account.resolvedLineColor(plan: "ChatGPT Plus"), "#D587A5")
+        XCTAssertEqual(account.resolvedLineColor(plan: "Pro"), "#B99AF8")
+        account.provider = .copilot
+        XCTAssertEqual(account.resolvedLineColor(plan: nil), "#CDEB82")
+        account.provider = .claude
+        XCTAssertEqual(account.resolvedLineColor(plan: nil), "#58A6FF")
+        account.lineColor = "#123ABC"
+        let restored = try JSONDecoder().decode(ProviderAccount.self, from: JSONEncoder().encode(account))
+        XCTAssertEqual(restored.resolvedLineColor(plan: "Pro"), "#123ABC")
+        account.lineColor = "invalid"
+        XCTAssertEqual(account.resolvedLineColor(plan: nil), "#58A6FF")
+    }
     func testMissingPreferencesUseSourceDefaults() throws {
         let settings = try JSONDecoder().decode(RadarSettings.self, from: Data(#"{"sound":true}"#.utf8))
         XCTAssertTrue(settings.sound)

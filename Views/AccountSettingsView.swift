@@ -24,7 +24,7 @@ struct AccountSettingsView: View {
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 36, maximum: 40))], alignment: .leading) {
                                 ForEach(lineColors, id: \.self) { hex in
                                     Button { update { $0.lineColor = hex } } label: {
-                                        ZStack { RoundedRectangle(cornerRadius: 5).fill(Color(hex: hex)); if account.lineColor == hex { Image(systemName: "checkmark").foregroundStyle(.black) } }.frame(width: 32, height: 32)
+                                        ZStack { RoundedRectangle(cornerRadius: 5).fill(Color(hex: hex)); if account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType).caseInsensitiveCompare(hex) == .orderedSame { Image(systemName: "checkmark").foregroundStyle(.black) } }.frame(width: 32, height: 32)
                                     }.buttonStyle(.plain).accessibilityLabel("Line Color \(hex)")
                                 }
                                 Button { showColor = true } label: { Image(systemName: "plus").frame(width: 32, height: 32).background(Theme.control).clipShape(RoundedRectangle(cornerRadius: 5)) }.buttonStyle(.plain).help("Add Custom Color")

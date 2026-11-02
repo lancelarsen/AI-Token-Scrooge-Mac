@@ -25,9 +25,18 @@ struct ProviderAccount: Codable, Identifiable, Equatable, Sendable {
     var login: String?
     var credentialID: String = UUID().uuidString
     var pollingMinutes = 2
-    var lineColor: String = "#B5A0F4"
+    var lineColor: String?
     var generation: UUID = UUID()
     var effectivePollingMinutes: Int { min(30, max(1, pollingMinutes)) }
+    func resolvedLineColor(plan: String?) -> String {
+        if let lineColor, lineColor.count == 7, lineColor.first == "#",
+           lineColor.dropFirst().allSatisfy({ $0.isASCII && $0.isHexDigit }) { return lineColor }
+        switch provider {
+        case .claude: return "#58A6FF"
+        case .copilot: return "#CDEB82"
+        case .codex: return plan?.localizedCaseInsensitiveContains("Plus") == true ? "#D587A5" : "#B99AF8"
+        }
+    }
     func scopeEquals(_ other: String) -> Bool {
         provider == .copilot ? scope.caseInsensitiveCompare(other) == .orderedSame : scope == other
     }
