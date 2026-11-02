@@ -74,3 +74,5 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Alert rule regressions verify that muting one quota preserves other-window and reserve alerts, muting all windows suppresses reserve reminders, stored alerts revalidate against current mute settings, and window/account/global thresholds remain isolated. Full unit suite passes.
 
 - Refresh scheduling now updates only after epoch/account-generation/enabled checks, so rejected old-connection results cannot alter the current connection schedule. Retry deadlines remain honored even if saving locally fails. Unit suite passes; live reconnect-during-refresh race verification remains outstanding.
+
+- Native demo privacy check verified account names become Account in cards, timeline selector labels/help, and management tooltips; quota details omit account identity and scope while retaining usage/reset/fetch information. Exited demo to restore saved state. Live notification privacy remains unverified.
