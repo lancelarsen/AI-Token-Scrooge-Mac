@@ -108,6 +108,31 @@ struct QuotaSnapshot: Codable, Equatable, Sendable {
 }
 
 enum AccountPolicy {
+    static func ordered(_ state: PersistedState) -> [ProviderAccount] {
+        func remaining(_ account: ProviderAccount) -> Decimal? {
+            account.enabled ? state.snapshots[account.id]?.windows.compactMap(\.remainingPercent).min() : nil
+        }
+        func reset(_ account: ProviderAccount) -> Date {
+            account.enabled ? state.snapshots[account.id]?.windows.compactMap(\.resetsAt).min() ?? .distantFuture : .distantFuture
+        }
+        return state.accounts.enumerated().sorted { left, right in
+            let a = left.element, b = right.element
+            switch state.settings.accountSort {
+            case .custom:
+                let x = state.settings.accountOrder.firstIndex(of: a.id) ?? Int.max
+                let y = state.settings.accountOrder.firstIndex(of: b.id) ?? Int.max
+                return x == y ? left.offset < right.offset : x < y
+            case .mostRemaining, .leastRemaining:
+                let x = remaining(a), y = remaining(b)
+                if let x, let y, x != y { return state.settings.accountSort == .mostRemaining ? x > y : x < y }
+                if (x == nil) != (y == nil) { return x != nil }
+                return left.offset < right.offset
+            case .nextReset:
+                let x = reset(a), y = reset(b)
+                return x == y ? left.offset < right.offset : x < y
+            }
+        }.map(\.element)
+    }
     static func reconnect(original: ProviderAccount, replacement: ProviderAccount) throws -> ProviderAccount {
         guard original.id == replacement.id, original.provider == replacement.provider,
               original.subject == replacement.subject,

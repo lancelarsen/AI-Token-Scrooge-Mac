@@ -37,17 +37,7 @@ import AppKit
     private var mutationTail: Task<Void, Never>?
     private var loadTask: Task<Void, Never>?
     private var localStateReady = false
-    var accounts: [ProviderAccount] {
-        state.accounts.sorted { a, b in
-            switch state.settings.accountSort {
-            case .custom:
-                return (state.settings.accountOrder.firstIndex(of: a.id) ?? Int.max) < (state.settings.accountOrder.firstIndex(of: b.id) ?? Int.max)
-            case .mostRemaining: return remaining(a) > remaining(b)
-            case .leastRemaining: return remaining(a) < remaining(b)
-            case .nextReset: return nextReset(a) < nextReset(b)
-            }
-        }
-    }
+    var accounts: [ProviderAccount] { AccountPolicy.ordered(state) }
     private var isTestLaunch: Bool { ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] == "1" }
     init() {
         let args = ProcessInfo.processInfo.arguments
@@ -451,8 +441,7 @@ import AppKit
         }
         await reloadHistory()
     }
-    func remaining(_ account: ProviderAccount) -> Decimal { state.snapshots[account.id]?.windows.compactMap(\.remainingPercent).min() ?? -1 }
-    func nextReset(_ account: ProviderAccount) -> Date { state.snapshots[account.id]?.windows.compactMap(\.resetsAt).min() ?? .distantFuture }
+
 }
 enum PreferenceError: LocalizedError { case invalidThresholds
     var errorDescription: String? { "Alert levels must satisfy Critical < Warning ≤ Info, between 0 and 100." }

@@ -2,6 +2,24 @@ import XCTest
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testSortPlacesUnknownAndPausedAccountsLastAndKeepsTiesStable() {
+        let now = Date(timeIntervalSince1970: 1800000000)
+        var state = PersistedState()
+        state.accounts = (0..<4).map { ProviderAccount(id: "a\($0)", provider: .codex, nickname: "A", subject: "s", scope: "w") }
+        for index in 1..<4 {
+            let account = state.accounts[index]
+            state.snapshots[account.id] = QuotaSnapshot(accountID: account.id, subject: "s", scope: "w", observedAt: now,
+                windows: [QuotaWindow(id: "q", name: "q", unit: .percent, used: 20, resetsAt: now)])
+        }
+        state.accounts[1].enabled = false
+        for mode in [AccountSort.mostRemaining, .leastRemaining, .nextReset] {
+            state.settings.accountSort = mode
+            XCTAssertEqual(AccountPolicy.ordered(state).map(\.id), ["a2", "a3", "a0", "a1"])
+        }
+        state.settings.accountSort = .custom
+        state.settings.accountOrder = ["removed", "a3", "a3"]
+        XCTAssertEqual(AccountPolicy.ordered(state).map(\.id), ["a3", "a0", "a1", "a2"])
+    }
     func testProviderPlanLabelsMatchSourceAndDoNotInventUnknownPlans() {
         XCTAssertEqual(Format.plan(.copilot, "individual_pro"), "Pro+")
         XCTAssertEqual(Format.plan(.copilot, "individual_max"), "Max")
