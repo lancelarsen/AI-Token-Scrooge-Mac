@@ -20,17 +20,20 @@ struct HorizonView: View {
                 HStack(alignment: .top, spacing: 16) {
                     selectors.frame(width: 90)
                     Divider()
-                    GeometryReader { geometry in
-                        ScrollView(.horizontal) {
-                            timeline.frame(width: viewport.contentWidth, height: timelineHeight)
+                    HStack(spacing: 0) {
+                        if store.state.settings.historyEnabled { historyAxis.frame(width: 40) }
+                        GeometryReader { geometry in
+                            ScrollView(.horizontal) {
+                                timeline.frame(width: viewport.contentWidth, height: timelineHeight)
+                            }
+                            .scrollIndicators(.hidden).scrollPosition($position)
+                            .onScrollGeometryChange(for: Double.self) { $0.contentOffset.x } action: { _, value in if position.isPositionedByUser { viewport.scroll(to: value) } }
+                            .onAppear { update(width: geometry.size.width) }
+                            .onChange(of: geometry.size.width) { _, width in update(width: width) }
+                            .onChange(of: store.state.settings.historyEnabled) { _, _ in update(width: geometry.size.width) }
+                            .onChange(of: store.state.settings.timeZoneID) { _, _ in update(width: geometry.size.width) }
+                            .onChange(of: events.map(\.date)) { _, _ in update(width: geometry.size.width) }
                         }
-                        .scrollIndicators(.hidden).scrollPosition($position)
-                        .onScrollGeometryChange(for: Double.self) { $0.contentOffset.x } action: { _, value in if position.isPositionedByUser { viewport.scroll(to: value) } }
-                        .onAppear { update(width: geometry.size.width) }
-                        .onChange(of: geometry.size.width) { _, width in update(width: width) }
-                        .onChange(of: store.state.settings.historyEnabled) { _, _ in update(width: geometry.size.width) }
-                        .onChange(of: store.state.settings.timeZoneID) { _, _ in update(width: geometry.size.width) }
-                        .onChange(of: events.map(\.date)) { _, _ in update(width: geometry.size.width) }
                     }
                 }.frame(height: timelineHeight)
                 navigator.frame(height: 22)
@@ -53,6 +56,19 @@ struct HorizonView: View {
                 Button("Close") { selectedEvent = nil }.buttonStyle(ScroogeButtonStyle())
             }.padding(28).frame(minWidth: 400).background(Theme.card).preferredColorScheme(.dark)
         }
+    }
+    private var historyAxis: some View {
+        Canvas { context, _ in
+            guard viewport.position(at: .now) - viewport.scrollOffset > 2 else { return }
+            for percent in stride(from: 0, through: 100, by: 25) {
+                let y = 95 + (1 - Double(percent) / 100) * 200
+                context.draw(Text("\(percent)%").font(.system(size: 11)).foregroundStyle(Theme.secondary),
+                             at: CGPoint(x: 38, y: y), anchor: .trailing)
+            }
+            context.translateBy(x: 5, y: 195)
+            context.rotate(by: .degrees(-90))
+            context.draw(Text("% Used").font(.system(size: 10)).foregroundStyle(Theme.secondary), at: .zero)
+        }.accessibilityLabel("History axis: zero to one hundred percent used")
     }
     private var timelineHeight: Double {
         let groups = Dictionary(grouping: events, by: { calendar.startOfDay(for: $0.date) })

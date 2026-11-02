@@ -82,3 +82,5 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Time-zone picker now binds to the resolved zone used by dates/quiet hours and includes valid aliases absent from the standard zone list. Invalid saved IDs visibly resolve to Chicago rather than producing an empty picker selection. Unit suite passes with fallback/quiet-hour and UTC coverage; native invalid-ID picker verification remains outstanding.
 
 - Native compact-width review at about 900 points verified the wrapped header and stacked Codex/Copilot account cards, readable usage/reset labels and management controls. Today-history lines still overlap today event cards; exact source visual comparison/resolution remains open. Exited demo after review.
+
+- Source review confirms future day markers (including Today) stay centered in calendar-day buckets while history extends to the current timestamp; arbitrary event shifts would diverge from source. Added the missing fixed % Used axis with 0/25/50/75/100 labels and a 40-point gutter in history mode. Debug build passes; native axis rendering remains to be checked.
