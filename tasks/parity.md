@@ -66,3 +66,5 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Forced refresh requests received during an active refresh now coalesce into one follow-up pass. The monitoring epoch rejects queued work after demo transitions; normal polling does not queue redundant work, and the follow-up still honors provider throttles. Unit suite passes; live overlapping recovery-event testing remains outstanding.
 
 - Advanced GitHub connection now tracks/cancels its task on form disappearance, clears token text, and prevents provider switching while the attempt runs. A post-Keychain cancellation check removes the new credential before account commit if cancelled. Unit suite passes; live cancellation at Keychain/network boundaries remains unverified.
+
+- Quiet-hour boundary handles now support keyboard focus with visible outlines and source-matched Left/Down decrement, Right/Up increment, wrapping across midnight. Dragging focuses the adjusted boundary. Debug build passes; native key/focus verification remains outstanding.

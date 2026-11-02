@@ -131,6 +131,7 @@ struct ReminderEditor: View {
     }
 }
 struct QuietHoursControl: View {
+    @FocusState private var focusedBoundary: String?
     @Binding var start: Int
     @Binding var end: Int
     var body: some View {
@@ -148,8 +149,17 @@ struct QuietHoursControl: View {
         }
     }
     private func handle(value: Binding<Int>, width: Double, label: String) -> some View {
-        Circle().fill(Theme.accent).frame(width: 18, height: 18).offset(x: Double(value.wrappedValue) / 23 * width - 9)
+        Circle().fill(Theme.accent).frame(width: 18, height: 18)
+            .overlay(Circle().stroke(.white, lineWidth: focusedBoundary == label ? 2 : 0).padding(-4))
+            .offset(x: Double(value.wrappedValue) / 23 * width - 9)
+            .focusable().focused($focusedBoundary, equals: label).focusEffectDisabled()
+            .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { press in
+                let change = press.key == .leftArrow || press.key == .downArrow ? -1 : 1
+                value.wrappedValue = (value.wrappedValue + change + 24) % 24
+                return .handled
+            }
             .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .named("quietHours")).onChanged { event in
+                focusedBoundary = label
                 value.wrappedValue = min(23, max(0, Int((event.location.x / width * 23).rounded())))
             }).accessibilityLabel(label).accessibilityValue(hour(value.wrappedValue))
             .accessibilityAdjustableAction { direction in value.wrappedValue = (value.wrappedValue + (direction == .increment ? 1 : 23)) % 24 }
