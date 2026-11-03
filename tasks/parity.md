@@ -213,3 +213,9 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Temporarily composed three unchanged production AlertBannerView instances over the demo dashboard, with synthetic info/Codex, warning/Copilot and critical/Claude events. Native screenshot confirms blue/yellow/red heading and border accents, matching provider icons, and all three action labels (artifacts/alert-severities-native.png). The stacked composition was fixture-only; production shows one active banner.
 - Enabled Privacy Mode in demo settings: native accessibility returned Account Details Hidden for all three banners, replacing each synthetic detail (artifacts/alert-severities-privacy-native.png). This is appearance/privacy evidence only; fixture IDs were not persisted and action lifecycle or OS delivery was not tested here.
 - Restored DashboardView.swift byte-for-byte. Fixture and restored canonical builds passed (artifacts/alert-appearance-fixture-build.log and artifacts/alert-appearance-restored-build.log). Menu-bar severity states remain unverified.
+
+### Window close process lifetime — 2026-11-02
+
+- Standard app code at 71a4aeb, demo session, process PID70233. Native close button with default Keep Monitoring After Closing enabled left PID70233 alive, verified using ps before asking computer use to inspect/reopen the app. Subsequent dashboard inspection retained the same demo session.
+- In demo settings, unchecked Keep Monitoring After Closing, closed Settings, then clicked the native dashboard close button. ps for PID70233 returned no process (exit1), before any app reacquisition. This verifies the disabled preference terminates after the last window closes.
+- Reopened the app through computer use and observed the normal signed-out dashboard. Demo-only preference change was not persisted. No source change required. This does not prove actual Dock/menu activation or background live quota refresh.
