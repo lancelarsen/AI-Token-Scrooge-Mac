@@ -91,8 +91,10 @@ final class MonitoringTests: XCTestCase {
                               styleMask: [.borderless], backing: .buffered, defer: true)
         let root = NSView(frame: NSRect(x: 0, y: 0, width: 800, height: 400))
         window.contentView = root
+        window.acceptsMouseMovedEvents = false
         let tracker = HistoryPointerTracking.TrackingView(frame: NSRect(x: 40, y: 50, width: 600, height: 300))
         root.addSubview(tracker)
+        XCTAssertTrue(window.acceptsMouseMovedEvents, "Attaching history must enable native mouse movement delivery")
         var locations: [CGPoint?] = []
         tracker.onMove = { locations.append($0) }
         tracker.updateTrackingAreas()

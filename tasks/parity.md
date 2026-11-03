@@ -175,3 +175,10 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Native Claude preflight verified against installed 2.1.308: Add Account → Claude → temporary nickname → Sign In with Claude displayed “Update Claude Code to version 2.1.310 or later to read usage in Scrooge.” Cancel returned to the empty-account dashboard; no account was added. Screenshot: artifacts/claude-preflight-native.png. This verifies unsupported-version rejection, not live authentication or quota reading.
 
 - Grouped-history native fixture: temporarily set the four demo history refresh timestamps to the same instant, without altering the production grouping/view code. The timeline exposed a count-4 button; clicking it listed both Codex accounts, Copilot and Claude with the shared scheduled timestamp and each reported timestamp. Scrolling reached the final entry and the reported-schedule disclaimer (artifacts/grouped-history-details-native.png). Restored Models/DemoData.swift byte-for-byte and rebuilt successfully (artifacts/grouped-history-restored-build.log); no fixture source change remains. This checks four grouped refreshes, not arbitrary group sizes or live reset occurrence.
+
+### Native history mouse delivery follow-up — 2026-11-02
+
+- Restored the standard four-account DemoData after the temporary eight-account inspection; no synthetic fixture modifications remain. That inspection did not complete the dense-layout acceptance gate.
+- The history AppKit view now explicitly enables `acceptsMouseMovedEvents` when attached to its hosting window. This addresses a missing event-delivery prerequisite; it is not yet evidence that the user-visible hover defect is resolved.
+- Canonical build passed (`artifacts/history-window-mouse-build.log`). The focused tracking lifecycle test passed (`artifacts/history-window-mouse-tests.log`), including attachment to a window initially configured not to deliver movement events.
+- Reopened the app, entered the standard demo, and moved the navigator to October 31 so historical lines are available for the pending physical-pointer check. Native hover acceptance remains open.

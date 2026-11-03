@@ -443,6 +443,12 @@ struct HistoryPointerTracking: NSViewRepresentable {
         override var isFlipped: Bool { true }
         override func hitTest(_ point: NSPoint) -> NSView? { nil }
 
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            // Tracking areas need the hosting window to deliver ordinary pointer movement.
+            window?.acceptsMouseMovedEvents = true
+        }
+
         override func updateTrackingAreas() {
             super.updateTrackingAreas()
             if let area { removeTrackingArea(area) }
