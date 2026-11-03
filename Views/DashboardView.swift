@@ -85,7 +85,7 @@ struct DashboardView: View {
             HStack(spacing: 0) {
                 ForEach(AccountSort.allCases, id: \.self) { sort in
                     Button { store.edit { AccountPolicy.selectSort(sort, state: &$0) } } label: {
-                        HStack(spacing: 10) { Image(systemName: icon(sort)).foregroundStyle(Theme.accent); Text(sort.rawValue).font(.system(size: 12)) }.frame(maxWidth: .infinity, minHeight: 44)
+                        HStack(spacing: 10) { ActionIcon(symbol: icon(sort), size: 20); Text(sort.rawValue).font(.system(size: 12)) }.frame(maxWidth: .infinity, minHeight: 44)
                     }.buttonStyle(.plain).background(store.state.settings.accountSort == sort ? Theme.accent.opacity(0.28) : Theme.control)
                         .overlay(alignment: .trailing) { if sort != AccountSort.allCases.last { Rectangle().fill(Theme.border).frame(width: 1) } }
                 }
@@ -115,7 +115,7 @@ struct AccountCard: View {
     var body: some View {
         HStack(spacing: 16) {
             if store.state.settings.accountSort == .custom {
-                Image(systemName: "circle.grid.3x3.fill").foregroundStyle(Theme.accent).draggable(account.id).help("Drag to Reorder Account")
+                ActionIcon(symbol: "circle.grid.3x3.fill", size: 14).draggable(account.id).help("Drag to Reorder Account")
                     .accessibilityLabel("Reorder \(store.state.settings.privacy ? "Account" : account.nickname)")
             }
             if wide { Rectangle().fill(Theme.border).frame(width: 1).padding(.vertical, 2) }
@@ -171,7 +171,7 @@ struct QuotaRow: View {
                                 store.toggleCapacity(account: account.id, window: window.id)
                             }
                         } label: {
-                            Image(systemName: enabled ? "bell.badge" : "bell.slash")
+                            ActionIcon(symbol: enabled ? "bell.badge" : "bell.slash", size: 22)
                                 .font(.system(size: 18)).foregroundStyle(Theme.accent)
                                 .frame(width: 40, height: 46)
                                 .background(store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) == enabled ? Theme.accent.opacity(0.28) : Theme.control)

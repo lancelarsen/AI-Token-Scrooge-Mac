@@ -42,7 +42,7 @@ struct ScroogeButtonStyle: ButtonStyle {
 struct ActionLabel: View {
     let title: String
     let symbol: String
-    var body: some View { HStack(spacing: 10) { Image(systemName: symbol).font(.system(size: 19)).foregroundStyle(Theme.accent); if !title.isEmpty { Text(title) } } }
+    var body: some View { HStack(spacing: 10) { ActionIcon(symbol: symbol, size: 19); if !title.isEmpty { Text(title) } } }
 }
 struct ScroogeCard<Content: View>: View {
     var inset: CGFloat = 20
@@ -61,5 +61,42 @@ struct ProviderIcon: View {
                 Image(nsImage: image).resizable().scaledToFit()
             } else { Text(provider == .claude ? "✳" : provider == .copilot ? "◉" : "◎").font(.system(size: size)) }
         }.frame(width: size, height: size).accessibilityLabel(provider.rawValue)
+    }
+}
+
+
+struct ActionIcon: View {
+    let symbol: String
+    var size: CGFloat = 19
+    private var resource: String? {
+        switch symbol {
+        case "gearshape": "settings"
+        case "arrow.clockwise": "refresh"
+        case "bell.badge": "alarm_on"
+        case "bell.slash": "alarm_off"
+        default: nil
+        }
+    }
+    var body: some View {
+        Group {
+            if symbol == "circle.grid.3x3.fill" {
+                VStack(spacing: size * 0.12) {
+                    ForEach(0..<3) { _ in
+                        HStack(spacing: size * 0.18) {
+                            ForEach(0..<2) { _ in Circle().stroke(Theme.accent, lineWidth: 1.2).frame(width: size * 0.22, height: size * 0.22) }
+                        }
+                    }
+                }
+            } else if symbol == "battery.100percent" || symbol == "battery.25percent" {
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 3).stroke(Theme.accent, lineWidth: 1.5).frame(height: size * 0.64)
+                    RoundedRectangle(cornerRadius: 1).fill(Theme.accent)
+                        .frame(width: symbol == "battery.25percent" ? size * 0.64 : size * 0.18, height: size * 0.32)
+                        .padding(.leading, size * 0.18)
+                }
+            } else if let resource, let url = Bundle.main.url(forResource: resource, withExtension: "svg"), let image = NSImage(contentsOf: url) {
+                Image(nsImage: image).resizable().scaledToFit()
+            } else { Image(systemName: symbol).font(.system(size: size)).foregroundStyle(Theme.accent) }
+        }.frame(width: size, height: size).accessibilityHidden(true)
     }
 }

@@ -27,7 +27,7 @@ struct HorizonView: View {
                         GeometryReader { geometry in
                             ScrollView(.horizontal) {
                                 timeline.frame(width: viewport.contentWidth, height: timelineHeight)
-                                    .background(HistoryPointerTracking(onMove: updateHistoryHover))
+                                    .background(HistoryPointerTracking(text: hoverText, onMove: updateHistoryHover))
                             }
                             .scrollIndicators(.hidden).scrollPosition($position)
                             .onScrollGeometryChange(for: Double.self) { $0.contentOffset.x } action: { _, value in if position.isPositionedByUser { viewport.scroll(to: value) } }
@@ -44,7 +44,6 @@ struct HorizonView: View {
                     Text(historyStatus).font(.callout).foregroundStyle(Theme.secondary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("historyStatus")
                 }
-                if let hoverText { Text(hoverText).font(.caption).foregroundStyle(Theme.secondary).frame(maxWidth: .infinity, alignment: .leading) }
             }
         }
         .background {
@@ -455,6 +454,7 @@ private extension Date.FormatStyle {
 
 /// A non-interactive tracking surface: event buttons and scrolling retain hit testing.
 struct HistoryPointerTracking: NSViewRepresentable {
+    var text: String? = nil
     var onMove: (CGPoint?) -> Void
 
     func makeNSView(context: Context) -> TrackingView {
@@ -463,11 +463,46 @@ struct HistoryPointerTracking: NSViewRepresentable {
         return view
     }
 
-    func updateNSView(_ view: TrackingView, context: Context) { view.onMove = onMove }
+    func updateNSView(_ view: TrackingView, context: Context) {
+        view.onMove = onMove
+        view.showPopup(text)
+    }
+    static func dismantleNSView(_ view: TrackingView, coordinator: ()) { view.hidePopup() }
 
     final class TrackingView: NSView {
         var onMove: ((CGPoint?) -> Void)?
         private var area: NSTrackingArea?
+        private var popup: NSPanel?
+        private var pointer = NSPoint.zero
+        func hidePopup() { popup?.orderOut(nil) }
+        func showPopup(_ text: String?) {
+            guard let text, let window, let screen = window.screen else { hidePopup(); return }
+            let panel = popup ?? NSPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
+            if popup == nil {
+                panel.isOpaque = false; panel.backgroundColor = .clear
+                panel.title = "Usage History Details"
+                panel.hasShadow = true; panel.ignoresMouseEvents = true
+                panel.level = .floating; popup = panel
+            }
+            let lines = text.split(separator: "\n", maxSplits: 1).map(String.init)
+            let content = NSHostingView(rootView:
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(lines[0]).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.accent)
+                    if lines.count > 1 { Text(lines[1]).font(.system(size: 12)).foregroundStyle(Theme.secondary) }
+                }.padding(.horizontal, 14).padding(.vertical, 10).frame(maxWidth: 420, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .background(Color(hex: "#222329"), in: RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: "#65577F"))))
+            let size = content.fittingSize
+            let anchor = window.convertPoint(toScreen: convert(pointer, to: nil))
+            let visible = screen.visibleFrame.insetBy(dx: 8, dy: 8)
+            let x = min(max(visible.minX, anchor.x - size.width / 2), visible.maxX - size.width)
+            let above = anchor.y + 14
+            let y = min(max(visible.minY, above + size.height <= visible.maxY ? above : anchor.y - size.height - 18), visible.maxY - size.height)
+            panel.contentView = content
+            panel.setFrame(NSRect(origin: NSPoint(x: x, y: y), size: size), display: true)
+            panel.orderFront(nil)
+        }
         override var isFlipped: Bool { true }
         override func hitTest(_ point: NSPoint) -> NSView? { nil }
 
@@ -489,9 +524,10 @@ struct HistoryPointerTracking: NSViewRepresentable {
 
         override func mouseEntered(with event: NSEvent) { mouseMoved(with: event) }
         override func mouseMoved(with event: NSEvent) {
-            onMove?(convert(event.locationInWindow, from: nil))
+            pointer = convert(event.locationInWindow, from: nil)
+            onMove?(pointer)
         }
-        override func mouseExited(with event: NSEvent) { onMove?(nil) }
+        override func mouseExited(with event: NSEvent) { hidePopup(); onMove?(nil) }
     }
 }
 
