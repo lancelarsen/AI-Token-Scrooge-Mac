@@ -219,3 +219,9 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Standard app code at 71a4aeb, demo session, process PID70233. Native close button with default Keep Monitoring After Closing enabled left PID70233 alive, verified using ps before asking computer use to inspect/reopen the app. Subsequent dashboard inspection retained the same demo session.
 - In demo settings, unchecked Keep Monitoring After Closing, closed Settings, then clicked the native dashboard close button. ps for PID70233 returned no process (exit1), before any app reacquisition. This verifies the disabled preference terminates after the last window closes.
 - Reopened the app through computer use and observed the normal signed-out dashboard. Demo-only preference change was not persisted. No source change required. This does not prove actual Dock/menu activation or background live quota refresh.
+
+### Selected app-code preview verification — 2026-11-02
+
+- Preview38 / run41550639905 targets 71a4aeb, the latest application-code commit. Subsequent commits only document acceptance evidence. Hosted tests: 71 total, one installed-Codex skip on the runner, zero failures.
+- Downloaded mac-preview artifact to artifacts/downloaded-preview-38; SHA256 manifest check, strict codesign verification and arm64 architecture passed. Launched extracted app and verified PID70742 executable path points into that extraction. Standard demo opened with four selectors; navigator moved to November1. Evidence: artifacts/preview-38-native-launch.png and artifacts/preview-38-ci.log.
+- Ad-hoc development preview, not notarized; local launch is not clean-machine Gatekeeper proof. Remaining live/OS/physical-input gates stay open in acceptance.md.
