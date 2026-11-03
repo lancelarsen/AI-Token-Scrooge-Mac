@@ -10,7 +10,7 @@ Current local evidence: 71 unit tests pass in artifacts/notification-permission-
 | GitHub connection lifecycle | Device login and advanced-token flow, quota units/allowance, renewal, reconnect, and credential retirement with a live authorized account | Fixture and persistence tests pass; live session remains unverified |
 | Claude connection lifecycle | Install supported official CLI; isolated login/status/usage/logout; verify displayed quota windows against the provider | Installed CLI is 2.1.308, below required 2.1.310; live account session unverified |
 | History hover | Physical pointer displays the correct account, observation/estimate, guide and details; leaving chart clears them; privacy and selection changes clear stale content | Original failure confirmed by user; native replacement builds and coordinate tests pass, physical verification pending |
-| Native notification delivery | Enable per-app permission with user confirmation, send one test, observe OS notification and accepted history status; exercise Show Info, Snooze and Dismiss | Permission explicitly off in System Settings; confirmation pending. Controlled race tests are not OS delivery evidence |
+| Native notification delivery | Enable per-app permission with user confirmation, send one test, observe OS notification and accepted history status; exercise Show Info, Snooze and Dismiss | User authorized enable/test on November 3. Allow notifications verified on; one native test shows Sent to macOS in Alert History. OS banner/Notification Center visibility and action callbacks remain unverified. |
 | Scheduled and resumed monitoring | Live account refreshes at configured intervals; sleep/wake and network recovery respect throttling and reject stale identities | Scheduler/backoff tests pass; live runtime checks remain |
 | Window and menu lifecycle | Close preserves background monitoring when enabled; menu/Dock reopen correct dashboard; disabled close-to-menu setting exits; verify menu actions | Native close preserved process with background mode on and terminated it with mode off; reopening through computer-use restored the existing demo when alive. Dock/menu actions and live background polling remain unverified |
 | Login items | Verify registration, OS approval, launch at sign-in, disable/unregister, and settings reconciliation in a stable app location | Service implementation exists; actual login-cycle behavior unverified |
@@ -21,7 +21,7 @@ Current local evidence: 71 unit tests pass in artifacts/notification-permission-
 
 ## Pending user decisions
 
-- Whether to enable AI Token Scrooge notifications in macOS and send one test. Do not change the switch without the pending confirmation.
+- Notification permission and one test were authorized and completed November 3; visible OS presentation and action callbacks still need verification.
 - Which live provider account to connect first. Do not substitute existing unrelated CLI credentials.
 - Whether the replacement history pointer handler now displays details with normal mouse movement.
 

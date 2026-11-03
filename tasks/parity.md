@@ -225,3 +225,9 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Preview38 / run41550639905 targets 71a4aeb, the latest application-code commit. Subsequent commits only document acceptance evidence. Hosted tests: 71 total, one installed-Codex skip on the runner, zero failures.
 - Downloaded mac-preview artifact to artifacts/downloaded-preview-38; SHA256 manifest check, strict codesign verification and arm64 architecture passed. Launched extracted app and verified PID70742 executable path points into that extraction. Standard demo opened with four selectors; navigator moved to November1. Evidence: artifacts/preview-38-native-launch.png and artifacts/preview-38-ci.log.
 - Ad-hoc development preview, not notarized; local launch is not clean-machine Gatekeeper proof. Remaining live/OS/physical-input gates stay open in acceptance.md.
+
+### Authorized native notification test — 2026-11-03
+
+- User explicitly approved Enable and test notifications. In System Settings > Notifications > AI Token Scrooge, switched Allow notifications from off to on and verified the on state. Existing Desktop/Notification Center/Lock Screen selections and Temporary alert style were preserved. Evidence: artifacts/notification-permission-enabled.png.
+- Using running downloaded Preview38 in demo mode, clicked Send Test Notification exactly once. In-app test banner appeared; Alert History reports Scrooge Notification Test at November3 11:44AM with Sent to macOS. Evidence: artifacts/notification-test-sent-macos.png. No permission-denied error appeared.
+- This proves native submission accepted by macOS, not visible OS presentation or notification action callbacks. Computer-use access to Notification Center exposed its calendar widget rather than the notification list; visibility remains unverified. No application code changed.
