@@ -50,14 +50,30 @@ struct ScroogeCard<Content: View>: View {
     var body: some View { content.padding(inset).background(Theme.card).clipShape(RoundedRectangle(cornerRadius: 15))
         .overlay(RoundedRectangle(cornerRadius: 15).stroke(Theme.border)) }
 }
+/// Bundle assets are immutable; decoding SVGs during each scroll frame is unnecessary.
+@MainActor private enum ThemeImages {
+    private static var images: [String: NSImage] = [:]
+    private static var missing: Set<String> = []
+    static func image(_ name: String, extension ext: String) -> NSImage? {
+        let key = name + "." + ext
+        if let image = images[key] { return image }
+        guard !missing.contains(key) else { return nil }
+        guard let url = Bundle.main.url(forResource: name, withExtension: ext), let image = NSImage(contentsOf: url) else {
+            missing.insert(key); return nil
+        }
+        images[key] = image
+        return image
+    }
+}
+
 struct ProviderIcon: View {
     let provider: Provider
     var size: CGFloat = 40
     var body: some View {
         Group {
-            if let url = Bundle.main.url(forResource: provider.imageName, withExtension: "png"), let image = NSImage(contentsOf: url) {
+            if let image = ThemeImages.image(provider.imageName, extension: "png") {
                 Image(nsImage: image).resizable().scaledToFit()
-            } else if let url = Bundle.main.url(forResource: provider.imageName, withExtension: "svg"), let image = NSImage(contentsOf: url) {
+            } else if let image = ThemeImages.image(provider.imageName, extension: "svg") {
                 Image(nsImage: image).resizable().scaledToFit()
             } else { Text(provider == .claude ? "✳" : provider == .copilot ? "◉" : "◎").font(.system(size: size)) }
         }.frame(width: size, height: size).accessibilityLabel(provider.rawValue)
@@ -94,7 +110,7 @@ struct ActionIcon: View {
                         .frame(width: symbol == "battery.25percent" ? size * 0.64 : size * 0.18, height: size * 0.32)
                         .padding(.leading, size * 0.18)
                 }
-            } else if let resource, let url = Bundle.main.url(forResource: resource, withExtension: "svg"), let image = NSImage(contentsOf: url) {
+            } else if let resource, let image = ThemeImages.image(resource, extension: "svg") {
                 Image(nsImage: image).resizable().scaledToFit()
             } else { Image(systemName: symbol).font(.system(size: size)).foregroundStyle(Theme.accent) }
         }.frame(width: size, height: size).accessibilityHidden(true)

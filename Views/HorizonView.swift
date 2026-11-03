@@ -7,6 +7,7 @@ struct HorizonView: View {
     @State private var position = ScrollPosition(x: 0)
     @State private var selectedEvent: HorizonEvent?
     @State private var selectedHistoricalMarker: HistoricalEventMarker?
+    @State private var presentation = HorizonPresentation()
     @State private var historyPinned = false
     @State private var hoverText: String?
     @State private var hoveredSample: (account: ProviderAccount, point: HistoryPoint)?
@@ -55,6 +56,12 @@ struct HorizonView: View {
                 }.frame(width: geometry.size.width, height: geometry.size.height)
             }
         }
+        .onAppear { prepareHistory() }
+        .onChange(of: store.historyRevision) { _, _ in prepareHistory() }
+        .onChange(of: timelineAccounts) { _, _ in prepareHistory() }
+        .onChange(of: viewport.startCoordinate) { _, _ in prepareHistory() }
+        .onChange(of: viewport.pixelsPerDay) { _, _ in prepareHistory() }
+        .onChange(of: store.state.settings.timeZoneID) { _, _ in prepareHistory() }
         .sheet(item: $selectedEvent) { event in
             VStack(alignment: .leading, spacing: 16) {
                 if event.reportedAt == nil {
@@ -128,12 +135,12 @@ struct HorizonView: View {
             ? "No Recorded Usage in This Period" : nil
     }
     private func historyHelp(_ account: ProviderAccount) -> String {
-        let series = UsageHistory.build(account: account, runs: store.history, from: viewport.firstDate, through: .now)
+        let series = presentation.series.first { $0.account.id == account.id }
         let name = store.state.settings.privacy ? "Account" : account.nickname
         let period = account.provider == .copilot ? "Monthly" : "Weekly"
         var text = "\(account.provider.rawValue) / \(name) · \(Format.plan(account.provider, store.state.snapshots[account.id]?.planType))\n\(period) History"
-        if let first = series.points.first, first.at > viewport.firstDate { text += "\nHistory Begins \(Format.date(first.at, zone: store.state.settings.zone))" }
-        if let status = series.status { text += "\n\(status)" }
+        if let first = series?.points.first, first.at > viewport.firstDate { text += "\nHistory Begins \(Format.date(first.at, zone: store.state.settings.zone))" }
+        if let status = series?.status { text += "\n\(status)" }
         return text
     }
     private var legend: some View {
@@ -273,7 +280,7 @@ struct HorizonView: View {
     }
     private var sampleAnchor: CGPoint? {
         guard let sample = hoveredSample else { return nil }
-        return CGPoint(x: viewport.position(at: sample.point.at), y: plotTop + NSDecimalNumber(decimal: sample.point.remaining).doubleValue / 100 * plotHeight)
+        return CGPoint(x: historyX(sample.point.at), y: plotTop + NSDecimalNumber(decimal: sample.point.remaining).doubleValue / 100 * plotHeight)
     }
     private func inspectSample(direction: Int) {
         guard store.state.settings.historyEnabled else { return }
@@ -299,11 +306,11 @@ struct HorizonView: View {
         guard let location else { hoverText = nil; hoveredSample = nil; return }
         let date = viewport.date(at: location.x)
         func distance(_ point: HistoryPoint) -> Double {
-            let x = viewport.position(at: point.at)
+            let x = historyX(point.at)
             let y = plotTop + NSDecimalNumber(decimal: point.remaining).doubleValue / 100 * plotHeight
             return abs(x - location.x) + abs(y - location.y) * 0.45
         }
-        let nearest = historySeries.flatMap { series in series.points.filter { abs(viewport.position(at: $0.at) - location.x) <= 18 }.map { (series.account, $0) } }
+        let nearest = historySeries.flatMap { series in series.points.filter { abs(historyX($0.at) - location.x) <= 18 }.map { (series.account, $0) } }
             .min { distance($0.1) < distance($1.1) }
         let estimate = nearest == nil ? historySeries.compactMap { series in
             UsageHistory.estimatedPoint(points: series.points, x: location.x, y: location.y, viewport: viewport, plotTop: plotTop, plotHeight: plotHeight).map { (series.account, $0) }
@@ -388,7 +395,7 @@ struct HorizonView: View {
             context.stroke(line, with: .color(Color(hex: "#30333C")), lineWidth: 1)
         }
         for series in historySeries {
-            let points = UsageHistory.reduce(series.points, project: viewport.position, minX: viewport.scrollOffset, maxX: viewport.scrollOffset + viewport.viewportWidth)
+            let points = presentation.renderPoints[series.account.id] ?? []
             let color = Color(hex: series.account.resolvedLineColor(plan: store.state.snapshots[series.account.id]?.planType))
             var segment: [CGPoint] = []
             func flush() {
@@ -404,7 +411,7 @@ struct HorizonView: View {
             }
             for point in points {
                 if point.startsSegment { flush() }
-                let x = viewport.position(at: point.at)
+                let x = historyX(point.at)
                 if let before = point.replenishedFrom, !segment.isEmpty {
                     segment.append(CGPoint(x: x, y: plotTop + NSDecimalNumber(decimal: before).doubleValue / 100 * chartHeight))
                 }
@@ -421,7 +428,7 @@ struct HorizonView: View {
         if let sample = hoveredSample,
            timelineAccounts.contains(where: { $0.id == sample.account.id }),
            !store.state.settings.hiddenHistoryAccounts.contains(sample.account.id) {
-            let x = viewport.position(at: sample.point.at)
+            let x = historyX(sample.point.at)
             let y = plotTop + NSDecimalNumber(decimal: sample.point.remaining).doubleValue / 100 * chartHeight
             var guide = Path()
             guide.move(to: CGPoint(x: x, y: plotTop))
@@ -438,14 +445,14 @@ struct HorizonView: View {
             context.stroke(currentTime, with: .color(Theme.accent), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
         }
         let latest = historySeries.compactMap { series -> (UsageHistorySeries, HistoryPoint)? in
-            guard let point = series.points.last(where: { viewport.position(at: $0.at) >= viewport.scrollOffset && viewport.position(at: $0.at) <= viewport.scrollOffset + viewport.viewportWidth }) else { return nil }
+            guard let point = series.points.last(where: { historyX($0.at) >= viewport.scrollOffset && historyX($0.at) <= viewport.scrollOffset + viewport.viewportWidth }) else { return nil }
             return (series, point)
         }.sorted { $0.1.remaining < $1.1.remaining }
         let desired = latest.map { plotTop + NSDecimalNumber(decimal: $0.1.remaining).doubleValue / 100 * chartHeight - 10 }
         let labels = HistoryLabelLayout.positions(desired, top: plotTop, bottom: plotTop + chartHeight - 21)
         for (index, item) in latest.enumerated() {
             let (series, point) = item
-            let x = viewport.position(at: point.at)
+            let x = historyX(point.at)
             guard x >= viewport.scrollOffset, x <= viewport.scrollOffset + viewport.viewportWidth else { continue }
             let color = Color(hex: series.account.resolvedLineColor(plan: store.state.snapshots[series.account.id]?.planType))
             let y = plotTop + NSDecimalNumber(decimal: point.remaining).doubleValue / 100 * chartHeight
@@ -462,15 +469,15 @@ struct HorizonView: View {
             context.draw(Text("\(plan) \(Format.percent(100 - point.remaining))").font(.system(size: 11)).foregroundColor(color), at: CGPoint(x: rect.midX, y: rect.midY))
         }
     }
+    private func prepareHistory() {
+        presentation = HorizonPresentation(accounts: timelineAccounts, runs: store.history, viewport: viewport, now: .now)
+    }
+    private func historyX(_ date: Date) -> Double { presentation.positions[date] ?? viewport.position(at: date) }
     private var historicalEvents: [HorizonEvent] {
-        timelineAccounts.filter { !store.state.settings.hiddenHistoryAccounts.contains($0.id) }.flatMap {
-            UsageHistory.events(account: $0, runs: store.history, from: viewport.firstDate, through: .now)
-        }
+        presentation.events.filter { !store.state.settings.hiddenHistoryAccounts.contains($0.account.id) }
     }
     private var historySeries: [UsageHistorySeries] {
-        timelineAccounts.filter { !store.state.settings.hiddenHistoryAccounts.contains($0.id) }.map {
-            UsageHistory.build(account: $0, runs: store.history, from: viewport.firstDate, through: .now)
-        }
+        presentation.series.filter { !store.state.settings.hiddenHistoryAccounts.contains($0.account.id) }
     }
 
     private var calendar: Calendar { var c = Calendar(identifier: .gregorian); c.timeZone = store.state.settings.zone; return c }
@@ -595,6 +602,9 @@ struct HorizonWheelRouting: NSViewRepresentable {
     final class WheelView: NSView {
         var onScroll: ((Double) -> Void)?
         private var monitor: Any?
+        private var timer: Timer?
+        private var motion = HorizonWheelMotion()
+        private var lastFrame = 0.0
         override func hitTest(_ point: NSPoint) -> NSView? { nil }
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
@@ -605,12 +615,35 @@ struct HorizonWheelRouting: NSViewRepresentable {
                       event.window === window, window.attachedSheet == nil,
                       !self.isHiddenOrHasHiddenAncestor,
                       self.bounds.intersection(self.visibleRect).contains(self.convert(event.locationInWindow, from: nil)) else { return event }
-                self.onScroll?(Self.horizontalDelta(x: event.scrollingDeltaX, y: event.scrollingDeltaY,
-                                                    precise: event.hasPreciseScrollingDeltas))
+                let delta = Self.horizontalDelta(x: event.scrollingDeltaX, y: event.scrollingDeltaY, precise: event.hasPreciseScrollingDeltas)
+                if event.hasPreciseScrollingDeltas || NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+                    self.stopAnimation()
+                    self.onScroll?(delta)
+                } else {
+                    self.motion.enqueue(delta)
+                    self.startAnimation()
+                }
                 return nil
             }
         }
+        private func startAnimation() {
+            guard timer == nil else { return }
+            lastFrame = ProcessInfo.processInfo.systemUptime
+            let next = Timer(timeInterval: 1.0 / 120.0, target: self, selector: #selector(advanceScroll), userInfo: nil, repeats: true)
+            timer = next
+            RunLoop.main.add(next, forMode: .common)
+        }
+        @objc private func advanceScroll() {
+            guard window != nil, !isHiddenOrHasHiddenAncestor else { stopAnimation(); return }
+            let now = ProcessInfo.processInfo.systemUptime
+            let delta = motion.step(seconds: now - lastFrame)
+            lastFrame = now
+            if delta != 0 { onScroll?(delta) }
+            if motion.remaining == 0 { stopAnimation() }
+        }
+        private func stopAnimation() { timer?.invalidate(); timer = nil; motion.cancel() }
         func stopMonitoring() {
+            stopAnimation()
             if let monitor { NSEvent.removeMonitor(monitor) }
             monitor = nil
         }

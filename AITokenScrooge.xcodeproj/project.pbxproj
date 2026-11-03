@@ -25,6 +25,7 @@
 		3871C893EC7CDC1282F9F7F2 /* classic-alert.wav in Resources */ = {isa = PBXBuildFile; fileRef = 5C49EF81DDE068F0211F0EF0 /* classic-alert.wav */; };
 		38C9B17D702E34EBC4DAC6C0 /* HorizonViewport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00030CAB4618F55476480A2 /* HorizonViewport.swift */; };
 		411E709C67583AE4D25720F7 /* AccountSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76176BFD681D3CDB853D8895 /* AccountSettingsView.swift */; };
+		43944D356D6CFCE69269F7DA /* HorizonPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00DD87EC6F7F3FE070518237 /* HorizonPerformanceTests.swift */; };
 		4DFE91E5F5B40488B73E88FC /* GitHubAuthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6198B0FB13827BFE52953049 /* GitHubAuthTests.swift */; };
 		513980C8FBDA369D4B99397F /* settings.svg in Resources */ = {isa = PBXBuildFile; fileRef = BFCAA3A59EA4AEBAA683C2FD /* settings.svg */; };
 		566CB9325847F259F08617FC /* ProviderMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884825D5A4F3F3765C03169E /* ProviderMapping.swift */; };
@@ -70,6 +71,7 @@
 		D62E139AF9F68B8411B2E9DE /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36386F305B5106D36AA5C9A /* Theme.swift */; };
 		D6B091FD1FEA4C4B3E02F5C3 /* duck-info.wav in Resources */ = {isa = PBXBuildFile; fileRef = 5B5FE9D875BCE334EAC07010 /* duck-info.wav */; };
 		D6C61E39205A96F285B56E50 /* BoundedProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59FA3788DAC32DB6AA240532 /* BoundedProcess.swift */; };
+		DBE7F5FA7D194FA5F4C1EFC1 /* HorizonPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762A319808F8C17BAC31D1B3 /* HorizonPresentation.swift */; };
 		E2C6F1BDBC77605A265DDF1E /* duck-snooze.wav in Resources */ = {isa = PBXBuildFile; fileRef = A1EFDF115E7709BB9A4B0763 /* duck-snooze.wav */; };
 		E6D9E03A7530598B3293E4E1 /* github.svg in Resources */ = {isa = PBXBuildFile; fileRef = 3CECC381968D27063EFC9A5B /* github.svg */; };
 		E832C910247EFF595387C409 /* GitHubDeviceFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53A7886BB2D625115CF3E3A1 /* GitHubDeviceFlow.swift */; };
@@ -106,6 +108,7 @@
 /* Begin PBXFileReference section */
 		00A20C89A6F44FD7A0A83267 /* DashboardUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardUITests.swift; sourceTree = "<group>"; };
 		00C80F94C32F70480731176C /* threshold_critical.svg */ = {isa = PBXFileReference; path = threshold_critical.svg; sourceTree = "<group>"; };
+		00DD87EC6F7F3FE070518237 /* HorizonPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HorizonPerformanceTests.swift; sourceTree = "<group>"; };
 		0172773013752FE479588ABD /* OwnedProfileDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnedProfileDirectory.swift; sourceTree = "<group>"; };
 		0897F38BE76FD2821EE66746 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		0AFBE29531DCEBFA5A7D9A2C /* AlertHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertHistoryView.swift; sourceTree = "<group>"; };
@@ -148,6 +151,7 @@
 		7077D27B546EE40D7B52E094 /* SOUND-CREDITS.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "SOUND-CREDITS.txt"; sourceTree = "<group>"; };
 		7568B7A102C54AE3CF72E102 /* HorizonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HorizonView.swift; sourceTree = "<group>"; };
 		76176BFD681D3CDB853D8895 /* AccountSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountSettingsView.swift; sourceTree = "<group>"; };
+		762A319808F8C17BAC31D1B3 /* HorizonPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HorizonPresentation.swift; sourceTree = "<group>"; };
 		7A646E455C1784A2B419CC10 /* AlertBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertBannerView.swift; sourceTree = "<group>"; };
 		7D7F8B3FE0DCA3B23A29240F /* AppUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdater.swift; sourceTree = "<group>"; };
 		7E12588F45FA6D8E195FFC06 /* ClaudeClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeClient.swift; sourceTree = "<group>"; };
@@ -207,6 +211,7 @@
 				EDEF58C3513F89FF61BBFE6F /* HistoryCacheTests.swift */,
 				2E5184BDAC856DAAC20AFC19 /* HistoryEventTests.swift */,
 				E02114ECC4D16CF3A54239D6 /* HistoryLabelTests.swift */,
+				00DD87EC6F7F3FE070518237 /* HorizonPerformanceTests.swift */,
 				9899342C79AC822060AA3775 /* MonitoringTests.swift */,
 				6776DC2D13E8CFEBDB135206 /* PackedHistoryTests.swift */,
 				554E13291A3E3292163BDE97 /* SettingsMigrationTests.swift */,
@@ -244,6 +249,7 @@
 				54F770CD83409906A403E54F /* HistoryLabelLayout.swift */,
 				A9401B94B0F50306880D7295 /* HistoryRunCache.swift */,
 				417578CF1EEB75FB014934AB /* HorizonEvent.swift */,
+				762A319808F8C17BAC31D1B3 /* HorizonPresentation.swift */,
 				D00030CAB4618F55476480A2 /* HorizonViewport.swift */,
 				FB669CDCE5053F64250FF7D6 /* Quota.swift */,
 				D345262589E545400138B5D4 /* RefreshSchedule.swift */,
@@ -535,6 +541,7 @@
 				98E5054E339A39BF500A514A /* HistoryCacheTests.swift in Sources */,
 				1A747D95FFF2A23A5868D6C8 /* HistoryEventTests.swift in Sources */,
 				838FF1A122E172B3A00B2418 /* HistoryLabelTests.swift in Sources */,
+				43944D356D6CFCE69269F7DA /* HorizonPerformanceTests.swift in Sources */,
 				02E8F902CFF204304B780DFC /* MonitoringTests.swift in Sources */,
 				188D171FC37573946B2BA8D0 /* PackedHistoryTests.swift in Sources */,
 				63350E07339E6D24A0D054B6 /* SettingsMigrationTests.swift in Sources */,
@@ -578,6 +585,7 @@
 				2C3407ACE0BB111FC71C5CE1 /* HistoryLabelLayout.swift in Sources */,
 				77D449CBA567817A8DB4FBD1 /* HistoryRunCache.swift in Sources */,
 				F66E8FB7004C9407A041D054 /* HorizonEvent.swift in Sources */,
+				DBE7F5FA7D194FA5F4C1EFC1 /* HorizonPresentation.swift in Sources */,
 				6FB306641BDBBCC59926733B /* HorizonView.swift in Sources */,
 				38C9B17D702E34EBC4DAC6C0 /* HorizonViewport.swift in Sources */,
 				CB6C6D05ADC1F4FFFF65658E /* LocalStore.swift in Sources */,

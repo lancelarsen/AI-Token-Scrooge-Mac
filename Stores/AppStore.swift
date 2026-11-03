@@ -5,7 +5,8 @@ import AppKit
 
 @MainActor @Observable final class AppStore {
     private(set) var state = PersistedState()
-    private(set) var history: [HistoryRun] = []
+    private(set) var historyRevision: UInt64 = 0
+    private(set) var history: [HistoryRun] = [] { didSet { historyRevision &+= 1 } }
     private(set) var historyLoading = false
     private(set) var historyError: String?
     private var historyRequest = UUID()
