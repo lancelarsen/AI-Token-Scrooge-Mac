@@ -17,7 +17,7 @@ Current local evidence: 71 unit tests pass in artifacts/notification-permission-
 | Dense and grouped history UI | Inspect exact-time counted reset/expiry groups and every included detail; exercise larger account counts, dense endpoint labels, compact and wide windows | Nearby lanes, two endpoint labels and a four-refresh counted group/detail sheet verified; dense layouts and larger account counts remain |
 | Alert and status appearance | Inspect info/warning/critical banners and menu indicators, unavailable status, privacy text, and action behavior | Policy tests and some demo banner actions pass; all native variants not yet inspected |
 | Remaining native interactions | Verify custom account drag order, provider-page handoff, sound themes/volume, and keyboard navigation across relevant controls | Partial demo checks recorded in parity.md; complete interaction coverage not established |
-| Packaged release | Verify the final selected commit's downloaded archive, resources, signature, architecture and launch; retain explicit ad-hoc/not-notarized labeling unless Developer ID credentials are supplied | Preview 32 downloaded and checked; it predates later corrections. No Developer ID/notarization evidence |
+| Packaged release | Verify the final selected commit's downloaded archive, resources, signature, architecture and launch; retain explicit ad-hoc/not-notarized labeling unless Developer ID credentials are supplied | Preview 37 at 17f054f downloaded: checksum, strict signature, arm64 architecture and native demo launch verified. Later selector correction needs a new package. No Developer ID/notarization evidence |
 
 ## Pending user decisions
 

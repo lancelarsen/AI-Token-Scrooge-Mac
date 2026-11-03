@@ -141,7 +141,7 @@ struct HorizonView: View {
     private var settingsButton: some View { Button { openSettings() } label: { ActionLabel(title: "", symbol: "gearshape") }.buttonStyle(ScroogeButtonStyle()).help("Timeline Settings") }
     private var selectors: some View {
         ScrollView {
-            VStack(spacing: 12) {
+            VStack(spacing: 6) {
                 ForEach(timelineAccounts) { account in
                     Button { store.toggleAccountHistory(account.id) } label: {
                         VStack(spacing: 1) {
@@ -151,7 +151,7 @@ struct HorizonView: View {
                                 Text(Format.plan(account.provider, store.state.snapshots[account.id]?.planType)).font(.system(size: 10))
                                 Image(systemName: store.state.settings.hiddenHistoryAccounts.contains(account.id) ? "square" : "checkmark.square.fill")
                             }
-                        }.padding(5).frame(width: 72).background(Theme.control)
+                        }.padding(5).frame(width: 72, height: 66).background(Theme.control)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType)), lineWidth: 2))
                             .opacity(store.state.settings.hiddenHistoryAccounts.contains(account.id) ? 0.4 : 1)
