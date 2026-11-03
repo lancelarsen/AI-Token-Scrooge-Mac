@@ -22,6 +22,7 @@ import Network
         }
         .defaultSize(width: 1460, height: 900)
         Settings { SettingsView().environment(store) }
+            .defaultSize(width: 1000, height: 800)
         MenuBarExtra {
             MenuBarContent().environment(store)
         } label: {

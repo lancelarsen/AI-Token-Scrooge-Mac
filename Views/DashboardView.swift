@@ -87,6 +87,7 @@ struct DashboardView: View {
                     Button { store.edit { AccountPolicy.selectSort(sort, state: &$0) } } label: {
                         HStack(spacing: 10) { Image(systemName: icon(sort)).foregroundStyle(Theme.accent); Text(sort.rawValue).font(.system(size: 12)) }.frame(maxWidth: .infinity, minHeight: 44)
                     }.buttonStyle(.plain).background(store.state.settings.accountSort == sort ? Theme.accent.opacity(0.28) : Theme.control)
+                        .overlay(alignment: .trailing) { if sort != AccountSort.allCases.last { Rectangle().fill(Theme.border).frame(width: 1) } }
                 }
             }.clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
             Button { if store.isDemo { store.exitDemo() } else { store.showConnection = true } } label: {
@@ -117,9 +118,10 @@ struct AccountCard: View {
                 Image(systemName: "circle.grid.3x3.fill").foregroundStyle(Theme.accent).draggable(account.id).help("Drag to Reorder Account")
                     .accessibilityLabel("Reorder \(store.state.settings.privacy ? "Account" : account.nickname)")
             }
+            if wide { Rectangle().fill(Theme.border).frame(width: 1).padding(.vertical, 2) }
             let layout = wide ? AnyLayout(HStackLayout(spacing: 20)) : AnyLayout(VStackLayout(alignment: .leading, spacing: 14))
             layout {
-                identity.frame(width: wide ? 220 : nil, alignment: .leading)
+                identity.frame(width: wide ? 214 : nil, alignment: .leading)
                 VStack(spacing: 8) {
                     if account.enabled, let snapshot, snapshot.belongs(to: account), !snapshot.windows.isEmpty {
                         ForEach(snapshot.windows) { window in QuotaRow(account: account, window: window, snapshot: snapshot, wide: wide) }
@@ -127,6 +129,7 @@ struct AccountCard: View {
                 }
             }
             Button { store.selectedAccount = account } label: { ActionLabel(title: "", symbol: "gearshape") }.buttonStyle(ScroogeButtonStyle()).help("Manage \(store.state.settings.privacy ? "Account" : account.nickname)")
+                .frame(maxHeight: .infinity, alignment: .top)
         }.padding(.horizontal, 20).padding(.vertical, 12).background(Theme.card)
             .clipShape(RoundedRectangle(cornerRadius: 13)).overlay(RoundedRectangle(cornerRadius: 13).stroke(Theme.border))
     }
@@ -161,18 +164,42 @@ struct QuotaRow: View {
                     .font(.system(size: 11)).foregroundStyle(Theme.secondary)
             }.frame(width: wide ? 150 : nil, alignment: .leading)
             HStack(spacing: 10) {
-                Button { store.toggleCapacity(account: account.id, window: window.id) } label: {
-                    Image(systemName: store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) ? "bell.badge" : "bell.slash")
-                        .font(.system(size: 20)).foregroundStyle(Theme.accent).frame(width: 48, height: 46)
-                        .background(Theme.accent.opacity(0.15)).clipShape(RoundedRectangle(cornerRadius: 9))
-                }.buttonStyle(.plain).help("Toggle Alerts for \(window.name)")
-                UsageBar(window: window, thresholds: store.state.settings.rule(accountID: account.id, windowID: window.id).thresholds ?? store.state.settings.thresholds,
+                HStack(spacing: 0) {
+                    ForEach([true, false], id: \.self) { enabled in
+                        Button {
+                            if store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) != enabled {
+                                store.toggleCapacity(account: account.id, window: window.id)
+                            }
+                        } label: {
+                            Image(systemName: enabled ? "bell.badge" : "bell.slash")
+                                .font(.system(size: 18)).foregroundStyle(Theme.accent)
+                                .frame(width: 40, height: 46)
+                                .background(store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) == enabled ? Theme.accent.opacity(0.28) : Theme.control)
+                        }.buttonStyle(.plain)
+                            .accessibilityAddTraits(store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) == enabled ? .isSelected : [])
+                            .help("\(enabled ? "Enable" : "Disable") Alerts for \(window.name)")
+                            .accessibilityLabel("\(enabled ? "Enable" : "Disable") Alerts for \(window.name)")
+                    }
+                }.clipShape(RoundedRectangle(cornerRadius: 9))
+                    .overlay(RoundedRectangle(cornerRadius: 9).stroke(Theme.border))
+                UsageBar(window: window, alertsEnabled: store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id), thresholds: store.state.settings.rule(accountID: account.id, windowID: window.id).thresholds ?? store.state.settings.thresholds,
                          changed: { store.setThresholds(account: account.id, window: window.id, thresholds: $0) }, details: { showDetails = true })
                     .frame(minWidth: 180)
                 TimelineView(.periodic(from: .now, by: 30)) { context in
                     VStack(alignment: .leading, spacing: 5) {
-                        Label(Format.countdown(window.resetsAt, now: context.date), systemImage: "clock").font(.system(size: 18, weight: .medium)).foregroundStyle(Theme.accent)
-                        Text(Format.date(window.resetsAt, zone: store.state.settings.zone)).font(.system(size: 11)).foregroundStyle(Theme.secondary)
+                        HStack(spacing: 12) {
+                            let enabled = store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id)
+                            let severity = enabled ? window.resetsAt.flatMap { TimedReminder.due(store.state.settings.quotaRefreshReminders, at: $0, now: context.date)?.severity } : nil
+                            let clockColor: Color = switch severity {
+                            case .critical: Color(hex: "#F05B69")
+                            case .warning: Color(hex: "#F2C94C")
+                            case .info: Color(hex: "#58A6FF")
+                            case nil: Theme.accent
+                            }
+                            Image(systemName: "clock").font(.system(size: 23)).foregroundStyle(clockColor)
+                            Text(Format.countdown(window.resetsAt, now: context.date)).font(.system(size: 20, weight: .semibold)).foregroundStyle(Theme.accent)
+                        }
+                        Text(Format.date(window.resetsAt, zone: store.state.settings.zone)).font(.system(size: 11)).foregroundStyle(Theme.secondary).padding(.leading, 35)
                     }.frame(width: 165, alignment: .leading)
                 }
             }

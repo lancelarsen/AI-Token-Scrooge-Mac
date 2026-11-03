@@ -2,6 +2,7 @@ import SwiftUI
 
 struct UsageBar: View {
     let window: QuotaWindow
+    var alertsEnabled = true
     let thresholds: AlertThresholds
     let changed: (AlertThresholds) -> Void
     let details: () -> Void
@@ -18,9 +19,11 @@ struct UsageBar: View {
                     HStack { Text("\(Format.percent(window.usedPercent)) Used"); Spacer(); Text("\(Format.percent(window.remainingPercent)) Left") }
                         .font(.system(size: 14, weight: .semibold)).padding(.horizontal, 14).frame(height: 48).contentShape(Rectangle())
                 }.buttonStyle(.plain).accessibilityLabel("\(window.name), \(Format.percent(window.remainingPercent)) Remaining. Open Details")
-                ForEach(ReminderSeverity.allCases, id: \.self) { level in
+                ForEach(alertsEnabled ? ReminderSeverity.allCases : [], id: \.self) { level in
                     let value = value(level, current)
-                    Capsule().fill(color(level)).frame(width: 5, height: 30)
+                    Capsule().fill(color(level))
+                        .overlay(Capsule().strokeBorder(Color(hex: "#30333E"), lineWidth: 3))
+                        .frame(width: 10, height: 36)
                         .frame(width: 18, height: 44).contentShape(Rectangle())
                         .overlay(RoundedRectangle(cornerRadius: 5).stroke(focusedThreshold == level ? Theme.accent : .clear, lineWidth: 2))
                         .focusable()

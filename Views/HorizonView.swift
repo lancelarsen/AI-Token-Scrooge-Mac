@@ -15,7 +15,7 @@ struct HorizonView: View {
         ScroogeCard {
             VStack(spacing: 18) {
                 ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 24) { heading; legend; Spacer(); historyToggle; settingsButton }
+                    HStack(spacing: 24) { heading; legend; historyToggle; Text("Scroll Left for History").font(.system(size: 12)).foregroundStyle(Theme.secondary); Spacer(); settingsButton }
                     VStack(alignment: .leading, spacing: 12) { HStack { heading; Spacer(); settingsButton }; HStack { legend; Spacer(); historyToggle } }
                 }
                 Divider().overlay(Theme.border)
@@ -45,6 +45,14 @@ struct HorizonView: View {
                         .frame(maxWidth: .infinity).accessibilityIdentifier("historyStatus")
                 }
                 if let hoverText { Text(hoverText).font(.caption).foregroundStyle(Theme.secondary).frame(maxWidth: .infinity, alignment: .leading) }
+            }
+        }
+        .background {
+            GeometryReader { geometry in
+                HorizonWheelRouting { delta in
+                    viewport.scroll(to: viewport.scrollOffset + delta)
+                    position.scrollTo(x: viewport.scrollOffset)
+                }.frame(width: geometry.size.width, height: geometry.size.height)
             }
         }
         .sheet(item: $selectedEvent) { event in
@@ -129,14 +137,17 @@ struct HorizonView: View {
         return text
     }
     private var legend: some View {
-        HStack(spacing: 22) {
-            Label("Quota Refresh (\(events.filter { !$0.expiration }.count))", systemImage: "circle.fill").foregroundStyle(Theme.accent)
-            Label("Reset Expires (\(events.filter(\.expiration).count))", systemImage: "circle.fill").foregroundStyle(Theme.amber)
-        }.font(.system(size: 12))
+        HStack(spacing: 36) {
+            HStack(spacing: 8) { Circle().fill(Theme.accent).frame(width: 10, height: 10); Text("Quota Refresh (\(events.filter { !$0.expiration }.count))") }
+            HStack(spacing: 8) { Circle().fill(Theme.amber).frame(width: 10, height: 10); Text("Reset Expires (\(events.filter(\.expiration).count))") }
+        }.font(.system(size: 12)).foregroundStyle(Theme.secondary)
     }
     private var historyToggle: some View {
-        Toggle("History", isOn: Binding(get: { store.state.settings.historyEnabled }, set: { store.setHistory($0) }))
-            .toggleStyle(.switch).fixedSize().accessibilityIdentifier("historyToggle")
+        HStack(spacing: 7) {
+            Toggle("History", isOn: Binding(get: { store.state.settings.historyEnabled }, set: { store.setHistory($0) }))
+                .labelsHidden().toggleStyle(.switch).controlSize(.small).fixedSize().accessibilityIdentifier("historyToggle")
+            Text("History").font(.system(size: 12))
+        }
     }
     private var settingsButton: some View { Button { openSettings() } label: { ActionLabel(title: "", symbol: "gearshape") }.buttonStyle(ScroogeButtonStyle()).help("Timeline Settings") }
     private var selectors: some View {
@@ -144,22 +155,39 @@ struct HorizonView: View {
             VStack(spacing: 6) {
                 ForEach(timelineAccounts) { account in
                     Button { store.toggleAccountHistory(account.id) } label: {
-                        VStack(spacing: 1) {
-                            Text(store.state.settings.privacy ? "Account" : account.nickname).font(.system(size: 10)).lineLimit(1)
-                            ProviderIcon(provider: account.provider, size: 29)
-                            HStack(spacing: 4) {
-                                Text(Format.plan(account.provider, store.state.snapshots[account.id]?.planType)).font(.system(size: 10))
-                                Image(systemName: store.state.settings.hiddenHistoryAccounts.contains(account.id) ? "square" : "checkmark.square.fill")
+                        let enabled = !store.state.settings.hiddenHistoryAccounts.contains(account.id)
+                        let accent = Color(hex: account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType))
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 13).fill(Color(hex: "#272331"))
+                                .overlay(RoundedRectangle(cornerRadius: 13).stroke(accent, lineWidth: 2))
+                                .overlay(ProviderIcon(provider: account.provider, size: 30))
+                                .padding(.horizontal, 4).padding(.vertical, 10)
+                            VStack {
+                                selectorBadge(store.state.settings.privacy ? "Account" : account.nickname, size: 11, accent: accent)
+                                Spacer(minLength: 0)
+                                HStack(alignment: .bottom, spacing: 0) {
+                                    selectorBadge(Format.plan(account.provider, store.state.snapshots[account.id]?.planType), size: 10, accent: accent)
+                                    Spacer(minLength: 0)
+                                    ZStack { if enabled { Image(systemName: "checkmark") } }
+                                        .font(.system(size: 12, weight: .bold)).foregroundStyle(.white)
+                                        .frame(width: 19, height: 19)
+                                        .background(enabled ? accent : Theme.control)
+                                        .clipShape(RoundedRectangle(cornerRadius: 5))
+                                        .overlay(RoundedRectangle(cornerRadius: 5).stroke(accent, lineWidth: 1.5))
+                                }
                             }
-                        }.padding(5).frame(width: 72, height: 66).background(Theme.control)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType)), lineWidth: 2))
-                            .opacity(store.state.settings.hiddenHistoryAccounts.contains(account.id) ? 0.4 : 1)
+                        }.frame(width: 82, height: 66).opacity(enabled ? 1 : 0.5)
                     }.buttonStyle(.plain).accessibilityLabel("Show \(account.provider.rawValue) \(store.state.settings.privacy ? "Account" : account.nickname) on Timeline")
                         .help(historyHelp(account))
                 }
             }
         }.scrollIndicators(.hidden)
+    }
+    private func selectorBadge(_ text: String, size: CGFloat, accent: Color) -> some View {
+        Text(text).font(.system(size: size)).lineLimit(1).foregroundStyle(.white)
+            .padding(.horizontal, 5).padding(.vertical, 2).background(Theme.control)
+            .clipShape(RoundedRectangle(cornerRadius: 7))
+            .overlay(RoundedRectangle(cornerRadius: 7).stroke(accent, lineWidth: 1.5))
     }
     private var timeline: some View {
         ZStack(alignment: .topLeading) {
@@ -464,5 +492,46 @@ struct HistoryPointerTracking: NSViewRepresentable {
             onMove?(convert(event.locationInWindow, from: nil))
         }
         override func mouseExited(with event: NSEvent) { onMove?(nil) }
+    }
+}
+
+
+/// Routes wheel events only within the visible Horizon card, leaving other views untouched.
+struct HorizonWheelRouting: NSViewRepresentable {
+    var onScroll: (Double) -> Void
+    func makeNSView(context: Context) -> WheelView {
+        let view = WheelView()
+        view.onScroll = onScroll
+        return view
+    }
+    func updateNSView(_ view: WheelView, context: Context) { view.onScroll = onScroll }
+    static func dismantleNSView(_ view: WheelView, coordinator: ()) { view.stopMonitoring() }
+
+    final class WheelView: NSView {
+        var onScroll: ((Double) -> Void)?
+        private var monitor: Any?
+        override func hitTest(_ point: NSPoint) -> NSView? { nil }
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            stopMonitoring()
+            guard window != nil else { return }
+            monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
+                guard let self, let window = self.window,
+                      event.window === window, window.attachedSheet == nil,
+                      !self.isHiddenOrHasHiddenAncestor,
+                      self.bounds.intersection(self.visibleRect).contains(self.convert(event.locationInWindow, from: nil)) else { return event }
+                self.onScroll?(Self.horizontalDelta(x: event.scrollingDeltaX, y: event.scrollingDeltaY,
+                                                    precise: event.hasPreciseScrollingDeltas))
+                return nil
+            }
+        }
+        func stopMonitoring() {
+            if let monitor { NSEvent.removeMonitor(monitor) }
+            monitor = nil
+        }
+        static func horizontalDelta(x: Double, y: Double, precise: Bool) -> Double {
+            // Keep native horizontal gestures; map vertical wheels to the same axis.
+            -(abs(x) > abs(y) ? x : y) * (precise ? 1 : 20)
+        }
     }
 }

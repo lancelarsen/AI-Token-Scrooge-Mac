@@ -8,3 +8,5 @@
 - Use `script/build_and_run.sh` for the build/run loop. Regenerate the checked-in Xcode project with XcodeGen after adding files.
 - Run relevant builds and tests and distinguish demo evidence from live provider verification.
 - When the user requests step-by-step instructions, provide only one step and wait for their result.
+
+- After each completed update, run relevant verification, commit the authorized changes, and push to origin. The user requested this as the default workflow; report any push failure or remaining validation gaps.

@@ -86,6 +86,15 @@ final class MonitoringTests: XCTestCase {
     }
 
     @MainActor
+    func testHorizonWheelDirectionAndTrackpadScaling() {
+        XCTAssertEqual(HorizonWheelRouting.WheelView.horizontalDelta(x: 0, y: -3, precise: false), 60)
+        XCTAssertEqual(HorizonWheelRouting.WheelView.horizontalDelta(x: 0, y: 3, precise: false), -60)
+        XCTAssertEqual(HorizonWheelRouting.WheelView.horizontalDelta(x: -8, y: 2, precise: true), 8)
+        XCTAssertEqual(HorizonWheelRouting.WheelView.horizontalDelta(x: 1, y: -6, precise: true), 6)
+        XCTAssertEqual(HorizonWheelRouting.WheelView.horizontalDelta(x: 0, y: 0, precise: true), 0)
+    }
+
+    @MainActor
     func testHistoryPointerCoordinatesAndTrackingLifecycle() throws {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 800, height: 400),
                               styleMask: [.borderless], backing: .buffered, defer: true)

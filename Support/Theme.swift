@@ -32,7 +32,7 @@ extension Color {
 struct ScroogeButtonStyle: ButtonStyle {
     var selected = false
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 14)).padding(.horizontal, 16).frame(minHeight: 44)
+        configuration.label.font(.system(size: 12)).padding(.horizontal, 16).frame(minHeight: 44)
             .background(selected ? Theme.accent.opacity(0.28) : Theme.control)
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#45464D")))
@@ -45,8 +45,9 @@ struct ActionLabel: View {
     var body: some View { HStack(spacing: 10) { Image(systemName: symbol).font(.system(size: 19)).foregroundStyle(Theme.accent); if !title.isEmpty { Text(title) } } }
 }
 struct ScroogeCard<Content: View>: View {
+    var inset: CGFloat = 20
     @ViewBuilder var content: Content
-    var body: some View { content.padding(20).background(Theme.card).clipShape(RoundedRectangle(cornerRadius: 15))
+    var body: some View { content.padding(inset).background(Theme.card).clipShape(RoundedRectangle(cornerRadius: 15))
         .overlay(RoundedRectangle(cornerRadius: 15).stroke(Theme.border)) }
 }
 struct ProviderIcon: View {
