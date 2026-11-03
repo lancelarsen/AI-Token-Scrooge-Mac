@@ -41,7 +41,7 @@ actor CodexConnection {
         let process = Process()
         process.executableURL = try executable()
         process.currentDirectoryURL = profile
-        var env = ProcessInfo.processInfo.environment.filter { !$0.key.uppercased().hasPrefix("CODEX_") && !$0.key.uppercased().hasPrefix("OPENAI_") }
+        var env = CLIEnvironment.sanitized(ProcessInfo.processInfo.environment)
         env["CODEX_HOME"] = profile.path
         process.environment = env
         process.arguments = ["app-server", "--stdio", "-c", "cli_auth_credentials_store=\"keyring\"", "-c", "mcp_servers={}", "-c", "analytics.enabled=false"]

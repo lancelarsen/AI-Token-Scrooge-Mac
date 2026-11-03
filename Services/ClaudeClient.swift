@@ -18,7 +18,7 @@ actor ClaudeClient {
     }
     private func run(_ id: String, _ arguments: [String], timeout: Duration = .seconds(40)) async throws -> Data {
         let directory = try profile(id)
-        var environment = ProcessInfo.processInfo.environment.filter { !$0.key.uppercased().hasPrefix("ANTHROPIC_") && !$0.key.uppercased().hasPrefix("CLAUDE_") }
+        var environment = CLIEnvironment.sanitized(ProcessInfo.processInfo.environment)
         environment["CLAUDE_CONFIG_DIR"] = directory.path
         return try await BoundedProcess().run(executable: Self.executable(), arguments: arguments, directory: directory, environment: environment, timeout: timeout)
     }

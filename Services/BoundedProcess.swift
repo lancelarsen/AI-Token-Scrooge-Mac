@@ -79,3 +79,17 @@ extension Process {
         }
     }
 }
+
+
+/// Remove inherited provider credentials and runtime injection hooks before starting owned CLIs.
+/// Keep ordinary OS settings (PATH, locale, HOME) so installed provider tools remain usable.
+enum CLIEnvironment {
+    static func sanitized(_ environment: [String: String]) -> [String: String] {
+        let prefixes = ["OPENAI_", "CODEX_", "ANTHROPIC_", "CLAUDE_", "GITHUB_", "GH_", "AZURE_OPENAI_", "GEMINI_", "DYLD_"]
+        let excluded: Set<String> = ["GOOGLE_API_KEY", "GOOGLE_APPLICATION_CREDENTIALS", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "AWS_PROFILE", "AWS_SHARED_CREDENTIALS_FILE", "AWS_CONFIG_FILE", "NODE_OPTIONS", "NODE_PATH", "BUN_OPTIONS", "LD_PRELOAD", "LD_LIBRARY_PATH"]
+        return environment.filter { key, _ in
+            let upper = key.uppercased()
+            return !excluded.contains(upper) && !prefixes.contains(where: upper.hasPrefix)
+        }
+    }
+}

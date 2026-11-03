@@ -34,3 +34,7 @@ This is a source-backed porting review, not a full security audit or a claim of 
 - Native popup regression test creates the panel, verifies its visible bounded width and noninteractive behavior, then verifies hiding on pointer exit.
 - Native demo screenshot inspection confirmed the SVG bell/refresh/settings icons and custom grip/meter shapes render correctly.
 - A fresh physical-pointer pass over chart lines is still recommended; the popup was exercised directly in the native regression test rather than claiming a physical hover capture.
+
+## Implementation progress
+- Batch 1: shared provider environment sanitization implemented for Codex and Claude. Also removes macOS DYLD injection variables, while preserving ordinary OS environment values. Regression coverage verifies cross-provider secrets, cloud credential paths, and runtime injection hooks are removed.
+- Correction to review: HorizonEvent.events already filters hidden accounts. Remaining timeline work is stable geometry and History-off behavior, not reimplementing future-event filtering.

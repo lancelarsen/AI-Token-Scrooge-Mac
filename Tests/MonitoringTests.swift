@@ -5,6 +5,13 @@ import SQLite3
 @testable import AITokenScrooge
 
 final class MonitoringTests: XCTestCase {
+    func testProviderProcessesDoNotInheritOtherCredentialsOrRuntimeInjection() {
+        let dangerous = ["OPENAI_API_KEY", "CODEX_HOME", "ANTHROPIC_API_KEY", "CLAUDE_CONFIG_DIR", "GH_TOKEN", "GITHUB_TOKEN", "AZURE_OPENAI_ENDPOINT", "GEMINI_API_KEY", "GOOGLE_APPLICATION_CREDENTIALS", "AWS_PROFILE", "NODE_OPTIONS", "NODE_PATH", "BUN_OPTIONS", "DYLD_INSERT_LIBRARIES", "LD_PRELOAD", "github_token"]
+        var environment = Dictionary(uniqueKeysWithValues: dangerous.map { ($0, "fixture") })
+        environment["HOME"] = "/Users/example"; environment["PATH"] = "/usr/bin"; environment["LANG"] = "en_US.UTF-8"
+        XCTAssertEqual(CLIEnvironment.sanitized(environment), ["HOME": "/Users/example", "PATH": "/usr/bin", "LANG": "en_US.UTF-8"])
+    }
+
     func testNativeNotificationPermissionErrorProvidesSettingsRecovery() {
         let denied = NSError(domain: UNErrorDomain, code: UNError.Code.notificationsNotAllowed.rawValue)
         XCTAssertTrue(NotificationError.explainingPermission(denied).localizedDescription.contains("Allow notifications"))
