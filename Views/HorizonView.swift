@@ -210,6 +210,7 @@ struct HorizonView: View {
                 historyPinned = hoverText != nil
             }
             .focusable()
+            .focusEffectDisabled()
             .accessibilityLabel("Usage history. Use arrow keys to inspect samples; Escape dismisses details.")
             .accessibilityValue(hoverText ?? "No sample selected")
             .onKeyPress(.leftArrow) { inspectSample(direction: -1); return .handled }
