@@ -32,12 +32,9 @@ struct AlertHistoryView: View {
             }
         }.padding(24).frame(width: 650, height: 600).background(Theme.background).preferredColorScheme(.dark)
         .sheet(item: $selectedAlert) { alert in
-            VStack(alignment: .leading, spacing: 16) {
-                ScrollView {
-                    AccountUsageDetailsView(accountID: alert.accountID, windowID: alert.windowID)
-                }
-                Button("Close") { selectedAlert = nil }.buttonStyle(ScroogeButtonStyle())
-            }.padding(24).frame(width: 500, height: 470).background(Theme.card).preferredColorScheme(.dark)
+            DetailsDialog(close: { selectedAlert = nil }) {
+                AccountUsageDetailsView(accountID: alert.accountID, windowID: alert.windowID)
+            }
         }
     }
 }
@@ -50,11 +47,11 @@ struct AccountUsageDetailsView: View {
         if let account = store.state.accounts.first(where: { $0.id == accountID }),
            let snapshot = store.state.snapshots[account.id], snapshot.belongs(to: account) {
             if windowID == nil, let reserve = snapshot.reserve {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Available Resets").font(.title2)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Available Resets").font(.system(size: 20, weight: .semibold)).foregroundStyle(.white)
                     Text("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))")
                     Text("\(reserve.availableCount.map(String.init) ?? "Unknown") Reported Available")
-                    Text("Snapshot Fetched: \(Format.date(snapshot.observedAt, zone: store.state.settings.zone))")
+                    DetailLine(label: "Snapshot Fetched", value: Format.date(snapshot.observedAt, zone: store.state.settings.zone))
                     Text(account.enabled ? snapshot.health.rawValue : "Monitoring Paused")
                     if reserve.hasPartialDetails { Text("Provider supplied only partial credit details.") }
                     if let credits = reserve.credits {
@@ -69,9 +66,52 @@ struct AccountUsageDetailsView: View {
         } else { unavailableDetails }
     }
     private var unavailableDetails: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Usage Details Unavailable").font(.title2)
             Text("This account or quota window is no longer available. Refresh the dashboard to check current connections.")
         }
+    }
+}
+
+/// Shared Windows-style detail dialog: content-sized body and a separate action footer.
+struct DetailsDialog<Content: View>: View {
+    let close: () -> Void
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ViewThatFits(in: .vertical) {
+                content().fixedSize(horizontal: false, vertical: true)
+                ScrollView { content() }
+            }
+            .font(.system(size: 14))
+            .foregroundStyle(Theme.secondary)
+            .textSelection(.enabled)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(24)
+            Divider()
+            HStack {
+                Spacer()
+                Button(action: close) {
+                    Label("Close", systemImage: "xmark")
+                }
+                .buttonStyle(ScroogeButtonStyle())
+                .keyboardShortcut(.cancelAction)
+            }.padding(24)
+        }
+        .frame(width: 480)
+        .frame(maxHeight: 560)
+        .fixedSize(horizontal: false, vertical: true)
+        .background(Theme.card)
+        .preferredColorScheme(.dark)
+    }
+}
+
+struct DetailLine: View {
+    let label: String
+    let value: String
+    var body: some View {
+        (Text(label + ": ").fontWeight(.semibold).foregroundColor(.white)
+         + Text(value).foregroundColor(Theme.secondary))
     }
 }

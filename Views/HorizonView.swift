@@ -63,10 +63,10 @@ struct HorizonView: View {
         .onChange(of: viewport.pixelsPerDay) { _, _ in prepareHistory() }
         .onChange(of: store.state.settings.timeZoneID) { _, _ in prepareHistory() }
         .sheet(item: $selectedEvent) { event in
-            VStack(alignment: .leading, spacing: 16) {
+            DetailsDialog(close: { selectedEvent = nil }) {
+              VStack(alignment: .leading, spacing: 8) {
                 if event.reportedAt == nil {
-                    ScrollView { AccountUsageDetailsView(accountID: event.account.id, windowID: event.windowID) }
-                        .frame(width: 450, height: 370)
+                    AccountUsageDetailsView(accountID: event.account.id, windowID: event.windowID)
                 } else {
                     Label(event.title, systemImage: event.expiration ? "hourglass" : "arrow.clockwise").font(.title2).foregroundStyle(event.expiration ? Theme.amber : Theme.accent)
                     Text("\(event.account.provider.rawValue) · \(store.state.settings.privacy ? "Account" : event.account.nickname)")
@@ -76,15 +76,16 @@ struct HorizonView: View {
                         Text("This is a reported schedule, not confirmation that capacity reset or a credit was redeemed.").font(.callout)
                     } else { Text(Format.countdown(event.date)).foregroundStyle(Theme.secondary) }
                 }
-                Button("Close") { selectedEvent = nil }.buttonStyle(ScroogeButtonStyle())
-            }.padding(28).frame(minWidth: 400).background(Theme.card).preferredColorScheme(.dark)
+              }
+            }
         }
         .sheet(item: $selectedHistoricalMarker) { marker in historicalDetails(marker) }
     }
     private func historicalDetails(_ marker: HistoricalEventMarker) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("History Event").font(.title2)
-            ScrollView {
+        DetailsDialog(close: { selectedHistoricalMarker = nil }) {
+          VStack(alignment: .leading, spacing: 16) {
+            Text("History Event").font(.system(size: 20, weight: .semibold)).foregroundStyle(.white)
+            Group {
                 VStack(alignment: .leading, spacing: 18) {
                     ForEach(marker.events) { event in
                         VStack(alignment: .leading, spacing: 6) {
@@ -96,8 +97,8 @@ struct HorizonView: View {
                     Text("This is a reported schedule, not confirmation that capacity reset or a credit was redeemed.").foregroundStyle(Theme.secondary)
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
-            Button("Close") { selectedHistoricalMarker = nil }.buttonStyle(ScroogeButtonStyle())
-        }.padding(24).frame(width: 500, height: 420).background(Theme.card).preferredColorScheme(.dark)
+          }
+        }
     }
     private var plotTop: Double { 56 + 32 }
     private var plotBottom: Double { timelineHeight - 8 }

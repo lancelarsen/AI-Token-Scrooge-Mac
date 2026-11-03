@@ -205,7 +205,7 @@ struct QuotaRow: View {
             }
         }
         .popover(isPresented: $showDetails) {
-            QuotaDetailsView(account: account, window: window, snapshot: snapshot)
+            QuotaDetailsView(account: account, window: window, snapshot: snapshot).padding(24)
         }
     }
 }
@@ -217,19 +217,19 @@ struct QuotaDetailsView: View {
     let window: QuotaWindow
     let snapshot: QuotaSnapshot
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(window.name).font(.title2)
+        VStack(alignment: .leading, spacing: 8) {
+            Text(window.name).font(.system(size: 20, weight: .semibold)).foregroundStyle(.white)
             Text("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname)")
             Text("\(Format.percent(window.usedPercent)) Used / \(Format.percent(window.remainingPercent)) Left")
             if let used = window.used, window.unit != .percent { Text("Used: \(NSDecimalNumber(decimal: used).stringValue) \(window.unit.rawValue)") }
             if let limit = window.limit { Text("Allowance: \(NSDecimalNumber(decimal: limit).stringValue) · \(window.allowanceSource.rawValue.capitalized)") }
-            Text("Resets: \(Format.date(window.resetsAt, zone: store.state.settings.zone))")
+            DetailLine(label: "Resets", value: Format.date(window.resetsAt, zone: store.state.settings.zone))
             if !store.state.settings.privacy {
-                Text("Account: \(account.login ?? account.subject)")
-                Text("Scope: \(account.scope)")
+                DetailLine(label: "Account", value: account.login ?? account.subject)
+                DetailLine(label: "Scope", value: account.scope)
             }
-            Text("Last Successful Fetch: \(Format.date(snapshot.observedAt, zone: store.state.settings.zone))")
-            Text("Provider Data As Of: \(Format.date(snapshot.providerDataAt, zone: store.state.settings.zone))")
+            DetailLine(label: "Last Successful Fetch", value: Format.date(snapshot.observedAt, zone: store.state.settings.zone))
+            DetailLine(label: "Provider Data As Of", value: Format.date(snapshot.providerDataAt, zone: store.state.settings.zone))
             if let message = snapshot.message { Text(message).foregroundStyle(Theme.secondary) }
             if !store.isDemo, let url = account.usageURL {
                 Text("Provider pages use your browser’s sign-in. Check its account and workspace before comparing.").font(.caption).foregroundStyle(Theme.secondary)
@@ -239,6 +239,6 @@ struct QuotaDetailsView: View {
                     }
                 }.buttonStyle(ScroogeButtonStyle())
             }
-        }.padding(24).frame(maxWidth: 440).preferredColorScheme(.dark)
+        }.font(.system(size: 14)).foregroundStyle(Theme.secondary).textSelection(.enabled).frame(maxWidth: 440, alignment: .leading).preferredColorScheme(.dark)
     }
 }
