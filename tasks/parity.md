@@ -195,3 +195,9 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Native accessibility exposed all eight selectors. Scrolling the main dashboard exposed the complete eighth card and navigator; clicking Claude Personal Two removed its selected state. Navigator Decrement changed the visible start from November 2 to November 1. Evidence: artifacts/eight-selectors-lower-native.png and artifacts/eight-selectors-upper-native.png.
 - This verifies eight-account selector and navigation access at the current wide window, not dense endpoint labels or compact-window parity.
 - Restored Models/DemoData.swift byte-for-byte to the standard fixture. Both fixture and restored canonical builds passed (artifacts/eight-selectors-build.log and artifacts/eight-selectors-restored-build.log).
+
+### Compact standard dashboard — 2026-11-02
+
+- Tested production code at 71a4aeb with standard four-account demo, using macOS Window > Move & Resize > Left. Screenshot width was 1722 pixels (near the 860-point app minimum on this Retina display). Native edge dragging did not resize; the native menu did.
+- Header wrapped into two rows; timeline heading, history switch, settings button, all four account selectors and navigator fit. Account cards reflowed vertically while keeping quota labels, percentages, reset dates, thresholds, alert buttons, reorder handles and management buttons visible. Clicking the first session quota bar opened a details popover showing 38% used / 62% left and the demo identity.
+- Evidence: artifacts/compact-timeline-native.png and artifacts/compact-account-cards-native.png. Restored previous window size via the native menu and returned to the top. This check covers the standard four-account layout, not the eight-account compact combination or every settings sheet.
