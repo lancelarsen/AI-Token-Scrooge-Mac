@@ -36,8 +36,7 @@ actor CodexConnection {
         return found
     }
     static func start(credentialID: String) async throws -> CodexConnection {
-        let profile = try profileURL(id: credentialID)
-        try FileManager.default.createDirectory(at: profile, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        let profile = try OwnedProfileDirectory.directory(provider: .codex, id: credentialID)
         let process = Process()
         process.executableURL = try executable()
         process.currentDirectoryURL = profile

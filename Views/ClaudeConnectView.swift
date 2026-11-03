@@ -19,8 +19,9 @@ struct ClaudeConnectView: View {
             Button(busy ? "Waiting for Claude Sign-In…" : "Sign In with Claude") {
                 busy = true
                 operation = Task {
-                    defer { busy = false }
+                    defer { busy = false; store.endCredentialAttempt(credentialID) }
                     do {
+                        try await store.stageCredential(provider: .claude, id: credentialID)
                         let (account, snapshot) = try await client.connect(credentialID: credentialID, nickname: nickname.trimmingCharacters(in: .whitespacesAndNewlines), original: original)
                         try Task.checkCancellation()
                         guard !closed else { return }
@@ -30,7 +31,6 @@ struct ClaudeConnectView: View {
                         committed = true; dismiss()
                     } catch {
                         status = (error as? ProviderFailure)?.message ?? (error is AccountError ? error.localizedDescription : "Claude connection could not be completed. Please try again.")
-                        if !committed { try? await client.disconnect(credentialID) }
                     }
                 }
             }.buttonStyle(ScroogeButtonStyle()).disabled(busy || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)

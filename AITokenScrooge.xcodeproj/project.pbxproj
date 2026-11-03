@@ -37,6 +37,7 @@
 		70FB6FB30ECD69AF14D467FE /* ClaudeUsageParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE0BBF977675AA0040C4DA02 /* ClaudeUsageParser.swift */; };
 		72B311F98195221414771AAB /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9E9691FF186EB48B04A900A /* DashboardView.swift */; };
 		73886FB87A1820CC955B8398 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0897F38BE76FD2821EE66746 /* SettingsView.swift */; };
+		73BAB22F3915C8BB955B3CD9 /* OwnedProfileDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0172773013752FE479588ABD /* OwnedProfileDirectory.swift */; };
 		75A85C7DE0148D447CF550A5 /* UsageHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D30E984DB7C2ADE83A5210B /* UsageHistory.swift */; };
 		77D449CBA567817A8DB4FBD1 /* HistoryRunCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9401B94B0F50306880D7295 /* HistoryRunCache.swift */; };
 		790F1C6E372397CAA5E2AB71 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64B96C3E5E45E53D4F146D96 /* Assets.xcassets */; };
@@ -102,6 +103,7 @@
 /* Begin PBXFileReference section */
 		00A20C89A6F44FD7A0A83267 /* DashboardUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardUITests.swift; sourceTree = "<group>"; };
 		00C80F94C32F70480731176C /* threshold_critical.svg */ = {isa = PBXFileReference; path = threshold_critical.svg; sourceTree = "<group>"; };
+		0172773013752FE479588ABD /* OwnedProfileDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnedProfileDirectory.swift; sourceTree = "<group>"; };
 		0897F38BE76FD2821EE66746 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		0AFBE29531DCEBFA5A7D9A2C /* AlertHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertHistoryView.swift; sourceTree = "<group>"; };
 		0B6F0DF0DEFE748A49FA167B /* CodexConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexConnectView.swift; sourceTree = "<group>"; };
@@ -369,6 +371,7 @@
 				88DE1AE9332ACD9C98CE0F89 /* GitHubCredentialManager.swift */,
 				53A7886BB2D625115CF3E3A1 /* GitHubDeviceFlow.swift */,
 				3A2FF94CD691A6FD9D3EEB04 /* LoginItemService.swift */,
+				0172773013752FE479588ABD /* OwnedProfileDirectory.swift */,
 				884825D5A4F3F3765C03169E /* ProviderMapping.swift */,
 				3C69B60006F7E2D89ACCAE6B /* SecretStore.swift */,
 				2CA0AA2D41ED3D3978E313E3 /* SystemIntegration.swift */,
@@ -565,6 +568,7 @@
 				38C9B17D702E34EBC4DAC6C0 /* HorizonViewport.swift in Sources */,
 				CB6C6D05ADC1F4FFFF65658E /* LocalStore.swift in Sources */,
 				FF074F8100C3E5EF55F626E9 /* LoginItemService.swift in Sources */,
+				73BAB22F3915C8BB955B3CD9 /* OwnedProfileDirectory.swift in Sources */,
 				B4CE3444D8B705C7201BB7E0 /* PackedHistoryRun.swift in Sources */,
 				566CB9325847F259F08617FC /* ProviderMapping.swift in Sources */,
 				B8C91125DC0237F8F6F95081 /* Quota.swift in Sources */,

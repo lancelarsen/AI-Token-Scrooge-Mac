@@ -56,6 +56,7 @@ import AppKit
         return isDemo ? "DEMO · " + summary : summary
     }
     private var lastPruned: Date = .distantPast
+    private var activeCredentialIDs: Set<String> = []
     private var lastCredentialCleanup: Date = .distantPast
     var showAlertHistory = false
     let database: LocalStore?
@@ -163,7 +164,7 @@ import AppKit
         lastCredentialCleanup = .now
         let retired = state.retiredAccounts
         for account in retired {
-            guard !state.accounts.contains(where: { $0.credentialID == account.credentialID }) else { continue }
+            guard !activeCredentialIDs.contains(account.credentialID), !state.accounts.contains(where: { $0.credentialID == account.credentialID }) else { continue }
             do {
                 switch account.provider {
                 case .copilot: try await githubCredentials.remove(account.credentialID)
@@ -173,6 +174,9 @@ import AppKit
                     catch { await connection.close(); throw error }
                     await connection.close()
                 case .claude: try await ClaudeClient().disconnect(account.credentialID)
+                }
+                if account.provider != .copilot {
+                    try OwnedProfileDirectory.remove(provider: account.provider, id: account.credentialID)
                 }
                 edit { state in state.retiredAccounts.removeAll { $0.credentialID == account.credentialID } }
                 await mutationTail?.value
@@ -433,6 +437,31 @@ import AppKit
         mutationTail = removal
         await removal.value
     }
+    /// Persist cleanup intent before a provider can write credentials. Reuse the durable
+    /// retirement queue so interrupted sign-ins are recovered on the next launch.
+    func stageCredential(provider: Provider, id: String) async throws {
+        guard UUID(uuidString: id) != nil else { throw SecretStoreError.invalidID }
+        activeCredentialIDs.insert(id)
+        let previous = mutationTail
+        let commit = Task { @MainActor [weak self] in
+            await previous?.value
+            guard let self, !isDemo, localStateReady, let database else { throw StoreError.operation }
+            guard !state.accounts.contains(where: { $0.credentialID == id }) else { throw StoreError.operation }
+            var candidate = state
+            if !candidate.retiredAccounts.contains(where: { $0.credentialID == id }) {
+                candidate.retiredAccounts.append(ProviderAccount(provider: provider, nickname: "Pending sign-in", subject: "", scope: "", credentialID: id))
+            }
+            try await database.save(candidate)
+            state = candidate
+        }
+        mutationTail = Task { _ = try? await commit.value }
+        do { try await commit.value }
+        catch { activeCredentialIDs.remove(id); throw error }
+    }
+    func endCredentialAttempt(_ id: String) {
+        activeCredentialIDs.remove(id)
+        lastCredentialCleanup = .distantPast
+    }
     /// Connection commits share the mutation queue with settings, refreshes and removal.
     func acceptConnection(_ account: ProviderAccount, snapshot: QuotaSnapshot, replacing original: ProviderAccount?) async throws {
         let previous = mutationTail
@@ -453,6 +482,7 @@ import AppKit
             if let index = candidate.accounts.firstIndex(where: { $0.id == account.id }) { candidate.accounts[index] = account }
             else { candidate.accounts.append(account); candidate.settings.accountOrder.append(account.id) }
             candidate.snapshots[account.id] = snapshot
+            candidate.retiredAccounts.removeAll { $0.credentialID == account.credentialID }
             if let original { candidate.retiredAccounts.append(original) }
             try await database.accept(snapshot, account: account, state: candidate)
             state = candidate; reconnectAccountID = nil; lastCredentialCleanup = .distantPast
@@ -473,6 +503,8 @@ import AppKit
             snapshot = QuotaSnapshot(accountID: account.id, subject: account.subject, scope: account.scope, observedAt: .now, windows: [], health: error.health, message: error.message)
         }
         try Task.checkCancellation()
+        try await stageCredential(provider: .copilot, id: account.credentialID)
+        defer { endCredentialAttempt(account.credentialID) }
         if let appTokens { try await githubCredentials.saveApp(id: account.credentialID, subject: account.subject, tokens: appTokens) }
         else { try await secrets.save(Data(token.utf8), id: account.credentialID) }
         do {

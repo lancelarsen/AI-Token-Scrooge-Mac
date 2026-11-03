@@ -12,6 +12,53 @@ final class MonitoringTests: XCTestCase {
         XCTAssertEqual(CLIEnvironment.sanitized(environment), ["HOME": "/Users/example", "PATH": "/usr/bin", "LANG": "en_US.UTF-8"])
     }
 
+    @MainActor
+    func testPendingCredentialIsDurableAndClearedWithSuccessfulConnection() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("pending.db"))
+        let store = AppStore(database: database)
+        await store.load()
+        let id = UUID().uuidString
+        try await store.stageCredential(provider: .codex, id: id)
+        let pending = try await database.load()
+        XCTAssertEqual(pending.retiredAccounts.map(\.credentialID), [id])
+        let reopened = AppStore(database: database)
+        await reopened.load()
+        XCTAssertEqual(reopened.state.retiredAccounts.map(\.credentialID), [id])
+        let account = ProviderAccount(provider: .codex, nickname: "A", subject: "s", scope: "w", credentialID: id)
+        let snapshot = QuotaSnapshot(accountID: account.id, subject: "s", scope: "w", observedAt: .now, windows: [])
+        try await store.acceptConnection(account, snapshot: snapshot, replacing: nil)
+        store.endCredentialAttempt(id)
+        let committed = try await database.load()
+        XCTAssertTrue(committed.retiredAccounts.isEmpty)
+        XCTAssertEqual(committed.accounts.first?.credentialID, id)
+    }
+
+    func testOwnedProfilesRejectRedirectedDirectoriesAndContents() throws {
+        let temporary = FileManager.default.temporaryDirectory.path
+        let physical = temporary.hasPrefix("/var/") ? "/private" + temporary : temporary
+        let base = URL(fileURLWithPath: physical).appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: base) }
+        let id = UUID().uuidString
+        let profile = try OwnedProfileDirectory.directory(provider: .codex, id: id, base: base)
+        let attributes = try FileManager.default.attributesOfItem(atPath: profile.path)
+        XCTAssertEqual((attributes[.posixPermissions] as? NSNumber)?.intValue, 0o700)
+        let outside = base.appendingPathComponent("outside")
+        try Data("keep".utf8).write(to: outside)
+        let link = profile.appendingPathComponent("auth.json")
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: outside)
+        XCTAssertThrowsError(try OwnedProfileDirectory.directory(provider: .codex, id: id, base: base))
+        XCTAssertThrowsError(try OwnedProfileDirectory.remove(provider: .codex, id: id, base: base))
+        XCTAssertEqual(try String(contentsOf: outside, encoding: .utf8), "keep")
+        try FileManager.default.removeItem(at: link)
+        try OwnedProfileDirectory.remove(provider: .codex, id: id, base: base)
+        try FileManager.default.createSymbolicLink(at: profile, withDestinationURL: base)
+        XCTAssertThrowsError(try OwnedProfileDirectory.directory(provider: .codex, id: id, base: base))
+        XCTAssertThrowsError(try OwnedProfileDirectory.directory(provider: .claude, id: "../outside", base: base))
+    }
+
     func testNativeNotificationPermissionErrorProvidesSettingsRecovery() {
         let denied = NSError(domain: UNErrorDomain, code: UNError.Code.notificationsNotAllowed.rawValue)
         XCTAssertTrue(NotificationError.explainingPermission(denied).localizedDescription.contains("Allow notifications"))

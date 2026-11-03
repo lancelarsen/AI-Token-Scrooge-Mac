@@ -10,11 +10,7 @@ actor ClaudeClient {
         return executable
     }
     private func profile(_ id: String) throws -> URL {
-        guard let uuid = UUID(uuidString: id) else { throw SecretStoreError.invalidID }
-        let url = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("AI Token Scrooge/ClaudeProfiles/\(uuid.uuidString)", isDirectory: true)
-        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
-        return url
+        try OwnedProfileDirectory.directory(provider: .claude, id: id)
     }
     private func run(_ id: String, _ arguments: [String], timeout: Duration = .seconds(40)) async throws -> Data {
         let directory = try profile(id)

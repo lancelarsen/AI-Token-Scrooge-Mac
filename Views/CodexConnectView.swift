@@ -22,15 +22,16 @@ struct CodexConnectView: View {
             }.buttonStyle(ScroogeButtonStyle()).disabled(busy || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             if busy { ProgressView().controlSize(.small) }
         }
-        .onDisappear { closed = true; listener?.cancel(); if !committing { Task { await cleanup() } } }
+        .onDisappear { closed = true; listener?.cancel(); if !committing && !busy { Task { await cleanup() } } }
     }
     private func start() async {
         guard !busy else { return }
         busy = true
-        defer { busy = false }
+        defer { busy = false; if closed { Task { await cleanup() } } }
         do {
+            try await store.stageCredential(provider: .codex, id: credentialID)
             let opened = try await CodexConnection.start(credentialID: credentialID)
-            guard !closed else { await opened.close(); return }
+            guard !closed else { await opened.close(); store.endCredentialAttempt(credentialID); return }
             connection = opened
             let login = try await opened.call("account/login/start", parameters: .object(["type": .string("chatgpt")]))
             loginID = login["loginId"].string
@@ -53,7 +54,7 @@ struct CodexConnectView: View {
     private func finish() async {
         guard !busy, !closed, let connection else { return }
         busy = true
-        defer { busy = false }
+        defer { busy = false; if closed { Task { await cleanup() } } }
         do {
             let identity = try await connection.call("account/read", parameters: .object(["refreshToken": .bool(false)]))
             guard let email = identity["account"]["email"].string, !email.isEmpty else {
@@ -74,6 +75,7 @@ struct CodexConnectView: View {
         } catch { status = safeMessage(error); if closed { await cleanup() } }
     }
     private func cleanup() async {
+        defer { store.endCredentialAttempt(credentialID) }
         guard let owned = connection else { return }
         connection = nil
         let login = loginID; loginID = nil
