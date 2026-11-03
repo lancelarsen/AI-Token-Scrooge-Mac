@@ -56,6 +56,8 @@ struct SettingsView: View {
                     SettingsCard(title: "Quiet Hours", symbol: "moon", help: "Quiet notification delivery during this time range while monitoring continues.") {
                         Toggle("Quiet Hours", isOn: binding(\.quietHours))
                         QuietHoursControl(start: binding(\.quietStartHour), end: binding(\.quietEndHour))
+                            .disabled(!store.state.settings.quietHours)
+                            .opacity(store.state.settings.quietHours ? 1 : 0.5)
                     }
                     SettingsCard(title: "Default Alert Levels", symbol: "slider.horizontal.3") {
                         ForEach(ReminderSeverity.allCases, id: \.self) { level in

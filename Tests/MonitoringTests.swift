@@ -267,6 +267,7 @@ final class MonitoringTests: XCTestCase {
         var state = PersistedState(); state.accounts = [account]
         XCTAssertTrue(AlertDeliveryPolicy.canDeliver(alert, state: state, now: now))
         state.settings.quietHours = true
+        state.settings.quietStartHour = 22
         XCTAssertFalse(AlertDeliveryPolicy.canDeliver(alert, state: state, now: now))
         state.settings.quietHours = false
         state.alerts = [AlertEvent(id: "old", accountID: account.id, windowID: "session", title: "Low", detail: "", createdAt: now, snoozedUntil: now.addingTimeInterval(3600))]
@@ -279,6 +280,7 @@ final class MonitoringTests: XCTestCase {
         let alert = AlertEvent(id: "old", accountID: account.id, windowID: "session", title: "Low", detail: "", createdAt: now,
                                snoozedUntil: now.addingTimeInterval(3600))
         var state = PersistedState(); state.accounts = [account]; state.alerts = [alert]
+        state.settings.quietHours = false
         let encoded = try JSONEncoder().encode(state)
         var legacy = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
         legacy.removeValue(forKey: "snoozedAccounts")

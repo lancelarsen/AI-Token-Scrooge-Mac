@@ -15,7 +15,7 @@ struct HorizonView: View {
         ScroogeCard {
             VStack(spacing: 18) {
                 ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 24) { heading; legend; historyToggle; Text("Scroll Left for History").font(.system(size: 12)).foregroundStyle(Theme.secondary); Spacer(); settingsButton }
+                    HStack(spacing: 24) { heading; legend; historyToggle; Text(store.state.settings.historyEnabled ? "Scroll Left for History" : "Select Services to Filter Timeline").font(.system(size: 12)).foregroundStyle(Theme.secondary); Spacer(); settingsButton }
                     VStack(alignment: .leading, spacing: 12) { HStack { heading; Spacer(); settingsButton }; HStack { legend; Spacer(); historyToggle } }
                 }
                 Divider().overlay(Theme.border)
@@ -23,7 +23,7 @@ struct HorizonView: View {
                     selectors.frame(width: 90)
                     Divider()
                     HStack(spacing: 0) {
-                        if store.state.settings.historyEnabled { historyAxis.frame(width: 40) }
+                        historyAxis.frame(width: 40).opacity(store.state.settings.historyEnabled ? 1 : 0)
                         GeometryReader { geometry in
                             ScrollView(.horizontal) {
                                 timeline.frame(width: viewport.contentWidth, height: timelineHeight)
@@ -112,7 +112,7 @@ struct HorizonView: View {
         let accounts = max(3, store.state.accounts.filter(\.enabled).count)
         let selectors = 16 + Double(accounts * 66 + (accounts - 1) * 6)
         let future = 56 + 21 + Double(max(1, groups.values.map(\.count).max() ?? 0)) * 76
-        return store.state.settings.historyEnabled ? max(selectors, future) : future
+        return max(selectors, future)
     }
     private var heading: some View { HStack { Image(systemName: "clock.arrow.circlepath").foregroundStyle(Theme.accent); Text("Reset Horizon").fontWeight(.semibold) }.font(.system(size: 24)) }
     private var historyStatus: String? {

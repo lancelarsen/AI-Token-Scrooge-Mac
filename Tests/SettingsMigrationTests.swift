@@ -24,6 +24,19 @@ final class SettingsMigrationTests: XCTestCase {
         XCTAssertEqual(settings.timeZoneID, "America/Chicago")
         XCTAssertEqual(settings.thresholds, AlertThresholds())
     }
+    func testNewDefaultsPreserveExplicitOlderPreferences() throws {
+        let fresh = try JSONDecoder().decode(RadarSettings.self, from: Data("{}".utf8))
+        XCTAssertTrue(fresh.sound)
+        XCTAssertTrue(fresh.quietHours)
+        XCTAssertEqual(fresh.quietStartHour, 0)
+        XCTAssertEqual(fresh.quietEndHour, 8)
+        XCTAssertEqual(fresh.accountSort, .custom)
+        let saved = try JSONDecoder().decode(RadarSettings.self, from: Data(#"{"sound":false,"quietHours":false,"quietStartHour":22,"accountSort":"Next Reset"}"#.utf8))
+        XCTAssertFalse(saved.sound)
+        XCTAssertFalse(saved.quietHours)
+        XCTAssertEqual(saved.quietStartHour, 22)
+        XCTAssertEqual(saved.accountSort, .nextReset)
+    }
     func testInvalidSavedThresholdsAreRejected() {
         XCTAssertThrowsError(try JSONDecoder().decode(RadarSettings.self, from: Data(#"{"thresholds":{"critical":60,"warning":30,"info":50}}"#.utf8)))
     }

@@ -77,18 +77,18 @@ extension AlertRule {
 }
 
 struct RadarSettings: Codable, Equatable, Sendable {
-    // Defaults match RadarSettings.cs at the pinned Windows commit, not a user's saved preferences.
+    // Defaults match RadarSettings.cs at Windows fc37458, not a user's saved preferences.
     var notifications = true
-    var sound = false
+    var sound = true
     var privacy = false
-    var quietHours = false
-    var quietStartHour = 22
+    var quietHours = true
+    var quietStartHour = 0
     var quietEndHour = 8
     var thresholds = AlertThresholds()
     var launchAtSignIn = true
     var closeToMenuBar = true
     var timeZoneID = "America/Chicago"
-    var accountSort: AccountSort = .nextReset
+    var accountSort: AccountSort = .custom
     var accountOrder: [String] = []
     var disabledCapacityAlerts: [QuotaAlertSection] = []
     var rules: [AlertRule] = []
