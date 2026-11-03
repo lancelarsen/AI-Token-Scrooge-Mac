@@ -175,6 +175,12 @@ final class MonitoringTests: XCTestCase {
         XCTAssertTrue(popup.ignoresMouseEvents)
         XCTAssertGreaterThan(popup.frame.width, 100)
         XCTAssertLessThanOrEqual(popup.frame.width, 450)
+        tracker.pinned = true
+        tracker.mouseExited(with: event)
+        tracker.mouseMoved(with: event)
+        XCTAssertTrue(popup.isVisible)
+        XCTAssertEqual(locations.count, 1)
+        tracker.pinned = false
         tracker.mouseExited(with: event)
         XCTAssertFalse(popup.isVisible)
         XCTAssertEqual(locations.count, 2)

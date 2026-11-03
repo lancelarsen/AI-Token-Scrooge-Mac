@@ -58,7 +58,7 @@ struct HorizonViewport: Sendable {
     func dayAnchor(_ date: Date) -> Double { position(at: calendar.startOfDay(for: date)) + pixelsPerDay / 2 }
     func showsFutureEvents(on date: Date) -> Bool {
         let x = dayAnchor(date)
-        let left = historyEnabled ? max(scrollOffset, position(at: now)) : scrollOffset
+        let left = max(scrollOffset, position(at: now))
         return x >= left - 24 && x <= scrollOffset + viewportWidth + 12
     }
     func date(at contentX: Double) -> Date { fromCoordinate(startCoordinate + min(contentWidth, max(0, contentX.isFinite ? contentX : 0)) / pixelsPerDay) }

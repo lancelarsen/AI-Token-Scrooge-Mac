@@ -7,6 +7,7 @@ struct HorizonView: View {
     @State private var position = ScrollPosition(x: 0)
     @State private var selectedEvent: HorizonEvent?
     @State private var selectedHistoricalMarker: HistoricalEventMarker?
+    @State private var historyPinned = false
     @State private var hoverText: String?
     @State private var hoveredSample: (account: ProviderAccount, point: HistoryPoint)?
     private var events: [HorizonEvent] { HorizonEvent.events(state: store.state, now: .now) }
@@ -27,7 +28,7 @@ struct HorizonView: View {
                         GeometryReader { geometry in
                             ScrollView(.horizontal) {
                                 timeline.frame(width: viewport.contentWidth, height: timelineHeight)
-                                    .background(HistoryPointerTracking(text: hoverText, onMove: updateHistoryHover))
+                                    .background(HistoryPointerTracking(text: hoverText, pinned: historyPinned, anchor: historyPinned ? sampleAnchor : nil, onMove: { if !historyPinned { updateHistoryHover($0) } }))
                             }
                             .scrollIndicators(.hidden).scrollPosition($position)
                             .onScrollGeometryChange(for: Double.self) { $0.contentOffset.x } action: { _, value in if position.isPositionedByUser { viewport.scroll(to: value) } }
@@ -195,7 +196,20 @@ struct HorizonView: View {
                 context.stroke(rail, with: .color(Theme.accent.opacity(0.7)), lineWidth: 2)
                 if store.state.settings.historyEnabled { drawHistory(context: &context, size: size) }
             }
-            if store.state.settings.historyEnabled {
+            .contentShape(Rectangle())
+            .onTapGesture { location in
+                historyPinned = false
+                updateHistoryHover(location)
+                historyPinned = hoverText != nil
+            }
+            .focusable()
+            .accessibilityLabel("Usage history. Use arrow keys to inspect samples; Escape dismisses details.")
+            .accessibilityValue(hoverText ?? "No sample selected")
+            .onKeyPress(.leftArrow) { inspectSample(direction: -1); return .handled }
+            .onKeyPress(.rightArrow) { inspectSample(direction: 1); return .handled }
+            .onKeyPress(.escape) { historyPinned = false; hoverText = nil; hoveredSample = nil; return .handled }
+
+            Group {
                 ForEach(HistoricalEventMarker.layout(events: historicalEvents, viewport: viewport, now: .now)) { marker in
                     Button { selectedHistoricalMarker = marker } label: {
                         Group {
@@ -251,10 +265,35 @@ struct HorizonView: View {
                 }
             }
         }.contentShape(Rectangle())
-        .onChange(of: viewport.scrollOffset) { _, _ in hoverText = nil; hoveredSample = nil }
-        .onChange(of: store.state.settings.privacy) { _, _ in hoverText = nil; hoveredSample = nil }
-        .onChange(of: store.state.settings.hiddenHistoryAccounts) { _, _ in hoverText = nil; hoveredSample = nil }
-        .onChange(of: timelineAccounts.map(\.id)) { _, _ in hoverText = nil; hoveredSample = nil }
+        .onChange(of: viewport.scrollOffset) { _, _ in if !historyPinned { hoverText = nil; hoveredSample = nil } }
+        .onChange(of: store.state.settings.historyEnabled) { _, _ in hoverText = nil; hoveredSample = nil; historyPinned = false }
+        .onChange(of: store.state.settings.privacy) { _, _ in hoverText = nil; hoveredSample = nil; historyPinned = false }
+        .onChange(of: store.state.settings.hiddenHistoryAccounts) { _, _ in hoverText = nil; hoveredSample = nil; historyPinned = false }
+        .onChange(of: timelineAccounts.map(\.id)) { _, _ in hoverText = nil; hoveredSample = nil; historyPinned = false }
+    }
+    private var sampleAnchor: CGPoint? {
+        guard let sample = hoveredSample else { return nil }
+        return CGPoint(x: viewport.position(at: sample.point.at), y: plotTop + NSDecimalNumber(decimal: sample.point.remaining).doubleValue / 100 * plotHeight)
+    }
+    private func inspectSample(direction: Int) {
+        guard store.state.settings.historyEnabled else { return }
+        var samples: [(ProviderAccount, HistoryPoint)] = []
+        for series in historySeries {
+            for point in series.points { samples.append((series.account, point)) }
+        }
+        samples.sort { left, right in
+            if left.1.at == right.1.at { return left.0.id < right.0.id }
+            return left.1.at < right.1.at
+        }
+        guard !samples.isEmpty else { return }
+        let current = samples.firstIndex { $0.0.id == hoveredSample?.account.id && $0.1.at == hoveredSample?.point.at }
+        let index = current.map { min(samples.count - 1, max(0, $0 + direction)) } ?? (direction > 0 ? 0 : samples.count - 1)
+        let sample = samples[index]
+        let x = viewport.position(at: sample.1.at)
+        viewport.scroll(to: x - viewport.viewportWidth / 2)
+        position.scrollTo(x: viewport.scrollOffset)
+        showHistorySample(account: sample.0, point: sample.1)
+        historyPinned = true
     }
     private func updateHistoryHover(_ location: CGPoint?) {
         guard let location else { hoverText = nil; hoveredSample = nil; return }
@@ -270,19 +309,23 @@ struct HorizonView: View {
             UsageHistory.estimatedPoint(points: series.points, x: location.x, y: location.y, viewport: viewport, plotTop: plotTop, plotHeight: plotHeight).map { (series.account, $0) }
         }.first : nil
         if store.state.settings.historyEnabled, date <= .now, (plotTop...plotBottom).contains(location.y), let (account, point) = nearest ?? estimate {
-            hoveredSample = (account, point)
-            var details = historyHelp(account)
-            details += "\n\(Format.percent(100 - point.remaining)) Used · \(Format.date(point.at, zone: store.state.settings.zone))"
-            if point.estimated { details += "\nEstimated Linear Connection From Previous Observation" }
-            if let previous = point.replenishedFrom {
-                details += "\nCapacity Rose From \(Format.percent(previous)) to \(Format.percent(point.remaining)) · Observed Between Polls"
-                if let prior = point.previousObservedAt {
-                    details += "\n\(Format.date(prior, zone: store.state.settings.zone)) – \(Format.date(point.at, zone: store.state.settings.zone))"
-                }
-            }
-            hoverText = details
+            showHistorySample(account: account, point: point)
         } else { hoverText = nil; hoveredSample = nil }
     }
+    private func showHistorySample(account: ProviderAccount, point: HistoryPoint) {
+        hoveredSample = (account, point)
+        var details = historyHelp(account)
+        details += "\n\(Format.percent(100 - point.remaining)) Used · \(Format.date(point.at, zone: store.state.settings.zone))"
+        if point.estimated { details += "\nEstimated Linear Connection From Previous Observation" }
+        if let previous = point.replenishedFrom {
+            details += "\nCapacity Rose From \(Format.percent(previous)) to \(Format.percent(point.remaining)) · Observed Between Polls"
+            if let prior = point.previousObservedAt {
+                details += "\n\(Format.date(prior, zone: store.state.settings.zone)) – \(Format.date(point.at, zone: store.state.settings.zone))"
+            }
+        }
+        hoverText = details
+    }
+
     private var navigator: some View {
         GeometryReader { geometry in
             let trackWidth = max(1, geometry.size.width - 2)
@@ -294,7 +337,7 @@ struct HorizonView: View {
                 let thumb = Path(roundedRect: CGRect(x: overview.left + 1, y: 1, width: overview.width, height: 20), cornerRadius: 5)
                 context.fill(thumb, with: .color(Color(hex: "#483A64")))
                 context.stroke(thumb, with: .color(Theme.accent), lineWidth: 1)
-                let markers = events + (store.state.settings.historyEnabled ? historicalEvents : [])
+                let markers = events + historicalEvents
                 let groups = Dictionary(grouping: markers) { event in
                     "\(calendar.startOfDay(for: event.date).timeIntervalSince1970)/\(event.expiration)/\(event.reportedAt == nil)"
                 }
@@ -455,6 +498,8 @@ private extension Date.FormatStyle {
 /// A non-interactive tracking surface: event buttons and scrolling retain hit testing.
 struct HistoryPointerTracking: NSViewRepresentable {
     var text: String? = nil
+    var pinned = false
+    var anchor: CGPoint? = nil
     var onMove: (CGPoint?) -> Void
 
     func makeNSView(context: Context) -> TrackingView {
@@ -465,6 +510,8 @@ struct HistoryPointerTracking: NSViewRepresentable {
 
     func updateNSView(_ view: TrackingView, context: Context) {
         view.onMove = onMove
+        view.pinned = pinned
+        if let anchor { view.pointer = anchor }
         view.showPopup(text)
     }
     static func dismantleNSView(_ view: TrackingView, coordinator: ()) { view.hidePopup() }
@@ -473,7 +520,8 @@ struct HistoryPointerTracking: NSViewRepresentable {
         var onMove: ((CGPoint?) -> Void)?
         private var area: NSTrackingArea?
         private var popup: NSPanel?
-        private var pointer = NSPoint.zero
+        var pointer = NSPoint.zero
+        var pinned = false
         func hidePopup() { popup?.orderOut(nil) }
         func showPopup(_ text: String?) {
             guard let text, let window, let screen = window.screen else { hidePopup(); return }
@@ -524,10 +572,11 @@ struct HistoryPointerTracking: NSViewRepresentable {
 
         override func mouseEntered(with event: NSEvent) { mouseMoved(with: event) }
         override func mouseMoved(with event: NSEvent) {
+            guard !pinned else { return }
             pointer = convert(event.locationInWindow, from: nil)
             onMove?(pointer)
         }
-        override func mouseExited(with event: NSEvent) { hidePopup(); onMove?(nil) }
+        override func mouseExited(with event: NSEvent) { if !pinned { hidePopup(); onMove?(nil) } }
     }
 }
 
