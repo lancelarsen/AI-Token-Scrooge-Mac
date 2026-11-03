@@ -188,3 +188,10 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - Hosted run 41549873958 published preview-37-1 for 17f054f. Its 71-test suite had zero failures and one skipped installed-Codex test because the runner has no Codex CLI. Downloaded archive checksum, strict codesign verification and arm64 architecture passed. Signature is ad-hoc; no notarization claim.
 - Launched the extracted archive and verified the running executable path points into artifacts/downloaded-preview-37/extracted. Empty dashboard and standard demo rendered with bundled artwork; evidence: artifacts/preview-37-native-launch.png. This is local launch evidence, not a clean-machine Gatekeeper test.
 - Native inspection exposed a clipped final timeline selector. The stack used 12-point spacing and intrinsic heights, while the source height calculation assumes 66-point cards and 6-point spacing. Matched those source constants in the SwiftUI selector stack. Canonical build passed (artifacts/history-selector-layout-build.log); native screenshot confirms all four cards now fit completely (artifacts/history-selector-layout-native.png). Dense eight-account acceptance remains open.
+
+### Eight-account selector access — 2026-11-02
+
+- On 71a4aeb, temporarily duplicated the four demo account configurations with distinct IDs and Two-suffixed nicknames. No view or height-calculation changes were made for the fixture.
+- Native accessibility exposed all eight selectors. Scrolling the main dashboard exposed the complete eighth card and navigator; clicking Claude Personal Two removed its selected state. Navigator Decrement changed the visible start from November 2 to November 1. Evidence: artifacts/eight-selectors-lower-native.png and artifacts/eight-selectors-upper-native.png.
+- This verifies eight-account selector and navigation access at the current wide window, not dense endpoint labels or compact-window parity.
+- Restored Models/DemoData.swift byte-for-byte to the standard fixture. Both fixture and restored canonical builds passed (artifacts/eight-selectors-build.log and artifacts/eight-selectors-restored-build.log).
