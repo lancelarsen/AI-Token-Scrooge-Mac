@@ -7,9 +7,14 @@ BUILD_DIR="$ROOT_DIR/build/package"
 APP_NAME="AI Token Scrooge"
 APP_BUNDLE="$BUILD_DIR/Build/Products/Release/$APP_NAME.app"
 mkdir -p "$OUTPUT_DIR"
+RELEASE_DAY="$(TZ=America/Chicago date +%Y.%-m.%-d)"
+RELEASE_REVISION="${SCROOGE_RELEASE_REVISION:-0}"
+[[ "$RELEASE_REVISION" =~ ^[0-9]{1,3}$ ]] || { echo "Release revision must be 0–999." >&2; exit 1; }
+DISPLAY_VERSION="v$RELEASE_DAY.$(printf '%03d' "$((10#$RELEASE_REVISION))")"
+BUILD_NUMBER="$((1000 + $(git rev-list --count HEAD)))"
 xcodebuild -project AITokenScrooge.xcodeproj -scheme AITokenScrooge \
   -configuration Release -destination 'platform=macOS,arch=arm64' \
-  -derivedDataPath "$BUILD_DIR" build > "$OUTPUT_DIR/build.log" 2>&1
+  -derivedDataPath "$BUILD_DIR" MARKETING_VERSION="$RELEASE_DAY" CURRENT_PROJECT_VERSION="$BUILD_NUMBER" SCROOGE_DISPLAY_VERSION="$DISPLAY_VERSION" build > "$OUTPUT_DIR/build.log" 2>&1
 /usr/bin/plutil -lint "$APP_BUNDLE/Contents/Info.plist"
 ARCHS_FOUND="$(/usr/bin/lipo -archs "$APP_BUNDLE/Contents/MacOS/$APP_NAME")"
 [[ "$ARCHS_FOUND" == "arm64" ]] || { echo "Expected Apple silicon-only app; got $ARCHS_FOUND" >&2; exit 1; }
@@ -17,7 +22,7 @@ for resource in token_baron.png openai.png github.svg claude.svg github-app.json
   [[ -f "$APP_BUNDLE/Contents/Resources/$resource" ]] || { echo "Missing bundle resource: $resource" >&2; exit 1; }
 done
 VERSION="$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$APP_BUNDLE/Contents/Info.plist")"
-ZIP_PATH="$OUTPUT_DIR/AI-Token-Scrooge-Mac-$VERSION-arm64-preview.zip"
+ZIP_PATH="$OUTPUT_DIR/AI-Token-Scrooge-Mac-$DISPLAY_VERSION-arm64-preview.zip"
 if [[ -n "${SCROOGE_SIGNING_IDENTITY:-}" ]]; then
   /usr/bin/codesign --force --options runtime --timestamp --sign "$SCROOGE_SIGNING_IDENTITY" "$APP_BUNDLE"
 fi

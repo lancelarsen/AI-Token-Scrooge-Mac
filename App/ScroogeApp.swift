@@ -21,6 +21,7 @@ import Network
                 .onAppear { delegate.store = store }
         }
         .defaultSize(width: 1460, height: 900)
+        .commands { CommandGroup(after: .appInfo) { Button("Check for Updates…") { AppUpdater.shared.checkNow() } } }
         Settings { SettingsView().environment(store) }
             .defaultSize(width: 1000, height: 800)
         MenuBarExtra {
@@ -96,6 +97,7 @@ struct MenuBarContent: View {
         ], intentIdentifiers: [])
         center.setNotificationCategories([category])
         guard ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] != "1" else { return }
+        _ = AppUpdater.shared
         wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor [weak self] in self?.refreshAfterResume() }
         }

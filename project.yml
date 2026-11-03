@@ -3,6 +3,10 @@ options:
   bundleIdPrefix: com.lancelarsen
   deploymentTarget:
     macOS: '26.0'
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.10.1
 settings:
   base:
     SWIFT_VERSION: '6.0'
@@ -12,14 +16,31 @@ settings:
     CODE_SIGN_STYLE: Manual
     ENABLE_APP_SANDBOX: NO
     ENABLE_HARDENED_RUNTIME: YES
-    MARKETING_VERSION: '0.1.0'
-    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: '2026.11.3'
+    CURRENT_PROJECT_VERSION: 100
+    SCROOGE_DISPLAY_VERSION: v2026.11.3.000
 targets:
   AITokenScrooge:
     productName: AI Token Scrooge
     type: application
     platform: macOS
     sources: [App, Models, Stores, Services, Views, Support, Resources]
+    info:
+      path: Config/AppInfo.plist
+      properties:
+        CFBundleDisplayName: AI Token Scrooge
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSApplicationCategoryType: public.app-category.developer-tools
+        ScroogeDisplayVersion: $(SCROOGE_DISPLAY_VERSION)
+        SUFeedURL: https://github.com/lancelarsen/AI-Token-Scrooge-Mac/releases/download/mac-updates/appcast.xml
+        SUPublicEDKey: cOkQfi8gwENKw97+LlsJDdM/zn3nPO9geVUpaEA0104=
+        SUEnableAutomaticChecks: true
+        SUAutomaticallyUpdate: false
+        SUScheduledCheckInterval: 28800
+        SUVerifyUpdateBeforeExtraction: true
+        SURequireSignedFeed: true
+        SUSendProfileInfo: false
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.lancelarsen.AITokenScrooge
@@ -31,6 +52,7 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: AI Token Scrooge
     dependencies:
       - sdk: libsqlite3.tbd
+      - package: Sparkle
   ScroogeTests:
     type: bundle.unit-test
     platform: macOS

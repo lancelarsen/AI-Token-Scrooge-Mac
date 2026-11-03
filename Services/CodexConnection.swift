@@ -69,7 +69,7 @@ actor CodexConnection {
         await connection.beginReading(stream)
         do {
             _ = try await connection.call("initialize", parameters: .object([
-                "clientInfo": .object(["name": .string("ai_reset_radar"), "title": .string("AI Token Scrooge"), "version": .string("0.1.0")]),
+                "clientInfo": .object(["name": .string("ai_reset_radar"), "title": .string("AI Token Scrooge"), "version": .string(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "development")]),
                 "capabilities": .object(["experimentalApi": .bool(true)])]))
             try await connection.write(.object(["method": .string("initialized")]))
             return connection

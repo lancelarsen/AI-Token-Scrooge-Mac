@@ -4,6 +4,7 @@ struct SettingsView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    @ObservedObject private var updater = AppUpdater.shared
     @State private var pendingRetention: Int?
     var body: some View {
         VStack(spacing: 0) {
@@ -11,6 +12,15 @@ struct SettingsView: View {
             ScrollView {
                 VStack(spacing: 12) {
                     if store.isDemo { Text("Demo changes stay in this preview. Notification tests use macOS.").font(.system(size: 13)).foregroundStyle(Theme.accent).frame(maxWidth: .infinity, alignment: .leading) }
+                    SettingsCard(title: "App Updates", symbol: "arrow.down.circle") {
+                        Text(AppUpdater.displayVersion).font(.headline)
+                        Toggle("Automatically Check for Updates", isOn: $updater.automaticChecks)
+                        Text("Checks every eight hours. Downloads and installation require your choice.").font(.caption).foregroundStyle(Theme.secondary)
+                        HStack {
+                            Button("Check Now") { updater.checkNow() }.buttonStyle(ScroogeButtonStyle()).disabled(!updater.canCheck)
+                            if let checked = updater.lastChecked { Text("Last checked \(checked.formatted(date: .abbreviated, time: .shortened))").font(.caption).foregroundStyle(Theme.secondary) }
+                        }
+                    }
                     SettingsCard(title: "Time Zone", symbol: "globe") {
                         Menu {
                             Picker("Time Zone", selection: Binding(get: { store.state.settings.zone.identifier }, set: { zone in store.edit { $0.settings.timeZoneID = zone } })) {
@@ -26,6 +36,12 @@ struct SettingsView: View {
                                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.border))
                         }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
                             .accessibilityLabel("Time Zone").accessibilityValue(store.state.settings.zone.identifier)
+                    }
+                    SettingsCard(title: "History and Alerts", symbol: "clock.arrow.circlepath", help: "Choose how long to keep recorded usage and alerts. Increasing retention cannot recover deleted records.") {
+                        Picker("Keep History and Alerts", selection: Binding(get: { store.state.settings.historyRetentionDays }, set: { days in
+                            if days < store.state.settings.historyRetentionDays { pendingRetention = days }
+                            else { store.edit { $0.settings.historyRetentionDays = days } }
+                        })) { ForEach(Array(Set([7,30,60,90,180,365,store.state.settings.historyRetentionDays])).sorted(), id: \.self) { Text("\($0) Days").tag($0) } }
                     }
                     SettingsCard(title: "Notifications", symbol: "desktopcomputer") {
                         Text("Choose how Scrooge gets your attention.").font(.system(size: 12)).foregroundStyle(Theme.secondary)
@@ -46,12 +62,6 @@ struct SettingsView: View {
                                 }.buttonStyle(ScroogeButtonStyle())
                             }
                         }
-                    }
-                    SettingsCard(title: "History and Alerts", symbol: "clock.arrow.circlepath", help: "Choose how long to keep recorded usage and alerts. Increasing retention cannot recover deleted records.") {
-                        Picker("Keep History and Alerts", selection: Binding(get: { store.state.settings.historyRetentionDays }, set: { days in
-                            if days < store.state.settings.historyRetentionDays { pendingRetention = days }
-                            else { store.edit { $0.settings.historyRetentionDays = days } }
-                        })) { ForEach(Array(Set([7,30,60,90,180,365,store.state.settings.historyRetentionDays])).sorted(), id: \.self) { Text("\($0) Days").tag($0) } }
                     }
                     SettingsCard(title: "Quiet Hours", symbol: "moon", help: "Quiet notification delivery during this time range while monitoring continues.") {
                         Toggle("Quiet Hours", isOn: binding(\.quietHours))
