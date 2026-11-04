@@ -54,9 +54,7 @@ struct SettingsView: View {
                         }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
                             .accessibilityLabel("Time Zone").accessibilityValue(Format.timeZoneName(store.state.settings.zone))
                     }
-                    SettingsCard(title: "History and Alerts", symbol: "gearshape") {
-                        Text("Choose how long to keep recorded usage and alerts. Shortening this period removes older records; increasing it cannot restore deleted records.")
-                            .font(.system(size: 13)).foregroundStyle(Theme.secondary)
+                    SettingsCard(title: "History and Alerts", symbol: "gearshape", description: "Choose how long to keep recorded usage and alerts. Shortening this period removes older records; increasing it cannot restore deleted records.") {
                         Menu {
                             ForEach(Array(Set([7,30,60,90,180,365,store.state.settings.historyRetentionDays])).sorted(), id: \.self) { days in
                                 Button("\(days) Days") {
@@ -75,8 +73,7 @@ struct SettingsView: View {
                         }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
                             .accessibilityLabel("Keep History and Alerts").accessibilityValue("\(store.state.settings.historyRetentionDays) Days")
                     }
-                    SettingsCard(title: "Notifications", symbol: "desktopcomputer") {
-                        Text("Choose how Scrooge gets your attention.").font(.system(size: 13)).foregroundStyle(Theme.secondary)
+                    SettingsCard(title: "Notifications", symbol: "desktopcomputer", description: "Choose how Scrooge gets your attention.") {
                         settingsSwitch("Popup Notifications", isOn: binding(\.notifications))
                         settingsSwitch("Alert on Icon", isOn: binding(\.alertOnIcon))
                     }
@@ -98,8 +95,7 @@ struct SettingsView: View {
                             }
                         }
                     }
-                    SettingsCard(title: "Quiet Hours", symbol: "moon", help: "Quiet notification delivery during this time range while monitoring continues.", headerToggle: binding(\.quietHours)) {
-                        Text("A little peace, right on schedule.").font(.system(size: 13)).foregroundStyle(Theme.secondary)
+                    SettingsCard(title: "Quiet Hours", symbol: "moon", help: "Quiet notification delivery during this time range while monitoring continues.", headerToggle: binding(\.quietHours), description: "A little peace, right on schedule.") {
                         QuietHoursControl(start: binding(\.quietStartHour), end: binding(\.quietEndHour))
                             .disabled(!store.state.settings.quietHours)
                             .opacity(store.state.settings.quietHours ? 1 : 0.5)
@@ -168,19 +164,25 @@ struct SettingsCard<Content: View>: View {
     let symbol: String
     var help: String? = nil
     var headerToggle: Binding<Bool>? = nil
+    var description: String? = nil
     @ViewBuilder var content: Content
     var body: some View {
         ScroogeCard(inset: 16) {
             VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 6) {
-                    if let text = help ?? SettingsHelpCopy.values[title] { SettingsInfoIcon(text: text) }
-                    HStack(spacing: 10) {
-                        ActionIcon(symbol: symbol, size: 21).frame(width: 24)
-                        Text(title).font(.system(size: 21, weight: .semibold))
-                    }.foregroundStyle(Theme.accent)
-                    if let headerToggle {
-                        Spacer()
-                        Toggle(title, isOn: headerToggle).toggleStyle(ScroogeSwitchStyle(showsLabel: false)).frame(width: 40, height: 20).accessibilityLabel(title)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        if let text = help ?? SettingsHelpCopy.values[title] { SettingsInfoIcon(text: text) }
+                        HStack(spacing: 10) {
+                            ActionIcon(symbol: symbol, size: 21).frame(width: 24).environment(\.actionForeground, Theme.accent)
+                            Text(title).font(.system(size: 21, weight: .semibold))
+                        }.foregroundStyle(Theme.accent)
+                        if let headerToggle {
+                            Spacer()
+                            Toggle(title, isOn: headerToggle).toggleStyle(ScroogeSwitchStyle(showsLabel: false)).frame(width: 40, height: 20).accessibilityLabel(title)
+                        }
+                    }
+                    if let description {
+                        Text(description).font(.system(size: 13)).foregroundStyle(Color(hex: "#A5A8BA"))
                     }
                 }
                 content

@@ -92,8 +92,7 @@ struct AccountSettingsView: View {
                                 if reserve.hasPartialDetails { Text("Provider supplied only partial credit details.").foregroundStyle(Theme.secondary) }
                             }
                         }
-                        SettingsCard(title: "Other Alerts", symbol: "desktopcomputer") {
-                            Text("Warning and critical levels are adjusted directly on the dashboard bars.").font(.system(size: 13)).foregroundStyle(Theme.secondary)
+                        SettingsCard(title: "Other Alerts", symbol: "desktopcomputer", description: "Warning and critical levels are adjusted directly on the dashboard bars.") {
                             ruleToggle("Capacity Exhausted", path: \.exhausted, help: "Alert when a monitored allowance has no remaining capacity.")
                             ruleToggle("Capacity Restored", path: \.restored, help: "Alert when an exhausted allowance has capacity again and the provider confirms usage is allowed.")
                             ruleToggle("Reset Expiry Reminders", path: \.expiry, help: "Remind you before available earned resets expire.")
