@@ -369,3 +369,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Corrected both navigator variants from20-point to12-point card side margins, matching HorizonView's source padding. Their22-point height remains source-correct.
 - Canonical build passed (`artifacts/navigator-margins-build.log`). Wide empty navigator now starts at44pt with card edge32pt. Populated navigator uses the same correction but drag behavior after resizing remains to be verified.
 - Runtime window1496pt wide differs from1463pt reference; exact screenshot matching is still open, including font metrics, timeline header padding and chart anchors.
+
+### History sample popup content and intrinsic width (image37)
+- Replaced account-filter help reuse with the source sample structure: account/plan heading, period plus used percentage, timestamp, then optional coverage/interpolation/replenishment details. Observed Between Polls now occupies its own line.
+- Popup body uses source #BEC1D2. Width derives from text metrics and is capped420pt instead of stretching short samples to420pt.
+- Canonical build passed (`artifacts/history-popup-format-build.log`). In demo, focused Usage history and pressed Right: accessibility value reported OpenAI/Personal/Plus, Weekly ·22% Used, timestamp and coverage as separate lines. No live credentials touched.
+- Main-window capture did not include the separate floating popup panel, so rendered popup width/line wrapping remains unverified. Keyboard selection/format evidence does not establish pointer-hover or all detail-variant parity.

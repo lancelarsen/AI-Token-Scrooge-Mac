@@ -377,11 +377,17 @@ struct HorizonView: View {
     }
     private func showHistorySample(account: ProviderAccount, point: HistoryPoint) {
         hoveredSample = (account, point)
-        var details = historyHelp(account)
-        details += "\n\(Format.percent(100 - point.remaining)) Used · \(Format.date(point.at, zone: store.state.settings.zone))"
+        let name = store.state.settings.privacy ? "Account" : account.nickname
+        let period = account.provider == .copilot ? "Monthly" : "Weekly"
+        var details = "\(account.provider.rawValue) / \(name) · \(Format.plan(account.provider, store.state.snapshots[account.id]?.planType))"
+        details += "\n\(period) · \(Format.percent(100 - point.remaining)) Used\n\(Format.date(point.at, zone: store.state.settings.zone))"
+        if let first = presentation.series.first(where: { $0.account.id == account.id })?.points.first,
+           first.at > viewport.firstDate {
+            details += "\nHistory Begins \(Format.date(first.at, zone: store.state.settings.zone))"
+        }
         if point.estimated { details += "\nEstimated Linear Connection From Previous Observation" }
         if let previous = point.replenishedFrom {
-            details += "\nCapacity Rose From \(Format.percent(previous)) to \(Format.percent(point.remaining)) · Observed Between Polls"
+            details += "\nCapacity Rose From \(Format.percent(previous)) to \(Format.percent(point.remaining))\nObserved Between Polls"
             if let prior = point.previousObservedAt {
                 details += "\n\(Format.date(prior, zone: store.state.settings.zone)) – \(Format.date(point.at, zone: store.state.settings.zone))"
             }
@@ -601,11 +607,16 @@ struct HistoryPointerTracking: NSViewRepresentable {
                 panel.level = .floating; popup = panel
             }
             let lines = text.split(separator: "\n", maxSplits: 1).map(String.init)
+            let lineWidths = text.components(separatedBy: "\n").enumerated().map { index, line in
+                (line as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: index == 0 ? 14 : 13,
+                    weight: index == 0 ? .semibold : .regular)]).width
+            }
+            let popupWidth = min(420, screen.visibleFrame.width - 16, ceil((lineWidths.max() ?? 0) + 28))
             let content = NSHostingView(rootView:
                 VStack(alignment: .leading, spacing: 5) {
                     Text(lines[0]).font(.system(size: 14, weight: .semibold)).foregroundStyle(Color(hex: "#F2F1F5"))
-                    if lines.count > 1 { Text(lines[1]).font(.system(size: 13)).foregroundStyle(Theme.secondary) }
-                }.padding(.horizontal, 14).padding(.vertical, 10).frame(maxWidth: 420, alignment: .leading)
+                    if lines.count > 1 { Text(lines[1]).font(.system(size: 13)).foregroundStyle(Theme.dialogText) }
+                }.padding(.horizontal, 14).padding(.vertical, 10).frame(width: popupWidth, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
                     .background(Color(hex: "#222329"), in: RoundedRectangle(cornerRadius: 12))
                     .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: "#65577F"))))
