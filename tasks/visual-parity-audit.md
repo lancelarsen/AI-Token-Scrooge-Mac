@@ -122,3 +122,7 @@ Confirmed the retention menu also collapsed to a borderless text label at runtim
 ## Account Settings Fields and Help
 
 Compared image 14 and captured SettingsPage.cs. Account name now uses the reference 32-point dark entry with bottom focus underline and 12-point column gap. Added visible help icons to Account, Available Resets, Connection, polling, monitoring and account-alert controls. Runtime demo screenshot confirmed those icons and field rendering. Subsequent source comparison corrected account header to 20 horizontal/12 vertical padding, connection description to 13-point type, and shared settings-card inner spacing from 12 to the source's 8. Final canonical build passed; final spacing and compact screenshots remain pending.
+
+## First-Launch Timeline
+
+Compared image 19 with the running empty Mac dashboard. Added a distinct no-account timeline presentation: single Today heading/date/marker, 216-point plot region, lavender rail and history boundary, full-width navigator fill, and no percentage axis or select-account status. Populated accounts retain the existing interactive timeline path. Canonical build passed and first-launch runtime screenshot verified the new presentation. Remaining image-19 differences include typography metrics, navigator grip artwork and exact outer geometry; compact and transition checks remain pending.

@@ -29,6 +29,9 @@ struct HorizonView: View {
                     }
                 }
                 Divider().overlay(Theme.border)
+                if store.state.accounts.isEmpty {
+                    emptyTimeline
+                } else {
                 HStack(alignment: .top, spacing: 16) {
                     selectors.frame(width: 90)
                     Divider()
@@ -49,7 +52,13 @@ struct HorizonView: View {
                         }
                     }
                 }.frame(height: timelineHeight)
-                navigator.frame(height: 22)
+                }
+                if store.state.accounts.isEmpty {
+                    RoundedRectangle(cornerRadius: 5).fill(Theme.activeControl)
+                        .overlay(RoundedRectangle(cornerRadius: 5).stroke(Theme.accent))
+                        .overlay(Image(systemName: "ellipsis").font(.system(size: 10)).foregroundStyle(Theme.accent))
+                        .frame(height: 22)
+                } else { navigator.frame(height: 22) }
                 if let historyStatus {
                     Text(historyStatus).font(.system(size: 13)).foregroundStyle(Theme.secondary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("historyStatus")
@@ -109,6 +118,30 @@ struct HorizonView: View {
           }
         }
     }
+    private var emptyTimeline: some View {
+        HStack(spacing: 16) {
+            Color.clear.frame(width: 90)
+            Divider()
+            Canvas { context, size in
+                let left: CGFloat = 40
+                let anchor = left + 88
+                var rail = Path()
+                rail.move(to: CGPoint(x: left, y: 56))
+                rail.addLine(to: CGPoint(x: size.width, y: 56))
+                context.stroke(rail, with: .color(Theme.accent.opacity(0.7)), lineWidth: 2)
+                context.draw(Text("Today").font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.accent), at: CGPoint(x: anchor, y: 7))
+                let date = Date.now.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone))
+                context.draw(Text(date).font(.system(size: 12)).foregroundStyle(Theme.secondary), at: CGPoint(x: anchor, y: 31))
+                context.fill(Path(ellipseIn: CGRect(x: anchor - 8, y: 48, width: 16, height: 16)), with: .color(Color(hex: "#D1BEFF")))
+                if store.state.settings.historyEnabled {
+                    var boundary = Path()
+                    boundary.move(to: CGPoint(x: left, y: 88))
+                    boundary.addLine(to: CGPoint(x: left, y: size.height - 4))
+                    context.stroke(boundary, with: .color(Theme.accent), style: StrokeStyle(lineWidth: 2, dash: [5, 4]))
+                }
+            }.accessibilityLabel("Today. No connected accounts or upcoming events.")
+        }.frame(height: 216)
+    }
     private var plotTop: Double { 56 + 32 }
     private var plotBottom: Double { timelineHeight - 8 }
     private var plotHeight: Double { max(1, plotBottom - plotTop) }
@@ -134,6 +167,7 @@ struct HorizonView: View {
     }
     private var heading: some View { HStack { Image(systemName: "clock.arrow.circlepath").font(.system(size: 30)).foregroundStyle(Theme.accent); Text("Reset Horizon").font(.system(size: 26, weight: .semibold)) } }
     private var historyStatus: String? {
+        guard !store.state.accounts.isEmpty else { return nil }
         if !store.state.settings.historyEnabled { return events.isEmpty ? "No Upcoming Events Reported" : nil }
         guard viewport.visibleStart < .now else { return nil }
         let visible = historySeries
