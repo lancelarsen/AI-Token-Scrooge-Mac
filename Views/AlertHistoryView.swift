@@ -125,11 +125,12 @@ struct DetailLine: View {
 }
 
 struct DialogActionLabel: View {
+    @Environment(\.actionForeground) private var foreground
     let title: String
     let symbol: String
     var body: some View {
         HStack(spacing: 9) {
-            Image(systemName: symbol).font(.system(size: 20)).foregroundStyle(Theme.accent)
+            Image(systemName: symbol).font(.system(size: 20)).foregroundStyle(foreground)
             Text(title).font(.system(size: 14)).foregroundStyle(.white)
         }
     }

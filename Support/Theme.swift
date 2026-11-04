@@ -5,6 +5,7 @@ enum Theme {
     static let card = Color(hex: "#1C1E24")
     static let border = Color(hex: "#383B46")
     static let control = Color(hex: "#232429")
+    static let activeControl = Color(hex: "#483A64")
     static let accent = Color(hex: "#C3ADF8")
     static let secondary = Color(hex: "#B6B8C8")
     static let amber = Color(hex: "#EAAA51")
@@ -29,14 +30,42 @@ extension Color {
         return String(format: "#%02X%02X%02X", Int(rgb.redComponent * 255), Int(rgb.greenComponent * 255), Int(rgb.blueComponent * 255))
     }
 }
+private struct ActionForegroundKey: EnvironmentKey {
+    static let defaultValue: Color = Theme.accent
+}
+extension EnvironmentValues {
+    var actionForeground: Color {
+        get { self[ActionForegroundKey.self] }
+        set { self[ActionForegroundKey.self] = newValue }
+    }
+}
 struct ScroogeButtonStyle: ButtonStyle {
     var selected = false
+    var segmented = false
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 14)).padding(.horizontal, 16).frame(minHeight: 44)
-            .background(selected ? Theme.accent.opacity(0.28) : Theme.control)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#45464D")))
-            .opacity(configuration.isPressed ? 0.7 : 1)
+        Surface(configuration: configuration, selected: selected, segmented: segmented)
+    }
+    private struct Surface: View {
+        let configuration: ButtonStyleConfiguration
+        let selected: Bool
+        let segmented: Bool
+        @Environment(\.isEnabled) private var enabled
+        @State private var hovered = false
+        private var highlighted: Bool { selected || (enabled && (hovered || configuration.isPressed)) }
+        var body: some View {
+            configuration.label
+                .font(.system(size: 14))
+                .foregroundStyle(.white)
+                .environment(\.actionForeground, highlighted ? .white : Theme.accent)
+                .padding(.horizontal, segmented ? 0 : 16)
+                .frame(minHeight: 44)
+                .background(highlighted ? Theme.activeControl : Theme.control)
+                .clipShape(RoundedRectangle(cornerRadius: segmented ? 0 : 10))
+                .overlay {
+                    if !segmented { RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#45464D")) }
+                }
+                .onHover { hovered = $0 }
+        }
     }
 }
 struct ActionLabel: View {
@@ -82,6 +111,7 @@ struct ProviderIcon: View {
 
 
 struct ActionIcon: View {
+    @Environment(\.actionForeground) private var foreground
     let symbol: String
     var size: CGFloat = 19
     private var resource: String? {
@@ -99,20 +129,20 @@ struct ActionIcon: View {
                 VStack(spacing: size * 0.12) {
                     ForEach(0..<3) { _ in
                         HStack(spacing: size * 0.18) {
-                            ForEach(0..<2) { _ in Circle().stroke(Theme.accent, lineWidth: 1.2).frame(width: size * 0.22, height: size * 0.22) }
+                            ForEach(0..<2) { _ in Circle().stroke(foreground, lineWidth: 1.2).frame(width: size * 0.22, height: size * 0.22) }
                         }
                     }
                 }
             } else if symbol == "battery.100percent" || symbol == "battery.25percent" {
                 ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 3).stroke(Theme.accent, lineWidth: 1.5).frame(height: size * 0.64)
-                    RoundedRectangle(cornerRadius: 1).fill(Theme.accent)
+                    RoundedRectangle(cornerRadius: 3).stroke(foreground, lineWidth: 1.5).frame(height: size * 0.64)
+                    RoundedRectangle(cornerRadius: 1).fill(foreground)
                         .frame(width: symbol == "battery.25percent" ? size * 0.64 : size * 0.18, height: size * 0.32)
                         .padding(.leading, size * 0.18)
                 }
             } else if let resource, let image = ThemeImages.image(resource, extension: "svg") {
-                Image(nsImage: image).resizable().scaledToFit()
-            } else { Image(systemName: symbol).font(.system(size: size)).foregroundStyle(Theme.accent) }
+                Image(nsImage: image).renderingMode(.template).resizable().scaledToFit().foregroundStyle(foreground)
+            } else { Image(systemName: symbol).font(.system(size: size)).foregroundStyle(foreground) }
         }.frame(width: size, height: size).accessibilityHidden(true)
     }
 }

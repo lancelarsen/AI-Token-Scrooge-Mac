@@ -91,7 +91,7 @@ struct DashboardView: View {
                 ForEach(AccountSort.allCases, id: \.self) { sort in
                     Button { store.edit { AccountPolicy.selectSort(sort, state: &$0) } } label: {
                         HStack(spacing: 10) { ActionIcon(symbol: icon(sort), size: 20); Text(sort.rawValue).font(.system(size: 13)) }.frame(maxWidth: .infinity, minHeight: 44)
-                    }.buttonStyle(.plain).background(store.state.settings.accountSort == sort ? Theme.accent.opacity(0.28) : Theme.control)
+                    }.buttonStyle(ScroogeButtonStyle(selected: store.state.settings.accountSort == sort, segmented: true))
                         .overlay(alignment: .trailing) { if sort != AccountSort.allCases.last { Rectangle().fill(Theme.border).frame(width: 1) } }
                 }
             }.clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
@@ -179,7 +179,7 @@ struct QuotaRow: View {
                             ActionIcon(symbol: enabled ? "bell.badge" : "bell.slash", size: 22)
                                 .font(.system(size: 18)).foregroundStyle(Theme.accent)
                                 .frame(width: 40, height: 46)
-                                .background(store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) == enabled ? Theme.accent.opacity(0.28) : Theme.control)
+                                .background(store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) == enabled ? Theme.activeControl : Theme.control)
                         }.buttonStyle(.plain)
                             .accessibilityAddTraits(store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) == enabled ? .isSelected : [])
                             .help("\(enabled ? "Enable" : "Disable") Alerts for \(window.name)")
