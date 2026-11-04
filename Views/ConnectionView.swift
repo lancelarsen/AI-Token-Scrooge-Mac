@@ -68,16 +68,16 @@ struct ConnectionView: View {
             } else if provider == .copilot {
                 Menu {
                     Button("AI credits") { unit = .credits }
-                    Button("Premium requests") { unit = .requests }
+                    Button("Legacy premium requests") { unit = .requests }
                 } label: {
                     HStack {
-                        Text(unit == .credits ? "AI credits" : "Premium requests")
+                        Text(unit == .credits ? "AI credits" : "Legacy premium requests")
                         Spacer()
                         Image(systemName: "chevron.down").font(.system(size: 10))
                     }.padding(.horizontal, 12).frame(height: 32)
                         .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
                 }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
-                    .accessibilityLabel("Billing Unit").accessibilityValue(unit == .credits ? "AI credits" : "Premium requests")
+                    .accessibilityLabel("Billing Unit").accessibilityValue(unit == .credits ? "AI credits" : "Legacy premium requests")
                 TextField("Fallback allowance (optional; detected automatically when available)", text: $allowance).modifier(ConnectionFieldStyle())
                 Button { advanced.toggle() } label: {
                     DialogActionLabel(title: advanced ? "Use browser sign-in instead" : "Use an access token instead", symbol: advanced ? "arrow.up.right.square" : "key")
@@ -86,6 +86,7 @@ struct ConnectionView: View {
                 if !advanced { GitHubConnectView(nickname: nickname, unit: $unit, allowance: $allowance) } else {
                 SecureField("Fine-grained personal access token", text: $token).modifier(ConnectionFieldStyle())
                 TextField("Organization billing owner (optional)", text: $organization).modifier(ConnectionFieldStyle())
+                ConnectionStatusLine(text: error ?? "")
                 Button {
                     connecting = true; error = nil
                     connectionTask = Task {
@@ -103,7 +104,6 @@ struct ConnectionView: View {
             } else {
                 ClaudeConnectView(nickname: nickname, original: store.state.accounts.first { $0.id == store.reconnectAccountID })
             }
-            if let error { Text(error).foregroundStyle(Theme.amber) }
             Button { dismiss() } label: { DialogActionLabel(title: "Cancel", symbol: "xmark").frame(maxWidth: .infinity, alignment: .leading) }
                 .buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction).disabled(connecting)
         }.font(.system(size: 14)).frame(maxWidth: 576).padding(32).frame(maxWidth: .infinity, alignment: .top)
@@ -129,5 +129,17 @@ private struct ConnectionFieldStyle: ViewModifier {
                 Rectangle().fill(focused ? Theme.accent : Theme.secondary.opacity(0.55))
                     .frame(height: focused ? 2 : 1).padding(.horizontal, 10)
             }
+    }
+}
+
+/// WinUI retains the empty status label above the connection action.
+struct ConnectionStatusLine: View {
+    let text: String
+    var body: some View {
+        Text(text.isEmpty ? " " : text)
+            .foregroundStyle(Theme.secondary)
+            .frame(minHeight: 19, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityHidden(text.isEmpty)
     }
 }

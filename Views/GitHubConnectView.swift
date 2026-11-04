@@ -13,8 +13,8 @@ struct GitHubConnectView: View {
     @State private var status = ""
     private let flow = GitHubDeviceFlow()
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            if !status.isEmpty { Text(status).foregroundStyle(Theme.secondary) }
+        VStack(alignment: .leading, spacing: 18) {
+            ConnectionStatusLine(text: status)
             if let challenge {
                 Text(challenge.userCode).font(.system(size: 30, weight: .semibold, design: .monospaced)).textSelection(.enabled)
                 Text("Enter this code on GitHub. Only approve a code you started here.").font(.callout)

@@ -15,8 +15,8 @@ struct CodexConnectView: View {
     @State private var closed = false
     @State private var listener: Task<Void, Never>?
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            if !status.isEmpty { Text(status).foregroundStyle(Theme.secondary) }
+        VStack(alignment: .leading, spacing: 18) {
+            ConnectionStatusLine(text: status)
             Button {
                 Task { if connection == nil { await start() } else { await finish() } }
             } label: { DialogActionLabel(title: connection == nil ? "Sign in with OpenAI" : "Check Sign-In", symbol: "person").frame(maxWidth: .infinity, alignment: .leading) }

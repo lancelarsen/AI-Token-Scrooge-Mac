@@ -311,3 +311,10 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched captured ActionButton.cs's20pt icon slot and9pt text gap in ActionLabel (previously19/10). Total horizontal allocation is unchanged.
 - Custom line-color Add button now uses the same thin vector plus as other Add actions rather than an SF Symbol fallback.
 - Canonical build passed (`artifacts/control-icon-consistency-build.log`). Inspected Settings Time Zone/retention arrows and Check Now after build: matching chevron sizes, readable labels, no clipping. Custom-color Add instance not reopened in this pass; its runtime check remains open.
+
+### Connection status-row spacing (images21–25)
+- Captured Codex/GitHub/Claude forms retain an empty status label between fields and Sign In, with18-point gaps. Mac omitted empty status entirely, placing actions37 points too high.
+- Added shared ConnectionStatusLine with19-point minimum height and18-point child spacing. Advanced GitHub now places errors/status before Connect account, matching source order; blank status is hidden from accessibility.
+- Matched GitHub billing label `Legacy premium requests`.
+- Canonical build passed (`artifacts/connection-status-spacing-build.log`). Opened Codex form without starting authentication: nickname bottom to Sign In top now55 points, matching image21; Cancel remains18 points below the action. Full text visible.
+- Form content width currently576 points versus approximately550 in reference; other provider runtime layouts and active sign-in states remain unverified. No browser login or credential operation started.

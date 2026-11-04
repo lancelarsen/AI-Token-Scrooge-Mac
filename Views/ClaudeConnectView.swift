@@ -14,8 +14,8 @@ struct ClaudeConnectView: View {
     @State private var closed = false
     private let client = ClaudeClient()
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            if !status.isEmpty { Text(status).foregroundStyle(Theme.secondary) }
+        VStack(alignment: .leading, spacing: 18) {
+            ConnectionStatusLine(text: status)
             Button {
                 busy = true
                 operation = Task {
