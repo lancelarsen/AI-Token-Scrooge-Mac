@@ -453,3 +453,10 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Added Windows-compatible `--scenario` fixture selection when entering demo: offline, auth, permission, unknown, exhausted, due, partial, history-long and reserve-only. Healthy and no-reset supplement the standard fixture for conditional row comparisons. Live state is still restored through the existing demo boundary; scenario code only constructs synthetic data.
 - Canonical build passed (`artifacts/demo-scenarios-build.log`). A standalone executable compiled the actual Models, Format, LocalStore and PackedHistoryRun sources and passed assertions for all 12 scenarios, standard defaults, preserved offline usage and fixture independence (`artifacts/demo-scenario-check.swift`). Added focused regression coverage to CoreTests; the hosted XCTest suite was not run in this pass.
 - This enables equivalent-state capture; it does not itself prove visual parity. Next captures should exercise missing-reset column reservation, healthy notes, unknown and exhausted bars, and status messages.
+
+### Missing-reset and unknown usage runtime pass
+
+- Launched isolated no-reset fixture and inspected all four wide account cards: reset columns remain reserved, no invented countdown/date is rendered, and usage bars retain their alignment. Compact missing-reset rendering is still outstanding.
+- Unknown fixture exposed mismatched labels. Changed bar labels to Windows `Usage unavailable` / `Left unavailable`; native wide capture verified both labels on every quota and empty fill rather than zero usage. Exact text metrics remain different.
+- Restored the Windows CardNote conditions: healthy provider messages and manual allowance notes remain visible unless explicitly suppressed by its Claude/GitHub rules; provider-paused usage is shown; nonhealthy notes include the health name. This corrects overly broad healthy-note suppression from the earlier pass.
+- Canonical build and diff checks passed (`artifacts/quota-unavailable-status-build.log`). Provider-note branches are source-verified, not yet exhaustively exercised in UI.

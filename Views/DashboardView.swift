@@ -217,8 +217,16 @@ struct QuotaRow: View {
         }
     }
     private var quotaNote: String {
-        !account.enabled ? "Monitoring Disabled" : snapshot.health == .demo ? "Demo data" :
-            snapshot.health == .healthy ? "" : snapshot.message ?? snapshot.health.rawValue
+        if !account.enabled { return "Monitoring Disabled" }
+        if snapshot.health == .demo { return "Demo data" }
+        if snapshot.health != .healthy {
+            let name = snapshot.health.rawValue
+            let status = name.prefix(1).uppercased() + name.dropFirst()
+            return "\(status): \(snapshot.message ?? "")"
+        }
+        if snapshot.usageAllowed == false { return "Provider reports usage is paused" }
+        if account.provider == .claude || snapshot.message == "Allowance reported by GitHub; billing usage may lag." { return "" }
+        return snapshot.message ?? (window.allowanceSource == .manual ? "User-entered allowance · Billing data may lag" : "")
     }
     private var quotaLabel: some View {
         VStack(alignment: .leading, spacing: 4) {

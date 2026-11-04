@@ -49,9 +49,9 @@ struct UsageBar: View {
                 }
                 // Keep labels above the draggable markers without intercepting input.
                 HStack {
-                    Text("\(Format.percent(window.usedPercent)) used").fontWeight(.semibold)
+                    Text(window.usedPercent.map { "\(Format.percent($0)) used" } ?? "Usage unavailable").fontWeight(.semibold)
                     Spacer()
-                    Text("\(Format.percent(window.remainingPercent)) left")
+                    Text(window.remainingPercent.map { "\(Format.percent($0)) left" } ?? "Left unavailable")
                 }
                 .font(.system(size: 16)).padding(.horizontal, 15)
                 .allowsHitTesting(false).accessibilityHidden(true)
