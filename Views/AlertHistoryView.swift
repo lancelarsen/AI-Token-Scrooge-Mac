@@ -126,6 +126,13 @@ struct DetailsDialog<Content: View>: View {
         .frame(maxHeight: maximumHeight)
         .fixedSize(horizontal: false, vertical: true)
         .background(Theme.dialogBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(Color(hex: "#65577F"), lineWidth: 1)
+                .allowsHitTesting(false)
+        }
+        .presentationCornerRadius(16)
         .preferredColorScheme(.dark)
     }
 }

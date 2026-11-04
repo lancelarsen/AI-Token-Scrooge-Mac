@@ -430,3 +430,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - `QuotaRowView.SetWideLayout` reserves its 200-point reset column even when no reset is reported; compact mode likewise keeps two equal columns. Restored those empty layout slots without rendering a false reset value. This corrects the earlier conditional-layout pass's over-removal of the column.
 - Added plain accessible buttons for quota descriptions and reset details, matching the Windows tap targets. They open the existing usage dialog independently from alarms and threshold dragging.
 - Canonical build and diff checks passed (`artifacts/quota-details-targets-build.log`). Native demo verification: clicking the first quota description and then its reset label each opened the correct OpenAI Personal Plus / Codex 5-Hour dialog with 38% used and 62% left. Missing-reset fixture rendering remains unverified.
+
+### Shared details-dialog frame
+
+- Compared reference 13, `ThemedDialogs.cs` and Windows `App.xaml`: shared details dialogs now explicitly use a 16-point rounded frame with a 1-point #65577F outline, rather than relying solely on native sheet chrome. The overlay does not intercept input.
+- Canonical build and diff checks passed (`artifacts/dialog-outline-build.log`). Native post-change border rendering still needs comparison; the pre-change popup was inspected, but its capture was scaled and insufficient for pixel measurement. Full screenshot parity remains unproven.
