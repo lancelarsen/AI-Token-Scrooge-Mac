@@ -182,3 +182,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Settings, connection forms and Alert History now derive initial dimensions from dashboard geometry through a shared environment value, rather than measuring keyWindow after presentation. Standalone Settings retains its 1000x800 default.
 - Canonical build passed (`artifacts/compact-sheets-build.log`). At a 790-point dashboard width, Settings and the OpenAI connection form both rendered at 742 points (1484 Retina pixels); provider chooser retained its separate compact width. No authentication was started.
 - Alert History uses the same sizing calculation but runtime presentation of that screen remains unverified in this pass. Content parity, native Settings scene behavior and exact typography remain open.
+
+### App Updates card hierarchy and demo isolation
+- Compared image 31 and captured SettingsPage.cs: changed version to regular 16-point text, heading icon to settings, separate 13-point status and 12-point last-check lines, and half-width refresh-icon action.
+- Demo update toggle now edits local preview state; manual Check Now is disabled. Wording explicitly says manual checks because Sparkle background scheduling is independent of demo mode.
+- Canonical build passed (`artifacts/update-card-parity-build.log`). Compact rendering inspected. Toggled preview checks off, closed/reopened Settings, and confirmed real updater setting remained on; Check Now remained disabled.
+- Sparkle's native update availability/install interface differs from Windows. No update check/download/install was initiated. Exact typography and available-update presentation remain open.

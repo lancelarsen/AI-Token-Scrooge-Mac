@@ -6,6 +6,7 @@ struct SettingsView: View {
     @Environment(\.scenePhase) private var scenePhase
     @ObservedObject private var updater = AppUpdater.shared
     @State private var pendingRetention: Int?
+    @State private var demoAutomaticChecks = true
     @Environment(\.dashboardHostSize) private var hostSize
     private var panelSize: CGSize {
         guard let hostSize else { return CGSize(width: 1000, height: 800) }
@@ -18,14 +19,24 @@ struct SettingsView: View {
             ScrollView {
                 VStack(spacing: 12) {
                     if store.isDemo { Text("Demo changes stay in this preview. Notification tests use macOS.").font(.system(size: 13)).foregroundStyle(Theme.accent).frame(maxWidth: .infinity, alignment: .leading) }
-                    SettingsCard(title: "App Updates", symbol: "arrow.down.circle") {
-                        Text(AppUpdater.displayVersion).font(.headline)
-                        settingsSwitch("Automatically Check for Updates", isOn: $updater.automaticChecks)
-                        Text("Checks every eight hours. Downloads and installation require your choice.").font(.caption).foregroundStyle(Theme.secondary)
-                        HStack {
-                            Button("Check Now") { updater.checkNow() }.buttonStyle(ScroogeButtonStyle()).disabled(!updater.canCheck)
-                            if let checked = updater.lastChecked { Text("Last checked \(checked.formatted(date: .abbreviated, time: .shortened))").font(.caption).foregroundStyle(Theme.secondary) }
-                        }
+                    SettingsCard(title: "App Updates", symbol: "gearshape") {
+                        Text("Version \(AppUpdater.displayVersion)").font(.system(size: 16))
+                        settingsSwitch("Check for Newer Versions", isOn: Binding(
+                            get: { store.isDemo ? demoAutomaticChecks : updater.automaticChecks },
+                            set: { if store.isDemo { demoAutomaticChecks = $0 } else { updater.automaticChecks = $0 } }
+                        ))
+                        Text(store.isDemo ? "Manual Update Checks Are Paused in Demo" : "Downloads and installation require your choice.")
+                            .font(.system(size: 13)).foregroundStyle(Color(hex: "#BEC1D2"))
+                        Text(updater.lastChecked.map { "Last Checked: \($0.formatted(date: .numeric, time: .shortened))" }
+                             ?? "Checks for updates every 8 hours while Scrooge is running.")
+                            .font(.system(size: 12)).foregroundStyle(Color(hex: "#A5A8BA"))
+                        HStack(spacing: 8) {
+                            Button { updater.checkNow() } label: {
+                                ActionLabel(title: "Check Now", symbol: "arrow.clockwise")
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo || !updater.canCheck)
+                            Color.clear.frame(maxWidth: .infinity).accessibilityHidden(true)
+                        }.fixedSize(horizontal: false, vertical: true)
                     }
                     SettingsCard(title: "Time Zone", symbol: "globe") {
                         Menu {
@@ -119,6 +130,7 @@ struct SettingsView: View {
         }.font(.system(size: 14)).frame(width: panelSize.width, height: panelSize.height).background(Theme.background).preferredColorScheme(.dark).tint(Theme.accent)
         .onAppear {
             store.refreshLoginItemStatus()
+            demoAutomaticChecks = updater.automaticChecks
 
         }
         .onChange(of: scenePhase) { _, phase in if phase == .active { store.refreshLoginItemStatus() } }
