@@ -323,3 +323,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Replaced the shared576-point form limit with measured reference widths: Codex550, GitHub browser544, GitHub advanced534; Claude retains576. Description text uses13.5pt to improve wrapping within the narrower forms.
 - Canonical build passed (`artifacts/connection-form-width-build.log`). Opened Codex, GitHub browser, and advanced forms: measured rendered field widths550/544/534 points, complete descriptions and controls, and retained blank status spacing. No authentication started or credentials entered.
 - Native font wrapping still differs from Segoe UI (Codex breaks before protected rather than Codex); Mac Keychain copy differs intentionally. Claude description change and active authentication states still need runtime comparison. This is a width correction, not proof of complete connection-screen parity.
+
+### Provider chooser surface and dimensions (image20)
+- Matched the dialog background (#222329) and one-point separator (#3B3D47), replacing dashboard-card colors.
+- Added the32-point title line box and130-point Cancel button width measured from image20. Retained320-point popup width,24-point padding,44-point provider buttons and10-point gaps.
+- Canonical build passed (`artifacts/provider-chooser-parity-build.log`). Runtime chooser rendered320x335 points versus reference approximately320x336, all three providers and Cancel visible. Native title/person glyph metrics and popup edge treatment remain different; exact parity is not claimed.

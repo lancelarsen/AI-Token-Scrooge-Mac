@@ -31,6 +31,7 @@ struct ConnectionView: View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Connect account").font(.system(size: 21, weight: .semibold)).foregroundStyle(Theme.accent)
+                    .frame(minHeight: 32, alignment: .leading)
                 ForEach([Provider.codex, .copilot, .claude]) { choice in
                     Button {
                         provider = choice
@@ -42,13 +43,13 @@ struct ConnectionView: View {
                     }.buttonStyle(ScroogeButtonStyle())
                 }
             }.padding(24)
-            Divider().overlay(Theme.border)
+            Rectangle().fill(Color(hex: "#3B3D47")).frame(height: 1)
             HStack {
                 Spacer()
-                Button { dismiss() } label: { DialogActionLabel(title: "Cancel", symbol: "xmark") }
+                Button { dismiss() } label: { DialogActionLabel(title: "Cancel", symbol: "xmark").frame(minWidth: 98) }
                     .buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction)
             }.padding(24)
-        }.frame(width: 320).background(Theme.card).preferredColorScheme(.dark)
+        }.frame(width: 320).background(Theme.dialogBackground).preferredColorScheme(.dark)
     }
     private var connectionDescription: String {
         switch provider {
