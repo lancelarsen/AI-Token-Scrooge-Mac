@@ -17,7 +17,7 @@ struct DashboardView: View {
                             toolbar
                             if store.accounts.isEmpty { emptyState }
                             ForEach(store.accounts) { account in
-                                AccountCard(account: account, wide: geometry.size.width > 1200)
+                                AccountCard(account: account, wide: geometry.size.width - 64 > 1050)
                                     .id(account.id)
                                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.accent, lineWidth: store.highlightedAccountID == account.id ? 3 : 0))
                                     .dropDestination(for: String.self) { items, _ in

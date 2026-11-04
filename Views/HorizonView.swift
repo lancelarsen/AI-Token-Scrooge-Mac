@@ -18,7 +18,15 @@ struct HorizonView: View {
             VStack(spacing: 18) {
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: 24) { heading; legend; historyToggle; Text(store.state.settings.historyEnabled ? "Scroll Left for History" : "Select Services to Filter Timeline").font(.system(size: 13)).foregroundStyle(Theme.secondary); Spacer(); settingsButton }
-                    VStack(alignment: .leading, spacing: 12) { HStack { heading; Spacer(); settingsButton }; HStack { legend; Spacer(); historyToggle } }
+                    VStack(alignment: .leading, spacing: 16) {
+                        HStack(spacing: 22) { heading; legend; Spacer(minLength: 0); settingsButton }
+                        HStack(spacing: 18) {
+                            historyToggle
+                            Text(store.state.settings.historyEnabled ? "Scroll Left for History" : "Select Services to Filter Timeline")
+                                .font(.system(size: 13)).foregroundStyle(Theme.secondary)
+                            Spacer(minLength: 0)
+                        }
+                    }
                 }
                 Divider().overlay(Theme.border)
                 HStack(alignment: .top, spacing: 16) {
