@@ -380,3 +380,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Source HistoryChartInput clamps popup width and position to the app root with8-point margins. Mac previously clamped to the screen, allowing details to extend beyond compact windows.
 - The existing AppKit tracking bridge now intersects the owning window's content-layout rectangle with the screen's visible frame, applying the same8-point margin to width/position calculations. Empty/offscreen bounds hide the popup.
 - Canonical build passed (`artifacts/history-popup-boundary-build.log`) and diff checks passed. Runtime floating-panel edge positioning remains unverified; no claim of complete tooltip parity. SwiftUI retains sample selection/text ownership and the existing panel remains noninteractive.
+
+### Timeline keyboard parity
+- Added chart Up/Down sample selection, Page Up/Down seven-day panning, Home return-to-today, Return/Space sample pinning and shared Escape clearing; added equivalent navigator pan/Home controls.
+- Matched Windows sample traversal scope to visible samples and removed automatic recentering during arrow selection. Panning/Home clear stale sample details.
+- Canonical build passed (`artifacts/history-keyboard-parity-build.log`). Demo chart Page Up moved Nov4 to the earliest Oct28 boundary; Right selected a visible OpenAI sample without a navigator-date change; Home returned Nov4 midnight and accessibility reported No sample selected.
+- Navigator-focused key paths and Return/Space remain untested at runtime; floating panel rendering remains separately unverified. Live state/credentials untouched.

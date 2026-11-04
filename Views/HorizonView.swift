@@ -266,11 +266,18 @@ struct HorizonView: View {
             }
             .focusable()
             .focusEffectDisabled()
-            .accessibilityLabel("Usage history. Use arrow keys to inspect samples; Escape dismisses details.")
+            .accessibilityLabel("Usage history. Use arrow keys to inspect samples; Page Up and Page Down move seven days; Home returns to today; Escape dismisses details.")
             .accessibilityValue(hoverText ?? "No sample selected")
             .onKeyPress(.leftArrow) { inspectSample(direction: -1); return .handled }
             .onKeyPress(.rightArrow) { inspectSample(direction: 1); return .handled }
-            .onKeyPress(.escape) { historyPinned = false; hoverText = nil; hoveredSample = nil; return .handled }
+            .onKeyPress(.upArrow) { inspectSample(direction: -1); return .handled }
+            .onKeyPress(.downArrow) { inspectSample(direction: 1); return .handled }
+            .onKeyPress(.pageUp) { panHistory(days: -7); return .handled }
+            .onKeyPress(.pageDown) { panHistory(days: 7); return .handled }
+            .onKeyPress(.home) { returnToToday(); return .handled }
+            .onKeyPress(.return) { inspectSample(direction: 0); return .handled }
+            .onKeyPress(.space) { inspectSample(direction: 0); return .handled }
+            .onKeyPress(.escape) { clearHistorySample(); return .handled }
 
             Group {
                 ForEach(HistoricalEventMarker.layout(events: historicalEvents, viewport: viewport, now: .now)) { marker in
@@ -338,11 +345,29 @@ struct HorizonView: View {
         guard let sample = hoveredSample else { return nil }
         return CGPoint(x: historyX(sample.point.at), y: plotTop + NSDecimalNumber(decimal: sample.point.remaining).doubleValue / 100 * plotHeight)
     }
+    private func clearHistorySample() {
+        historyPinned = false
+        hoverText = nil
+        hoveredSample = nil
+    }
+    private func panHistory(days: Double) {
+        clearHistorySample()
+        viewport.scroll(to: viewport.scrollOffset + days * viewport.pixelsPerDay)
+        position.scrollTo(x: viewport.scrollOffset)
+    }
+    private func returnToToday() {
+        clearHistorySample()
+        viewport.followToday()
+        position.scrollTo(x: viewport.scrollOffset)
+    }
     private func inspectSample(direction: Int) {
         guard store.state.settings.historyEnabled else { return }
         var samples: [(ProviderAccount, HistoryPoint)] = []
         for series in historySeries {
-            for point in series.points { samples.append((series.account, point)) }
+            for point in series.points where point.at >= viewport.visibleStart &&
+                viewport.position(at: point.at) <= viewport.scrollOffset + viewport.viewportWidth {
+                samples.append((series.account, point))
+            }
         }
         samples.sort { left, right in
             if left.1.at == right.1.at { return left.0.id < right.0.id }
@@ -350,11 +375,8 @@ struct HorizonView: View {
         }
         guard !samples.isEmpty else { return }
         let current = samples.firstIndex { $0.0.id == hoveredSample?.account.id && $0.1.at == hoveredSample?.point.at }
-        let index = current.map { min(samples.count - 1, max(0, $0 + direction)) } ?? (direction > 0 ? 0 : samples.count - 1)
+        let index = current.map { min(samples.count - 1, max(0, $0 + direction)) } ?? (direction >= 0 ? 0 : samples.count - 1)
         let sample = samples[index]
-        let x = viewport.position(at: sample.1.at)
-        viewport.scroll(to: x - viewport.viewportWidth / 2)
-        position.scrollTo(x: viewport.scrollOffset)
         showHistorySample(account: sample.0, point: sample.1)
         historyPinned = true
     }
@@ -438,6 +460,15 @@ struct HorizonView: View {
                 viewport.centerFromOverview(pointerX: value.location.x - 1, trackWidth: trackWidth)
                 position.scrollTo(x: viewport.scrollOffset)
             })
+            .focusable().focusEffectDisabled()
+            .onKeyPress(.leftArrow) { panHistory(days: -1); return .handled }
+            .onKeyPress(.upArrow) { panHistory(days: -1); return .handled }
+            .onKeyPress(.rightArrow) { panHistory(days: 1); return .handled }
+            .onKeyPress(.downArrow) { panHistory(days: 1); return .handled }
+            .onKeyPress(.pageUp) { panHistory(days: -7); return .handled }
+            .onKeyPress(.pageDown) { panHistory(days: 7); return .handled }
+            .onKeyPress(.home) { returnToToday(); return .handled }
+            .onKeyPress(.escape) { clearHistorySample(); return .handled }
             .accessibilityLabel("Timeline Navigator").accessibilityValue(Format.date(viewport.visibleStart, zone: store.state.settings.zone))
             .accessibilityAdjustableAction { direction in
                 viewport.scroll(to: viewport.scrollOffset + (direction == .increment ? 1 : -1) * viewport.pixelsPerDay)
