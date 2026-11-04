@@ -50,7 +50,7 @@ struct AccountSettingsView: View {
                                 Button {
                                     newColor = Color(hex: account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType))
                                     showColor = true
-                                } label: { Image(systemName: "plus").frame(width: 32, height: 32).background(Theme.control).clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.accent, lineWidth: 1)) }.buttonStyle(.plain).help("Add Custom Color")
+                                } label: { ActionIcon(symbol: "plus", size: 20).frame(width: 32, height: 32).background(Theme.control).clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.accent, lineWidth: 1)) }.buttonStyle(.plain).help("Add Custom Color")
                                     .sheet(isPresented: $showColor) {
                                         DetailsDialog(width: 360, maximumHeight: 640, closeTitle: "Cancel", primaryTitle: "Add Color", primarySymbol: "plus", primaryAction: {
                                             let hex = newColor.hex; store.edit { state in

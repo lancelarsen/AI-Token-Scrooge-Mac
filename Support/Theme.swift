@@ -80,7 +80,7 @@ struct ScroogeButtonStyle: ButtonStyle {
 struct ActionLabel: View {
     let title: String
     let symbol: String
-    var body: some View { HStack(spacing: 10) { ActionIcon(symbol: symbol, size: 19); if !title.isEmpty { Text(title) } } }
+    var body: some View { HStack(spacing: 9) { ActionIcon(symbol: symbol, size: 20); if !title.isEmpty { Text(title) } } }
 }
 struct ScroogeCard<Content: View>: View {
     var inset: CGFloat = 20

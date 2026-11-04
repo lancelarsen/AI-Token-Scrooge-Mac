@@ -47,7 +47,7 @@ struct SettingsView: View {
                             HStack {
                                 Text(Format.timeZoneName(store.state.settings.zone))
                                 Spacer()
-                                Image(systemName: "chevron.down").foregroundStyle(Theme.secondary)
+                                Image(systemName: "chevron.down").font(.system(size: 10)).foregroundStyle(Theme.secondary)
                             }.font(.system(size: 13)).padding(.horizontal, 12).frame(height: 32)
                                 .background(Theme.control, in: RoundedRectangle(cornerRadius: 8))
                                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.border))

@@ -305,3 +305,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Increased gap before Add Reminder from6 to8 points while retaining6-point row gaps.
 - Canonical build passed (`artifacts/reminder-order-build.log`). In isolated demo settings added a reminder: Info/1/Days appeared immediately after the existing1-day row and before12-hours. Deleted that created row and visually verified original list restoration. Live reminder settings untouched.
 - Editing existing amounts/units and invalid-entry feedback still require parity verification; default insertion/deletion evidence does not cover all editor states.
+
+### Shared control icon sizing
+- Corrected Time Zone chevron to10pt, consistent with other selector arrows; it previously inherited the13pt text font.
+- Matched captured ActionButton.cs's20pt icon slot and9pt text gap in ActionLabel (previously19/10). Total horizontal allocation is unchanged.
+- Custom line-color Add button now uses the same thin vector plus as other Add actions rather than an SF Symbol fallback.
+- Canonical build passed (`artifacts/control-icon-consistency-build.log`). Inspected Settings Time Zone/retention arrows and Check Now after build: matching chevron sizes, readable labels, no clipping. Custom-color Add instance not reopened in this pass; its runtime check remains open.
