@@ -126,3 +126,7 @@ Compared image 14 and captured SettingsPage.cs. Account name now uses the refere
 ## First-Launch Timeline
 
 Compared image 19 with the running empty Mac dashboard. Added a distinct no-account timeline presentation: single Today heading/date/marker, 216-point plot region, lavender rail and history boundary, full-width navigator fill, and no percentage axis or select-account status. Populated accounts retain the existing interactive timeline path. Canonical build passed and first-launch runtime screenshot verified the new presentation. Remaining image-19 differences include typography metrics, navigator grip artwork and exact outer geometry; compact and transition checks remain pending.
+
+## Compact Window Reachability
+
+Found the app scene imposed an 860-point minimum width, overriding DashboardView's 760-point minimum and preventing the 789-point compact reference viewport. Removed the redundant scene constraint; the dashboard remains the owner of minimum size. Canonical build passed. Runtime right-edge resize reached approximately 790 logical points (1580-pixel Retina capture), showing the compact header and wrapped horizon controls without truncation. Exact compact height and populated screenshots 26–31 remain to compare; this does not certify compact parity.

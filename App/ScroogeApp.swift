@@ -17,7 +17,6 @@ import Network
     var body: some Scene {
         Window("AI Token Scrooge", id: "dashboard") {
             DashboardView().environment(store)
-                .frame(minWidth: 860, minHeight: 600)
                 .onAppear { delegate.store = store }
         }
         .defaultSize(width: 1460, height: 900)
