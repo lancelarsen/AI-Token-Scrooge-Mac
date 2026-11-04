@@ -21,7 +21,7 @@ struct AccountSettingsView: View {
             ScrollView {
                 if let account {
                     VStack(spacing: 12) {
-                        SettingsCard(title: "Account", symbol: "person.crop.circle") {
+                        SettingsCard(title: "Account", symbol: "person") {
                             HStack {
                                 Text("Account Name").frame(width: 190, alignment: .leading)
                                 TextField("Account Name", text: $nicknameDraft).textFieldStyle(.roundedBorder)
@@ -56,10 +56,10 @@ struct AccountSettingsView: View {
                             HStack {
                                 Text("Polling Interval: \(account.effectivePollingMinutes) Min").frame(width: 210, alignment: .leading)
                                     .help("How often Scrooge automatically checks this account for updated usage, from 1 to 30 minutes. Shorter intervals show changes sooner; longer intervals make fewer requests. Changes save automatically.")
-                                MinuteSlider(value: Binding(get: { account.effectivePollingMinutes }, set: { value in update { $0.pollingMinutes = value } })).frame(height: 42)
+                                MinuteSlider(value: Binding(get: { account.effectivePollingMinutes }, set: { value in update { $0.pollingMinutes = value } })).frame(height: 44)
                             }
                             Toggle("Monitor This Account", isOn: Binding(get: { account.enabled }, set: { value in update { $0.enabled = value; $0.generation = UUID() } }))
-                                .toggleStyle(.switch).frame(minHeight: 36)
+                                .toggleStyle(ScroogeSwitchStyle()).frame(minHeight: 36)
                                 .help("Pause checks and alerts without removing this connection.")
                         }
                         if let savedSnapshot = store.state.snapshots[accountID], savedSnapshot.belongs(to: account), let reserve = savedSnapshot.reserve {
@@ -67,7 +67,7 @@ struct AccountSettingsView: View {
                                 Text("\(reserve.availableCount.map(String.init) ?? "Unknown") Available").font(.system(size: 20))
                                 if let credits = reserve.credits {
                                     ForEach(credits) { credit in
-                                        Text("Expires \(Format.date(credit.expiresAt, zone: store.state.settings.zone))").foregroundStyle(Color.orange)
+                                        Text("Expires \(Format.date(credit.expiresAt, zone: store.state.settings.zone))").foregroundStyle(Theme.amber)
                                     }
                                 } else { Text("Credit Details Unavailable").foregroundStyle(Theme.secondary) }
                                 if reserve.hasPartialDetails { Text("Provider supplied only partial credit details.").foregroundStyle(Theme.secondary) }
@@ -125,23 +125,52 @@ struct AccountSettingsView: View {
         Toggle(title, isOn: Binding(get: { store.state.settings.rule(accountID: accountID)[keyPath: path] }, set: { value in store.edit { state in
             var rule = state.settings.rule(accountID: accountID); rule[keyPath: path] = value; rule.windowID = nil
             state.settings.rules.removeAll { $0.accountID == accountID && $0.windowID == nil }; state.settings.rules.append(rule)
-        } })).toggleStyle(.switch).frame(minHeight: 36).help(help)
+        } })).toggleStyle(ScroogeSwitchStyle()).frame(minHeight: 36).help(help)
     }
 }
 
-struct MinuteSlider: NSViewRepresentable {
+struct MinuteSlider: View {
     @Binding var value: Int
-    func makeNSView(context: Context) -> NSSlider {
-        let slider = NSSlider(value: Double(value), minValue: 1, maxValue: 30, target: context.coordinator, action: #selector(Coordinator.changed(_:)))
-        slider.numberOfTickMarks = 30; slider.allowsTickMarkValuesOnly = true; slider.tickMarkPosition = .below
-        slider.isContinuous = true; slider.setAccessibilityLabel("Polling Interval in Minutes")
-        return slider
+    var body: some View {
+        GeometryReader { geometry in
+            let width = max(0, geometry.size.width - 28)
+            let x = 14 + width * Double(value - 1) / 29
+            Canvas { context, size in
+                let y = size.height / 2
+                context.fill(Path(roundedRect: CGRect(x: 14, y: y - 2, width: width, height: 4), cornerRadius: 2), with: .color(Color(hex: "#41434F")))
+                context.fill(Path(roundedRect: CGRect(x: 14, y: y - 2, width: max(0, x - 14), height: 4), cornerRadius: 2), with: .color(Color(hex: "#A990ED")))
+                for tick in 0..<30 {
+                    let position = 14 + width * Double(tick) / 29
+                    context.fill(Path(CGRect(x: position - 0.5, y: y - 6, width: 1, height: 12)), with: .color(Color(hex: "#A990ED")))
+                }
+                context.fill(Path(ellipseIn: CGRect(x: x - 10, y: y - 10, width: 20, height: 20)), with: .color(Color(hex: "#41434F")))
+                context.fill(Path(ellipseIn: CGRect(x: x - 5, y: y - 5, width: 10, height: 10)), with: .color(Theme.accent))
+            }
+            .contentShape(Rectangle())
+            .gesture(DragGesture(minimumDistance: 0).onChanged { event in
+                guard width > 0 else { return }
+                setMinute(Int(((event.location.x - 14) / width * 29).rounded()) + 1)
+            })
+        }
+        .focusable()
+        .onKeyPress(.leftArrow) { setMinute(value - 1); return .handled }
+        .onKeyPress(.downArrow) { setMinute(value - 1); return .handled }
+        .onKeyPress(.rightArrow) { setMinute(value + 1); return .handled }
+        .onKeyPress(.upArrow) { setMinute(value + 1); return .handled }
+        .onKeyPress(.home) { setMinute(1); return .handled }
+        .onKeyPress(.end) { setMinute(30); return .handled }
+        .accessibilityLabel("Polling Interval in Minutes, 1 to 30")
+        .accessibilityValue("\(value)")
+        .accessibilityAdjustableAction { direction in
+            switch direction {
+            case .increment: setMinute(value + 1)
+            case .decrement: setMinute(value - 1)
+            @unknown default: break
+            }
+        }
     }
-    func updateNSView(_ slider: NSSlider, context: Context) { context.coordinator.parent = self; if slider.integerValue != value { slider.integerValue = value } }
-    func makeCoordinator() -> Coordinator { Coordinator(self) }
-    @MainActor final class Coordinator: NSObject {
-        var parent: MinuteSlider
-        init(_ parent: MinuteSlider) { self.parent = parent }
-        @objc func changed(_ slider: NSSlider) { parent.value = slider.integerValue }
+    private func setMinute(_ proposed: Int) {
+        let next = min(30, max(1, proposed))
+        if value != next { value = next }
     }
 }

@@ -146,3 +146,26 @@ struct ActionIcon: View {
         }.frame(width: size, height: size).accessibilityHidden(true)
     }
 }
+
+/// Matches the reference switch geometry while retaining Toggle accessibility.
+struct ScroogeSwitchStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 12) {
+            configuration.label
+            Spacer(minLength: 12)
+            Button { configuration.isOn.toggle() } label: {
+                Capsule().fill(configuration.isOn ? Color(hex: "#8973DB") : Theme.control)
+                    .overlay(Capsule().stroke(configuration.isOn ? Color.clear : Theme.secondary, lineWidth: 1))
+                    .overlay(alignment: configuration.isOn ? .trailing : .leading) {
+                        Circle().fill(configuration.isOn ? Color(hex: "#141519") : Theme.secondary)
+                            .frame(width: 12, height: 12).padding(4)
+                    }
+                    .frame(width: 40, height: 20)
+            }
+            .buttonStyle(.plain)
+        }
+        .accessibilityRepresentation {
+            Toggle(isOn: configuration.$isOn) { configuration.label }.toggleStyle(.switch)
+        }
+    }
+}

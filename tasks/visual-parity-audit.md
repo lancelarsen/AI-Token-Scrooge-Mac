@@ -54,3 +54,7 @@ The supplied capture manifest contains invalid dimensions; use PNG headers for a
 ## Account Settings Pass
 
 Provider/account/plan heading, two-column name/color form, selected swatch border, switch-style alert controls, compact reserve summary and full-width connection actions now follow the reference. Panel targets 1000 x 800 with host-window limits. Canonical build passed; equivalent Mac desktop/compact captures, exact slider styling and custom-color wrapper remain to verify.
+
+## Account Control Rendering Verification
+
+Mac desktop demo inspected after build: switches now align to the right with 40 x 20 purple tracks and 12-point dark thumbs. Polling slider follows captured MinuteEditor.cs: 4-point rail, 30 twelve-point ticks, 20-point outer/10-point inner thumb, 14-point endpoint insets. Accessibility increment changed 2 to 3 minutes; decrement restored 2. Alert switch toggled off and on successfully. Expiry labels now use palette amber. Build passed. Remaining: help icons, exact card/header spacing, compact sizing, pointer/keyboard slider checks and color dialog comparison. This is partial visual verification, not full account-panel parity.
