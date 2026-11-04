@@ -47,7 +47,7 @@ struct AlertHistoryView: View {
             }
         }
         .sheet(item: $selectedAlert) { alert in
-            DetailsDialog(close: { selectedAlert = nil }) {
+            DetailsDialog(width: 342, close: { selectedAlert = nil }) {
                 AccountUsageDetailsView(accountID: alert.accountID, windowID: alert.windowID)
             }
         }
@@ -88,6 +88,7 @@ struct AccountUsageDetailsView: View {
 
 /// Shared Windows-style detail dialog: content-sized body and a separate action footer.
 struct DetailsDialog<Content: View>: View {
+    var width: CGFloat = 480
     var closeTitle = "Close"
     var primaryTitle: String? = nil
     var primaryAction: (() -> Void)? = nil
@@ -114,13 +115,13 @@ struct DetailsDialog<Content: View>: View {
                     }.buttonStyle(ScroogeButtonStyle())
                 }
                 Button(action: close) {
-                    DialogActionLabel(title: closeTitle, symbol: "xmark")
+                    DialogActionLabel(title: closeTitle, symbol: "xmark").frame(minWidth: 104)
                 }
                 .buttonStyle(ScroogeButtonStyle())
                 .keyboardShortcut(.cancelAction)
             }.padding(24)
         }
-        .frame(width: 480)
+        .frame(width: width)
         .frame(maxHeight: 560)
         .fixedSize(horizontal: false, vertical: true)
         .background(Theme.card)

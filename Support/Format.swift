@@ -38,6 +38,14 @@ enum Format {
         if minutes >= 60 { return "\(minutes / 60)h \(minutes % 60)m" }
         return "\(minutes)m"
     }
+    static func detailDate(_ date: Date?, zone: TimeZone) -> String {
+        guard let date else { return "Not supplied" }
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = zone
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss xxx"
+        return formatter.string(from: date)
+    }
     static func date(_ date: Date?, zone: TimeZone) -> String {
         guard let date else { return "Not Supplied by Provider" }
         let formatter = DateFormatter()

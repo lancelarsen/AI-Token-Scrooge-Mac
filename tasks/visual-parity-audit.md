@@ -138,3 +138,7 @@ Compared image 27 and QuotaRowView.cs with populated demo at approximately 790 l
 ## Account Card Source Measurements
 
 Matched AccountQuotaView.cs and MainPage.WithAccountSettings/WithOrderControls: 56-point reorder column, 1-point divider with 14-point vertical inset only in Custom Order, content padding 20/8/16/8, 12-point identity/usage spacing, 4-point quota-row spacing, and 44-point gear with 14 top/12 trailing margin. Wide layout now uses actual account-content width, 220-point identity, 156-point quota label and 200-point reset column. Canonical build passed. Compact demo screenshot verified revised card geometry against image 27; wide runtime comparison remains pending.
+
+## Usage Popup Dimensions and Timestamps
+
+Verified revised desktop cards at runtime. Compared usage popup with image 13: usage/reset detail dialogs now use 342-point width instead of 480, with a 136-point minimum Close action. Percentage-only windows omit the redundant numeric allowance. Usage detail timestamps now include seconds and UTC offset, with reference-style labels and a blank separator before account metadata. Canonical build passed; runtime weekly-usage dialog verified width, allowance omission and timestamp format. System-font metrics still wrap the last-fetch offset onto a second line where the Windows reference fits one; exact typography and demo message/identity fixture parity remain unresolved.

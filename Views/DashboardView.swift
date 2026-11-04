@@ -191,7 +191,7 @@ struct QuotaRow: View {
             }
         }
         .sheet(isPresented: $showDetails) {
-            DetailsDialog(close: { showDetails = false }) {
+            DetailsDialog(width: 342, close: { showDetails = false }) {
                 QuotaDetailsView(account: account, window: window, snapshot: snapshot)
             }
         }
@@ -260,14 +260,15 @@ struct QuotaDetailsView: View {
             Text(window.name)
             Text("\(Format.percent(window.usedPercent)) used · \(Format.percent(window.remainingPercent)) left")
             if let used = window.used, window.unit != .percent { DetailLine(label: "Used", value: "\(NSDecimalNumber(decimal: used).stringValue) \(window.unit.rawValue)") }
-            if let limit = window.limit { DetailLine(label: "Allowance", value: "\(NSDecimalNumber(decimal: limit).stringValue) · \(window.allowanceSource.rawValue.capitalized)") }
-            DetailLine(label: "Resets", value: Format.date(window.resetsAt, zone: store.state.settings.zone))
+            if let limit = window.limit, window.unit != .percent { DetailLine(label: "Allowance", value: "\(NSDecimalNumber(decimal: limit).stringValue) · \(window.allowanceSource.rawValue.capitalized)") }
+            DetailLine(label: "Resets", value: Format.detailDate(window.resetsAt, zone: store.state.settings.zone))
+            Color.clear.frame(height: 6)
             if !store.state.settings.privacy {
                 DetailLine(label: "Account", value: account.login ?? account.subject)
                 DetailLine(label: "Scope", value: account.scope)
             }
-            DetailLine(label: "Last Successful Fetch", value: Format.date(snapshot.observedAt, zone: store.state.settings.zone))
-            DetailLine(label: "Provider Data As Of", value: Format.date(snapshot.providerDataAt, zone: store.state.settings.zone))
+            DetailLine(label: "Last successful fetch", value: Format.detailDate(snapshot.observedAt, zone: store.state.settings.zone))
+            DetailLine(label: "Provider data as of", value: Format.detailDate(snapshot.providerDataAt, zone: store.state.settings.zone))
             if let message = snapshot.message { Text(message).foregroundStyle(Theme.secondary) }
             if !store.isDemo, let url = account.usageURL {
                 Text("Provider pages use your browser’s sign-in. Check its account and workspace before comparing.").font(.caption).foregroundStyle(Theme.secondary)
