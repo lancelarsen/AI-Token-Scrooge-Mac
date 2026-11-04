@@ -154,12 +154,7 @@ struct SettingsView: View {
         }.buttonStyle(.plain).accessibilityLabel(title).accessibilityAddTraits(selected ? .isSelected : [])
     }
     private func settingsSwitch(_ title: String, isOn: Binding<Bool>) -> some View {
-        Toggle(isOn: isOn) {
-            HStack(spacing: 6) {
-                if let help = SettingsHelpCopy.values[title] { SettingsInfoIcon(text: help) }
-                Text(title)
-            }
-        }
+        Toggle(title, isOn: isOn)
             .font(.system(size: 14))
             .toggleStyle(ScroogeSwitchStyle())
             .frame(minHeight: 36)

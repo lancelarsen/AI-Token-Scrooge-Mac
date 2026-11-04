@@ -270,3 +270,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Generated a demo test alert, reopened Settings → Alert History and inspected its actual populated row after the timestamp change. Verified three lines,80-point row height,28-point panel inset,16-point gap to Close, corrected `Nov 4, 12:39 PM` formatting and complete detail/delivery text at742-point panel width.
 - Clicked the account-level test alert: it opened Available resets for the matching OpenAI Personal account. This matches captured MainPage.Actions.cs OpenAccount behavior for a nil window ID and a reserve-bearing account.
 - Existing build470088e was used; no production code changed in this check. Only one delivered demo test row was exercised. Multi-row scrolling, refresh/expiration/undelivered icon variants and exact font metrics remain unverified against image08.
+
+### Global switch help-icon correction (images02/03/07)
+- Rechecked captured SettingsPage.Toggle: `showHelp` defaultsfalse for global switches, and only explicitly enabled account switches attach help. Earlier Mac helper incorrectly added info icons from the lookup table to all global switches.
+- Removed the extra global-switch icons, restoring the reference left alignment. Section heading and account-setting help remain intact.
+- Canonical build passed (`artifacts/settings-toggle-alignment-build.log`). Opened Settings and inspected Check for Newer Versions, Popup Notifications and Alert on Icon: labels now align at the card content edge; section help remains visible. No settings toggled.
+- Mac's additional Privacy Mode row is absent from image07 and remains an explicit layout difference; its privacy behavior should remain available when reconciling that placement. Other section icon geometry/typography remains open.
