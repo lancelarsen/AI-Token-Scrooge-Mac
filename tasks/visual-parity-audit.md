@@ -318,3 +318,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched GitHub billing label `Legacy premium requests`.
 - Canonical build passed (`artifacts/connection-status-spacing-build.log`). Opened Codex form without starting authentication: nickname bottom to Sign In top now55 points, matching image21; Cancel remains18 points below the action. Full text visible.
 - Form content width currently576 points versus approximately550 in reference; other provider runtime layouts and active sign-in states remain unverified. No browser login or credential operation started.
+
+### Connection form width verification (images21–25)
+- Replaced the shared576-point form limit with measured reference widths: Codex550, GitHub browser544, GitHub advanced534; Claude retains576. Description text uses13.5pt to improve wrapping within the narrower forms.
+- Canonical build passed (`artifacts/connection-form-width-build.log`). Opened Codex, GitHub browser, and advanced forms: measured rendered field widths550/544/534 points, complete descriptions and controls, and retained blank status spacing. No authentication started or credentials entered.
+- Native font wrapping still differs from Segoe UI (Codex breaks before protected rather than Codex); Mac Keychain copy differs intentionally. Claude description change and active authentication states still need runtime comparison. This is a width correction, not proof of complete connection-screen parity.

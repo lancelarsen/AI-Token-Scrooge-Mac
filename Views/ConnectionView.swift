@@ -57,11 +57,20 @@ struct ConnectionView: View {
         case .copilot: advanced ? "Advanced connection: use a fine-grained token with Plan read permission for personal billing. Organization billing requires authorized administration access. Your token stays protected in macOS Keychain." : "Sign in through GitHub in your browser. Scrooge reads your personal Copilot usage and protects this account’s sign-in in macOS Keychain."
         }
     }
+    // Match the rendered form widths in reference images21–25 while allowing
+    // the surrounding scroll view to constrain them on smaller windows.
+    private var formContentWidth: CGFloat {
+        switch provider {
+        case .codex: 550
+        case .copilot: advanced ? 534 : 544
+        case .claude: 576
+        }
+    }
     private var connectionForm: some View {
         ScrollView {
         VStack(alignment: .leading, spacing: 18) {
             Text("Connect \(provider == .codex ? "OpenAI Codex" : provider.rawValue)").font(.system(size: 26, weight: .semibold))
-            Text(connectionDescription).foregroundStyle(Theme.secondary).fixedSize(horizontal: false, vertical: true)
+            Text(connectionDescription).font(.system(size: 13.5)).foregroundStyle(Theme.secondary).fixedSize(horizontal: false, vertical: true)
             TextField("Account nickname (Personal, Work…)", text: $nickname).modifier(ConnectionFieldStyle())
             if provider == .codex {
                 CodexConnectView(nickname: nickname, original: store.state.accounts.first { $0.id == store.reconnectAccountID })
@@ -106,7 +115,7 @@ struct ConnectionView: View {
             }
             Button { dismiss() } label: { DialogActionLabel(title: "Cancel", symbol: "xmark").frame(maxWidth: .infinity, alignment: .leading) }
                 .buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction).disabled(connecting)
-        }.font(.system(size: 14)).frame(maxWidth: 576).padding(32).frame(maxWidth: .infinity, alignment: .top)
+        }.font(.system(size: 14)).frame(maxWidth: formContentWidth).padding(32).frame(maxWidth: .infinity, alignment: .top)
         }.frame(width: panelSize.width, height: panelSize.height).background(Color(hex: "#141519")).preferredColorScheme(.dark).tint(Theme.accent)
         .onDisappear { connectionTask?.cancel(); token = "" }
         .onAppear {
