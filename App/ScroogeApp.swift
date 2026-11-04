@@ -75,7 +75,22 @@ struct MenuBarContent: View {
               let store, !store.isLoading, !store.isDemo else { return }
         Task { await store.refresh() }
     }
-    func applicationDidBecomeActive(_ notification: Notification) { refreshAfterResume() }
+    private var appliedCompactDemoSize = false
+    func applicationDidBecomeActive(_ notification: Notification) {
+        // defaultSize is only a proposal; a saved frame can still win at launch.
+        // Apply the reference capture size once, only for explicitly compact demos.
+        if !appliedCompactDemoSize,
+           ProcessInfo.processInfo.arguments.contains("--demo"),
+           ProcessInfo.processInfo.arguments.contains("--compact"),
+           let window = NSApp.windows.first(where: { $0.title == "AI Token Scrooge" && $0.canBecomeMain }) {
+            appliedCompactDemoSize = true
+            var frame = window.frame
+            frame.origin.y += frame.height - 694
+            frame.size = NSSize(width: 789, height: 694)
+            window.setFrame(frame, display: true)
+        }
+        refreshAfterResume()
+    }
     func applicationWillTerminate(_ notification: Notification) {
         pathMonitor?.cancel()
         if let wakeObserver { NSWorkspace.shared.notificationCenter.removeObserver(wakeObserver) }

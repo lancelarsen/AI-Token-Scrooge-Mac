@@ -485,3 +485,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Historical markers now use the immediate reference tooltip, with provider/account/plan, labelled refresh or expiration date, and the recorded schedule description. The History Event dialog uses that same content with blank lines between grouped events, matching Windows source instead of adding report timestamps and an extra explanatory paragraph.
 - Account selector help now retains the Windows Show or Hide History, Resets and Refreshes instruction alongside history coverage/status, using the styled tooltip. Privacy masking remains applied.
 - Canonical build passed (`artifacts/history-marker-tooltip-build.log`) and diff checks passed. Native demo accessibility inspection confirmed complete selector help for all four accounts. Historical popup rendering and grouped-dialog appearance remain visually unverified; an attempted automation PageUp key was unsupported, so it provides no pan verification.
+
+### Compact capture sizing revalidation
+
+- Live relaunch contradicted the earlier assumption that defaultSize plus disabled restoration guaranteed compact dimensions: the process had --demo --compact but reopened at 1496 points wide. Added a once-per-launch frame application on activation, gated by both demo flags; regular launches keep existing restoration.
+- Canonical build passed (`artifacts/compact-demo-frame-build.log`). Native screenshot after relaunch measured 1578×1388 Retina pixels, proving the intended 789×694 frame.
+- Compared reference 26: the current populated compact selector rail/chart are too far right (chart starts around x215 versus reference x190); current fixed 90-point selector allocation has no compact adaptation. Header/timeline vertical placement and font metrics also remain different. This comparison does not establish screenshot parity.
