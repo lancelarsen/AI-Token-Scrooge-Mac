@@ -18,7 +18,7 @@ struct DashboardView: View {
                             toolbar
                             if store.accounts.isEmpty { emptyState }
                             ForEach(store.accounts) { account in
-                                AccountCard(account: account, wide: geometry.size.width - 64 > 1050)
+                                AccountCard(account: account, wide: geometry.size.width - 64 - (store.state.settings.accountSort == .custom ? 57 : 0) - 56 > 1050)
                                     .id(account.id)
                                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.accent, lineWidth: store.highlightedAccountID == account.id ? 3 : 0))
                                     .dropDestination(for: String.self) { items, _ in
@@ -134,24 +134,24 @@ struct AccountCard: View {
     let wide: Bool
     private var snapshot: QuotaSnapshot? { store.state.snapshots[account.id] }
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 0) {
             if store.state.settings.accountSort == .custom {
-                ActionIcon(symbol: "circle.grid.3x3.fill", size: 14).draggable(account.id).help("Drag to Reorder Account")
+                ActionIcon(symbol: "circle.grid.3x3.fill", size: 14).frame(width: 56, height: 44).contentShape(Rectangle()).draggable(account.id).help("Drag to Reorder Account")
                     .accessibilityLabel("Reorder \(store.state.settings.privacy ? "Account" : account.nickname)")
+                Rectangle().fill(Theme.border).frame(width: 1).padding(.vertical, 14)
             }
-            Rectangle().fill(Theme.border).frame(width: 1).padding(.vertical, 2)
-            let layout = wide ? AnyLayout(HStackLayout(spacing: 20)) : AnyLayout(VStackLayout(alignment: .leading, spacing: 14))
+            let layout = wide ? AnyLayout(HStackLayout(spacing: 12)) : AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
             layout {
-                identity.frame(width: wide ? 214 : nil, alignment: .leading)
-                VStack(spacing: 8) {
+                identity.frame(width: wide ? 220 : nil, alignment: .leading)
+                VStack(spacing: 4) {
                     if account.enabled, let snapshot, snapshot.belongs(to: account), !snapshot.windows.isEmpty {
                         ForEach(snapshot.windows) { window in QuotaRow(account: account, window: window, snapshot: snapshot, wide: wide) }
                     } else { Text(!account.enabled ? "Monitoring Disabled" : snapshot?.message ?? "Waiting for Usage Data").foregroundStyle(Theme.secondary).frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 16) }
                 }
-            }
-            Button { store.selectedAccount = account } label: { ActionLabel(title: "", symbol: "gearshape") }.buttonStyle(ScroogeButtonStyle()).help("Manage \(store.state.settings.privacy ? "Account" : account.nickname)")
-                .frame(maxHeight: .infinity, alignment: .top)
-        }.padding(.horizontal, 20).padding(.vertical, 12).background(Theme.card)
+            }.padding(.leading, 20).padding(.trailing, 16).padding(.vertical, 8)
+            Button { store.selectedAccount = account } label: { ActionIcon(symbol: "gearshape", size: 20).frame(width: 44, height: 44) }.buttonStyle(ScroogeButtonStyle(segmented: true)).clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border)).help("Manage \(store.state.settings.privacy ? "Account" : account.nickname)")
+                .padding(.top, 14).padding(.trailing, 12).frame(maxHeight: .infinity, alignment: .top)
+        }.background(Theme.card)
             .clipShape(RoundedRectangle(cornerRadius: 13)).overlay(RoundedRectangle(cornerRadius: 13).stroke(Theme.border))
     }
     private var identity: some View {
@@ -201,7 +201,7 @@ VStack(alignment: .leading, spacing: 5) {
                 Text(window.name).font(.system(size: 14))
                 Text(!account.enabled ? "Monitoring Disabled" : snapshot.health == .demo ? "Demo Data" : snapshot.health == .healthy ? "" : snapshot.message ?? snapshot.health.rawValue)
                     .font(.system(size: 11)).foregroundStyle(Theme.secondary)
-            }.frame(width: wide ? 150 : nil, alignment: .leading)
+            }.frame(width: wide ? 156 : nil, alignment: .leading)
     }
     private var usageControls: some View {
             HStack(spacing: 10) {
@@ -242,7 +242,7 @@ TimelineView(.periodic(from: .now, by: 30)) { context in
                             Text(Format.countdown(window.resetsAt, now: context.date)).font(.system(size: 20, weight: .semibold)).foregroundStyle(Theme.accent)
                         }
                         Text(Format.date(window.resetsAt, zone: store.state.settings.zone)).font(.system(size: 12)).foregroundStyle(Theme.secondary).padding(.leading, 35)
-                    }.frame(width: 165, alignment: .leading)
+                    }.frame(width: wide ? 200 : nil, alignment: .leading)
                 }
     }
 

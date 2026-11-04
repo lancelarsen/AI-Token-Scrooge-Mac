@@ -134,3 +134,7 @@ Found the app scene imposed an 860-point minimum width, overriding DashboardView
 ## Compact Account Columns
 
 Compared image 27 and QuotaRowView.cs with populated demo at approximately 790 logical points. Restored the account's vertical divider in compact mode and changed label/countdown layout to two equal flexible columns with the source 12-point gap. Canonical build passed. Runtime screenshot verified divider and countdown position alongside the label, with full-width alarm/bar row below. Scrolling outside the horizon moved the page vertically; scrolling over the horizon moved the timeline horizontally. Exact font metrics, card insets and full compact-height matching remain open.
+
+## Account Card Source Measurements
+
+Matched AccountQuotaView.cs and MainPage.WithAccountSettings/WithOrderControls: 56-point reorder column, 1-point divider with 14-point vertical inset only in Custom Order, content padding 20/8/16/8, 12-point identity/usage spacing, 4-point quota-row spacing, and 44-point gear with 14 top/12 trailing margin. Wide layout now uses actual account-content width, 220-point identity, 156-point quota label and 200-point reset column. Canonical build passed. Compact demo screenshot verified revised card geometry against image 27; wide runtime comparison remains pending.
