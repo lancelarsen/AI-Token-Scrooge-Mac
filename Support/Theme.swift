@@ -32,7 +32,7 @@ extension Color {
 struct ScroogeButtonStyle: ButtonStyle {
     var selected = false
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 12)).padding(.horizontal, 16).frame(minHeight: 44)
+        configuration.label.font(.system(size: 14)).padding(.horizontal, 16).frame(minHeight: 44)
             .background(selected ? Theme.accent.opacity(0.28) : Theme.control)
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#45464D")))

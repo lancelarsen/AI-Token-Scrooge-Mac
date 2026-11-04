@@ -54,3 +54,11 @@ This is a source-backed porting review, not a full security audit or a claim of 
 - History tooltip now matches the Windows white 14-point semibold heading and muted 13-point detail text.
 - Validation: canonical macOS build passed; native connection and quota dialogs visually inspected, Escape cancellation checked. No real account deletion or history pruning performed during this visual audit.
 - Platform-owned color-picker internals, permission prompts, Sparkle updater dialogs, and macOS typography/window chrome remain native rather than emulating Windows system UI.
+
+### Font-size parity audit (2026-11-03)
+Compared ActionButton, AccountSortControl, UsageBar, TimelineDayHeading, HorizonView, HistoryTimelineView, QuotaRowView, SettingsPage, QuietHoursRange and alert-history source.
+- Action buttons 14; sort controls 13; usage values 16 (used semibold, remaining regular).
+- Horizon heading 26; legend/hint/history 13; day 14 semibold/date 12; chart endpoint labels 10; exact reset dates 12.
+- Settings heading 26; description 13; available-reset count 20; quiet-hour labels 16; alert-history content 14; banner detail 12.
+- Existing matching provider titles, countdowns, badges, axes, dialog text and tooltip sizes retained.
+- Canonical build passed; native demo dashboard screenshot checked for timeline, buttons and usage labels. SF system font remains in use on Mac versus Segoe UI on Windows; numeric font-size parity is not a claim of identical glyph rasterization.

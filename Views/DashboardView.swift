@@ -90,7 +90,7 @@ struct DashboardView: View {
             HStack(spacing: 0) {
                 ForEach(AccountSort.allCases, id: \.self) { sort in
                     Button { store.edit { AccountPolicy.selectSort(sort, state: &$0) } } label: {
-                        HStack(spacing: 10) { ActionIcon(symbol: icon(sort), size: 20); Text(sort.rawValue).font(.system(size: 12)) }.frame(maxWidth: .infinity, minHeight: 44)
+                        HStack(spacing: 10) { ActionIcon(symbol: icon(sort), size: 20); Text(sort.rawValue).font(.system(size: 13)) }.frame(maxWidth: .infinity, minHeight: 44)
                     }.buttonStyle(.plain).background(store.state.settings.accountSort == sort ? Theme.accent.opacity(0.28) : Theme.control)
                         .overlay(alignment: .trailing) { if sort != AccountSort.allCases.last { Rectangle().fill(Theme.border).frame(width: 1) } }
                 }
@@ -204,7 +204,7 @@ struct QuotaRow: View {
                             Image(systemName: "clock").font(.system(size: 23)).foregroundStyle(clockColor)
                             Text(Format.countdown(window.resetsAt, now: context.date)).font(.system(size: 20, weight: .semibold)).foregroundStyle(Theme.accent)
                         }
-                        Text(Format.date(window.resetsAt, zone: store.state.settings.zone)).font(.system(size: 11)).foregroundStyle(Theme.secondary).padding(.leading, 35)
+                        Text(Format.date(window.resetsAt, zone: store.state.settings.zone)).font(.system(size: 12)).foregroundStyle(Theme.secondary).padding(.leading, 35)
                     }.frame(width: 165, alignment: .leading)
                 }
             }

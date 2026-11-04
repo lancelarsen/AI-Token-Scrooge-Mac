@@ -17,7 +17,7 @@ struct HorizonView: View {
         ScroogeCard {
             VStack(spacing: 18) {
                 ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 24) { heading; legend; historyToggle; Text(store.state.settings.historyEnabled ? "Scroll Left for History" : "Select Services to Filter Timeline").font(.system(size: 12)).foregroundStyle(Theme.secondary); Spacer(); settingsButton }
+                    HStack(spacing: 24) { heading; legend; historyToggle; Text(store.state.settings.historyEnabled ? "Scroll Left for History" : "Select Services to Filter Timeline").font(.system(size: 13)).foregroundStyle(Theme.secondary); Spacer(); settingsButton }
                     VStack(alignment: .leading, spacing: 12) { HStack { heading; Spacer(); settingsButton }; HStack { legend; Spacer(); historyToggle } }
                 }
                 Divider().overlay(Theme.border)
@@ -43,7 +43,7 @@ struct HorizonView: View {
                 }.frame(height: timelineHeight)
                 navigator.frame(height: 22)
                 if let historyStatus {
-                    Text(historyStatus).font(.callout).foregroundStyle(Theme.secondary)
+                    Text(historyStatus).font(.system(size: 13)).foregroundStyle(Theme.secondary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("historyStatus")
                 }
             }
@@ -123,7 +123,7 @@ struct HorizonView: View {
         let future = 56 + 21 + Double(max(1, groups.values.map(\.count).max() ?? 0)) * 76
         return max(selectors, future)
     }
-    private var heading: some View { HStack { Image(systemName: "clock.arrow.circlepath").foregroundStyle(Theme.accent); Text("Reset Horizon").fontWeight(.semibold) }.font(.system(size: 24)) }
+    private var heading: some View { HStack { Image(systemName: "clock.arrow.circlepath").font(.system(size: 30)).foregroundStyle(Theme.accent); Text("Reset Horizon").font(.system(size: 26, weight: .semibold)) } }
     private var historyStatus: String? {
         if !store.state.settings.historyEnabled { return events.isEmpty ? "No Upcoming Events Reported" : nil }
         guard viewport.visibleStart < .now else { return nil }
@@ -148,13 +148,13 @@ struct HorizonView: View {
         HStack(spacing: 36) {
             HStack(spacing: 8) { Circle().fill(Theme.accent).frame(width: 10, height: 10); Text("Quota Refresh (\(events.filter { !$0.expiration }.count))") }
             HStack(spacing: 8) { Circle().fill(Theme.amber).frame(width: 10, height: 10); Text("Reset Expires (\(events.filter(\.expiration).count))") }
-        }.font(.system(size: 12)).foregroundStyle(Theme.secondary)
+        }.font(.system(size: 13)).foregroundStyle(Theme.secondary)
     }
     private var historyToggle: some View {
         HStack(spacing: 7) {
             Toggle("History", isOn: Binding(get: { store.state.settings.historyEnabled }, set: { store.setHistory($0) }))
                 .labelsHidden().toggleStyle(.switch).controlSize(.small).fixedSize().accessibilityIdentifier("historyToggle")
-            Text("History").font(.system(size: 12))
+            Text("History").font(.system(size: 13))
         }
     }
     private var settingsButton: some View { Button { openSettings() } label: { ActionLabel(title: "", symbol: "gearshape") }.buttonStyle(ScroogeButtonStyle()).help("Timeline Settings") }
@@ -233,8 +233,8 @@ struct HorizonView: View {
             ForEach(days, id: \.self) { date in
                 let dayEvents = events.filter { calendar.isDate($0.date, inSameDayAs: date) }
                 VStack(spacing: 8) {
-                    Text(dayName(date)).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.accent)
-                    Text(date.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone))).font(.system(size: 11)).foregroundStyle(Theme.secondary)
+                    Text(dayName(date)).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.accent)
+                    Text(date.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone))).font(.system(size: 12)).foregroundStyle(Theme.secondary)
                 }.frame(width: viewport.pixelsPerDay, height: 40, alignment: .top)
                     .position(x: viewport.dayAnchor(date), y: 20)
                 Circle()
@@ -468,7 +468,7 @@ struct HorizonView: View {
             context.fill(Path(roundedRect: rect, cornerRadius: 6), with: .color(Theme.card))
             context.stroke(Path(roundedRect: rect, cornerRadius: 6), with: .color(color.opacity(0.7)), lineWidth: 1)
             let plan = Format.plan(series.account.provider, store.state.snapshots[series.account.id]?.planType)
-            context.draw(Text("\(plan) \(Format.percent(100 - point.remaining))").font(.system(size: 11)).foregroundColor(color), at: CGPoint(x: rect.midX, y: rect.midY))
+            context.draw(Text("\(plan) \(Format.percent(100 - point.remaining))").font(.system(size: 10)).foregroundColor(color), at: CGPoint(x: rect.midX, y: rect.midY))
         }
     }
     private func prepareHistory() {

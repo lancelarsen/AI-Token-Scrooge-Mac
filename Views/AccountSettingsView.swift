@@ -57,7 +57,7 @@ struct AccountSettingsView: View {
                         }
                         if let savedSnapshot = store.state.snapshots[accountID], savedSnapshot.belongs(to: account), let reserve = savedSnapshot.reserve {
                             SettingsCard(title: "Available Resets", symbol: "hourglass") {
-                                Text("\(reserve.availableCount.map(String.init) ?? "Unknown") Reported Available").font(.title2)
+                                Text("\(reserve.availableCount.map(String.init) ?? "Unknown") Reported Available").font(.system(size: 20))
                                 Text("Snapshot Fetched: \(Format.date(savedSnapshot.observedAt, zone: store.state.settings.zone))")
                                 Text(account.enabled ? savedSnapshot.health.rawValue : "Monitoring Paused").foregroundStyle(Theme.secondary)
                                 if let credits = reserve.credits {

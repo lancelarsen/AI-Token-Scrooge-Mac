@@ -15,10 +15,10 @@ struct AlertHistoryView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 Button { selectedAlert = alert } label: {
                                     VStack(alignment: .leading, spacing: 8) {
-                                        Text(alert.title).font(.headline)
-                                        Text(store.state.settings.privacy ? "Account Details Hidden" : alert.detail).foregroundStyle(Theme.secondary)
-                                        Text(Format.date(alert.createdAt, zone: store.state.settings.zone)).font(.caption)
-                                        Text(alert.delivered ? "Sent to macOS" : "Recorded in History").font(.caption).foregroundStyle(Theme.secondary)
+                                        Text(alert.title).font(.system(size: 14))
+                                        Text(store.state.settings.privacy ? "Account Details Hidden" : alert.detail).font(.system(size: 14)).foregroundStyle(Theme.secondary)
+                                        Text(Format.date(alert.createdAt, zone: store.state.settings.zone)).font(.system(size: 14))
+                                        Text(alert.delivered ? "Sent to macOS" : "Recorded in History").font(.system(size: 14)).foregroundStyle(Theme.secondary)
                                     }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
                                 }.buttonStyle(.plain).help("Show Usage Details")
                                 HStack {

@@ -26,7 +26,7 @@ struct AlertBannerView: View {
                         Text(alert.title).font(.system(size: 15, weight: .semibold)).foregroundStyle(severityColor)
                     }
                 }
-                Text(store.state.settings.privacy ? "Account Details Hidden" : alert.detail).foregroundStyle(Theme.secondary)
+                Text(store.state.settings.privacy ? "Account Details Hidden" : alert.detail).font(.system(size: 12)).foregroundStyle(Theme.secondary)
                 HStack {
                     Button("Show Info") {
                         store.showAlertAccount(alert)

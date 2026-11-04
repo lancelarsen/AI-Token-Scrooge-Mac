@@ -8,7 +8,7 @@ struct SettingsView: View {
     @State private var pendingRetention: Int?
     var body: some View {
         VStack(spacing: 0) {
-            HStack { ActionLabel(title: "Settings", symbol: "gearshape").font(.title); Spacer(); Button("Close") { dismiss() }.buttonStyle(ScroogeButtonStyle()) }.padding(.horizontal, 20).padding(.vertical, 12)
+            HStack { ActionLabel(title: "Settings", symbol: "gearshape").font(.system(size: 26, weight: .semibold)); Spacer(); Button("Close") { dismiss() }.buttonStyle(ScroogeButtonStyle()) }.padding(.horizontal, 20).padding(.vertical, 12)
             ScrollView {
                 VStack(spacing: 12) {
                     if store.isDemo { Text("Demo changes stay in this preview. Notification tests use macOS.").font(.system(size: 13)).foregroundStyle(Theme.accent).frame(maxWidth: .infinity, alignment: .leading) }
@@ -44,7 +44,7 @@ struct SettingsView: View {
                         })) { ForEach(Array(Set([7,30,60,90,180,365,store.state.settings.historyRetentionDays])).sorted(), id: \.self) { Text("\($0) Days").tag($0) } }
                     }
                     SettingsCard(title: "Notifications", symbol: "desktopcomputer") {
-                        Text("Choose how Scrooge gets your attention.").font(.system(size: 12)).foregroundStyle(Theme.secondary)
+                        Text("Choose how Scrooge gets your attention.").font(.system(size: 13)).foregroundStyle(Theme.secondary)
                         settingsSwitch("Popup Notifications", isOn: binding(\.notifications))
                         settingsSwitch("Alert on Icon", isOn: binding(\.alertOnIcon))
                     }
@@ -174,7 +174,7 @@ struct QuietHoursControl: View {
     @Binding var end: Int
     var body: some View {
         VStack {
-            HStack { Text("\(hour(start)) – \(hour(end))"); Spacer() }.foregroundStyle(Theme.secondary)
+            HStack { Text("\(hour(start)) – \(hour(end))"); Spacer() }.font(.system(size: 16)).foregroundStyle(Theme.secondary)
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     Capsule().fill(Theme.border).frame(height: 5)
@@ -183,7 +183,7 @@ struct QuietHoursControl: View {
                     handle(value: $end, width: geometry.size.width, label: "Quiet Hours End")
                 }.frame(height: 30).coordinateSpace(name: "quietHours")
             }.frame(height: 32).padding(.horizontal, 10)
-            HStack { Text("Midnight"); Spacer(); Text("Noon"); Spacer(); Text("11 PM") }.font(.caption).foregroundStyle(Theme.secondary)
+            HStack { Text("Midnight"); Spacer(); Text("Noon"); Spacer(); Text("11 PM") }.font(.system(size: 16)).foregroundStyle(Theme.secondary)
         }
     }
     private func handle(value: Binding<Int>, width: Double, label: String) -> some View {

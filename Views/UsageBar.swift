@@ -16,8 +16,8 @@ struct UsageBar: View {
                 RoundedRectangle(cornerRadius: 11).fill(LinearGradient(colors: Theme.colors(window.capacity(current)), startPoint: .leading, endPoint: .trailing))
                     .frame(width: geometry.size.width * window.fill)
                 Button(action: details) {
-                    HStack { Text("\(Format.percent(window.usedPercent)) Used"); Spacer(); Text("\(Format.percent(window.remainingPercent)) Left") }
-                        .font(.system(size: 14, weight: .semibold)).padding(.horizontal, 14).frame(height: 48).contentShape(Rectangle())
+                    HStack { Text("\(Format.percent(window.usedPercent)) Used").fontWeight(.semibold); Spacer(); Text("\(Format.percent(window.remainingPercent)) Left") }
+                        .font(.system(size: 16)).padding(.horizontal, 14).frame(height: 48).contentShape(Rectangle())
                 }.buttonStyle(.plain).accessibilityLabel("\(window.name), \(Format.percent(window.remainingPercent)) Remaining. Open Details")
                 ForEach(alertsEnabled ? ReminderSeverity.allCases : [], id: \.self) { level in
                     let value = value(level, current)
