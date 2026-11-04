@@ -279,16 +279,16 @@ struct QuotaDetailsView: View {
                 Text("Demo data").frame(minHeight: 19, alignment: .leading)
             } else if let message = snapshot.message, !message.isEmpty {
                 Color.clear.frame(height: 6)
-                Text(message).foregroundStyle(Theme.secondary)
+                Text(message).foregroundStyle(Theme.dialogText)
             }
             if !store.isDemo, let url = account.usageURL {
-                Text("Provider pages use your browser’s sign-in. Check its account and workspace before comparing.").font(.caption).foregroundStyle(Theme.secondary)
+                Text("Provider pages use your browser’s sign-in. Check its account and workspace before comparing.").font(.caption).foregroundStyle(Theme.dialogText)
                 Button("Open Provider Usage") {
                     openURL(url) { accepted in
                         if !accepted { store.errorMessage = "Provider page unavailable. Open your provider’s usage page in your browser and check its connection status." }
                     }
                 }.buttonStyle(ScroogeButtonStyle())
             }
-        }.font(.system(size: 13)).foregroundStyle(Theme.secondary).textSelection(.enabled).frame(maxWidth: 440, alignment: .leading).preferredColorScheme(.dark)
+        }.font(.system(size: 13)).foregroundStyle(Theme.dialogText).textSelection(.enabled).frame(maxWidth: 440, alignment: .leading).preferredColorScheme(.dark)
     }
 }

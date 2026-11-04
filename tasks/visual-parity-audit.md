@@ -242,3 +242,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Added19-point minimum row heights and32-point title boxes to usage and earned-reset details, preserving blank separators and allowing multiline content to grow.
 - Canonical build passed (`artifacts/detail-row-height-build.log`). Runtime demo weekly popup measured342x417 points versus reference342x422; earned-reset popup332x281 versus reference332x283. Text and complete timestamps remain visible; four earned-reset body lines stay single-line.
 - Remaining few-point overall-height differences and font rasterization are not exact parity. No live provider behavior changed or tested.
+
+### Dialog palette and Close glyph
+- Read captured Platforms/Windows/App.xaml and Services/ThemedDialogs.cs: dialog background #222329, separator #3B3D47, body #BEC1D2, emphasized labels #F2F1F5 and action icons #B5A0F4. Applied these explicit roles rather than reusing dashboard card/heading colors.
+- Shared Close/Cancel glyph now draws a14-point diagonal cross inside its20-point icon slot, matching the reference screenshot footprint instead of the larger SF Symbol. Button hit targets and keyboard dismissal are retained.
+- Canonical build passed (`artifacts/dialog-palette-build.log`). Opened weekly usage popup, visually checked palette, separator, smaller cross and complete metadata; clicked Close and verified dismissal.
+- Other shared action icons inherit the corrected idle accent; their individual geometry still requires screenshot comparison. Native sheet outline and remaining typography differences are unresolved.

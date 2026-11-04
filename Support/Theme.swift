@@ -11,6 +11,9 @@ enum Theme {
     static let control = Color(hex: "#232429")
     static let activeControl = Color(hex: "#483A64")
     static let accent = Color(hex: "#C3ADF8")
+    static let actionAccent = Color(hex: "#B5A0F4")
+    static let dialogBackground = Color(hex: "#222329")
+    static let dialogText = Color(hex: "#BEC1D2")
     static let secondary = Color(hex: "#B6B8C8")
     static let amber = Color(hex: "#EAAA51")
     static let palette = ["#B99AF8", "#CDEB82", "#58A6FF", "#D587A5", "#55C9BD", "#F2C94C", "#F05B69"]
@@ -35,7 +38,7 @@ extension Color {
     }
 }
 private struct ActionForegroundKey: EnvironmentKey {
-    static let defaultValue: Color = Theme.accent
+    static let defaultValue: Color = Theme.actionAccent
 }
 extension EnvironmentValues {
     var actionForeground: Color {
@@ -60,7 +63,7 @@ struct ScroogeButtonStyle: ButtonStyle {
             configuration.label
                 .font(.system(size: 14))
                 .foregroundStyle(.white)
-                .environment(\.actionForeground, highlighted ? .white : Theme.accent)
+                .environment(\.actionForeground, highlighted ? .white : Theme.actionAccent)
                 .padding(.horizontal, segmented ? 0 : 16)
                 .frame(minHeight: 44)
                 .background(highlighted ? Theme.activeControl : Theme.control)

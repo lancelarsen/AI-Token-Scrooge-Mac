@@ -103,11 +103,11 @@ struct DetailsDialog<Content: View>: View {
                 ScrollView { content() }
             }
             .font(.system(size: 14))
-            .foregroundStyle(Theme.secondary)
+            .foregroundStyle(Theme.dialogText)
             .textSelection(.enabled)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(24)
-            Divider()
+            Rectangle().fill(Color(hex: "#3B3D47")).frame(height: 1)
             HStack {
                 Spacer()
                 if let primaryTitle, let primaryAction {
@@ -125,7 +125,7 @@ struct DetailsDialog<Content: View>: View {
         .frame(width: width)
         .frame(maxHeight: maximumHeight)
         .fixedSize(horizontal: false, vertical: true)
-        .background(Theme.card)
+        .background(Theme.dialogBackground)
         .preferredColorScheme(.dark)
     }
 }
@@ -134,8 +134,8 @@ struct DetailLine: View {
     let label: String
     let value: String
     var body: some View {
-        (Text(label + ": ").fontWeight(.semibold).foregroundColor(.white)
-         + Text(value).foregroundColor(Theme.secondary))
+        (Text(label + ": ").fontWeight(.semibold).foregroundColor(Color(hex: "#F2F1F5"))
+         + Text(value).foregroundColor(Theme.dialogText))
             .frame(minHeight: 19, alignment: .leading)
     }
 }
@@ -146,7 +146,18 @@ struct DialogActionLabel: View {
     let symbol: String
     var body: some View {
         HStack(spacing: 9) {
-            Image(systemName: symbol).font(.system(size: 20)).foregroundStyle(foreground)
+            if symbol == "xmark" {
+                Canvas { context, _ in
+                    var cross = Path()
+                    cross.move(to: CGPoint(x: 3, y: 3))
+                    cross.addLine(to: CGPoint(x: 17, y: 17))
+                    cross.move(to: CGPoint(x: 17, y: 3))
+                    cross.addLine(to: CGPoint(x: 3, y: 17))
+                    context.stroke(cross, with: .color(foreground), lineWidth: 1)
+                }.frame(width: 20, height: 20).accessibilityHidden(true)
+            } else {
+                Image(systemName: symbol).font(.system(size: 20)).foregroundStyle(foreground)
+            }
             Text(title).font(.system(size: 14)).foregroundStyle(.white)
         }
     }
