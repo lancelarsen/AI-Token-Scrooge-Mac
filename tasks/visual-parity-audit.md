@@ -343,3 +343,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched source VerticalStackLayout's24-point horizontal/36-point vertical padding; Mac previously used24 on all edges, placing empty-state content12 points too high.
 - Matched the reference explanatory copy and32-point heading line box. Claude remains available in the provider chooser.
 - Canonical build passed (`artifacts/empty-dashboard-spacing-build.log`). Runtime compact dashboard shows the heading, explanatory copy and demo action with corrected top spacing; demo action reaches the viewport bottom and remains in the scroll view. Full-size positioning, native font weight/width and compact timeline geometry still need comparison.
+
+### Compact empty timeline anchors (image24)
+- Added a compact empty-timeline layout below900 points of available content width:72-point blank selector gutter,34-point rail inset and38-point Today offset. Wide layout retains its existing dimensions.
+- Canonical build passed (`artifacts/compact-empty-timeline-build.log`). At790-point window width, rendered divider x140, rail start x191 and Today x229 now match reference approximately140/190/229, replacing previous158/215/303 positions.
+- Remaining compact differences include header typography, vertical positioning and navigator width. Wide empty state and breakpoint transitions still need runtime comparison; populated timeline behavior is untouched.
