@@ -199,10 +199,10 @@ struct HorizonView: View {
         return text
     }
     private var legend: some View {
-        HStack(spacing: 36) {
-            HStack(spacing: 8) { Circle().fill(Theme.accent).frame(width: 10, height: 10); Text("Quota Refresh (\(events.filter { !$0.expiration }.count))") }
-            HStack(spacing: 8) { Circle().fill(Theme.amber).frame(width: 10, height: 10); Text("Reset Expires (\(events.filter(\.expiration).count))") }
-        }.font(.system(size: 13)).foregroundStyle(Theme.secondary)
+        HStack(spacing: 20) {
+            HStack(spacing: 7) { Circle().fill(Theme.actionAccent).frame(width: 10, height: 10); Text("Quota Refresh (\(events.filter { !$0.expiration }.count))") }
+            HStack(spacing: 7) { Circle().fill(Theme.amber).frame(width: 10, height: 10); Text("Reset Expires (\(events.filter(\.expiration).count))") }
+        }.font(.system(size: 13)).foregroundStyle(Theme.dialogText)
     }
     private var historyToggle: some View {
         HStack(spacing: 7) {
@@ -211,7 +211,7 @@ struct HorizonView: View {
             Text("History").font(.system(size: 13))
         }
     }
-    private var settingsButton: some View { Button { showSettings = true } label: { ActionLabel(title: "", symbol: "gearshape") }.buttonStyle(ScroogeButtonStyle()).help("Timeline Settings") }
+    private var settingsButton: some View { Button { showSettings = true } label: { ActionLabel(title: "", symbol: "gearshape") }.buttonStyle(ScroogeButtonStyle(horizontalPadding: 12)).help("Timeline Settings") }
     private var selectors: some View {
         ScrollView {
             VStack(spacing: 6) {

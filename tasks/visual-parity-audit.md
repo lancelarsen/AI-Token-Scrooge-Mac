@@ -353,3 +353,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Captured Windows HorizonView explicitly sets OnColor #8670CC and ThumbColor #D1BEFF. Mac was reusing Settings' dark-thumb switch appearance.
 - Added optional switch-style colors and applied the reference colors only to History; Settings retains its separate dark-thumb appearance shown in image02.
 - Canonical build passed (`artifacts/history-switch-color-build.log`). Runtime enabled History shows pale thumb on the correct purple track with existing40x20 geometry and accessible on state. Off-state rendering was not exercised in this pass.
+
+### Timeline header controls
+- Matched source HorizonView legend spacing:7-point dot/text gap and20-point separation between legend items, plus exact refresh-dot #B5A0F4 and label #BEC1D2 colors.
+- Corrected icon-only Timeline Settings button from52 to44 points wide, matching the Windows WidthRequest44 while preserving44-point height.
+- Canonical build passed (`artifacts/horizon-header-controls-build.log`). Runtime compact header shows both complete count labels and square settings control without clipping. Source uses wrapping FlexLayout; Mac's two-layout fallback and native font metrics remain broader parity gaps.
