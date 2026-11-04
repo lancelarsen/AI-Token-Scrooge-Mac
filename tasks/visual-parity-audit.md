@@ -407,3 +407,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched QuotaRowView source conditions: omit the note label when CardNote is empty, and omit reset content when no reset date exists. Compact rows also avoid allocating an empty half-width reset column.
 - Existing status-note precedence and reset countdown/reminder colors remain intact. Healthy rows now center only their actual quota title instead of an extra blank text line.
 - Canonical build passed (`artifacts/quota-conditional-layout-build.log`) and diff checks passed. Healthy/no-reset fixture rendering remains unverified; standard demo rows contain notes and reset dates and do not prove these conditional states.
+
+### Reset label column alignment
+
+- Matched `QuotaRowView.cs` reset layout: clock with a 3-point top inset beside a single countdown/date column, 12-point horizontal and 3-point vertical spacing. This preserves date alignment when the countdown wraps.
+- Matched the untriggered reminder clock color to Windows `#B5A0F4`; severity colors and reminder logic remain unchanged.
+- Verification: canonical build passed (`artifacts/reset-label-alignment-build.log`), and `git diff --check` passed. This is source-level layout verification; exact rendered font/glyph parity and wrapped countdown screenshots remain unverified.

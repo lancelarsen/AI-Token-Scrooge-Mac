@@ -239,23 +239,30 @@ struct QuotaRow: View {
     }
     @ViewBuilder private var resetCountdown: some View {
         if window.resetsAt != nil {
-        TimelineView(.periodic(from: .now, by: 30)) { context in
-                    VStack(alignment: .leading, spacing: 3) {
-                        HStack(spacing: 12) {
-                            let enabled = store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id)
-                            let severity = enabled ? window.resetsAt.flatMap { TimedReminder.due(store.state.settings.quotaRefreshReminders, at: $0, now: context.date)?.severity } : nil
-                            let clockColor: Color = switch severity {
-                            case .critical: Color(hex: "#F05B69")
-                            case .warning: Color(hex: "#F2C94C")
-                            case .info: Color(hex: "#58A6FF")
-                            case nil: Theme.accent
-                            }
-                            Image(systemName: "clock").font(.system(size: 25)).foregroundStyle(clockColor)
-                            Text(Format.countdown(window.resetsAt, now: context.date)).font(.system(size: 20, weight: .semibold)).foregroundStyle(Color(hex: "#BDA3F5"))
-                        }
-                        Text(Format.date(window.resetsAt, zone: store.state.settings.zone)).font(.system(size: 12)).foregroundStyle(Color(hex: "#BEC1D2")).padding(.leading, 37)
-                    }.frame(width: wide ? 200 : nil, alignment: .leading)
+            TimelineView(.periodic(from: .now, by: 30)) { context in
+                let enabled = store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id)
+                let severity = enabled ? window.resetsAt.flatMap { TimedReminder.due(store.state.settings.quotaRefreshReminders, at: $0, now: context.date)?.severity } : nil
+                let clockColor: Color = switch severity {
+                case .critical: Color(hex: "#F05B69")
+                case .warning: Color(hex: "#F2C94C")
+                case .info: Color(hex: "#58A6FF")
+                case nil: Color(hex: "#B5A0F4")
                 }
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: "clock")
+                        .font(.system(size: 25))
+                        .foregroundStyle(clockColor)
+                        .padding(.top, 3)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(Format.countdown(window.resetsAt, now: context.date))
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(Color(hex: "#BDA3F5"))
+                        Text(Format.date(window.resetsAt, zone: store.state.settings.zone))
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color(hex: "#BEC1D2"))
+                    }
+                }.frame(width: wide ? 200 : nil, alignment: .leading)
+            }
         }
     }
 
