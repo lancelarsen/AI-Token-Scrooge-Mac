@@ -207,7 +207,7 @@ struct HorizonView: View {
     private var historyToggle: some View {
         HStack(spacing: 7) {
             Toggle("History", isOn: Binding(get: { store.state.settings.historyEnabled }, set: { store.setHistory($0) }))
-                .toggleStyle(ScroogeSwitchStyle(showsLabel: false)).frame(width: 40, height: 20).accessibilityLabel("History").accessibilityIdentifier("historyToggle")
+                .toggleStyle(ScroogeSwitchStyle(showsLabel: false, onColor: Color(hex: "#8670CC"), thumbColor: Color(hex: "#D1BEFF"))).frame(width: 40, height: 20).accessibilityLabel("History").accessibilityIdentifier("historyToggle")
             Text("History").font(.system(size: 13))
         }
     }

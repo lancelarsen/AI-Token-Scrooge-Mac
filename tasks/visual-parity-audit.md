@@ -348,3 +348,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Added a compact empty-timeline layout below900 points of available content width:72-point blank selector gutter,34-point rail inset and38-point Today offset. Wide layout retains its existing dimensions.
 - Canonical build passed (`artifacts/compact-empty-timeline-build.log`). At790-point window width, rendered divider x140, rail start x191 and Today x229 now match reference approximately140/190/229, replacing previous158/215/303 positions.
 - Remaining compact differences include header typography, vertical positioning and navigator width. Wide empty state and breakpoint transitions still need runtime comparison; populated timeline behavior is untouched.
+
+### History switch colors (images09/19/24)
+- Captured Windows HorizonView explicitly sets OnColor #8670CC and ThumbColor #D1BEFF. Mac was reusing Settings' dark-thumb switch appearance.
+- Added optional switch-style colors and applied the reference colors only to History; Settings retains its separate dark-thumb appearance shown in image02.
+- Canonical build passed (`artifacts/history-switch-color-build.log`). Runtime enabled History shows pale thumb on the correct purple track with existing40x20 geometry and accessible on state. Off-state rendering was not exercised in this pass.

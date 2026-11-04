@@ -231,6 +231,8 @@ struct ActionIcon: View {
 /// Matches the reference switch geometry while retaining Toggle accessibility.
 struct ScroogeSwitchStyle: ToggleStyle {
     var showsLabel = true
+    var onColor = Color(hex: "#8973DB")
+    var thumbColor: Color? = nil
     func makeBody(configuration: Configuration) -> some View {
         HStack(spacing: 12) {
             if showsLabel {
@@ -238,10 +240,10 @@ struct ScroogeSwitchStyle: ToggleStyle {
                 Spacer(minLength: 12)
             }
             Button { configuration.isOn.toggle() } label: {
-                Capsule().fill(configuration.isOn ? Color(hex: "#8973DB") : Theme.control)
+                Capsule().fill(configuration.isOn ? onColor : Theme.control)
                     .overlay(Capsule().stroke(configuration.isOn ? Color.clear : Theme.secondary, lineWidth: 1))
                     .overlay(alignment: configuration.isOn ? .trailing : .leading) {
-                        Circle().fill(configuration.isOn ? Color(hex: "#141519") : Theme.secondary)
+                        Circle().fill(thumbColor ?? (configuration.isOn ? Color(hex: "#141519") : Theme.secondary))
                             .frame(width: 12, height: 12).padding(4)
                     }
                     .frame(width: 40, height: 20)
