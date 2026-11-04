@@ -402,3 +402,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched Windows HistoryChartInput.OnLostFocus by binding chart keyboard focus and clearing pinned/sample text when focus leaves the chart. Existing Escape behavior remains.
 - Canonical build passed (`artifacts/history-focus-dismissal-build.log`). In demo selected a history sample via Right, then Tab moved focus to Timeline Navigator; chart accessibility changed from sample details to No sample selected.
 - Floating panel screenshot remains unavailable in the main-window capture; this check proves selection dismissal, not its exact visual rendering. Pointer-only focus transitions and application deactivation remain unverified.
+
+### Conditional quota row content
+- Matched QuotaRowView source conditions: omit the note label when CardNote is empty, and omit reset content when no reset date exists. Compact rows also avoid allocating an empty half-width reset column.
+- Existing status-note precedence and reset countdown/reminder colors remain intact. Healthy rows now center only their actual quota title instead of an extra blank text line.
+- Canonical build passed (`artifacts/quota-conditional-layout-build.log`) and diff checks passed. Healthy/no-reset fixture rendering remains unverified; standard demo rows contain notes and reset dates and do not prove these conditional states.

@@ -187,7 +187,9 @@ struct QuotaRow: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(alignment: .top, spacing: 12) {
                         quotaLabel.frame(maxWidth: .infinity, alignment: .leading)
-                        resetCountdown.frame(maxWidth: .infinity, alignment: .leading)
+                        if window.resetsAt != nil {
+                            resetCountdown.frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
                     usageControls
                 }
@@ -200,11 +202,16 @@ struct QuotaRow: View {
             }
         }
     }
+    private var quotaNote: String {
+        !account.enabled ? "Monitoring Disabled" : snapshot.health == .demo ? "Demo data" :
+            snapshot.health == .healthy ? "" : snapshot.message ?? snapshot.health.rawValue
+    }
     private var quotaLabel: some View {
         VStack(alignment: .leading, spacing: 4) {
                 Text(window.name).font(.system(size: 14)).foregroundStyle(Color(hex: "#BEC1D2"))
-                Text(!account.enabled ? "Monitoring Disabled" : snapshot.health == .demo ? "Demo data" : snapshot.health == .healthy ? "" : snapshot.message ?? snapshot.health.rawValue)
-                    .font(.system(size: 11)).foregroundStyle(Color(hex: "#A5A8BA"))
+                if !quotaNote.isEmpty {
+                    Text(quotaNote).font(.system(size: 11)).foregroundStyle(Color(hex: "#A5A8BA"))
+                }
             }.frame(width: wide ? 156 : nil, alignment: .leading)
     }
     private var usageControls: some View {
@@ -230,8 +237,9 @@ struct QuotaRow: View {
                     .frame(minWidth: 180)
             }
     }
-    private var resetCountdown: some View {
-TimelineView(.periodic(from: .now, by: 30)) { context in
+    @ViewBuilder private var resetCountdown: some View {
+        if window.resetsAt != nil {
+        TimelineView(.periodic(from: .now, by: 30)) { context in
                     VStack(alignment: .leading, spacing: 3) {
                         HStack(spacing: 12) {
                             let enabled = store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id)
@@ -248,6 +256,7 @@ TimelineView(.periodic(from: .now, by: 30)) { context in
                         Text(Format.date(window.resetsAt, zone: store.state.settings.zone)).font(.system(size: 12)).foregroundStyle(Color(hex: "#BEC1D2")).padding(.leading, 37)
                     }.frame(width: wide ? 200 : nil, alignment: .leading)
                 }
+        }
     }
 
 }
