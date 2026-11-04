@@ -131,7 +131,12 @@ import AppKit
             await previous?.value
             guard let self, !isDemo else { return }
             monitoringEpoch = UUID(); activeAlert = nil
-            realState = state; let demo = DemoData.make(now: .now)
+            realState = state
+            let arguments = ProcessInfo.processInfo.arguments
+            let scenario = arguments.firstIndex(of: "--scenario").flatMap { index in
+                arguments.indices.contains(index + 1) ? DemoData.Scenario(rawValue: arguments[index + 1]) : nil
+            } ?? .standard
+            let demo = DemoData.make(now: .now, scenario: scenario)
             historyRequest = UUID(); historyLoading = false; historyError = nil
             state = demo.0; history = demo.1; isDemo = true
         }

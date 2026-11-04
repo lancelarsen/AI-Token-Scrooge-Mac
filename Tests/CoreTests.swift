@@ -2,6 +2,27 @@ import XCTest
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testDemoScenariosPreserveStandardValuesAndRepresentMissingData() {
+        let now = Date(timeIntervalSince1970: 1793808000)
+        let standard = DemoData.make(now: now).0
+        let offline = DemoData.make(now: now, scenario: .offline).0
+        for (id, snapshot) in standard.snapshots {
+            XCTAssertEqual(snapshot.health, .demo)
+            XCTAssertEqual(offline.snapshots[id]?.health, .offline)
+            XCTAssertEqual(offline.snapshots[id]?.windows, snapshot.windows)
+        }
+        for snapshot in DemoData.make(now: now, scenario: .unknown).0.snapshots.values {
+            XCTAssertTrue(snapshot.windows.allSatisfy { $0.used == nil && $0.limit == nil && $0.remainingPercent == nil })
+        }
+        for snapshot in DemoData.make(now: now, scenario: .noReset).0.snapshots.values {
+            XCTAssertTrue(snapshot.windows.allSatisfy { $0.resetsAt == nil })
+        }
+        for snapshot in DemoData.make(now: now, scenario: .exhausted).0.snapshots.values {
+            XCTAssertTrue(snapshot.windows.allSatisfy { $0.remainingPercent == 0 })
+        }
+        XCTAssertTrue(standard.snapshots.values.allSatisfy { $0.health == .demo && !$0.windows.isEmpty })
+    }
+
     func testFreshnessUsesSelectedZoneAndDaySuffix() {
         let date = ISO8601DateFormatter().date(from: "2026-11-02T18:00:00Z")!
         XCTAssertEqual(Format.updated(date, zone: TimeZone(identifier: "America/Chicago")!), "Updated 12:00 PM CST\nMonday, Nov 2nd")

@@ -1,7 +1,14 @@
 import Foundation
 
 enum DemoData {
-    static func make(now: Date) -> (PersistedState, [HistoryRun]) {
+    enum Scenario: String, CaseIterable {
+        case standard, offline, auth, permission, unknown, exhausted, due, partial
+        case historyLong = "history-long"
+        case reserveOnly = "reserve-only"
+        case healthy, noReset = "no-reset"
+    }
+
+    static func make(now: Date, scenario: Scenario = .standard) -> (PersistedState, [HistoryRun]) {
         var state = PersistedState()
         state.settings.accountSort = .custom
         var runs: [HistoryRun] = []
@@ -30,7 +37,45 @@ enum DemoData {
             let reserve: ResetReserve? = index == 0 ? ResetReserve(availableCount: 2, credits: [
                 .init(id: "demo-r1", status: "available", expiresAt: now.addingTimeInterval(4 * 86400)),
                 .init(id: "demo-r2", status: "available", expiresAt: now.addingTimeInterval(9 * 86400))]) : nil
-            let snapshot = QuotaSnapshot(accountID: account.id, subject: account.subject, scope: account.scope, observedAt: now, windows: windows, reserve: reserve, health: .demo, planType: config.2)
+            var snapshot = QuotaSnapshot(accountID: account.id, subject: account.subject, scope: account.scope, observedAt: now, windows: windows, reserve: reserve, health: .demo, planType: config.2)
+            switch scenario {
+            case .standard: break
+            case .healthy: snapshot.health = .healthy
+            case .offline:
+                snapshot.health = .offline
+                snapshot.message = "Demo: network unavailable; last successful values retained."
+            case .auth:
+                snapshot.health = .authenticationRequired
+                snapshot.message = "Demo: reconnect this account to resume monitoring."
+            case .permission:
+                snapshot.health = .permissionRequired
+                snapshot.message = "Demo: billing read access is unavailable."
+            case .reserveOnly:
+                snapshot.windows = []
+                snapshot.message = "Demo: source reported reset credits without quota windows."
+            case .historyLong:
+                if var reserve = snapshot.reserve {
+                    reserve.availableCount = 3
+                    reserve.credits = (reserve.credits ?? []) + [.init(id: "demo-long-horizon", status: "available", expiresAt: now.addingTimeInterval(35 * 86400))]
+                    snapshot.reserve = reserve
+                }
+            case .partial:
+                if snapshot.reserve != nil {
+                    snapshot.reserve = ResetReserve(availableCount: 3, credits: [.init(id: "sample-credit", status: "available", expiresAt: now.addingTimeInterval(45 * 60))])
+                }
+            case .unknown, .exhausted, .due, .noReset:
+                snapshot.windows = snapshot.windows.map { original in
+                    var window = original
+                    switch scenario {
+                    case .unknown: window.used = nil; window.limit = nil
+                    case .exhausted: window.used = window.unit == .percent ? 100 : window.limit
+                    case .due: window.resetsAt = now.addingTimeInterval(-60)
+                    case .noReset: window.resetsAt = nil
+                    default: break
+                    }
+                    return window
+                }
+            }
             state.snapshots[account.id] = snapshot
             runs += history(account: account, current: snapshot, index: index, now: now, zone: state.settings.zone)
         }

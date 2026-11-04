@@ -447,3 +447,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Compared all 11 shared Resources/Images files against `origin/main` Git objects in the Windows reference repository: alarm_off/on, claude, github, openai, radar, refresh, settings, threshold_critical/warning and token_baron are byte-identical. This verifies asset identity, not rendered scaling.
 - Added the thin clock ring/hands to ActionIcon for sort controls and settings headings; quota countdowns now use it with their severity color. Clock hands use the reference's upward/left orientation, including dialog action clocks. Account heading now uses the shared person outline and 29-point icon slot with 10-point spacing.
 - Canonical build and diff checks passed (`artifacts/shared-clock-icons-build.log`). Post-change glyph rendering and exact pixel matching remain to be verified.
+
+### Repeatable demo scenarios for remaining captures
+
+- Added Windows-compatible `--scenario` fixture selection when entering demo: offline, auth, permission, unknown, exhausted, due, partial, history-long and reserve-only. Healthy and no-reset supplement the standard fixture for conditional row comparisons. Live state is still restored through the existing demo boundary; scenario code only constructs synthetic data.
+- Canonical build passed (`artifacts/demo-scenarios-build.log`). A standalone executable compiled the actual Models, Format, LocalStore and PackedHistoryRun sources and passed assertions for all 12 scenarios, standard defaults, preserved offline usage and fixture independence (`artifacts/demo-scenario-check.swift`). Added focused regression coverage to CoreTests; the hosted XCTest suite was not run in this pass.
+- This enables equivalent-state capture; it does not itself prove visual parity. Next captures should exercise missing-reset column reservation, healthy notes, unknown and exhausted bars, and status messages.
