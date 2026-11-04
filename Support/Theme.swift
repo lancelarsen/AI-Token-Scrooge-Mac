@@ -333,3 +333,14 @@ struct ScroogePercentSlider: View {
         if value != next { value = next }
     }
 }
+
+struct ThresholdReadoutIcon: View {
+    let severity: ReminderSeverity
+    var body: some View {
+        if severity == .info {
+            Image(systemName: "info.circle").font(.system(size: 18)).foregroundStyle(Color(hex: "#58A6FF")).frame(width: 18, height: 18)
+        } else if let image = ThemeImages.image(severity == .warning ? "threshold_warning" : "threshold_critical", extension: "svg") {
+            Image(nsImage: image).resizable().scaledToFit().frame(width: 18, height: 18)
+        }
+    }
+}

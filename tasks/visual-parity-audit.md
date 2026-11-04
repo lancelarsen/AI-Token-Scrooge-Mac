@@ -467,3 +467,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Native screenshot measured 1578 × 1388 Retina pixels, matching the intended 789 × 694 logical comparison dimensions. The earlier 662-point trial was corrected after runtime measurement.
 - Compact unknown fixture showed both unavailable labels without truncation, stacked identities, and countdown/date columns. Compact no-reset fixture showed the quota label in its left column, no false reset text, and aligned full-width usage controls. This closes the missing-reset compact runtime gap; exact font metrics and full 37-image parity remain open.
 - Canonical build and diff checks passed (`artifacts/compact-demo-launch-build.log`). Manual edge dragging was ineffective; the explicit demo option removes that dependency for future comparisons.
+
+### Threshold live readout (reference 34)
+
+- Replaced delayed system help on quota markers with a floating value readout for hover, focus and drag. Matches Windows text format, 14-point semibold white text, 18-point severity image, 8-point icon gap, 14×10 padding, 12-point corners and #65577F border on #222329. Warning/critical reuse identical reference SVGs.
+- Reused the existing owner-window-clamped panel, with a 2-point threshold anchor gap. Added pending-content delivery when a new tracking view attaches to its window. Readouts dismiss with Escape, disable/mute, removal or non-drag geometry changes.
+- Canonical build and diff checks passed (`artifacts/threshold-readout-build.log`). Native compact demo keyboard check moved the focused weekly Warning threshold from 30% to 29% without opening usage details. Floating-panel capture remains a verification limitation: live text/position and pointer-drag readout appearance are not yet proven by screenshot. Do not mark image 34 matched yet.

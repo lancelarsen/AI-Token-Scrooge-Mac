@@ -618,6 +618,7 @@ private extension Date.FormatStyle {
 
 /// A non-interactive tracking surface: event buttons and scrolling retain hit testing.
 struct HistoryPointerTracking: NSViewRepresentable {
+    var severity: ReminderSeverity? = nil
     var text: String? = nil
     var pinned = false
     var anchor: CGPoint? = nil
@@ -632,7 +633,9 @@ struct HistoryPointerTracking: NSViewRepresentable {
     func updateNSView(_ view: TrackingView, context: Context) {
         view.onMove = onMove
         view.pinned = pinned
+        view.severity = severity
         if let anchor { view.pointer = anchor }
+        view.popupText = text
         view.showPopup(text)
     }
     static func dismantleNSView(_ view: TrackingView, coordinator: ()) { view.hidePopup() }
@@ -643,6 +646,8 @@ struct HistoryPointerTracking: NSViewRepresentable {
         private var popup: NSPanel?
         var pointer = NSPoint.zero
         var pinned = false
+        var severity: ReminderSeverity?
+        var popupText: String?
         func hidePopup() { popup?.orderOut(nil) }
         func showPopup(_ text: String?) {
             guard let text, let window, let screen = window.screen else { hidePopup(); return }
@@ -653,6 +658,7 @@ struct HistoryPointerTracking: NSViewRepresentable {
                 panel.hasShadow = true; panel.ignoresMouseEvents = true
                 panel.level = .floating; popup = panel
             }
+            panel.title = severity == nil ? "Usage History Details" : "Alert Threshold Details"
             // Keep details within the owning app, including when it occupies only part of a screen.
             let contentBounds = window.convertToScreen(window.contentLayoutRect)
             let visible = contentBounds.intersection(screen.visibleFrame).insetBy(dx: 8, dy: 8)
@@ -662,10 +668,13 @@ struct HistoryPointerTracking: NSViewRepresentable {
                 (line as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: index == 0 ? 14 : 13,
                     weight: index == 0 ? .semibold : .regular)]).width
             }
-            let popupWidth = min(420, visible.width, ceil((lineWidths.max() ?? 0) + 28))
+            let popupWidth = min(420, visible.width, ceil((lineWidths.max() ?? 0) + 28 + (severity == nil ? 0 : 26)))
             let content = NSHostingView(rootView:
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(lines[0]).font(.system(size: 14, weight: .semibold)).foregroundStyle(Color(hex: "#F2F1F5"))
+                    HStack(spacing: 8) {
+                        if let severity { ThresholdReadoutIcon(severity: severity) }
+                        Text(lines[0]).font(.system(size: 14, weight: .semibold)).foregroundStyle(severity == nil ? Color(hex: "#F2F1F5") : .white)
+                    }
                     if lines.count > 1 { Text(lines[1]).font(.system(size: 13)).foregroundStyle(Theme.dialogText) }
                 }.padding(.horizontal, 14).padding(.vertical, 10).frame(width: popupWidth, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
@@ -674,7 +683,7 @@ struct HistoryPointerTracking: NSViewRepresentable {
             let size = content.fittingSize
             let anchor = window.convertPoint(toScreen: convert(pointer, to: nil))
             let x = min(max(visible.minX, anchor.x - size.width / 2), visible.maxX - size.width)
-            let above = anchor.y + 14
+            let above = anchor.y + (severity == nil ? 14 : 2)
             let y = min(max(visible.minY, above + size.height <= visible.maxY ? above : anchor.y - size.height - 18), visible.maxY - size.height)
             panel.contentView = content
             panel.setFrame(NSRect(origin: NSPoint(x: x, y: y), size: size), display: true)
@@ -687,6 +696,7 @@ struct HistoryPointerTracking: NSViewRepresentable {
             super.viewDidMoveToWindow()
             // Tracking areas need the hosting window to deliver ordinary pointer movement.
             window?.acceptsMouseMovedEvents = true
+            if window == nil { hidePopup() } else { showPopup(popupText) }
         }
 
         override func updateTrackingAreas() {

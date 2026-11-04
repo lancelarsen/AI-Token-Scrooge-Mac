@@ -7,6 +7,9 @@ struct UsageBar: View {
     let changed: (AlertThresholds) -> Void
     let details: () -> Void
     @State private var editing: AlertThresholds?
+    @State private var editingSeverity: ReminderSeverity?
+    @State private var hoveredSeverity: ReminderSeverity?
+    private var readoutSeverity: ReminderSeverity? { alertsEnabled ? editingSeverity ?? hoveredSeverity ?? focusedThreshold : nil }
     @FocusState private var focusedThreshold: ReminderSeverity?
     var body: some View {
         GeometryReader { geometry in
@@ -34,13 +37,18 @@ struct UsageBar: View {
                             changed(next)
                             return .handled
                         }
+                        .onKeyPress(.escape) {
+                            editing = nil; editingSeverity = nil; hoveredSeverity = nil; focusedThreshold = nil
+                            return .handled
+                        }
                         .position(x: (1 - NSDecimalNumber(decimal: value).doubleValue / 100) * geometry.size.width, y: 24)
                         .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .named("usageBar")).onChanged { drag in
                             var next = editing ?? thresholds
                             next.move(level, to: Decimal(min(100, max(0, (1 - drag.location.x / geometry.size.width) * 100))))
+                            editingSeverity = level
                             editing = next
-                        }.onEnded { _ in if let editing { changed(editing) }; editing = nil })
-                        .help("\(level.rawValue) @ \(Format.percent(value)) Left")
+                        }.onEnded { _ in if let editing { changed(editing) }; editing = nil; editingSeverity = nil })
+                        .onHover { hoveredSeverity = $0 ? level : (hoveredSeverity == level ? nil : hoveredSeverity) }
                         .accessibilityLabel("\(level.rawValue) Alert Threshold")
                         .accessibilityValue(Format.percent(value))
                         .accessibilityAdjustableAction { direction in
@@ -56,6 +64,21 @@ struct UsageBar: View {
                 .font(.system(size: 16)).padding(.horizontal, 15)
                 .allowsHitTesting(false).accessibilityHidden(true)
             }.coordinateSpace(name: "usageBar").overlay(RoundedRectangle(cornerRadius: 11).stroke(Color(hex: "#515461")))
+                .background {
+                    if let level = readoutSeverity {
+                        HistoryPointerTracking(severity: level,
+                            text: "\(level.rawValue) Alert @ \(Format.percent(value(level, current))) Left",
+                            pinned: true,
+                            anchor: CGPoint(x: (1 - NSDecimalNumber(decimal: value(level, current)).doubleValue / 100) * geometry.size.width, y: 0),
+                            onMove: { _ in })
+                    }
+                }
+                .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { _ in
+                    if editing == nil { hoveredSeverity = nil; focusedThreshold = nil }
+                }
+                .onChange(of: alertsEnabled) { _, enabled in
+                    if !enabled { editing = nil; editingSeverity = nil; hoveredSeverity = nil; focusedThreshold = nil }
+                }
         }.frame(height: 48)
     }
     private func value(_ severity: ReminderSeverity, _ thresholds: AlertThresholds) -> Decimal {
