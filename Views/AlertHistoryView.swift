@@ -155,6 +155,27 @@ struct DialogActionLabel: View {
                     cross.addLine(to: CGPoint(x: 3, y: 17))
                     context.stroke(cross, with: .color(foreground), lineWidth: 1)
                 }.frame(width: 20, height: 20).accessibilityHidden(true)
+            } else if symbol == "info.circle" || symbol == "clock" {
+                Canvas { context, _ in
+                    // Reference action glyphs use a thin 18-point ring in a 20-point slot.
+                    context.stroke(Path(ellipseIn: CGRect(x: 1, y: 1, width: 18, height: 18)),
+                                   with: .color(foreground), lineWidth: 1)
+                    var detail = Path()
+                    if symbol == "clock" {
+                        detail.move(to: CGPoint(x: 10, y: 5))
+                        detail.addLine(to: CGPoint(x: 10, y: 10))
+                        detail.addLine(to: CGPoint(x: 14, y: 10))
+                    } else {
+                        context.fill(Path(ellipseIn: CGRect(x: 9.25, y: 5.25, width: 1.5, height: 1.5)),
+                                     with: .color(foreground))
+                        detail.move(to: CGPoint(x: 9, y: 9))
+                        detail.addLine(to: CGPoint(x: 10, y: 9))
+                        detail.addLine(to: CGPoint(x: 10, y: 14))
+                        detail.move(to: CGPoint(x: 8, y: 14))
+                        detail.addLine(to: CGPoint(x: 12, y: 14))
+                    }
+                    context.stroke(detail, with: .color(foreground), lineWidth: 1)
+                }.frame(width: 20, height: 20).accessibilityHidden(true)
             } else {
                 Image(systemName: symbol).font(.system(size: 20)).foregroundStyle(foreground)
             }

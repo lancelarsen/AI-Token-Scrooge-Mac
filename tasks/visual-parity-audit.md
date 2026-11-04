@@ -254,3 +254,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Canonical build passed (`artifacts/banner-sizing-build.log`). Generated a demo notification test through Settings; rebuilt app rendered the banner at approximately450x153 points with20-point bottom/right margins, versus reference442x154. Provider icon, title, detail and three action buttons are visible without clipping.
 - An earlier screenshot capture showed a blank dashboard region; it did not recur after rebuilding. Notification delivery outside the app was not visually verified.
 - Remaining8-point width difference relates to typography/icon metrics. Long and multiline banner content still needs visual verification; exact image32 parity remains open.
+
+### Banner action icon geometry
+- Replaced SF Symbols for DialogActionLabel's info/clock with thin18-point rings inside20-point slots, matching image32's footprint and stroke weight. The clock uses right-angle hands; info retains its stem, dot and foot.
+- Canonical build passed (`artifacts/banner-icon-build.log`). Generated demo test banner and visually inspected all three buttons. Banner now measures approximately444x153 points versus442x154 in the reference; action text and provider identity remain unclipped.
+- This is visual evidence for the demo banner only. Other icon families, typography differences and longer banner content remain open.
