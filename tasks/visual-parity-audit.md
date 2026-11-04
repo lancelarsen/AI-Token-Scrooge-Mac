@@ -102,3 +102,7 @@ Dashboard Refresh immediately disables after click, displays Refreshing… with 
 ## Timeline and Alarm Controls
 
 History switch uses shared 40 x 20 reference styling and explicit accessible label. History-off account filter help matches reference action wording. Alarm segments now use shared selected/hover active styling and identify provider/account/plan/quota in help text. Timeline gear now presents the same settings sheet as dashboard. Canonical build passed; runtime history off/on transition and gear-to-sheet navigation verified. Alarm hover/icon screenshots remain pending. Normal app launch succeeded after the prior test-host loader stall.
+
+## Settings Selection Styling
+
+History retention now follows images 02/31 with visible explanation and full-width 32-point selector, preserving confirmation before shortening retention. Sound-theme choices use reference purple selection rings; preview actions use shared icon labels. Existing section help icons precede headings. Canonical build and diff checks passed. Final rendered settings comparison and keyboard/accessibility choice behavior remain pending; custom sound choices expose selected button state rather than a native radio group.

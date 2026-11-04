@@ -38,11 +38,26 @@ struct SettingsView: View {
                         }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
                             .accessibilityLabel("Time Zone").accessibilityValue(store.state.settings.zone.identifier)
                     }
-                    SettingsCard(title: "History and Alerts", symbol: "clock.arrow.circlepath", help: "Choose how long to keep recorded usage and alerts. Increasing retention cannot recover deleted records.") {
-                        Picker("Keep History and Alerts", selection: Binding(get: { store.state.settings.historyRetentionDays }, set: { days in
-                            if days < store.state.settings.historyRetentionDays { pendingRetention = days }
-                            else { store.edit { $0.settings.historyRetentionDays = days } }
-                        })) { ForEach(Array(Set([7,30,60,90,180,365,store.state.settings.historyRetentionDays])).sorted(), id: \.self) { Text("\($0) Days").tag($0) } }
+                    SettingsCard(title: "History and Alerts", symbol: "gearshape") {
+                        Text("Choose how long to keep recorded usage and alerts. Shortening this period removes older records; increasing it cannot restore deleted records.")
+                            .font(.system(size: 13)).foregroundStyle(Theme.secondary)
+                        Menu {
+                            ForEach(Array(Set([7,30,60,90,180,365,store.state.settings.historyRetentionDays])).sorted(), id: \.self) { days in
+                                Button("\(days) Days") {
+                                    if days < store.state.settings.historyRetentionDays { pendingRetention = days }
+                                    else { store.edit { $0.settings.historyRetentionDays = days } }
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Text("\(store.state.settings.historyRetentionDays) Days")
+                                Spacer()
+                                Image(systemName: "chevron.down").font(.system(size: 10)).foregroundStyle(Theme.secondary)
+                            }.padding(.horizontal, 12).frame(height: 32)
+                                .background(Theme.control, in: RoundedRectangle(cornerRadius: 8))
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.border))
+                        }.menuStyle(.borderlessButton).menuIndicator(.hidden)
+                            .accessibilityLabel("Keep History and Alerts").accessibilityValue("\(store.state.settings.historyRetentionDays) Days")
                     }
                     SettingsCard(title: "Notifications", symbol: "desktopcomputer") {
                         Text("Choose how Scrooge gets your attention.").font(.system(size: 13)).foregroundStyle(Theme.secondary)
@@ -52,14 +67,17 @@ struct SettingsView: View {
                     SettingsCard(title: "Sounds", symbol: "speaker.wave.2") {
                         settingsSwitch("Notification Sounds", isOn: binding(\.sound))
                         HStack { Text("Volume: \(Int(store.state.settings.soundVolume))%").frame(width: 112, alignment: .leading); ScroogePercentSlider(value: binding(\.soundVolume), color: Color(hex: "#A990ED")).accessibilityLabel("Sound Volume") }
-                        Picker("Sound Theme", selection: binding(\.soundTheme)) { Text("Duck Sounds").tag("Ducks"); Text("Classic Chimes").tag("Classic") }.pickerStyle(.radioGroup).labelsHidden()
+                        VStack(alignment: .leading, spacing: 12) {
+                            soundThemeOption("Duck Sounds", value: "Ducks")
+                            soundThemeOption("Classic Chimes", value: "Classic")
+                        }
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: 8) {
                             ForEach(["Alarm", "Snooze", "Dismiss", "Show Info"], id: \.self) { cue in
                                 Button {
                                     let sound = cue == "Alarm" ? "alert" : cue == "Show Info" ? "info" : cue.lowercased()
                                     SoundPlayer.shared.play(settings: store.state.settings, cue: sound, preview: true)
                                 } label: {
-                                    Label("Preview \(cue)", systemImage: "play").frame(maxWidth: .infinity, alignment: .leading)
+                                    DialogActionLabel(title: "Preview \(cue)", symbol: "play").frame(maxWidth: .infinity, alignment: .leading)
                                 }.buttonStyle(ScroogeButtonStyle())
                             }
                         }
@@ -111,6 +129,16 @@ struct SettingsView: View {
         }
         .sheet(isPresented: Binding(get: { store.showAlertHistory }, set: { store.showAlertHistory = $0 })) { AlertHistoryView().environment(store) }
     }
+    private func soundThemeOption(_ title: String, value: String) -> some View {
+        let selected = store.state.settings.soundTheme == value
+        return Button { store.edit { $0.settings.soundTheme = value } } label: {
+            HStack(spacing: 8) {
+                Circle().stroke(selected ? Theme.accent : Theme.secondary, lineWidth: selected ? 5 : 1)
+                    .frame(width: 16, height: 16).padding(2)
+                Text(title).font(.system(size: 14)).foregroundStyle(.white)
+            }.contentShape(Rectangle())
+        }.buttonStyle(.plain).accessibilityLabel(title).accessibilityAddTraits(selected ? .isSelected : [])
+    }
     private func settingsSwitch(_ title: String, isOn: Binding<Bool>) -> some View {
         Toggle(title, isOn: isOn)
             .font(.system(size: 14))
@@ -132,8 +160,8 @@ struct SettingsCard<Content: View>: View {
         ScroogeCard(inset: 16) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
+                    if let help { Image(systemName: "info.circle").font(.system(size: 14)).foregroundStyle(Theme.accent).help(help) }
                     Label(title, systemImage: symbol).font(.system(size: 21, weight: .semibold)).foregroundStyle(Theme.accent)
-                    if let help { Image(systemName: "info.circle").foregroundStyle(Theme.secondary).help(help) }
                     if let headerToggle {
                         Spacer()
                         Toggle(title, isOn: headerToggle).toggleStyle(ScroogeSwitchStyle(showsLabel: false)).frame(width: 40, height: 20).accessibilityLabel(title)
