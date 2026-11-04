@@ -363,3 +363,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched source brand stack: zero spacing,40-point title line and26-point subtitle line, centered alongside66-point mascot. Previously intrinsic text heights and3-point spacing shifted the title down.
 - Matched source sentence casing for empty/live-paused status and Add account/Exit demo labels.
 - Canonical build passed (`artifacts/dashboard-header-parity-build.log`). Runtime compact empty dashboard shows complete brand/status text and Add account with no clipping. Demo casing follows the shared expression but was not reopened. Font-family differences and wide-layout baseline alignment remain unverified.
+
+### Wide layout verification and navigator margins
+- Expanded the running app using the native window zoom action. Wide header correctly uses one row and all legend/status/actions remain visible; empty-state content and demo button are visible without scrolling.
+- Corrected both navigator variants from20-point to12-point card side margins, matching HorizonView's source padding. Their22-point height remains source-correct.
+- Canonical build passed (`artifacts/navigator-margins-build.log`). Wide empty navigator now starts at44pt with card edge32pt. Populated navigator uses the same correction but drag behavior after resizing remains to be verified.
+- Runtime window1496pt wide differs from1463pt reference; exact screenshot matching is still open, including font metrics, timeline header padding and chart anchors.

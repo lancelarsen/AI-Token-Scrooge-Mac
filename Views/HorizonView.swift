@@ -62,8 +62,8 @@ struct HorizonView: View {
                             }
                             .accessibilityHidden(true)
                         }
-                        .frame(height: 22)
-                } else { navigator.frame(height: 22) }
+                        .frame(height: 22).padding(.horizontal, -8)
+                } else { navigator.frame(height: 22).padding(.horizontal, -8) }
                 if let historyStatus {
                     Text(historyStatus).font(.system(size: 13)).foregroundStyle(Theme.secondary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("historyStatus")
