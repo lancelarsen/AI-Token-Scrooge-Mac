@@ -182,14 +182,12 @@ struct QuotaRow: View {
     var body: some View {
         Group {
             if wide {
-                HStack(spacing: 12) { quotaLabel; usageControls; resetCountdown }
+                HStack(spacing: 12) { quotaDetailsButton; usageControls; resetDetailsButton.frame(width: 200, alignment: .leading) }
             } else {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(alignment: .top, spacing: 12) {
-                        quotaLabel.frame(maxWidth: .infinity, alignment: .leading)
-                        if window.resetsAt != nil {
-                            resetCountdown.frame(maxWidth: .infinity, alignment: .leading)
-                        }
+                        quotaDetailsButton.frame(maxWidth: .infinity, alignment: .leading)
+                        resetDetailsButton.frame(maxWidth: .infinity, alignment: .leading)
                     }
                     usageControls
                 }
@@ -200,6 +198,22 @@ struct QuotaRow: View {
             DetailsDialog(width: 342, close: { showDetails = false }) {
                 QuotaDetailsView(account: account, window: window, snapshot: snapshot)
             }
+        }
+    }
+    private var quotaDetailsButton: some View {
+        Button { showDetails = true } label: {
+            quotaLabel.contentShape(Rectangle())
+        }.buttonStyle(.plain)
+            .accessibilityLabel("\(window.name). Open Details")
+    }
+    @ViewBuilder private var resetDetailsButton: some View {
+        if window.resetsAt != nil {
+            Button { showDetails = true } label: {
+                resetCountdown.contentShape(Rectangle())
+            }.buttonStyle(.plain)
+                .accessibilityLabel("Reset for \(window.name). Open Details")
+        } else {
+            Color.clear.frame(height: 0).accessibilityHidden(true)
         }
     }
     private var quotaNote: String {
