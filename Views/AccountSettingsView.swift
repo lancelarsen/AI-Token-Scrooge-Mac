@@ -17,19 +17,25 @@ struct AccountSettingsView: View {
     }
     var body: some View {
         VStack(spacing: 0) {
-            HStack { Image(systemName: "person").font(.system(size: 26)).foregroundStyle(Theme.accent); Text(accountTitle).font(.system(size: 26, weight: .semibold)).foregroundStyle(.white); Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction) }.padding(24)
+            HStack { Image(systemName: "person").font(.system(size: 26)).foregroundStyle(Theme.accent); Text(accountTitle).font(.system(size: 26, weight: .semibold)).foregroundStyle(.white); Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction) }.padding(.horizontal, 20).padding(.vertical, 12)
             ScrollView {
                 if let account {
                     VStack(spacing: 12) {
-                        SettingsCard(title: "Account", symbol: "person") {
-                            HStack {
+                        SettingsCard(title: "Account", symbol: "person", help: "Account name, history line color, polling interval and monitoring preferences.") {
+                            HStack(spacing: 12) {
                                 Text("Account Name").frame(width: 190, alignment: .leading)
-                                TextField("Account Name", text: $nicknameDraft).textFieldStyle(.roundedBorder)
+                                TextField("Personal, Work", text: $nicknameDraft).textFieldStyle(.plain)
+                                    .padding(.horizontal, 12).frame(height: 32)
+                                    .background(Color(hex: "#2A2B30"), in: RoundedRectangle(cornerRadius: 10))
+                                    .overlay(alignment: .bottom) {
+                                        Rectangle().fill(editingNickname ? Theme.accent : Theme.secondary.opacity(0.55))
+                                            .frame(height: editingNickname ? 2 : 1).padding(.horizontal, 10)
+                                    }.accessibilityLabel("Account Name")
                                 .focused($editingNickname)
                                 .onSubmit { saveNickname() }
                                 .onChange(of: editingNickname) { _, focused in if !focused { saveNickname() } }
                             }
-                            HStack(alignment: .top) {
+                            HStack(alignment: .top, spacing: 12) {
                             Text("Line Color").frame(width: 190, height: 32, alignment: .leading)
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 32, maximum: 32), spacing: 8)], alignment: .leading, spacing: 8) {
                                 ForEach(lineColors, id: \.self) { hex in
@@ -53,17 +59,23 @@ struct AccountSettingsView: View {
                                     }
                             }
                             }
-                            HStack {
-                                Text("Polling Interval: \(account.effectivePollingMinutes) Min").frame(width: 210, alignment: .leading)
+                            HStack(spacing: 12) {
+                                HStack(spacing: 6) {
+                                infoIcon("How often Scrooge checks this account, from 1 to 30 minutes.")
+                                Text("Polling Interval: \(account.effectivePollingMinutes) Min").frame(width: 190, alignment: .leading)
                                     .help("How often Scrooge automatically checks this account for updated usage, from 1 to 30 minutes. Shorter intervals show changes sooner; longer intervals make fewer requests. Changes save automatically.")
+                                }
                                 MinuteSlider(value: Binding(get: { account.effectivePollingMinutes }, set: { value in update { $0.pollingMinutes = value } })).frame(height: 44)
                             }
+                            HStack(spacing: 6) {
+                            infoIcon("Pause checks and alerts without removing this connection.")
                             Toggle("Monitor This Account", isOn: Binding(get: { account.enabled }, set: { value in update { $0.enabled = value; $0.generation = UUID() } }))
                                 .toggleStyle(ScroogeSwitchStyle()).frame(minHeight: 36)
                                 .help("Pause checks and alerts without removing this connection.")
+                            }
                         }
                         if let savedSnapshot = store.state.snapshots[accountID], savedSnapshot.belongs(to: account), let reserve = savedSnapshot.reserve {
-                            SettingsCard(title: "Available Resets", symbol: "folder") {
+                            SettingsCard(title: "Available Resets", symbol: "folder", help: "Earned resets reported by this provider and their expiration dates.") {
                                 Text("\(reserve.availableCount.map(String.init) ?? "Unknown") Available").font(.system(size: 20))
                                 if let credits = reserve.credits {
                                     ForEach(credits) { credit in
@@ -79,8 +91,8 @@ struct AccountSettingsView: View {
                             ruleToggle("Capacity Restored", path: \.restored, help: "Alert when an exhausted allowance has capacity again and the provider confirms usage is allowed.")
                             ruleToggle("Reset Expiry Reminders", path: \.expiry, help: "Remind you before available earned resets expire.")
                         }
-                        SettingsCard(title: "Connection", symbol: "link") {
-                            Text("Sign in again only if this account needs a new connection. Your saved settings stay in place.").foregroundStyle(Theme.secondary)
+                        SettingsCard(title: "Connection", symbol: "link", help: "Reconnect this account or remove its saved connection.") {
+                            Text("Sign in again only if this account needs a new connection. Your saved settings stay in place.").font(.system(size: 13)).foregroundStyle(Theme.secondary)
                             Button { store.reconnectAccountID = accountID; dismiss(); store.showConnection = true } label: { DialogActionLabel(title: "Sign In Again", symbol: "person").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
                             Button(role: .destructive) { confirmRemove = true } label: { DialogActionLabel(title: "Remove Account", symbol: "trash").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
                         }
@@ -122,10 +134,17 @@ struct AccountSettingsView: View {
         store.edit { state in if let index = state.accounts.firstIndex(where: { $0.id == accountID }) { change(&state.accounts[index]) } }
     }
     private func ruleToggle(_ title: String, path: WritableKeyPath<AlertRule,Bool>, help: String) -> some View {
+        HStack(spacing: 6) {
+        infoIcon(help)
         Toggle(title, isOn: Binding(get: { store.state.settings.rule(accountID: accountID)[keyPath: path] }, set: { value in store.edit { state in
             var rule = state.settings.rule(accountID: accountID); rule[keyPath: path] = value; rule.windowID = nil
             state.settings.rules.removeAll { $0.accountID == accountID && $0.windowID == nil }; state.settings.rules.append(rule)
         } })).toggleStyle(ScroogeSwitchStyle()).frame(minHeight: 36).help(help)
+        }
+    }
+    private func infoIcon(_ help: String) -> some View {
+        Image(systemName: "info.circle").font(.system(size: 14)).foregroundStyle(Theme.accent)
+            .frame(width: 20).help(help).accessibilityLabel(help)
     }
 }
 

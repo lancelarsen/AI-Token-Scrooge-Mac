@@ -158,7 +158,7 @@ struct SettingsCard<Content: View>: View {
     @ViewBuilder var content: Content
     var body: some View {
         ScroogeCard(inset: 16) {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     if let help { Image(systemName: "info.circle").font(.system(size: 14)).foregroundStyle(Theme.accent).help(help) }
                     Label(title, systemImage: symbol).font(.system(size: 21, weight: .semibold)).foregroundStyle(Theme.accent)

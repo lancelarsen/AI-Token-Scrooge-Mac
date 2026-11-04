@@ -118,3 +118,7 @@ Runtime inspection exposed borderless native Menu rendering that discarded the i
 ## Retention and Billing Selector Runtime Pass
 
 Confirmed the retention menu also collapsed to a borderless text label at runtime. Applied the same plain button menu presentation to retention and GitHub billing-unit selection. Canonical build passed. Runtime screenshots now show both fields at full content width with their intended 32-point height and right-hand chevron. GitHub billing menu opens with AI credits and Premium requests; dismissed without starting authentication or changing saved settings. Compact layout comparison remains pending.
+
+## Account Settings Fields and Help
+
+Compared image 14 and captured SettingsPage.cs. Account name now uses the reference 32-point dark entry with bottom focus underline and 12-point column gap. Added visible help icons to Account, Available Resets, Connection, polling, monitoring and account-alert controls. Runtime demo screenshot confirmed those icons and field rendering. Subsequent source comparison corrected account header to 20 horizontal/12 vertical padding, connection description to 13-point type, and shared settings-card inner spacing from 12 to the source's 8. Final canonical build passed; final spacing and compact screenshots remain pending.
