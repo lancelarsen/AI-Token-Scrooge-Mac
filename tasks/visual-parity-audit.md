@@ -281,3 +281,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Replaced filled SF desktopcomputer glyph with a thin outlined screen and two-part stand, matching the reference notification section/button silhouette. Shared ActionIcon scales it to the section21-point or button20-point slot; Send Test Notification uses the same rendering.
 - Canonical build passed (`artifacts/notification-monitor-icon-build.log`). Opened Settings and visually confirmed the outlined notification heading with existing title/help alignment. No preference changed.
 - Button variant shares the geometry but was not separately rendered this pass. Remaining Settings font metrics, time-zone labels, native controls and extra Privacy row remain open.
+
+### Time-zone display labels (image02)
+- Replaced the raw selected identifier with `(UTC-06:00) Central Time (US & Canada)` for the reference Chicago zone. Other zones show standard UTC offset, macOS-readable standard name and region identifier to distinguish zones with similar names. Saved IANA IDs and selection behavior remain unchanged.
+- Standard offsets subtract DST rather than changing displayed offset seasonally, matching Windows DisplayName semantics.
+- Formatter checks passed for Chicago in winter/summer and half-hour Kolkata/Adelaide offsets. Canonical build passed (`artifacts/time-zone-label-build.log`). Runtime selected Chicago label inspected at compact width, single-line and accessible by the same readable text.
+- Complete Windows display-name catalog and ordering are not reproduced; non-Chicago names use platform data. The expanded menu remains a native Mac adaptation, not verified visually identical.

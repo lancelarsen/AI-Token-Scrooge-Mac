@@ -1,6 +1,19 @@
 import Foundation
 
 enum Format {
+    static func timeZoneName(_ zone: TimeZone, at date: Date = .now) -> String {
+        // Windows DisplayName uses the standard offset even during daylight saving.
+        let offset = zone.secondsFromGMT(for: date) - Int(zone.daylightSavingTimeOffset(for: date))
+        let minutes = abs(offset) / 60
+        let prefix = String(format: "(UTC%@%02d:%02d)", offset < 0 ? "-" : "+", minutes / 60, minutes % 60)
+        let name = zone.identifier == "America/Chicago" ? "Central Time (US & Canada)"
+            : zone.localizedName(for: .standard, locale: Locale(identifier: "en_US"))
+                ?? zone.identifier.replacingOccurrences(of: "_", with: " ")
+        let region = zone.identifier.replacingOccurrences(of: "_", with: " ")
+        let label = zone.identifier == "America/Chicago" ? name : "\(name) · \(region)"
+        return "\(prefix) \(label)"
+    }
+
     static func historyDate(_ date: Date, zone: TimeZone) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")

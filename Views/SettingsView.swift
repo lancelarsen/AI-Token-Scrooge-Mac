@@ -41,18 +41,18 @@ struct SettingsView: View {
                     SettingsCard(title: "Time Zone", symbol: "globe") {
                         Menu {
                             Picker("Time Zone", selection: Binding(get: { store.state.settings.zone.identifier }, set: { zone in store.edit { $0.settings.timeZoneID = zone } })) {
-                                ForEach(Array(Set(TimeZone.knownTimeZoneIdentifiers + [store.state.settings.zone.identifier])).sorted(), id: \.self) { Text($0.replacingOccurrences(of: "_", with: " ")).tag($0) }
+                                ForEach(Array(Set(TimeZone.knownTimeZoneIdentifiers + [store.state.settings.zone.identifier])).sorted(), id: \.self) { Text(Format.timeZoneName(TimeZone(identifier: $0)!)).tag($0) }
                             }.pickerStyle(.inline)
                         } label: {
                             HStack {
-                                Text(store.state.settings.zone.identifier.replacingOccurrences(of: "_", with: " "))
+                                Text(Format.timeZoneName(store.state.settings.zone))
                                 Spacer()
                                 Image(systemName: "chevron.down").foregroundStyle(Theme.secondary)
                             }.font(.system(size: 13)).padding(.horizontal, 12).frame(height: 32)
                                 .background(Theme.control, in: RoundedRectangle(cornerRadius: 8))
                                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.border))
                         }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
-                            .accessibilityLabel("Time Zone").accessibilityValue(store.state.settings.zone.identifier)
+                            .accessibilityLabel("Time Zone").accessibilityValue(Format.timeZoneName(store.state.settings.zone))
                     }
                     SettingsCard(title: "History and Alerts", symbol: "gearshape") {
                         Text("Choose how long to keep recorded usage and alerts. Shortening this period removes older records; increasing it cannot restore deleted records.")
