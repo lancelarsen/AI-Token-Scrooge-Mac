@@ -15,7 +15,7 @@ struct SettingsView: View {
     }
     var body: some View {
         VStack(spacing: 0) {
-            HStack { ActionLabel(title: "Settings", symbol: "gearshape").font(.system(size: 26, weight: .semibold)); Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()) }.padding(.horizontal, 20).padding(.vertical, 12)
+            HStack { HStack(spacing: 10) { ActionIcon(symbol: "gearshape", size: 26).frame(width: 29); Text("Settings").font(.system(size: 26, weight: .semibold)) }; Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()) }.padding(.horizontal, 20).padding(.vertical, 12)
             ScrollView {
                 VStack(spacing: 12) {
                     if store.isDemo { Text("Demo changes stay in this preview. Notification tests use macOS.").font(.system(size: 13)).foregroundStyle(Theme.accent).frame(maxWidth: .infinity, alignment: .leading) }
@@ -175,7 +175,10 @@ struct SettingsCard<Content: View>: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     if let help { Image(systemName: "info.circle").font(.system(size: 14)).foregroundStyle(Theme.accent).help(help) }
-                    Label(title, systemImage: symbol).font(.system(size: 21, weight: .semibold)).foregroundStyle(Theme.accent)
+                    HStack(spacing: 10) {
+                        ActionIcon(symbol: symbol, size: 21).frame(width: 24)
+                        Text(title).font(.system(size: 21, weight: .semibold))
+                    }.foregroundStyle(Theme.accent)
                     if let headerToggle {
                         Spacer()
                         Toggle(title, isOn: headerToggle).toggleStyle(ScroogeSwitchStyle(showsLabel: false)).frame(width: 40, height: 20).accessibilityLabel(title)

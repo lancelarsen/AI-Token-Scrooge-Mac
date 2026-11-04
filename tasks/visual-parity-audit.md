@@ -188,3 +188,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Demo update toggle now edits local preview state; manual Check Now is disabled. Wording explicitly says manual checks because Sparkle background scheduling is independent of demo mode.
 - Canonical build passed (`artifacts/update-card-parity-build.log`). Compact rendering inspected. Toggled preview checks off, closed/reopened Settings, and confirmed real updater setting remained on; Check Now remained disabled.
 - Sparkle's native update availability/install interface differs from Windows. No update check/download/install was initiated. Exact typography and available-update presentation remain open.
+
+### Settings heading icon columns
+- Replaced automatic Label icon layout with captured SectionHeading measurements: 21-point section icons in 24-point columns with 10-point text gaps. Shared SettingsCard applies this to global and account sections.
+- Settings title now uses a 26-point icon in a 29-point column instead of ActionLabel's fixed 19-point icon. Gear headings reuse the same bundled settings artwork as action buttons.
+- Canonical build passed (`artifacts/settings-heading-metrics-build.log`); compact Settings rendering inspected with aligned section titles. Outer panel margins, help-icon coverage and full font equivalence remain open.
