@@ -333,3 +333,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Replaced the heavy SF person fallback in shared DialogActionLabel with a20-point vector glyph: thin circular head and shallow rounded shoulder panel, matching the reference silhouette more closely.
 - Shared ActionIcon retains action foreground/hover coloring and accessibility-hidden decoration; text labels remain accessible. Account page heading symbols are unchanged pending separate measurement.
 - Canonical build passed (`artifacts/account-action-glyph-build.log`); rendered all three chooser buttons and verified aligned20-point icons without clipping. Exact raster equality and sign-in/reconnect instances remain unverified.
+
+### Connection text line boxes (image25)
+- Runtime Claude inspection exposed nickname/actions approximately9 points above the reference relative to panel origin. Added35-point title minimum height and3-point description line spacing with1-point vertical padding to account for the shorter native font line boxes.
+- Canonical build passed (`artifacts/connection-line-height-build.log`). Reopened Claude without initiating authentication: nickname top approximately140pt and sign-in227pt from panel top, versus reference139/225. Full description, nickname, Sign In and Cancel remain visible.
+- Native wrapping still breaks before read rather than your; title glyph shape and panel height differ. The shared adjustment needs expanded-provider-state verification and is not exact typography parity.
