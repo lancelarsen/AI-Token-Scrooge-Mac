@@ -193,3 +193,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Replaced automatic Label icon layout with captured SectionHeading measurements: 21-point section icons in 24-point columns with 10-point text gaps. Shared SettingsCard applies this to global and account sections.
 - Settings title now uses a 26-point icon in a 29-point column instead of ActionLabel's fixed 19-point icon. Gear headings reuse the same bundled settings artwork as action buttons.
 - Canonical build passed (`artifacts/settings-heading-metrics-build.log`); compact Settings rendering inspected with aligned section titles. Outer panel margins, help-icon coverage and full font equivalence remain open.
+
+### Settings help indicators
+- Added captured SettingsHelp coverage to shared section headings and global switches. Help icons use 16-point symbols, 20-point columns, 6-point gaps and #B5A0F4; account helper icons now use the same size/color.
+- Source help text retained except Windows tray/sign-in terminology adapted to Mac menu bar/sign-in behavior.
+- Canonical build passed (`artifacts/settings-help-parity-build.log`). Compact Settings inspection confirmed new Time Zone, Notifications and switch help icons without clipped labels.
+- macOS native hover tooltip styling/timing has not been matched to the Windows immediate themed tooltip; full help interaction parity remains open.

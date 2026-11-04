@@ -154,7 +154,12 @@ struct SettingsView: View {
         }.buttonStyle(.plain).accessibilityLabel(title).accessibilityAddTraits(selected ? .isSelected : [])
     }
     private func settingsSwitch(_ title: String, isOn: Binding<Bool>) -> some View {
-        Toggle(title, isOn: isOn)
+        Toggle(isOn: isOn) {
+            HStack(spacing: 6) {
+                if let help = SettingsHelpCopy.values[title] { SettingsInfoIcon(text: help) }
+                Text(title)
+            }
+        }
             .font(.system(size: 14))
             .toggleStyle(ScroogeSwitchStyle())
             .frame(minHeight: 36)
@@ -173,8 +178,8 @@ struct SettingsCard<Content: View>: View {
     var body: some View {
         ScroogeCard(inset: 16) {
             VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    if let help { Image(systemName: "info.circle").font(.system(size: 14)).foregroundStyle(Theme.accent).help(help) }
+                HStack(spacing: 6) {
+                    if let text = help ?? SettingsHelpCopy.values[title] { SettingsInfoIcon(text: text) }
                     HStack(spacing: 10) {
                         ActionIcon(symbol: symbol, size: 21).frame(width: 24)
                         Text(title).font(.system(size: 21, weight: .semibold))
@@ -334,4 +339,38 @@ struct QuietHoursControl: View {
         .accessibilityAdjustableAction { direction in value.wrappedValue = (value.wrappedValue + (direction == .increment ? 1 : 23)) % 24 }
     }
     private func hour(_ value: Int) -> String { "\(value % 12 == 0 ? 12 : value % 12) \(value < 12 ? "AM" : "PM")" }
+}
+
+private struct SettingsInfoIcon: View {
+    let text: String
+    var body: some View {
+        Image(systemName: "info.circle").font(.system(size: 16))
+            .foregroundStyle(Color(hex: "#B5A0F4")).frame(width: 20)
+            .help(text).accessibilityLabel(text)
+    }
+}
+
+private enum SettingsHelpCopy {
+    static let values: [String: String] = [
+        "Popup Notifications": "Show popup alerts when an enabled alert rule is triggered",
+        "Alert on Icon": "Show alert status on the app icon, even when popup notifications are off",
+        "Notification Sounds": "Play the selected sounds for alerts and notification actions",
+        "Monitor This Account": "Pause automatic usage checks and alerts when off. Your saved connection stays in place.",
+        "Capacity Exhausted": "Alert when a usage limit reaches 0% remaining. Enable the alarm on that limit's dashboard row to receive this alert.",
+        "Capacity Restored": "Alert when a previously exhausted limit has capacity again and the provider confirms usage is allowed. Enable the alarm on that limit's dashboard row to receive this alert.",
+        "Reset Expiry Reminders": "Remind you before an unused earned reset expires, using Earned Reset Expiration Alerts in global Settings. Expiration does not refresh your quota. At least one dashboard row alarm for this account must be on.",
+        "Keep Monitoring When Window Closes": "Keep checking usage in the menu bar after closing the window. Use Quit from the menu bar menu to stop Scrooge.",
+        "Launch at Sign-In": "Start Scrooge automatically when you sign in to your Mac",
+        "Notifications": "Popup notifications show triggered alerts. Alert on Icon keeps alert status visible on the app icon, even when popups are off.",
+        "Sounds": "Choose a sound style and volume for alerts and notification actions. Preview buttons play each sound at the selected volume.",
+        "App Behavior": "Keep monitoring after closing the window by leaving Scrooge in the menu bar. Use Quit in the menu bar menu to stop it. Launch at your Mac Sign-In starts Scrooge automatically.",
+        "Account": "Name and color identify this account. Polling controls how often usage is checked. Turning monitoring off pauses checks and alerts while keeping the saved connection.",
+        "Connection": "Sign in again to renew the connection while keeping settings. Removing the connection only removes it from Scrooge; your provider account is unaffected.",
+        "Time Zone": "Use this time zone for displayed dates, reset times, and quiet hours",
+        "Quiet Hours": "Keep monitoring while notification delivery is quiet during the selected hours. Drag the start and end handles or use arrow keys in one-hour steps.",
+        "Default Alert Levels": "Alerts use capacity remaining, not used. Critical must be below Warning; Info must be at or above Warning. Adjust individual limits on their dashboard bars.",
+        "Earned Reset Expiration Alerts": "Reminders before an earned reset expires. Expiration does not refresh your quota. Each row sets severity and lead time in days or hours. Reminders sort from longest to shortest lead time.",
+        "Quota Refresh Alerts": "Reminders before a scheduled quota refresh, separate from earned reset expirations. Each row sets severity and lead time in days or hours. Reminders sort from longest to shortest lead time.",
+        "Available Resets": "Unused earned resets reported by this provider, with their expiration times when available",
+    ]
 }
