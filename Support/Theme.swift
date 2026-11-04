@@ -126,20 +126,33 @@ struct ActionIcon: View {
     var body: some View {
         Group {
             if symbol == "circle.grid.3x3.fill" {
-                VStack(spacing: size * 0.12) {
-                    ForEach(0..<3) { _ in
-                        HStack(spacing: size * 0.18) {
-                            ForEach(0..<2) { _ in Circle().stroke(foreground, lineWidth: 1.2).frame(width: size * 0.22, height: size * 0.22) }
+                Canvas { context, _ in
+                    for row in 0..<3 {
+                        for column in 0..<2 {
+                            // WinUI strokes the 5-point ellipse inside its bounds.
+                            let bounds = CGRect(x: 3.75 + Double(column) * 9,
+                                                y: 1.75 + Double(row) * 7.5, width: 3.5, height: 3.5)
+                            context.stroke(Path(ellipseIn: bounds), with: .color(foreground), lineWidth: 1.5)
                         }
                     }
-                }
+                }.frame(width: 20, height: 22)
+            } else if symbol == "account.reorder" {
+                Canvas { context, _ in
+                    for row in 0..<3 {
+                        for column in 0..<2 {
+                            let bounds = CGRect(x: 3 + Double(column) * 5,
+                                                y: 2 + Double(row) * 5, width: 3, height: 3)
+                            context.fill(Path(ellipseIn: bounds), with: .color(foreground))
+                        }
+                    }
+                }.frame(width: 14, height: 17)
             } else if symbol == "battery.100percent" || symbol == "battery.25percent" {
                 ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 3).stroke(foreground, lineWidth: 1.5).frame(height: size * 0.64)
+                    RoundedRectangle(cornerRadius: 3).strokeBorder(foreground, lineWidth: 1.5).frame(height: 14)
                     RoundedRectangle(cornerRadius: 1).fill(foreground)
-                        .frame(width: symbol == "battery.25percent" ? size * 0.64 : size * 0.18, height: size * 0.32)
-                        .padding(.leading, size * 0.18)
-                }
+                        .frame(width: symbol == "battery.25percent" ? 14 : 4, height: 7)
+                        .padding(.leading, 4)
+                }.frame(width: 22, height: 20)
             } else if let resource, let image = ThemeImages.image(resource, extension: "svg") {
                 Image(nsImage: image).renderingMode(.template).resizable().scaledToFit().foregroundStyle(foreground)
             } else { Image(systemName: symbol).font(.system(size: size)).foregroundStyle(foreground) }

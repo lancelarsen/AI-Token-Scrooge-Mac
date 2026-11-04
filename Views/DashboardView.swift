@@ -136,7 +136,7 @@ struct AccountCard: View {
     var body: some View {
         HStack(spacing: 0) {
             if store.state.settings.accountSort == .custom {
-                ActionIcon(symbol: "circle.grid.3x3.fill", size: 14).frame(width: 56, height: 44).contentShape(Rectangle()).draggable(account.id).help("Drag to Reorder Account")
+                ActionIcon(symbol: "account.reorder", size: 17).frame(width: 56, height: 44).contentShape(Rectangle()).draggable(account.id).help("Drag to Reorder Account")
                     .accessibilityLabel("Reorder \(store.state.settings.privacy ? "Account" : account.nickname)")
                 Rectangle().fill(Theme.border).frame(width: 1).padding(.vertical, 14)
             }

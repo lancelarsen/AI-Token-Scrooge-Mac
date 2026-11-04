@@ -153,3 +153,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Replaced the empty timeline's three-dot SF Symbol with the Windows navigator's six-dot drawing (two rows, three columns, 2-point dots, 4-point center spacing, #D1BEFF).
 - Shared the drawing with the populated navigator to keep both states consistent.
 - Canonical build passed (`artifacts/navigator-grip-parity-build.log`); inspected first-launch rendering and confirmed the six-dot grip centered in the track. Overall typography and remaining screenshot comparisons are still open.
+
+### Sort and reorder icon geometry
+- Matched the source Custom Order icon's 20x22 canvas, six hollow 5-point circles, 1.5-point stroke, and 9x7.5 center spacing.
+- Matched remaining-sort meters to 22x20 with 14-point outline height and 4/14x7 fills; removed proportional approximations.
+- Account drag handles now use separate filled six-dot artwork, matching the Windows braille grip's filled appearance rather than reusing Custom Order's hollow circles. Exact font-glyph raster equivalence remains unproven.
+- Canonical build passed (`artifacts/action-icon-parity-build.log`). Inspected desktop demo with all four account grips and sorting controls visible. Other typography and icon comparisons remain pending.
