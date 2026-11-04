@@ -10,7 +10,10 @@ enum DemoData {
             (.codex,"Work","pro","#B99AF8",[19,58]), (.claude,"Personal","pro","#58A6FF",[12,94])
         ]
         for (index, config) in configs.enumerated() {
-            let account = ProviderAccount(id: "demo-\(index)", provider: config.0, nickname: config.1, subject: "demo-\(index)", scope: "demo", lineColor: config.3)
+            let identities = [("demo@example.invalid", "demo"), ("demo-github", "personal"),
+                              ("work@example.invalid", "demo-work"), ("claude@example.invalid", "demo-claude")]
+            let identity = identities[index]
+            let account = ProviderAccount(id: "demo-\(index)", provider: config.0, nickname: config.1, subject: identity.0, scope: identity.1, lineColor: config.3)
             state.accounts.append(account)
             var utc = Calendar(identifier: .gregorian); utc.timeZone = TimeZone(secondsFromGMT: 0)!
             let nextMonth = utc.date(byAdding: .month, value: 1, to: utc.date(from: utc.dateComponents([.year, .month], from: now))!)!

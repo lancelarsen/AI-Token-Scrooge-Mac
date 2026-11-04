@@ -142,3 +142,9 @@ Matched AccountQuotaView.cs and MainPage.WithAccountSettings/WithOrderControls: 
 ## Usage Popup Dimensions and Timestamps
 
 Verified revised desktop cards at runtime. Compared usage popup with image 13: usage/reset detail dialogs now use 342-point width instead of 480, with a 136-point minimum Close action. Percentage-only windows omit the redundant numeric allowance. Usage detail timestamps now include seconds and UTC offset, with reference-style labels and a blank separator before account metadata. Canonical build passed; runtime weekly-usage dialog verified width, allowance omission and timestamp format. System-font metrics still wrap the last-fetch offset onto a second line where the Windows reference fits one; exact typography and demo message/identity fixture parity remain unresolved.
+
+### Demo usage-detail content comparison
+- Compared Windows image 13 and captured `DashboardState.LoadDemo` / `ThemedDialogs` with the running Mac weekly usage popup.
+- Matched demo subjects and scopes for all four accounts and restored the `Demo data` footer with the source's 6-point blank spacer and 8-point stack spacing.
+- Canonical build passed (`artifacts/demo-details-parity-build.log`); running popup confirmed Personal address, scope, and footer.
+- Discarded a condensed-system-font experiment: it fixed line wrapping but visibly distorted the reference letter proportions. Standard font remains; timestamp wrapping and exact typography remain unresolved. This is not full popup parity.

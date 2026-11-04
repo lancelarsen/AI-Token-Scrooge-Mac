@@ -269,7 +269,13 @@ struct QuotaDetailsView: View {
             }
             DetailLine(label: "Last successful fetch", value: Format.detailDate(snapshot.observedAt, zone: store.state.settings.zone))
             DetailLine(label: "Provider data as of", value: Format.detailDate(snapshot.providerDataAt, zone: store.state.settings.zone))
-            if let message = snapshot.message { Text(message).foregroundStyle(Theme.secondary) }
+            if snapshot.health == .demo {
+                Color.clear.frame(height: 6)
+                Text("Demo data")
+            } else if let message = snapshot.message, !message.isEmpty {
+                Color.clear.frame(height: 6)
+                Text(message).foregroundStyle(Theme.secondary)
+            }
             if !store.isDemo, let url = account.usageURL {
                 Text("Provider pages use your browser’s sign-in. Check its account and workspace before comparing.").font(.caption).foregroundStyle(Theme.secondary)
                 Button("Open Provider Usage") {
