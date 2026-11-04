@@ -9,6 +9,7 @@ struct HorizonView: View {
     @State private var selectedHistoricalMarker: HistoricalEventMarker?
     @State private var presentation = HorizonPresentation()
     @State private var historyPinned = false
+    @State private var navigatorDragOffset: Double?
     @State private var hoverText: String?
     @State private var hoveredSample: (account: ProviderAccount, point: HistoryPoint)?
     private var events: [HorizonEvent] { HorizonEvent.events(state: store.state, now: .now) }
@@ -457,9 +458,19 @@ struct HorizonView: View {
                 context.stroke(nowLine, with: .color(Color(hex: "#E5DCF9")), lineWidth: 1)
                 drawNavigatorGrip(in: &context, centerX: overview.left + overview.width / 2)
             }.contentShape(Rectangle()).gesture(DragGesture(minimumDistance: 0).onChanged { value in
-                viewport.centerFromOverview(pointerX: value.location.x - 1, trackWidth: trackWidth)
+                if navigatorDragOffset == nil {
+                    clearHistorySample()
+                    let start = value.startLocation.x - 1
+                    let thumb = viewport.overview(trackWidth: trackWidth)
+                    if start < thumb.left || start > thumb.left + thumb.width {
+                        viewport.centerFromOverview(pointerX: start, trackWidth: trackWidth)
+                    }
+                    navigatorDragOffset = viewport.scrollOffset
+                }
+                viewport.dragOverview(startOffset: navigatorDragOffset ?? viewport.scrollOffset,
+                                      translation: value.translation.width, trackWidth: trackWidth)
                 position.scrollTo(x: viewport.scrollOffset)
-            })
+            }.onEnded { _ in navigatorDragOffset = nil })
             .focusable().focusEffectDisabled()
             .onKeyPress(.leftArrow) { panHistory(days: -1); return .handled }
             .onKeyPress(.upArrow) { panHistory(days: -1); return .handled }

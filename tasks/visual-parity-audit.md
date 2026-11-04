@@ -386,3 +386,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched Windows sample traversal scope to visible samples and removed automatic recentering during arrow selection. Panning/Home clear stale sample details.
 - Canonical build passed (`artifacts/history-keyboard-parity-build.log`). Demo chart Page Up moved Nov4 to the earliest Oct28 boundary; Right selected a visible OpenAI sample without a navigator-date change; Home returned Nov4 midnight and accessibility reported No sample selected.
 - Navigator-focused key paths and Return/Space remain untested at runtime; floating panel rendering remains separately unverified. Live state/credentials untouched.
+
+### Navigator drag interaction parity
+- Matched Windows BeginNavigation/DragNavigation: grabbing inside the visible thumb preserves the pointer offset; clicking outside centers once, then subsequent movement uses drag translation. Previous Mac behavior recentered on every update, causing an initial jump.
+- Added pure HorizonViewport.dragOverview with finite-input guards and existing scroll bounds; drag start clears sample details and release resets transient drag state.
+- Canonical build passed (`artifacts/navigator-drag-parity-build.log`). Standalone Swift check using the actual model source passed no-jump, proportional movement, lower/upper clamp and invalid-input cases (`artifacts/navigator-drag-check.swift`). Equivalent XCTest added to existing HorizonPerformanceTests; full hosted XCTest suite not rerun due previously documented host-launch failure.
+- Native pointer drag/release and navigator-focused keyboard paths still require runtime verification; model checks do not prove gesture delivery.

@@ -2,6 +2,24 @@ import XCTest
 @testable import AITokenScrooge
 
 final class HorizonPerformanceTests: XCTestCase {
+    func testNavigatorDragPreservesGrabOffsetAndClamps() {
+        let now = Date(timeIntervalSince1970: 1793793600)
+        var viewport = HorizonViewport(now: now, furthestFuture: now.addingTimeInterval(30 * 86400),
+                                       zone: TimeZone(secondsFromGMT: 0)!, width: 800)
+        let start = viewport.scrollOffset
+        viewport.dragOverview(startOffset: start, translation: 0, trackWidth: 1000)
+        XCTAssertEqual(viewport.scrollOffset, start)
+        viewport.dragOverview(startOffset: start, translation: 20, trackWidth: 1000)
+        XCTAssertEqual(viewport.scrollOffset, start + viewport.contentWidth * 0.02, accuracy: 0.00001)
+        viewport.dragOverview(startOffset: start, translation: -10000, trackWidth: 1000)
+        XCTAssertEqual(viewport.scrollOffset, 0)
+        viewport.dragOverview(startOffset: start, translation: 10000, trackWidth: 1000)
+        XCTAssertEqual(viewport.scrollOffset, viewport.maximumScrollOffset)
+        viewport.dragOverview(startOffset: start, translation: .nan, trackWidth: 1000)
+        viewport.dragOverview(startOffset: start, translation: 20, trackWidth: 0)
+        XCTAssertEqual(viewport.scrollOffset, viewport.maximumScrollOffset)
+    }
+
     func testWheelMotionConservesDistanceAndReversesImmediately() {
         var motion = HorizonWheelMotion()
         motion.enqueue(80)

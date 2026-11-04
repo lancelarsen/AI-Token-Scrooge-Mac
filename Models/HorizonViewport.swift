@@ -70,6 +70,10 @@ struct HorizonViewport: Sendable {
         guard pointerX.isFinite, trackWidth.isFinite, trackWidth > 0 else { return }
         scroll(to: pointerX / trackWidth * contentWidth - viewportWidth / 2)
     }
+    mutating func dragOverview(startOffset: Double, translation: Double, trackWidth: Double) {
+        guard startOffset.isFinite, translation.isFinite, trackWidth.isFinite, trackWidth > 0 else { return }
+        scroll(to: startOffset + translation / trackWidth * contentWidth)
+    }
     private func clamp(_ value: Double) -> Double { min(maximumScrollOffset, max(0, value)) }
     private func dayNumber(_ date: Date) -> Int {
         // Use a UTC civil calendar to number local dates without accumulating DST offsets.
