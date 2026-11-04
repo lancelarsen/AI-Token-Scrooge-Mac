@@ -90,6 +90,7 @@ struct DetailsDialog<Content: View>: View {
     var width: CGFloat = 480
     var closeTitle = "Close"
     var primaryTitle: String? = nil
+    var primarySymbol: String = "checkmark"
     var primaryAction: (() -> Void)? = nil
     let close: () -> Void
     @ViewBuilder let content: () -> Content
@@ -110,7 +111,7 @@ struct DetailsDialog<Content: View>: View {
                 Spacer()
                 if let primaryTitle, let primaryAction {
                     Button(action: primaryAction) {
-                        DialogActionLabel(title: primaryTitle, symbol: "checkmark")
+                        DialogActionLabel(title: primaryTitle, symbol: primarySymbol)
                     }.buttonStyle(ScroogeButtonStyle())
                 }
                 Button(action: close) {

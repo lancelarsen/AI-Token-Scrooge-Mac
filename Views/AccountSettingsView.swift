@@ -47,16 +47,19 @@ struct AccountSettingsView: View {
                                         ZStack { RoundedRectangle(cornerRadius: 8).fill(Color(hex: hex)); if account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType).caseInsensitiveCompare(hex) == .orderedSame { RoundedRectangle(cornerRadius: 8).stroke(.white, lineWidth: 2); Image(systemName: "checkmark").foregroundStyle(.black) } }.frame(width: 32, height: 32)
                                     }.buttonStyle(.plain).accessibilityLabel("Line Color \(hex)")
                                 }
-                                Button { showColor = true } label: { Image(systemName: "plus").frame(width: 32, height: 32).background(Theme.control).clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.accent, lineWidth: 1)) }.buttonStyle(.plain).help("Add Custom Color")
-                                    .popover(isPresented: $showColor) {
-                                        DetailsDialog(closeTitle: "Cancel", primaryTitle: "Add Color", primaryAction: {
+                                Button {
+                                    newColor = Color(hex: account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType))
+                                    showColor = true
+                                } label: { Image(systemName: "plus").frame(width: 32, height: 32).background(Theme.control).clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.accent, lineWidth: 1)) }.buttonStyle(.plain).help("Add Custom Color")
+                                    .sheet(isPresented: $showColor) {
+                                        DetailsDialog(width: 360, closeTitle: "Cancel", primaryTitle: "Add Color", primarySymbol: "plus", primaryAction: {
                                             let hex = newColor.hex; store.edit { state in
                                                 if !state.settings.customColors.contains(hex) { state.settings.customColors.append(hex) }
                                                 if let i = state.accounts.firstIndex(where: { $0.id == accountID }) { state.accounts[i].lineColor = hex }
                                             }; showColor = false
                                         }, close: { showColor = false }) {
                                             VStack(alignment: .leading, spacing: 16) {
-                                                Text("Add Line Color").font(.system(size: 20, weight: .semibold)).foregroundStyle(.white)
+                                                Text("Add Line Color").font(.system(size: 21, weight: .semibold)).foregroundStyle(Theme.accent)
                                                 ColorPicker("Line Color", selection: $newColor, supportsOpacity: false)
                                             }
                                         }

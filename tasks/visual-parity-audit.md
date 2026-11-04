@@ -199,3 +199,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Source help text retained except Windows tray/sign-in terminology adapted to Mac menu bar/sign-in behavior.
 - Canonical build passed (`artifacts/settings-help-parity-build.log`). Compact Settings inspection confirmed new Time Zone, Notifications and switch help icons without clipped labels.
 - macOS native hover tooltip styling/timing has not been matched to the Windows immediate themed tooltip; full help interaction parity remains open.
+
+### Custom-color dialog presentation and initial value
+- Compared image 15 and PickColorAsync: custom color now starts from the selected account's resolved line color on each opening, rather than a stale/default purple.
+- Changed anchored popover to modal sheet, width360; title21 accent; Add Color uses plus icon via configurable DetailsDialog primary symbol.
+- Canonical build passed (`artifacts/color-dialog-parity-build.log`). Demo Personal popup visually confirmed pink; AX RGB 0.835294/0.529412/0.647059 equals #D587A5. Modal title/actions verified.
+- Major remaining gap: native Mac color well still opens the system panel, whereas Windows displays an inline spectrum and RGB/hex fields. Image15 is not fully matched.
