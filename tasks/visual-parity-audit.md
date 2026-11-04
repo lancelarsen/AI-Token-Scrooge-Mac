@@ -392,3 +392,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Added pure HorizonViewport.dragOverview with finite-input guards and existing scroll bounds; drag start clears sample details and release resets transient drag state.
 - Canonical build passed (`artifacts/navigator-drag-parity-build.log`). Standalone Swift check using the actual model source passed no-jump, proportional movement, lower/upper clamp and invalid-input cases (`artifacts/navigator-drag-check.swift`). Equivalent XCTest added to existing HorizonPerformanceTests; full hosted XCTest suite not rerun due previously documented host-launch failure.
 - Native pointer drag/release and navigator-focused keyboard paths still require runtime verification; model checks do not prove gesture delivery.
+
+### Native navigator drag and keyboard verification
+- Verified rebuilt603bc5e app in isolated demo. Clicking near the left side inside the thumb retained Nov4 midnight; dragging140 screen pixels right moved to Nov5 3:58PM, confirming native gesture delivery and preserved grab offset.
+- With navigator focused, Home returned Nov4 midnight, Right advanced exactly to Nov5 midnight, and Page Down advanced to Nov12 midnight. Returned Home afterward.
+- These checks close the native drag and navigator-keyboard gaps recorded above for the exercised paths. Track-outside click, compact drag, Return/Space sample pinning and popup visual capture remain unverified. No implementation changes or new build were needed for this verification pass.
