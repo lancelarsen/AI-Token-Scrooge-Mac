@@ -479,3 +479,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Compared reference 36 and Windows ToolTip style/source. Future event help now includes provider/account/plan, quota title, and labelled refresh/expiration date on separate lines. Settings information icons share the immediate popup implementation.
 - Uses 13-point regular text, #F2F1F5 foreground, #222329 background, #65577F border, 12-point corners and 14×10 padding instead of default macOS help styling. Dismisses on pointer exit, click, geometry changes and removal.
 - Canonical build passed (`artifacts/timeline-event-tooltip-build.log`); diff checks passed. Prior isolated demo interaction confirmed the event retains its usage-details click action. Floating popup appearance/placement has not been captured reliably, and the Mac system font still differs from Segoe UI; these references are not yet declared identical.
+
+### Historical marker and account-selector help consistency
+
+- Historical markers now use the immediate reference tooltip, with provider/account/plan, labelled refresh or expiration date, and the recorded schedule description. The History Event dialog uses that same content with blank lines between grouped events, matching Windows source instead of adding report timestamps and an extra explanatory paragraph.
+- Account selector help now retains the Windows Show or Hide History, Resets and Refreshes instruction alongside history coverage/status, using the styled tooltip. Privacy masking remains applied.
+- Canonical build passed (`artifacts/history-marker-tooltip-build.log`) and diff checks passed. Native demo accessibility inspection confirmed complete selector help for all four accounts. Historical popup rendering and grouped-dialog appearance remain visually unverified; an attempted automation PageUp key was unsupported, so it provides no pan verification.

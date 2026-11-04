@@ -106,23 +106,19 @@ struct HorizonView: View {
         }
         .sheet(item: $selectedHistoricalMarker) { marker in historicalDetails(marker) }
     }
+    private func historicalTooltip(_ marker: HistoricalEventMarker) -> String {
+        marker.events.map { event in
+            let account = "\(event.account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : event.account.nickname) · \(Format.plan(event.account.provider, event.plan))"
+            let kind = event.expiration ? "Reset Expiration" : "Quota Refresh"
+            return "\(account)\n\(kind): \(Format.date(event.date, zone: store.state.settings.zone))\n\(event.title)"
+        }.joined(separator: "\n\n")
+    }
     private func historicalDetails(_ marker: HistoricalEventMarker) -> some View {
         DetailsDialog(close: { selectedHistoricalMarker = nil }) {
-          VStack(alignment: .leading, spacing: 16) {
-            Text("History Event").font(.system(size: 20, weight: .semibold)).foregroundStyle(.white)
-            Group {
-                VStack(alignment: .leading, spacing: 18) {
-                    ForEach(marker.events) { event in
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("\(event.account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : event.account.nickname) · \(Format.plan(event.account.provider, event.plan))")
-                            Text("\(event.title): \(Format.date(event.date, zone: store.state.settings.zone))")
-                            if let reported = event.reportedAt { Text("Reported \(Format.date(reported, zone: store.state.settings.zone))") }
-                        }
-                    }
-                    Text("This is a reported schedule, not confirmation that capacity reset or a credit was redeemed.").foregroundStyle(Theme.secondary)
-                }.frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: 16) {
+                Text("History Event").font(.system(size: 20, weight: .semibold)).foregroundStyle(.white)
+                Text(historicalTooltip(marker)).frame(maxWidth: .infinity, alignment: .leading)
             }
-          }
         }
     }
     private var emptyTimeline: some View {
@@ -191,11 +187,7 @@ struct HorizonView: View {
     private func historyHelp(_ account: ProviderAccount) -> String {
         let series = presentation.series.first { $0.account.id == account.id }
         let name = store.state.settings.privacy ? "Account" : account.nickname
-        if !store.state.settings.historyEnabled {
-            return "\(account.provider.rawValue) / \(name) · \(Format.plan(account.provider, store.state.snapshots[account.id]?.planType))\nShow or Hide History, Resets and Refreshes"
-        }
-        let period = account.provider == .copilot ? "Monthly" : "Weekly"
-        var text = "\(account.provider.rawValue) / \(name) · \(Format.plan(account.provider, store.state.snapshots[account.id]?.planType))\n\(period) History"
+        var text = "\(account.provider.rawValue) / \(name) · \(Format.plan(account.provider, store.state.snapshots[account.id]?.planType))\nShow or Hide History, Resets and Refreshes"
         if let first = series?.points.first, first.at > viewport.firstDate { text += "\nHistory Begins \(Format.date(first.at, zone: store.state.settings.zone))" }
         if let status = series?.status { text += "\n\(status)" }
         return text
@@ -242,7 +234,7 @@ struct HorizonView: View {
                             }
                         }.frame(width: 82, height: 66).opacity(enabled ? 1 : 0.5)
                     }.buttonStyle(.plain).accessibilityLabel("Show \(account.provider.rawValue) \(store.state.settings.privacy ? "Account" : account.nickname) on Timeline")
-                        .help(historyHelp(account))
+                        .modifier(ImmediateReferenceTooltip(text: historyHelp(account)))
                 }
             }
         }.scrollIndicators(.hidden)
@@ -299,8 +291,9 @@ struct HorizonView: View {
                             else { Image(systemName: marker.expiration ? "hourglass" : "arrow.clockwise") }
                         }.font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.card)
                             .frame(width: 22, height: 22).background(marker.expiration ? Theme.amber : Theme.accent).clipShape(Circle())
-                    }.buttonStyle(.plain).position(x: marker.x, y: Double(56 + marker.lane * 24))
-                        .help(marker.events.map { "\($0.title) · \(Format.date($0.date, zone: store.state.settings.zone))" }.joined(separator: "\n"))
+                    }.buttonStyle(.plain)
+                        .modifier(ImmediateReferenceTooltip(text: historicalTooltip(marker)))
+                        .position(x: marker.x, y: Double(56 + marker.lane * 24))
                 }
             }
             ForEach(days, id: \.self) { date in
