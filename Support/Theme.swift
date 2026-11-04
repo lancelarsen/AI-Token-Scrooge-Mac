@@ -189,6 +189,23 @@ struct ActionIcon: View {
                     }
                     context.stroke(path, with: .color(foreground), lineWidth: 1)
                 }
+            } else if symbol == "person" {
+                Canvas { context, _ in
+                    context.scaleBy(x: size / 20, y: size / 20)
+                    context.stroke(Path(ellipseIn: CGRect(x: 6, y: 0.5, width: 8, height: 8)),
+                                   with: .color(foreground), lineWidth: 1)
+                    // The reference uses a shallow rounded shoulder panel, not a semicircle.
+                    var shoulders = Path()
+                    shoulders.move(to: CGPoint(x: 5, y: 11))
+                    shoulders.addLine(to: CGPoint(x: 15, y: 11))
+                    shoulders.addQuadCurve(to: CGPoint(x: 18, y: 14), control: CGPoint(x: 18, y: 11))
+                    shoulders.addLine(to: CGPoint(x: 18, y: 16))
+                    shoulders.addQuadCurve(to: CGPoint(x: 10, y: 19.5), control: CGPoint(x: 18, y: 19.5))
+                    shoulders.addQuadCurve(to: CGPoint(x: 2, y: 16), control: CGPoint(x: 2, y: 19.5))
+                    shoulders.addLine(to: CGPoint(x: 2, y: 14))
+                    shoulders.addQuadCurve(to: CGPoint(x: 5, y: 11), control: CGPoint(x: 2, y: 11))
+                    context.stroke(shoulders, with: .color(foreground), lineWidth: 1)
+                }
             } else if symbol == "desktopcomputer" {
                 Canvas { context, _ in
                     context.scaleBy(x: size / 20, y: size / 20)

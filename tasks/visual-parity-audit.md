@@ -328,3 +328,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched the dialog background (#222329) and one-point separator (#3B3D47), replacing dashboard-card colors.
 - Added the32-point title line box and130-point Cancel button width measured from image20. Retained320-point popup width,24-point padding,44-point provider buttons and10-point gaps.
 - Canonical build passed (`artifacts/provider-chooser-parity-build.log`). Runtime chooser rendered320x335 points versus reference approximately320x336, all three providers and Cancel visible. Native title/person glyph metrics and popup edge treatment remain different; exact parity is not claimed.
+
+### Account action glyph (images20–23/25)
+- Replaced the heavy SF person fallback in shared DialogActionLabel with a20-point vector glyph: thin circular head and shallow rounded shoulder panel, matching the reference silhouette more closely.
+- Shared ActionIcon retains action foreground/hover coloring and accessibility-hidden decoration; text labels remain accessible. Account page heading symbols are unchanged pending separate measurement.
+- Canonical build passed (`artifacts/account-action-glyph-build.log`); rendered all three chooser buttons and verified aligned20-point icons without clipping. Exact raster equality and sign-in/reconnect instances remain unverified.
