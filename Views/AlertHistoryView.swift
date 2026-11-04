@@ -4,12 +4,15 @@ struct AlertHistoryView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var selectedAlert: AlertEvent?
+    @State private var panelSize = CGSize(width: 1000, height: 800)
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack { Text("Alert History").font(.system(size: 26, weight: .semibold)); Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction) }
-            if store.state.alerts.isEmpty { Text("No Alerts Yet").foregroundStyle(Theme.secondary); Spacer() }
-            else {
-                ScrollView {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Alert history").font(.system(size: 26, weight: .semibold))
+                if store.state.alerts.isEmpty {
+                    Text("No alerts yet. Low capacity and expiring resets will appear here.")
+                        .font(.system(size: 14)).foregroundStyle(Theme.secondary)
+                } else {
                     LazyVStack(spacing: 16) {
                         ForEach(store.state.alerts.sorted { $0.createdAt > $1.createdAt }) { alert in
                             Button { selectedAlert = alert } label: {
@@ -20,7 +23,7 @@ struct AlertHistoryView: View {
                                         Text(store.state.settings.privacy ? "Account Details Hidden" : alert.detail)
                                         Text(alert.delivered ? "Sent to macOS" : "Recorded in history")
                                     }.font(.system(size: 14)).frame(maxWidth: .infinity, alignment: .leading)
-                                }.padding(.vertical, 12).frame(minHeight: 56)
+                                }.padding(.vertical, 12).frame(minHeight: 80)
                             }.buttonStyle(ScroogeButtonStyle()).help("Show Usage Details")
                             .contextMenu {
                                 Menu("Snooze") { ForEach([15,30,60,120], id: \.self) { minutes in Button("\(minutes) Minutes") { store.snooze(alert.id, minutes: minutes) } } }
@@ -29,8 +32,20 @@ struct AlertHistoryView: View {
                         }
                     }
                 }
+                Button { dismiss() } label: {
+                    DialogActionLabel(title: "Close", symbol: "xmark")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }.buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction)
+            }.padding(28)
+        }
+        .frame(width: panelSize.width, height: panelSize.height)
+        .background(Color(hex: "#141519")).preferredColorScheme(.dark)
+        .onAppear {
+            if let parent = NSApp.keyWindow?.sheetParent {
+                let size = parent.contentView?.bounds.size ?? parent.frame.size
+                panelSize = CGSize(width: min(1000, max(640, size.width - 48)), height: min(800, max(400, size.height - 64)))
             }
-        }.padding(24).frame(width: 650, height: 600).background(Theme.background).preferredColorScheme(.dark)
+        }
         .sheet(item: $selectedAlert) { alert in
             DetailsDialog(close: { selectedAlert = nil }) {
                 AccountUsageDetailsView(accountID: alert.accountID, windowID: alert.windowID)

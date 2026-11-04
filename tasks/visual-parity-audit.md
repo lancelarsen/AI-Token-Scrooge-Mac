@@ -106,3 +106,7 @@ History switch uses shared 40 x 20 reference styling and explicit accessible lab
 ## Settings Selection Styling
 
 History retention now follows images 02/31 with visible explanation and full-width 32-point selector, preserving confirmation before shortening retention. Sound-theme choices use reference purple selection rings; preview actions use shared icon labels. Existing section help icons precede headings. Canonical build and diff checks passed. Final rendered settings comparison and keyboard/accessibility choice behavior remain pending; custom sound choices expose selected button state rather than a native radio group.
+
+## Alert History Panel Geometry
+
+Compared image 08 against captured MainPage.Alerts.cs and Services/AppPanels.cs. History now uses a host-limited 1000 x 800 panel, 28-point content margins, 16-point gaps and minimum 80-point rows. Title and empty-state wording match the reference; Close follows the list within the scrollable content. macOS delivery wording and context-menu actions remain platform-appropriate. Canonical build and diff checks passed. Rendered desktop/compact comparison and nested usage-detail navigation remain pending; this source-level correction does not establish complete visual parity.
