@@ -160,6 +160,21 @@ struct ActionIcon: View {
                         .frame(width: symbol == "battery.25percent" ? 14 : 4, height: 7)
                         .padding(.leading, 4)
                 }.frame(width: 22, height: 20)
+            } else if symbol == "desktopcomputer" {
+                Canvas { context, _ in
+                    context.scaleBy(x: size / 20, y: size / 20)
+                    let screen = Path(roundedRect: CGRect(x: 0.5, y: 1.5, width: 19, height: 14),
+                                      cornerRadius: 1)
+                    context.stroke(screen, with: .color(foreground), lineWidth: 1)
+                    var stand = Path()
+                    stand.move(to: CGPoint(x: 8, y: 15.5))
+                    stand.addLine(to: CGPoint(x: 8, y: 19))
+                    stand.move(to: CGPoint(x: 12, y: 15.5))
+                    stand.addLine(to: CGPoint(x: 12, y: 19))
+                    stand.move(to: CGPoint(x: 5, y: 19))
+                    stand.addLine(to: CGPoint(x: 15, y: 19))
+                    context.stroke(stand, with: .color(foreground), lineWidth: 1)
+                }
             } else if let resource, let image = ThemeImages.image(resource, extension: "svg") {
                 Image(nsImage: image).renderingMode(.template).resizable().scaledToFit().foregroundStyle(foreground)
             } else { Image(systemName: symbol).font(.system(size: size)).foregroundStyle(foreground) }

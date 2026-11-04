@@ -176,6 +176,8 @@ struct DialogActionLabel: View {
                     }
                     context.stroke(detail, with: .color(foreground), lineWidth: 1)
                 }.frame(width: 20, height: 20).accessibilityHidden(true)
+            } else if symbol == "desktopcomputer" {
+                ActionIcon(symbol: symbol, size: 20)
             } else {
                 Image(systemName: symbol).font(.system(size: 20)).foregroundStyle(foreground)
             }

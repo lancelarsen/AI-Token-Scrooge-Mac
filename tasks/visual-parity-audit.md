@@ -276,3 +276,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Removed the extra global-switch icons, restoring the reference left alignment. Section heading and account-setting help remain intact.
 - Canonical build passed (`artifacts/settings-toggle-alignment-build.log`). Opened Settings and inspected Check for Newer Versions, Popup Notifications and Alert on Icon: labels now align at the card content edge; section help remains visible. No settings toggled.
 - Mac's additional Privacy Mode row is absent from image07 and remains an explicit layout difference; its privacy behavior should remain available when reconciling that placement. Other section icon geometry/typography remains open.
+
+### Outlined notification monitor (images02/07)
+- Replaced filled SF desktopcomputer glyph with a thin outlined screen and two-part stand, matching the reference notification section/button silhouette. Shared ActionIcon scales it to the section21-point or button20-point slot; Send Test Notification uses the same rendering.
+- Canonical build passed (`artifacts/notification-monitor-icon-build.log`). Opened Settings and visually confirmed the outlined notification heading with existing title/help alignment. No preference changed.
+- Button variant shares the geometry but was not separately rendered this pass. Remaining Settings font metrics, time-zone labels, native controls and extra Privacy row remain open.
