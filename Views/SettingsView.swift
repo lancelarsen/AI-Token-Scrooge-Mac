@@ -8,13 +8,13 @@ struct SettingsView: View {
     @State private var pendingRetention: Int?
     var body: some View {
         VStack(spacing: 0) {
-            HStack { ActionLabel(title: "Settings", symbol: "gearshape").font(.system(size: 26, weight: .semibold)); Spacer(); Button("Close") { dismiss() }.buttonStyle(ScroogeButtonStyle()) }.padding(.horizontal, 20).padding(.vertical, 12)
+            HStack { ActionLabel(title: "Settings", symbol: "gearshape").font(.system(size: 26, weight: .semibold)); Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()) }.padding(.horizontal, 20).padding(.vertical, 12)
             ScrollView {
                 VStack(spacing: 12) {
                     if store.isDemo { Text("Demo changes stay in this preview. Notification tests use macOS.").font(.system(size: 13)).foregroundStyle(Theme.accent).frame(maxWidth: .infinity, alignment: .leading) }
                     SettingsCard(title: "App Updates", symbol: "arrow.down.circle") {
                         Text(AppUpdater.displayVersion).font(.headline)
-                        Toggle("Automatically Check for Updates", isOn: $updater.automaticChecks)
+                        settingsSwitch("Automatically Check for Updates", isOn: $updater.automaticChecks)
                         Text("Checks every eight hours. Downloads and installation require your choice.").font(.caption).foregroundStyle(Theme.secondary)
                         HStack {
                             Button("Check Now") { updater.checkNow() }.buttonStyle(ScroogeButtonStyle()).disabled(!updater.canCheck)
@@ -64,7 +64,8 @@ struct SettingsView: View {
                         }
                     }
                     SettingsCard(title: "Quiet Hours", symbol: "moon", help: "Quiet notification delivery during this time range while monitoring continues.") {
-                        Toggle("Quiet Hours", isOn: binding(\.quietHours))
+                        settingsSwitch("Quiet Hours", isOn: binding(\.quietHours))
+                        Text("A little peace, right on schedule.").font(.system(size: 13)).foregroundStyle(Theme.secondary)
                         QuietHoursControl(start: binding(\.quietStartHour), end: binding(\.quietEndHour))
                             .disabled(!store.state.settings.quietHours)
                             .opacity(store.state.settings.quietHours ? 1 : 0.5)
@@ -74,25 +75,25 @@ struct SettingsView: View {
                             ThresholdSetting(level: level, thresholds: store.state.settings.thresholds) { thresholds in store.edit { $0.settings.thresholds = thresholds } }
                         }
                     }
-                    SettingsCard(title: "Earned Reset Expiration Alerts", symbol: "hourglass") {
+                    SettingsCard(title: "Earned Reset Expiration Alerts", symbol: "clock") {
                         ReminderEditor(reminders: binding(\.resetExpiryReminders))
                     }
                     SettingsCard(title: "Quota Refresh Alerts", symbol: "arrow.clockwise") {
                         ReminderEditor(reminders: binding(\.quotaRefreshReminders))
                     }
-                    SettingsCard(title: "App Behavior", symbol: "macwindow") {
-                        Toggle("Launch at Sign-In", isOn: Binding(get: { store.state.settings.launchAtSignIn }, set: { store.setLaunchAtSignIn($0) }))
+                    SettingsCard(title: "App Behavior", symbol: "gearshape") {
+                        settingsSwitch("Keep Monitoring When Window Closes", isOn: binding(\.closeToMenuBar))
+                        settingsSwitch("Launch at Sign-In", isOn: Binding(get: { store.state.settings.launchAtSignIn }, set: { store.setLaunchAtSignIn($0) }))
                         if let message = store.loginItemMessage { Text(message).font(.caption).foregroundStyle(Theme.secondary) }
                         if store.loginItemNeedsApproval { Button("Open Login Items") { LoginItemService.openSettings() }.buttonStyle(ScroogeButtonStyle()) }
-                        Toggle("Keep Monitoring After Closing", isOn: binding(\.closeToMenuBar))
-                        Toggle("Privacy Mode", isOn: binding(\.privacy))
-                        Button("Alert History") { store.showAlertHistory = true }.buttonStyle(ScroogeButtonStyle())
-                        Button("Send Test Notification") { dismiss(); Task { await store.sendTestNotification() } }.buttonStyle(ScroogeButtonStyle())
+                        settingsSwitch("Privacy Mode", isOn: binding(\.privacy))
+                        Button { store.showAlertHistory = true } label: { DialogActionLabel(title: "Alert History", symbol: "clock.arrow.circlepath").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle())
+                        Button { dismiss(); Task { await store.sendTestNotification() } } label: { DialogActionLabel(title: "Send Test Notification", symbol: "desktopcomputer").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle())
                     }
                 }.frame(maxWidth: 960).padding(.horizontal, 36).padding(.top, 12).padding(.bottom, 20).frame(maxWidth: .infinity)
             }
             if let error = store.errorMessage { Text(error).foregroundStyle(Theme.amber).padding() }
-        }.frame(minWidth: 700, idealWidth: 1000, minHeight: 600, idealHeight: 800).background(Theme.background).preferredColorScheme(.dark).tint(Theme.accent)
+        }.font(.system(size: 14)).frame(minWidth: 700, idealWidth: 1000, minHeight: 600, idealHeight: 800).background(Theme.background).preferredColorScheme(.dark).tint(Theme.accent)
         .onAppear { store.refreshLoginItemStatus() }
         .onChange(of: scenePhase) { _, phase in if phase == .active { store.refreshLoginItemStatus() } }
         .sheet(isPresented: Binding(get: { pendingRetention != nil }, set: { if !$0 { pendingRetention = nil } })) {
@@ -105,11 +106,10 @@ struct SettingsView: View {
         .sheet(isPresented: Binding(get: { store.showAlertHistory }, set: { store.showAlertHistory = $0 })) { AlertHistoryView().environment(store) }
     }
     private func settingsSwitch(_ title: String, isOn: Binding<Bool>) -> some View {
-        HStack {
-            Text(title).font(.system(size: 13))
-            Spacer()
-            Toggle(title, isOn: isOn).labelsHidden().toggleStyle(.switch).controlSize(.small)
-        }.frame(minHeight: 36)
+        Toggle(title, isOn: isOn)
+            .font(.system(size: 14))
+            .toggleStyle(ScroogeSwitchStyle())
+            .frame(minHeight: 36)
     }
     private func binding<T>(_ path: WritableKeyPath<RadarSettings,T>) -> Binding<T> {
         Binding(get: { store.state.settings[keyPath: path] }, set: { value in store.edit { $0.settings[keyPath: path] = value } })
@@ -149,19 +149,51 @@ struct ThresholdSetting: View {
 struct ReminderEditor: View {
     @Binding var reminders: [TimedReminder]
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
             ForEach(reminders) { reminder in
-                HStack {
-                    Stepper(value: Binding(get: { reminder.amount }, set: { value in update(reminder.id) { $0.amount = value } }), in: 1...365) { Text("\(reminder.amount)").frame(width: 36) }
-                    Picker("Unit", selection: Binding(get: { reminder.unit }, set: { value in update(reminder.id) { $0.unit = value } })) { Text("Hours").tag("Hours"); Text("Days").tag("Days") }.labelsHidden()
-                    Text("Before").foregroundStyle(Theme.secondary)
-                    Picker("Severity", selection: Binding(get: { reminder.severity }, set: { value in update(reminder.id) { $0.severity = value } })) {
-                        ForEach(ReminderSeverity.allCases, id: \.self) { Text($0.rawValue).tag($0) }
-                    }.labelsHidden()
-                    Button { reminders.removeAll { $0.id == reminder.id } } label: { Image(systemName: "trash") }.help("Remove Reminder")
+                HStack(spacing: 8) {
+                    Menu {
+                        ForEach(ReminderSeverity.allCases, id: \.self) { level in
+                            Button(level.rawValue) { update(reminder.id) { $0.severity = level } }
+                        }
+                    } label: {
+                        menuLabel(reminder.severity.rawValue, color: severityColor(reminder.severity))
+                    }.menuStyle(.borderlessButton).menuIndicator(.hidden).accessibilityLabel("Severity")
+                    TextField("Amount", value: Binding(get: { reminder.amount }, set: { value in update(reminder.id) { $0.amount = min(365, max(1, value)) } }), format: .number)
+                        .textFieldStyle(.plain).padding(.horizontal, 12).frame(width: 56, height: 44)
+                        .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
+                        .accessibilityLabel("Reminder Amount")
+                    Menu {
+                        ForEach(["Hours", "Days"], id: \.self) { unit in
+                            Button(unit) { update(reminder.id) { $0.unit = unit } }
+                        }
+                    } label: { menuLabel(reminder.unit) }
+                        .menuStyle(.borderlessButton).menuIndicator(.hidden).accessibilityLabel("Unit")
+                    Button { reminders.removeAll { $0.id == reminder.id } } label: {
+                        Image(systemName: "trash").foregroundStyle(Theme.accent).frame(width: 44, height: 44)
+                            .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
+                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
+                    }.buttonStyle(.plain).help("Remove Reminder").accessibilityLabel("Remove Reminder")
                 }
             }
             Button { reminders.append(TimedReminder(amount: 1, unit: "Hours", severity: .info)) } label: { ActionLabel(title: "Add Reminder", symbol: "plus") }.buttonStyle(ScroogeButtonStyle())
+        }
+    }
+    private func menuLabel(_ title: String, color: Color = .white) -> some View {
+        HStack {
+            Text(title).foregroundStyle(color)
+            Spacer()
+            Image(systemName: "chevron.down").font(.system(size: 10)).foregroundStyle(Theme.secondary)
+        }.padding(.horizontal, 12).frame(maxWidth: .infinity).frame(height: 44)
+            .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
+    }
+    private func severityColor(_ level: ReminderSeverity) -> Color {
+        switch level {
+        case .info: Color(hex: "#58A6FF")
+        case .warning: Color(hex: "#F2C94C")
+        case .critical: Color(hex: "#F05B69")
         }
     }
     private func update(_ id: String, change: (inout TimedReminder) -> Void) {

@@ -8,11 +8,11 @@ Acceptance requires individual inspection and equivalent Mac captures; a success
 | --- | --- | --- |
 | 01-live-dashboard.png | Pending | Awaiting detailed inspection and Mac comparison |
 | 02-settings-updates-time-retention.png | Inspected | Inspected: global Settings must be a centered panel with scrolling cards; current Mac separate window needs review. |
-| 03-settings-sounds-quiet-hours.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 04-settings-thresholds.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 05-settings-reset-reminders.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 06-settings-refresh-reminders.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 07-settings-app-behavior.png | Pending | Awaiting detailed inspection and Mac comparison |
+| 03-settings-sounds-quiet-hours.png | Inspected | Reference reviewed. Global switches and behavior actions aligned; slider styling, reminder control dimensions and rendered comparison pending. |
+| 04-settings-thresholds.png | Inspected | Reference reviewed. Global switches and behavior actions aligned; slider styling, reminder control dimensions and rendered comparison pending. |
+| 05-settings-reset-reminders.png | Inspected | Reference reviewed. Global switches and behavior actions aligned; slider styling, reminder control dimensions and rendered comparison pending. |
+| 06-settings-refresh-reminders.png | Inspected | Reference reviewed. Global switches and behavior actions aligned; slider styling, reminder control dimensions and rendered comparison pending. |
+| 07-settings-app-behavior.png | Inspected | Reference reviewed. Global switches and behavior actions aligned; slider styling, reminder control dimensions and rendered comparison pending. |
 | 08-alert-history.png | Pending | Awaiting detailed inspection and Mac comparison |
 | 09-demo-history-on.png | Inspected | Inspected: compare logical dimensions at 1463-wide baseline; preserve native title bar. |
 | 10-demo-history-off.png | Pending | Awaiting detailed inspection and Mac comparison |
@@ -58,3 +58,7 @@ Provider/account/plan heading, two-column name/color form, selected swatch borde
 ## Account Control Rendering Verification
 
 Mac desktop demo inspected after build: switches now align to the right with 40 x 20 purple tracks and 12-point dark thumbs. Polling slider follows captured MinuteEditor.cs: 4-point rail, 30 twelve-point ticks, 20-point outer/10-point inner thumb, 14-point endpoint insets. Accessibility increment changed 2 to 3 minutes; decrement restored 2. Alert switch toggled off and on successfully. Expiry labels now use palette amber. Build passed. Remaining: help icons, exact card/header spacing, compact sizing, pointer/keyboard slider checks and color dialog comparison. This is partial visual verification, not full account-panel parity.
+
+## Global Settings Controls Pass
+
+Inspected images 03–07 individually. Applied reference switch styling to global settings, reordered behavior switches, expanded behavior actions with icons, and reordered reminder rows to severity / amount / unit / delete. Reminder menus now use severity colors and 44-point controls; add button aligns left. Canonical build passed. Rendered global settings comparison and editable reminder interaction verification remain pending, along with quiet-hours geometry, slider styling and panel presentation.
