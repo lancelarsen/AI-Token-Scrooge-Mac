@@ -56,7 +56,7 @@ struct SettingsView: View {
                             }.padding(.horizontal, 12).frame(height: 32)
                                 .background(Theme.control, in: RoundedRectangle(cornerRadius: 8))
                                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.border))
-                        }.menuStyle(.borderlessButton).menuIndicator(.hidden)
+                        }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
                             .accessibilityLabel("Keep History and Alerts").accessibilityValue("\(store.state.settings.historyRetentionDays) Days")
                     }
                     SettingsCard(title: "Notifications", symbol: "desktopcomputer") {

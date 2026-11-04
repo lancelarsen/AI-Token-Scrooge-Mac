@@ -76,7 +76,7 @@ struct ConnectionView: View {
                         Image(systemName: "chevron.down").font(.system(size: 10))
                     }.padding(.horizontal, 12).frame(height: 32)
                         .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
-                }.menuStyle(.borderlessButton).menuIndicator(.hidden)
+                }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
                     .accessibilityLabel("Billing Unit").accessibilityValue(unit == .credits ? "AI credits" : "Premium requests")
                 TextField("Fallback allowance (optional; detected automatically when available)", text: $allowance).modifier(ConnectionFieldStyle())
                 Button { advanced.toggle() } label: {

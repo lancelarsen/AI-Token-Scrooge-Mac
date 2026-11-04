@@ -114,3 +114,7 @@ Compared image 08 against captured MainPage.Alerts.cs and Services/AppPanels.cs.
 ## Runtime Reminder Selector Correction
 
 Runtime inspection exposed borderless native Menu rendering that discarded the intended full-width field label. Switched reminder menus to button presentation with plain styling so the custom background, right chevron and equal flexible columns render. Amount width now matches the Windows control's 80-point column. Canonical build passed; demo screenshot verified full-width bordered selectors and aligned amount/remove columns. Opened severity menu and verified all three choices, then dismissed without changing values. Also verified the revised Alert History empty-state panel at runtime (1000 x 800, 28-point margins, full-width Close); populated rows remain unverified because demo history is empty.
+
+## Retention and Billing Selector Runtime Pass
+
+Confirmed the retention menu also collapsed to a borderless text label at runtime. Applied the same plain button menu presentation to retention and GitHub billing-unit selection. Canonical build passed. Runtime screenshots now show both fields at full content width with their intended 32-point height and right-hand chevron. GitHub billing menu opens with AI credits and Premium requests; dismissed without starting authentication or changing saved settings. Compact layout comparison remains pending.
