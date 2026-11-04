@@ -224,3 +224,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched lowercase expiration/partial-data status wording.
 - Canonical build passed (`artifacts/reset-details-parity-build.log`). Opened demo expiration event; inspected332-point popup and numeric snapshot date with both expiration bullets.
 - Typography still causes the account summary and snapshot status to wrap where the reference fits single lines. This popup is not yet visually identical; its font metrics need correction.
+
+### Earned-reset body font metrics
+- Measured native font widths before adjusting: at14pt system font, account summary289pt and snapshot294pt exceed the284pt body; at13pt they measure271pt/276pt before bold-label styling.
+- Set earned-reset detail body to13pt system while retaining21pt heading. This intentionally uses a different native point size to match the supplied rendered reference's line wrapping.
+- Canonical build passed (`artifacts/reset-detail-font-build.log`). Runtime popup now shows account summary and fetched-status on single lines, as image35 does, with both expiration lines unclipped.
+- Glyph rasterization and vertical spacing are not yet proven identical; usage-detail body font is unchanged and its timestamp wrapping remains open.

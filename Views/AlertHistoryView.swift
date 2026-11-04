@@ -71,7 +71,7 @@ struct AccountUsageDetailsView: View {
                             Text("• \(Format.date(credit.expiresAt, zone: store.state.settings.zone)) · \(credit.expiresAt.map { $0 <= Date() } == true ? "Expired locally — checking provider" : credit.status)")
                         }
                     } else { Text("Credit details unavailable") }
-                }.frame(maxWidth: .infinity, alignment: .leading)
+                }.font(.system(size: 13)).frame(maxWidth: .infinity, alignment: .leading)
             } else if let window = snapshot.windows.first(where: { windowID == nil || $0.id == windowID }) {
                 QuotaDetailsView(account: account, window: window, snapshot: snapshot)
             } else { unavailableDetails }
