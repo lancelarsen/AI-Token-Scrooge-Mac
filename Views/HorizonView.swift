@@ -253,6 +253,12 @@ struct HorizonView: View {
             .clipShape(RoundedRectangle(cornerRadius: 7))
             .overlay(RoundedRectangle(cornerRadius: 7).stroke(accent, lineWidth: 1.5))
     }
+    private func eventTooltip(_ event: HorizonEvent) -> String {
+        let account = "\(event.account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : event.account.nickname) · \(Format.plan(event.account.provider, event.plan))"
+        let first = event.expiration ? "Earned Reset Expires" : account
+        let detail = event.expiration ? account : event.title
+        return "\(first)\n\(detail)\n\(event.expiration ? "Reset Expires" : "Quota Refresh"): \(Format.date(event.date, zone: store.state.settings.zone))"
+    }
     private var timeline: some View {
         ZStack(alignment: .topLeading) {
             Canvas { context, size in
@@ -336,8 +342,9 @@ struct HorizonView: View {
                             Text(event.date.formatted(Date.FormatStyle(date: .omitted, time: .shortened).withTimeZone(store.state.settings.zone))).font(.system(size: 10))
                         }.foregroundStyle(accent).frame(width: 62, height: 74, alignment: .top)
                             .contentShape(Rectangle())
-                    }.buttonStyle(.plain).position(x: viewport.dayAnchor(date), y: CGFloat(114 + index * 76))
-                        .help("\(event.title) · \(Format.date(event.date, zone: store.state.settings.zone))")
+                    }.buttonStyle(.plain)
+                        .modifier(ImmediateReferenceTooltip(text: eventTooltip(event)))
+                        .position(x: viewport.dayAnchor(date), y: CGFloat(114 + index * 76))
                 }
             }
         }.contentShape(Rectangle())
@@ -619,6 +626,7 @@ private extension Date.FormatStyle {
 /// A non-interactive tracking surface: event buttons and scrolling retain hit testing.
 struct HistoryPointerTracking: NSViewRepresentable {
     var severity: ReminderSeverity? = nil
+    var plainText = false
     var text: String? = nil
     var pinned = false
     var anchor: CGPoint? = nil
@@ -634,6 +642,7 @@ struct HistoryPointerTracking: NSViewRepresentable {
         view.onMove = onMove
         view.pinned = pinned
         view.severity = severity
+        view.plainText = plainText
         if let anchor { view.pointer = anchor }
         view.popupText = text
         view.showPopup(text)
@@ -647,6 +656,7 @@ struct HistoryPointerTracking: NSViewRepresentable {
         var pointer = NSPoint.zero
         var pinned = false
         var severity: ReminderSeverity?
+        var plainText = false
         var popupText: String?
         func hidePopup() { popup?.orderOut(nil) }
         func showPopup(_ text: String?) {
@@ -658,24 +668,28 @@ struct HistoryPointerTracking: NSViewRepresentable {
                 panel.hasShadow = true; panel.ignoresMouseEvents = true
                 panel.level = .floating; popup = panel
             }
-            panel.title = severity == nil ? "Usage History Details" : "Alert Threshold Details"
+            panel.title = severity != nil ? "Alert Threshold Details" : plainText ? "Help Details" : "Usage History Details"
             // Keep details within the owning app, including when it occupies only part of a screen.
             let contentBounds = window.convertToScreen(window.contentLayoutRect)
             let visible = contentBounds.intersection(screen.visibleFrame).insetBy(dx: 8, dy: 8)
             guard visible.width > 0, visible.height > 0 else { hidePopup(); return }
             let lines = text.split(separator: "\n", maxSplits: 1).map(String.init)
             let lineWidths = text.components(separatedBy: "\n").enumerated().map { index, line in
-                (line as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: index == 0 ? 14 : 13,
-                    weight: index == 0 ? .semibold : .regular)]).width
+                (line as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: index == 0 && !plainText ? 14 : 13,
+                    weight: index == 0 && !plainText ? .semibold : .regular)]).width
             }
             let popupWidth = min(420, visible.width, ceil((lineWidths.max() ?? 0) + 28 + (severity == nil ? 0 : 26)))
             let content = NSHostingView(rootView:
                 VStack(alignment: .leading, spacing: 5) {
+                    if plainText {
+                        Text(text).font(.system(size: 13)).foregroundStyle(Color(hex: "#F2F1F5"))
+                    } else {
                     HStack(spacing: 8) {
                         if let severity { ThresholdReadoutIcon(severity: severity) }
                         Text(lines[0]).font(.system(size: 14, weight: .semibold)).foregroundStyle(severity == nil ? Color(hex: "#F2F1F5") : .white)
                     }
                     if lines.count > 1 { Text(lines[1]).font(.system(size: 13)).foregroundStyle(Theme.dialogText) }
+                    }
                 }.padding(.horizontal, 14).padding(.vertical, 10).frame(width: popupWidth, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
                     .background(Color(hex: "#222329"), in: RoundedRectangle(cornerRadius: 12))

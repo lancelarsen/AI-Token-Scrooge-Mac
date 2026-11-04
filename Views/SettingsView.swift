@@ -347,7 +347,7 @@ private struct SettingsInfoIcon: View {
     var body: some View {
         Image(systemName: "info.circle").font(.system(size: 16))
             .foregroundStyle(Color(hex: "#B5A0F4")).frame(width: 20)
-            .help(text).accessibilityLabel(text)
+            .modifier(ImmediateReferenceTooltip(text: text)).accessibilityLabel(text)
     }
 }
 

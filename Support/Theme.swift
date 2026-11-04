@@ -344,3 +344,23 @@ struct ThresholdReadoutIcon: View {
         }
     }
 }
+
+/// Immediate, noninteractive reference tooltip; owner geometry changes dismiss it.
+struct ImmediateReferenceTooltip: ViewModifier {
+    let text: String
+    @State private var visible = false
+    func body(content: Content) -> some View {
+        content
+            .onHover { visible = $0 }
+            .simultaneousGesture(TapGesture().onEnded { visible = false })
+            .accessibilityHint(text)
+            .background {
+                GeometryReader { geometry in
+                    HistoryPointerTracking(plainText: true, text: visible ? text : nil, pinned: true,
+                                           anchor: CGPoint(x: geometry.size.width / 2, y: 0), onMove: { _ in })
+                }
+            }
+            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { _ in visible = false }
+            .onDisappear { visible = false }
+    }
+}

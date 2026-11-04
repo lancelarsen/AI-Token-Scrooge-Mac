@@ -473,3 +473,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Replaced delayed system help on quota markers with a floating value readout for hover, focus and drag. Matches Windows text format, 14-point semibold white text, 18-point severity image, 8-point icon gap, 14×10 padding, 12-point corners and #65577F border on #222329. Warning/critical reuse identical reference SVGs.
 - Reused the existing owner-window-clamped panel, with a 2-point threshold anchor gap. Added pending-content delivery when a new tracking view attaches to its window. Readouts dismiss with Escape, disable/mute, removal or non-drag geometry changes.
 - Canonical build and diff checks passed (`artifacts/threshold-readout-build.log`). Native compact demo keyboard check moved the focused weekly Warning threshold from 30% to 29% without opening usage details. Floating-panel capture remains a verification limitation: live text/position and pointer-drag readout appearance are not yet proven by screenshot. Do not mark image 34 matched yet.
+
+### Immediate event and settings tooltips (references 30 and 36)
+
+- Compared reference 36 and Windows ToolTip style/source. Future event help now includes provider/account/plan, quota title, and labelled refresh/expiration date on separate lines. Settings information icons share the immediate popup implementation.
+- Uses 13-point regular text, #F2F1F5 foreground, #222329 background, #65577F border, 12-point corners and 14×10 padding instead of default macOS help styling. Dismisses on pointer exit, click, geometry changes and removal.
+- Canonical build passed (`artifacts/timeline-event-tooltip-build.log`); diff checks passed. Prior isolated demo interaction confirmed the event retains its usage-details click action. Floating popup appearance/placement has not been captured reliably, and the Mac system font still differs from Segoe UI; these references are not yet declared identical.
