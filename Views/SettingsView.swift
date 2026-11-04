@@ -233,10 +233,9 @@ struct ReminderEditor: View {
                     } label: { menuLabel(reminder.unit) }
                         .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Unit")
                     Button { reminders.removeAll { $0.id == reminder.id } } label: {
-                        Image(systemName: "trash").foregroundStyle(Theme.accent).frame(width: 44, height: 44)
-                            .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
-                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
-                    }.buttonStyle(.plain).help("Remove Reminder").accessibilityLabel("Remove Reminder")
+                        ActionIcon(symbol: "trash", size: 20)
+                    }.buttonStyle(ScroogeButtonStyle(horizontalPadding: 12))
+                        .help("Remove Reminder").accessibilityLabel("Remove Reminder")
                 }
             }
             Button { reminders.append(TimedReminder(amount: 1, unit: "Hours", severity: .info)) } label: { ActionLabel(title: "Add Reminder", symbol: "plus") }.buttonStyle(ScroogeButtonStyle())

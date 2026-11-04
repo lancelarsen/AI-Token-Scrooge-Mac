@@ -49,13 +49,15 @@ extension EnvironmentValues {
 struct ScroogeButtonStyle: ButtonStyle {
     var selected = false
     var segmented = false
+    var horizontalPadding: CGFloat = 16
     func makeBody(configuration: Configuration) -> some View {
-        Surface(configuration: configuration, selected: selected, segmented: segmented)
+        Surface(configuration: configuration, selected: selected, segmented: segmented, horizontalPadding: horizontalPadding)
     }
     private struct Surface: View {
         let configuration: ButtonStyleConfiguration
         let selected: Bool
         let segmented: Bool
+        let horizontalPadding: CGFloat
         @Environment(\.isEnabled) private var enabled
         @State private var hovered = false
         private var highlighted: Bool { selected || (enabled && (hovered || configuration.isPressed)) }
@@ -64,7 +66,7 @@ struct ScroogeButtonStyle: ButtonStyle {
                 .font(.system(size: 14))
                 .foregroundStyle(.white)
                 .environment(\.actionForeground, highlighted ? .white : Theme.actionAccent)
-                .padding(.horizontal, segmented ? 0 : 16)
+                .padding(.horizontal, segmented ? 0 : horizontalPadding)
                 .frame(minHeight: 44)
                 .background(highlighted ? Theme.activeControl : Theme.control)
                 .clipShape(RoundedRectangle(cornerRadius: segmented ? 0 : 10))
@@ -160,6 +162,33 @@ struct ActionIcon: View {
                         .frame(width: symbol == "battery.25percent" ? 14 : 4, height: 7)
                         .padding(.leading, 4)
                 }.frame(width: 22, height: 20)
+            } else if symbol == "plus" || symbol == "trash" {
+                Canvas { context, _ in
+                    context.scaleBy(x: size / 20, y: size / 20)
+                    var path = Path()
+                    if symbol == "plus" {
+                        path.move(to: CGPoint(x: 2, y: 10))
+                        path.addLine(to: CGPoint(x: 18, y: 10))
+                        path.move(to: CGPoint(x: 10, y: 2))
+                        path.addLine(to: CGPoint(x: 10, y: 18))
+                    } else {
+                        path.move(to: CGPoint(x: 3, y: 4))
+                        path.addLine(to: CGPoint(x: 17, y: 4))
+                        path.move(to: CGPoint(x: 7, y: 4))
+                        path.addLine(to: CGPoint(x: 7, y: 1))
+                        path.addLine(to: CGPoint(x: 13, y: 1))
+                        path.addLine(to: CGPoint(x: 13, y: 4))
+                        path.move(to: CGPoint(x: 4, y: 4))
+                        path.addLine(to: CGPoint(x: 5, y: 19))
+                        path.addLine(to: CGPoint(x: 15, y: 19))
+                        path.addLine(to: CGPoint(x: 16, y: 4))
+                        for x in [8.0, 12.0] {
+                            path.move(to: CGPoint(x: x, y: 7))
+                            path.addLine(to: CGPoint(x: x, y: 16))
+                        }
+                    }
+                    context.stroke(path, with: .color(foreground), lineWidth: 1)
+                }
             } else if symbol == "desktopcomputer" {
                 Canvas { context, _ in
                     context.scaleBy(x: size / 20, y: size / 20)

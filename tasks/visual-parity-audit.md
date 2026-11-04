@@ -293,3 +293,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Preserved the existing preference and behavior through Privacy Mode in the native View menu and menu-bar menu. Both use the existing serialized store edit path; no preference migration/reset.
 - Canonical build passed (`artifacts/privacy-menu-placement-build.log`). In demo, enabled Privacy Mode through View and verified timeline account names became Account; toggled back and verified Personal/Work returned. Inspected bottom Settings: expected row order, section help and outlined test-notification icon visible.
 - Menu-bar extra's duplicate control shares the binding but was not independently clicked. Exact font metrics and other section glyphs remain open; this placement does not establish full image07 parity.
+
+### Reminder action icons and button surface
+- Added thin vector Add/Delete glyphs in shared ActionIcon, replacing heavier SF fallback shapes. Dialog actions also reuse these glyphs for Add Color/Remove Account.
+- Reminder Delete uses shared button styling with12-point horizontal padding around20-point icon, preserving44-point width/height while providing the standard selected/hover/pressed surface.
+- Canonical build passed (`artifacts/reminder-action-icons-build.log`). Inspected rendered reminder rows and Add Reminder: icons are centered, fields retain their widths and44-point buttons remain aligned. No reminders deleted or settings changed during verification.
+- Hover coloring follows the shared style but was not pointer-tested here. Exact glyph corner rasterization and account-dialog instances remain unverified; full parity is still open.
