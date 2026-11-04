@@ -148,6 +148,17 @@ struct ActionIcon: View {
                         }
                     }
                 }.frame(width: 20, height: 22)
+            } else if symbol == "clock" {
+                Canvas { context, _ in
+                    context.scaleBy(x: size / 20, y: size / 20)
+                    context.stroke(Path(ellipseIn: CGRect(x: 1, y: 1, width: 18, height: 18)),
+                                   with: .color(foreground), lineWidth: 1)
+                    var hands = Path()
+                    hands.move(to: CGPoint(x: 10, y: 5))
+                    hands.addLine(to: CGPoint(x: 10, y: 10))
+                    hands.addLine(to: CGPoint(x: 6, y: 10))
+                    context.stroke(hands, with: .color(foreground), lineWidth: 1)
+                }
             } else if symbol == "clock.arrow.circlepath" {
                 Canvas { context, _ in
                     context.scaleBy(x: size / 30, y: size / 30)

@@ -441,3 +441,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Reference 02 and `SettingsPage.WrapCard` group section headings and descriptions with 2-point spacing, then separate controls by 8 points. Added this description slot to shared SettingsCard and applied it to History and Alerts, Notifications, Quiet Hours and account Other Alerts. Previously each description was an ordinary content row with an 8-point gap.
 - Matched description gray #A5A8BA and section-icon lavender #C3ADF8 (the shared action icon default was #B5A0F4).
 - Canonical build and diff checks passed (`artifacts/settings-description-layout-build.log`). Post-change settings captures still needed; this is verified source/layout structure, not proof of full font or pixel parity.
+
+### Asset identity and shared clock outlines
+
+- Compared all 11 shared Resources/Images files against `origin/main` Git objects in the Windows reference repository: alarm_off/on, claude, github, openai, radar, refresh, settings, threshold_critical/warning and token_baron are byte-identical. This verifies asset identity, not rendered scaling.
+- Added the thin clock ring/hands to ActionIcon for sort controls and settings headings; quota countdowns now use it with their severity color. Clock hands use the reference's upward/left orientation, including dialog action clocks. Account heading now uses the shared person outline and 29-point icon slot with 10-point spacing.
+- Canonical build and diff checks passed (`artifacts/shared-clock-icons-build.log`). Post-change glyph rendering and exact pixel matching remain to be verified.

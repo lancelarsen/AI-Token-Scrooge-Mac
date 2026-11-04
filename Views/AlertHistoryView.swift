@@ -171,7 +171,7 @@ struct DialogActionLabel: View {
                     if symbol == "clock" {
                         detail.move(to: CGPoint(x: 10, y: 5))
                         detail.addLine(to: CGPoint(x: 10, y: 10))
-                        detail.addLine(to: CGPoint(x: 14, y: 10))
+                        detail.addLine(to: CGPoint(x: 6, y: 10))
                     } else {
                         context.fill(Path(ellipseIn: CGRect(x: 9.25, y: 5.25, width: 1.5, height: 1.5)),
                                      with: .color(foreground))

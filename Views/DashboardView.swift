@@ -263,9 +263,8 @@ struct QuotaRow: View {
                 case nil: Color(hex: "#B5A0F4")
                 }
                 HStack(alignment: .top, spacing: 12) {
-                    Image(systemName: "clock")
-                        .font(.system(size: 25))
-                        .foregroundStyle(clockColor)
+                    ActionIcon(symbol: "clock", size: 25)
+                        .environment(\.actionForeground, clockColor)
                         .padding(.top, 3)
                     VStack(alignment: .leading, spacing: 3) {
                         Text(Format.countdown(window.resetsAt, now: context.date))
