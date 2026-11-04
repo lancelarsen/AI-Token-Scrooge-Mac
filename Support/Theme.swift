@@ -30,8 +30,8 @@ extension Color {
         self.init(red: Double((value >> 16) & 255) / 255, green: Double((value >> 8) & 255) / 255, blue: Double(value & 255) / 255)
     }
     var hex: String {
-        guard let rgb = NSColor(self).usingColorSpace(.deviceRGB) else { return "#B5A0F4" }
-        return String(format: "#%02X%02X%02X", Int(rgb.redComponent * 255), Int(rgb.greenComponent * 255), Int(rgb.blueComponent * 255))
+        guard let rgb = NSColor(self).usingColorSpace(.sRGB) else { return "#B5A0F4" }
+        return String(format: "#%02X%02X%02X", Int((rgb.redComponent * 255).rounded()), Int((rgb.greenComponent * 255).rounded()), Int((rgb.blueComponent * 255).rounded()))
     }
 }
 private struct ActionForegroundKey: EnvironmentKey {

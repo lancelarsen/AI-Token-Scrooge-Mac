@@ -205,3 +205,10 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Changed anchored popover to modal sheet, width360; title21 accent; Add Color uses plus icon via configurable DetailsDialog primary symbol.
 - Canonical build passed (`artifacts/color-dialog-parity-build.log`). Demo Personal popup visually confirmed pink; AX RGB 0.835294/0.529412/0.647059 equals #D587A5. Modal title/actions verified.
 - Major remaining gap: native Mac color well still opens the system panel, whereas Windows displays an inline spectrum and RGB/hex fields. Image15 is not fully matched.
+
+### Inline custom-color editor
+- Replaced native color well with inline 256-point hue/saturation spectrum, 44-point preview, brightness track, RGB/HSV model picker, hex entry and numeric channels. Body scrolls within 420 points, matching image15's arrangement; dialog maximum height640 accommodates its content/footer.
+- Added spectrum arrow-key support and brightness accessibility adjustment. Inputs clamp channel ranges; incomplete hex drafts do not replace the selected color.
+- Fixed existing Color.hex truncation by using rounded sRGB components. Runtime test initially exposed #58A6FF becoming #57A6FF; rebuilt fix preserves #58A6FF and RGB88/166/255 exactly.
+- Canonical build passed (`artifacts/inline-color-editor-build.log`). Inspected spectrum and fields; edited red88→122 and verified #7AA6FF, then Add Color selected #7AA6FF in the demo account palette.
+- Remaining: RGB/HSV picker visual styling, hue/brightness pointer and keyboard edge cases, cancel behavior, and exact selector/gradient raster equivalence need verification. No live account settings changed.

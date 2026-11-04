@@ -52,7 +52,7 @@ struct AccountSettingsView: View {
                                     showColor = true
                                 } label: { Image(systemName: "plus").frame(width: 32, height: 32).background(Theme.control).clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.accent, lineWidth: 1)) }.buttonStyle(.plain).help("Add Custom Color")
                                     .sheet(isPresented: $showColor) {
-                                        DetailsDialog(width: 360, closeTitle: "Cancel", primaryTitle: "Add Color", primarySymbol: "plus", primaryAction: {
+                                        DetailsDialog(width: 360, maximumHeight: 640, closeTitle: "Cancel", primaryTitle: "Add Color", primarySymbol: "plus", primaryAction: {
                                             let hex = newColor.hex; store.edit { state in
                                                 if !state.settings.customColors.contains(hex) { state.settings.customColors.append(hex) }
                                                 if let i = state.accounts.firstIndex(where: { $0.id == accountID }) { state.accounts[i].lineColor = hex }
@@ -60,7 +60,7 @@ struct AccountSettingsView: View {
                                         }, close: { showColor = false }) {
                                             VStack(alignment: .leading, spacing: 16) {
                                                 Text("Add Line Color").font(.system(size: 21, weight: .semibold)).foregroundStyle(Theme.accent)
-                                                ColorPicker("Line Color", selection: $newColor, supportsOpacity: false)
+                                                ScrollView { InlineLineColorEditor(color: $newColor) }.frame(height: 420)
                                             }
                                         }
                                     }
@@ -193,5 +193,128 @@ struct MinuteSlider: View {
     private func setMinute(_ proposed: Int) {
         let next = min(30, max(1, proposed))
         if value != next { value = next }
+    }
+}
+
+
+/// Inline opaque-color editor matching the Windows color dialog's control arrangement.
+private struct InlineLineColorEditor: View {
+    @Binding var color: Color
+    @State private var hue = 0.0
+    @State private var saturation = 0.0
+    @State private var brightness = 1.0
+    @State private var hexDraft = ""
+    @State private var mode = "RGB"
+    @FocusState private var spectrumFocused: Bool
+
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                GeometryReader { geometry in
+                    ZStack {
+                        LinearGradient(colors: (0...6).map { Color(hue: Double($0) / 6, saturation: 1, brightness: 1) }, startPoint: .leading, endPoint: .trailing)
+                        LinearGradient(colors: [.clear, .white], startPoint: .top, endPoint: .bottom)
+                        Circle().stroke(.black, lineWidth: 2).background(Circle().stroke(.white, lineWidth: 4))
+                            .frame(width: 12, height: 12)
+                            .position(x: min(max(hue * geometry.size.width, 7), geometry.size.width - 7),
+                                      y: min(max((1 - saturation) * geometry.size.height, 7), geometry.size.height - 7))
+                    }.clipShape(RoundedRectangle(cornerRadius: 8)).contentShape(Rectangle())
+                        .gesture(DragGesture(minimumDistance: 0).onChanged { value in
+                            hue = min(1, max(0, value.location.x / geometry.size.width))
+                            saturation = 1 - min(1, max(0, value.location.y / geometry.size.height))
+                            publish()
+                        })
+                        .focusable().focused($spectrumFocused)
+                        .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { press in
+                            switch press.key {
+                            case .leftArrow: hue = max(0, hue - 1 / 360)
+                            case .rightArrow: hue = min(1, hue + 1 / 360)
+                            case .upArrow: saturation = min(1, saturation + 0.01)
+                            default: saturation = max(0, saturation - 0.01)
+                            }
+                            publish(); return .handled
+                        }
+                        .accessibilityLabel("Color Spectrum")
+                        .accessibilityValue("Hue \(Int(hue * 360)), saturation \(Int(saturation * 100)) percent")
+                }.frame(height: 256)
+                RoundedRectangle(cornerRadius: 8).fill(color).frame(width: 44, height: 256)
+                    .accessibilityLabel("Selected Color").accessibilityValue(color.hex)
+            }
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(LinearGradient(colors: [.black, Color(hue: hue, saturation: saturation, brightness: 1)], startPoint: .leading, endPoint: .trailing)).frame(height: 12)
+                    Circle().fill(.white).overlay(Circle().stroke(Color(hex: "#45464D"), lineWidth: 2))
+                        .frame(width: 14, height: 14).offset(x: brightness * max(0, geometry.size.width - 14))
+                }.frame(height: 32).contentShape(Rectangle())
+                    .gesture(DragGesture(minimumDistance: 0).onChanged { value in
+                        brightness = min(1, max(0, (value.location.x - 7) / max(1, geometry.size.width - 14)))
+                        publish()
+                    })
+                    .accessibilityLabel("Brightness").accessibilityValue("\(Int(brightness * 100)) percent")
+                    .accessibilityAdjustableAction { direction in
+                        brightness = min(1, max(0, brightness + (direction == .increment ? 0.01 : -0.01)))
+                        publish()
+                    }
+            }.frame(height: 32)
+            HStack {
+                Picker("Color Model", selection: $mode) { Text("RGB").tag("RGB"); Text("HSV").tag("HSV") }
+                    .labelsHidden().frame(width: 120)
+                Spacer()
+                TextField("Hex Color", text: $hexDraft)
+                    .onChange(of: hexDraft) { _, value in
+                        let digits = value.hasPrefix("#") ? String(value.dropFirst()) : value
+                        if digits.count == 6, UInt64(digits, radix: 16) != nil {
+                            color = Color(hex: digits); loadComponents()
+                        }
+                    }.modifier(ColorEntryStyle()).frame(width: 132)
+            }
+            ForEach(0..<3) { index in
+                HStack(spacing: 8) {
+                    TextField(channelName(index), value: channel(index), format: .number)
+                        .modifier(ColorEntryStyle()).frame(width: 120)
+                    Text(channelName(index)).font(.system(size: 12))
+                    Spacer()
+                }
+            }
+        }.textFieldStyle(.plain).font(.system(size: 13))
+            .onAppear { loadComponents(); hexDraft = color.hex }
+    }
+    private func channelName(_ index: Int) -> String {
+        (mode == "RGB" ? ["Red", "Green", "Blue"] : ["Hue", "Saturation", "Value"])[index]
+    }
+    private func channel(_ index: Int) -> Binding<Int> {
+        Binding(get: {
+            if mode == "HSV" { return Int(([hue * 360, saturation * 100, brightness * 100][index]).rounded()) }
+            let rgb = NSColor(color).usingColorSpace(.sRGB) ?? .black
+            return Int(([rgb.redComponent, rgb.greenComponent, rgb.blueComponent][index] * 255).rounded())
+        }, set: { value in
+            if mode == "HSV" {
+                let fraction = Double(max(0, min(index == 0 ? 360 : 100, value))) / (index == 0 ? 360 : 100)
+                if index == 0 { hue = fraction } else if index == 1 { saturation = fraction } else { brightness = fraction }
+                publish()
+            } else {
+                let rgb = NSColor(color).usingColorSpace(.sRGB) ?? .black
+                var channels = [rgb.redComponent, rgb.greenComponent, rgb.blueComponent]
+                channels[index] = Double(max(0, min(255, value))) / 255
+                color = Color(red: channels[0], green: channels[1], blue: channels[2])
+                loadComponents(); hexDraft = color.hex
+            }
+        })
+    }
+    private func publish() {
+        color = Color(hue: hue, saturation: saturation, brightness: brightness)
+        hexDraft = color.hex
+    }
+    private func loadComponents() {
+        guard let rgb = NSColor(color).usingColorSpace(.sRGB) else { return }
+        hue = rgb.hueComponent; saturation = rgb.saturationComponent; brightness = rgb.brightnessComponent
+    }
+}
+
+private struct ColorEntryStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content.padding(.horizontal, 12).frame(height: 32)
+            .background(Color(hex: "#303138"), in: RoundedRectangle(cornerRadius: 8))
+            .overlay(alignment: .bottom) { Rectangle().fill(Theme.secondary).frame(height: 1).padding(.horizontal, 10) }
     }
 }

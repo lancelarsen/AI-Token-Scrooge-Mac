@@ -88,6 +88,7 @@ struct AccountUsageDetailsView: View {
 /// Shared Windows-style detail dialog: content-sized body and a separate action footer.
 struct DetailsDialog<Content: View>: View {
     var width: CGFloat = 480
+    var maximumHeight: CGFloat = 560
     var closeTitle = "Close"
     var primaryTitle: String? = nil
     var primarySymbol: String = "checkmark"
@@ -122,7 +123,7 @@ struct DetailsDialog<Content: View>: View {
             }.padding(24)
         }
         .frame(width: width)
-        .frame(maxHeight: 560)
+        .frame(maxHeight: maximumHeight)
         .fixedSize(horizontal: false, vertical: true)
         .background(Theme.card)
         .preferredColorScheme(.dark)
