@@ -110,3 +110,7 @@ History retention now follows images 02/31 with visible explanation and full-wid
 ## Alert History Panel Geometry
 
 Compared image 08 against captured MainPage.Alerts.cs and Services/AppPanels.cs. History now uses a host-limited 1000 x 800 panel, 28-point content margins, 16-point gaps and minimum 80-point rows. Title and empty-state wording match the reference; Close follows the list within the scrollable content. macOS delivery wording and context-menu actions remain platform-appropriate. Canonical build and diff checks passed. Rendered desktop/compact comparison and nested usage-detail navigation remain pending; this source-level correction does not establish complete visual parity.
+
+## Runtime Reminder Selector Correction
+
+Runtime inspection exposed borderless native Menu rendering that discarded the intended full-width field label. Switched reminder menus to button presentation with plain styling so the custom background, right chevron and equal flexible columns render. Amount width now matches the Windows control's 80-point column. Canonical build passed; demo screenshot verified full-width bordered selectors and aligned amount/remove columns. Opened severity menu and verified all three choices, then dismissed without changing values. Also verified the revised Alert History empty-state panel at runtime (1000 x 800, 28-point margins, full-width Close); populated rows remain unverified because demo history is empty.

@@ -204,9 +204,9 @@ struct ReminderEditor: View {
                         }
                     } label: {
                         menuLabel(reminder.severity.rawValue, color: severityColor(reminder.severity))
-                    }.menuStyle(.borderlessButton).menuIndicator(.hidden).accessibilityLabel("Severity")
+                    }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Severity")
                     TextField("Amount", value: Binding(get: { reminder.amount }, set: { value in update(reminder.id) { $0.amount = min(365, max(1, value)) } }), format: .number)
-                        .textFieldStyle(.plain).padding(.horizontal, 12).frame(width: 56, height: 44)
+                        .textFieldStyle(.plain).padding(.horizontal, 12).frame(width: 80, height: 44)
                         .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
                         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
                         .accessibilityLabel("Reminder Amount")
@@ -215,7 +215,7 @@ struct ReminderEditor: View {
                             Button(unit) { update(reminder.id) { $0.unit = unit } }
                         }
                     } label: { menuLabel(reminder.unit) }
-                        .menuStyle(.borderlessButton).menuIndicator(.hidden).accessibilityLabel("Unit")
+                        .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Unit")
                     Button { reminders.removeAll { $0.id == reminder.id } } label: {
                         Image(systemName: "trash").foregroundStyle(Theme.accent).frame(width: 44, height: 44)
                             .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
