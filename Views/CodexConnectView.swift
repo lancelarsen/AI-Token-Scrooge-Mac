@@ -8,7 +8,7 @@ struct CodexConnectView: View {
     @State private var connection: CodexConnection?
     @State private var credentialID = UUID().uuidString
     @State private var loginID: String?
-    @State private var status = "Sign in with ChatGPT. Scrooge uses its own Codex profile and never sends an inference request."
+    @State private var status = ""
     @State private var busy = false
     @State private var committed = false
     @State private var committing = false
@@ -16,10 +16,11 @@ struct CodexConnectView: View {
     @State private var listener: Task<Void, Never>?
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(status).foregroundStyle(Theme.secondary)
-            Button(connection == nil ? "Sign In with ChatGPT" : "Check Sign-In") {
+            if !status.isEmpty { Text(status).foregroundStyle(Theme.secondary) }
+            Button {
                 Task { if connection == nil { await start() } else { await finish() } }
-            }.buttonStyle(ScroogeButtonStyle()).disabled(busy || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            } label: { DialogActionLabel(title: connection == nil ? "Sign in with OpenAI" : "Check Sign-In", symbol: "person").frame(maxWidth: .infinity, alignment: .leading) }
+            .buttonStyle(ScroogeButtonStyle()).disabled(busy || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             if busy { ProgressView().controlSize(.small) }
         }
         .onDisappear { closed = true; listener?.cancel(); if !committing && !busy { Task { await cleanup() } } }

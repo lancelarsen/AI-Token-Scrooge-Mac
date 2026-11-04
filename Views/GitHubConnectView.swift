@@ -4,19 +4,17 @@ struct GitHubConnectView: View {
     let nickname: String
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
-    @State private var unit: UsageUnit = .credits
-    @State private var allowance = ""
+    @Binding var unit: UsageUnit
+    @Binding var allowance: String
     @State private var challenge: GitHubChallenge?
     @State private var task: Task<Void, Never>?
     @State private var busy = false
     @State private var committing = false
-    @State private var status = "Sign in with GitHub to read your personal Copilot billing usage. Organization billing uses the advanced token connection."
+    @State private var status = ""
     private let flow = GitHubDeviceFlow()
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(status).foregroundStyle(Theme.secondary)
-            Picker("Billing Unit", selection: $unit) { Text("AI Credits").tag(UsageUnit.credits); Text("Premium Requests").tag(UsageUnit.requests) }.disabled(busy)
-            TextField("Monthly Allowance (optional)", text: $allowance).disabled(busy)
+            if !status.isEmpty { Text(status).foregroundStyle(Theme.secondary) }
             if let challenge {
                 Text(challenge.userCode).font(.system(size: 30, weight: .semibold, design: .monospaced)).textSelection(.enabled)
                 Text("Enter this code on GitHub. Only approve a code you started here.").font(.callout)
@@ -25,7 +23,7 @@ struct GitHubConnectView: View {
                     Button("Open GitHub") { NSWorkspace.shared.open(challenge.verificationURL) }
                 }.buttonStyle(ScroogeButtonStyle())
             }
-            Button(busy ? "Waiting for GitHub…" : "Sign In with GitHub") { begin() }
+            Button { begin() } label: { DialogActionLabel(title: busy ? "Waiting for GitHub…" : "Sign in with GitHub", symbol: "person").frame(maxWidth: .infinity, alignment: .leading) }
                 .buttonStyle(ScroogeButtonStyle()).disabled(busy || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             if busy { ProgressView().controlSize(.small) }
         }.onDisappear { if !committing { task?.cancel() }; challenge = nil }

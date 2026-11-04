@@ -6,7 +6,7 @@ struct ClaudeConnectView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var operation: Task<Void, Never>?
-    @State private var status = "Sign in with your Claude subscription. Scrooge uses an isolated Claude Code profile."
+    @State private var status = ""
     @State private var credentialID = UUID().uuidString
     @State private var busy = false
     @State private var committed = false
@@ -15,8 +15,8 @@ struct ClaudeConnectView: View {
     private let client = ClaudeClient()
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(status).foregroundStyle(Theme.secondary)
-            Button(busy ? "Waiting for Claude Sign-In…" : "Sign In with Claude") {
+            if !status.isEmpty { Text(status).foregroundStyle(Theme.secondary) }
+            Button {
                 busy = true
                 operation = Task {
                     defer { busy = false; store.endCredentialAttempt(credentialID) }
@@ -33,7 +33,8 @@ struct ClaudeConnectView: View {
                         status = (error as? ProviderFailure)?.message ?? (error is AccountError ? error.localizedDescription : "Claude connection could not be completed. Please try again.")
                     }
                 }
-            }.buttonStyle(ScroogeButtonStyle()).disabled(busy || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            } label: { DialogActionLabel(title: busy ? "Waiting for Claude Sign-In…" : "Sign in with Claude", symbol: "person").frame(maxWidth: .infinity, alignment: .leading) }
+            .buttonStyle(ScroogeButtonStyle()).disabled(busy || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             if busy { ProgressView().controlSize(.small) }
         }.onDisappear {
             closed = true

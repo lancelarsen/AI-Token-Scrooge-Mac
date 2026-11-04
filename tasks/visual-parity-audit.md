@@ -74,3 +74,7 @@ Volume and threshold sliders now use 4-point colored rails and 20-point outer/10
 ## Provider Chooser Pass
 
 Inspected images 20–23 and 25. Added reference 320-point three-provider chooser with lavender title, 44-point buttons, divider and right-aligned Cancel footer. Selecting a provider opens a named form with Personal prefilled; reconnect skips chooser. GitHub advanced-mode selector now uses a full-width action button. Canonical build passed. Runtime chooser screenshot inspected and OpenAI selection verified; no authentication initiated. Larger form panels, description/field order and provider action layout remain open parity work.
+
+## Connection Forms Pass
+
+Provider forms now target a 1000 x 800 host-limited panel with centered 550-point content column, description above nickname and full-width sign-in/Cancel actions. GitHub billing unit and fallback allowance stay above the browser/token mode button; shared bindings preserve these fields across mode changes. Authentication status remains visible after starting an operation; Keychain wording retained. Canonical build passed. GitHub browser form inspected at runtime and token mode transition verified without credentials or sign-in. Remaining: native field/picker styling, precise vertical gaps, compact panel behavior, other provider captures and busy/error states.
