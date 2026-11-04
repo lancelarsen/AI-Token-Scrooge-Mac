@@ -98,3 +98,7 @@ All 37 reference images have received initial visual inspection; none of this im
 ## Refresh Feedback and Regression Check
 
 Dashboard Refresh immediately disables after click, displays Refreshing… with a spinner, and uses purple active styling until the request returns. Canonical build passed. Full unit run attempted with ScroogeTests: host stalled before test execution in dyld library loading (sample saved in ignored artifacts/test-host-sample.txt); interrupted the run and terminated its host. No passing unit result claimed. Busy-state visual capture still pending because demo/empty accounts complete immediately.
+
+## Timeline and Alarm Controls
+
+History switch uses shared 40 x 20 reference styling and explicit accessible label. History-off account filter help matches reference action wording. Alarm segments now use shared selected/hover active styling and identify provider/account/plan/quota in help text. Timeline gear now presents the same settings sheet as dashboard. Canonical build passed; runtime history off/on transition and gear-to-sheet navigation verified. Alarm hover/icon screenshots remain pending. Normal app launch succeeded after the prior test-host loader stall.

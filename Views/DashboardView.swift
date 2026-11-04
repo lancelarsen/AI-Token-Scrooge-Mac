@@ -210,12 +210,10 @@ VStack(alignment: .leading, spacing: 5) {
                             }
                         } label: {
                             ActionIcon(symbol: enabled ? "bell.badge" : "bell.slash", size: 22)
-                                .font(.system(size: 18)).foregroundStyle(Theme.accent)
                                 .frame(width: 40, height: 46)
-                                .background(store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) == enabled ? Theme.activeControl : Theme.control)
-                        }.buttonStyle(.plain)
+                        }.buttonStyle(ScroogeButtonStyle(selected: store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) == enabled, segmented: true))
                             .accessibilityAddTraits(store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) == enabled ? .isSelected : [])
-                            .help("\(enabled ? "Enable" : "Disable") Alerts for \(window.name)")
+                            .help("Alarms \(enabled ? "On" : "Off") · Row Alerts · \(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType)) · \(window.name)")
                             .accessibilityLabel("\(enabled ? "Enable" : "Disable") Alerts for \(window.name)")
                     }
                 }.clipShape(RoundedRectangle(cornerRadius: 9))

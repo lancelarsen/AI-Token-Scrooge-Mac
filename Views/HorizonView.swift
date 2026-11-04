@@ -2,7 +2,7 @@ import SwiftUI
 
 struct HorizonView: View {
     @Environment(AppStore.self) private var store
-    @Environment(\.openSettings) private var openSettings
+    @State private var showSettings = false
     @State private var viewport = HorizonViewport(now: .now, furthestFuture: nil, zone: TimeZone(identifier: "America/Chicago")!, width: 1000)
     @State private var position = ScrollPosition(x: 0)
     @State private var selectedEvent: HorizonEvent?
@@ -70,6 +70,7 @@ struct HorizonView: View {
         .onChange(of: viewport.startCoordinate) { _, _ in prepareHistory() }
         .onChange(of: viewport.pixelsPerDay) { _, _ in prepareHistory() }
         .onChange(of: store.state.settings.timeZoneID) { _, _ in prepareHistory() }
+        .sheet(isPresented: $showSettings) { SettingsView().environment(store) }
         .sheet(item: $selectedEvent) { event in
             DetailsDialog(close: { selectedEvent = nil }) {
               VStack(alignment: .leading, spacing: 8) {
@@ -146,6 +147,9 @@ struct HorizonView: View {
     private func historyHelp(_ account: ProviderAccount) -> String {
         let series = presentation.series.first { $0.account.id == account.id }
         let name = store.state.settings.privacy ? "Account" : account.nickname
+        if !store.state.settings.historyEnabled {
+            return "\(account.provider.rawValue) / \(name) · \(Format.plan(account.provider, store.state.snapshots[account.id]?.planType))\nShow or Hide History, Resets and Refreshes"
+        }
         let period = account.provider == .copilot ? "Monthly" : "Weekly"
         var text = "\(account.provider.rawValue) / \(name) · \(Format.plan(account.provider, store.state.snapshots[account.id]?.planType))\n\(period) History"
         if let first = series?.points.first, first.at > viewport.firstDate { text += "\nHistory Begins \(Format.date(first.at, zone: store.state.settings.zone))" }
@@ -161,11 +165,11 @@ struct HorizonView: View {
     private var historyToggle: some View {
         HStack(spacing: 7) {
             Toggle("History", isOn: Binding(get: { store.state.settings.historyEnabled }, set: { store.setHistory($0) }))
-                .labelsHidden().toggleStyle(.switch).controlSize(.small).fixedSize().accessibilityIdentifier("historyToggle")
+                .toggleStyle(ScroogeSwitchStyle(showsLabel: false)).frame(width: 40, height: 20).accessibilityLabel("History").accessibilityIdentifier("historyToggle")
             Text("History").font(.system(size: 13))
         }
     }
-    private var settingsButton: some View { Button { openSettings() } label: { ActionLabel(title: "", symbol: "gearshape") }.buttonStyle(ScroogeButtonStyle()).help("Timeline Settings") }
+    private var settingsButton: some View { Button { showSettings = true } label: { ActionLabel(title: "", symbol: "gearshape") }.buttonStyle(ScroogeButtonStyle()).help("Timeline Settings") }
     private var selectors: some View {
         ScrollView {
             VStack(spacing: 6) {
