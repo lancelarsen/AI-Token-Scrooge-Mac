@@ -375,3 +375,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Popup body uses source #BEC1D2. Width derives from text metrics and is capped420pt instead of stretching short samples to420pt.
 - Canonical build passed (`artifacts/history-popup-format-build.log`). In demo, focused Usage history and pressed Right: accessibility value reported OpenAI/Personal/Plus, Weekly ·22% Used, timestamp and coverage as separate lines. No live credentials touched.
 - Main-window capture did not include the separate floating popup panel, so rendered popup width/line wrapping remains unverified. Keyboard selection/format evidence does not establish pointer-hover or all detail-variant parity.
+
+### History popup window boundary (images29/37)
+- Source HistoryChartInput clamps popup width and position to the app root with8-point margins. Mac previously clamped to the screen, allowing details to extend beyond compact windows.
+- The existing AppKit tracking bridge now intersects the owning window's content-layout rectangle with the screen's visible frame, applying the same8-point margin to width/position calculations. Empty/offscreen bounds hide the popup.
+- Canonical build passed (`artifacts/history-popup-boundary-build.log`) and diff checks passed. Runtime floating-panel edge positioning remains unverified; no claim of complete tooltip parity. SwiftUI retains sample selection/text ownership and the existing panel remains noninteractive.

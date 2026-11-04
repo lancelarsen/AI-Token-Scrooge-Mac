@@ -606,12 +606,16 @@ struct HistoryPointerTracking: NSViewRepresentable {
                 panel.hasShadow = true; panel.ignoresMouseEvents = true
                 panel.level = .floating; popup = panel
             }
+            // Keep details within the owning app, including when it occupies only part of a screen.
+            let contentBounds = window.convertToScreen(window.contentLayoutRect)
+            let visible = contentBounds.intersection(screen.visibleFrame).insetBy(dx: 8, dy: 8)
+            guard visible.width > 0, visible.height > 0 else { hidePopup(); return }
             let lines = text.split(separator: "\n", maxSplits: 1).map(String.init)
             let lineWidths = text.components(separatedBy: "\n").enumerated().map { index, line in
                 (line as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: index == 0 ? 14 : 13,
                     weight: index == 0 ? .semibold : .regular)]).width
             }
-            let popupWidth = min(420, screen.visibleFrame.width - 16, ceil((lineWidths.max() ?? 0) + 28))
+            let popupWidth = min(420, visible.width, ceil((lineWidths.max() ?? 0) + 28))
             let content = NSHostingView(rootView:
                 VStack(alignment: .leading, spacing: 5) {
                     Text(lines[0]).font(.system(size: 14, weight: .semibold)).foregroundStyle(Color(hex: "#F2F1F5"))
@@ -622,7 +626,6 @@ struct HistoryPointerTracking: NSViewRepresentable {
                     .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: "#65577F"))))
             let size = content.fittingSize
             let anchor = window.convertPoint(toScreen: convert(pointer, to: nil))
-            let visible = screen.visibleFrame.insetBy(dx: 8, dy: 8)
             let x = min(max(visible.minX, anchor.x - size.width / 2), visible.maxX - size.width)
             let above = anchor.y + 14
             let y = min(max(visible.minY, above + size.height <= visible.maxY ? above : anchor.y - size.height - 18), visible.maxY - size.height)
