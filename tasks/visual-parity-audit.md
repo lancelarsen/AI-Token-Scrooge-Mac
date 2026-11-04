@@ -397,3 +397,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Verified rebuilt603bc5e app in isolated demo. Clicking near the left side inside the thumb retained Nov4 midnight; dragging140 screen pixels right moved to Nov5 3:58PM, confirming native gesture delivery and preserved grab offset.
 - With navigator focused, Home returned Nov4 midnight, Right advanced exactly to Nov5 midnight, and Page Down advanced to Nov12 midnight. Returned Home afterward.
 - These checks close the native drag and navigator-keyboard gaps recorded above for the exercised paths. Track-outside click, compact drag, Return/Space sample pinning and popup visual capture remain unverified. No implementation changes or new build were needed for this verification pass.
+
+### History details focus-loss dismissal
+- Matched Windows HistoryChartInput.OnLostFocus by binding chart keyboard focus and clearing pinned/sample text when focus leaves the chart. Existing Escape behavior remains.
+- Canonical build passed (`artifacts/history-focus-dismissal-build.log`). In demo selected a history sample via Right, then Tab moved focus to Timeline Navigator; chart accessibility changed from sample details to No sample selected.
+- Floating panel screenshot remains unavailable in the main-window capture; this check proves selection dismissal, not its exact visual rendering. Pointer-only focus transitions and application deactivation remain unverified.

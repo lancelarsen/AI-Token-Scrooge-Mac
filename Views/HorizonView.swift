@@ -9,6 +9,7 @@ struct HorizonView: View {
     @State private var selectedHistoricalMarker: HistoricalEventMarker?
     @State private var presentation = HorizonPresentation()
     @State private var historyPinned = false
+    @FocusState private var historyFocused: Bool
     @State private var navigatorDragOffset: Double?
     @State private var hoverText: String?
     @State private var hoveredSample: (account: ProviderAccount, point: HistoryPoint)?
@@ -266,7 +267,11 @@ struct HorizonView: View {
                 historyPinned = hoverText != nil
             }
             .focusable()
+            .focused($historyFocused)
             .focusEffectDisabled()
+            .onChange(of: historyFocused) { _, focused in
+                if !focused { clearHistorySample() }
+            }
             .accessibilityLabel("Usage history. Use arrow keys to inspect samples; Page Up and Page Down move seven days; Home returns to today; Escape dismisses details.")
             .accessibilityValue(hoverText ?? "No sample selected")
             .onKeyPress(.leftArrow) { inspectSample(direction: -1); return .handled }
