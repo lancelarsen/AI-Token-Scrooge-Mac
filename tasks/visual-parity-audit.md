@@ -259,3 +259,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Replaced SF Symbols for DialogActionLabel's info/clock with thin18-point rings inside20-point slots, matching image32's footprint and stroke weight. The clock uses right-angle hands; info retains its stem, dot and foot.
 - Canonical build passed (`artifacts/banner-icon-build.log`). Generated demo test banner and visually inspected all three buttons. Banner now measures approximately444x153 points versus442x154 in the reference; action text and provider identity remain unclipped.
 - This is visual evidence for the demo banner only. Other icon families, typography differences and longer banner content remain open.
+
+### Alert History timestamp format (image08)
+- Captured MainPage.Alerts.cs formats row timestamps as `MMM d, h:mm tt`; Mac reused the dashboard formatter and included an extra weekday while omitting the comma after the date.
+- Added a dedicated POSIX history formatter and applied it only to history row timestamps, retaining the selected display zone.
+- Executed the formatter extracted from current source with reference Nov4 3:01AM, UTC conversion and previous-local-day rollover assertions; all passed. Canonical build passed (`artifacts/history-date-build.log`).
+- Populated history row geometry/icons still require runtime comparison against image08. These date checks do not establish full screen parity.

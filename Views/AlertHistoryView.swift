@@ -24,7 +24,7 @@ struct AlertHistoryView: View {
                                 HStack(spacing: 10) {
                                     ActionIcon(symbol: alert.isRefreshReminder ? "arrow.clockwise" : alert.reminderID != nil ? "folder" : alert.delivered ? "arrow.up.right.square" : "clock.arrow.circlepath")
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text("\(Format.date(alert.createdAt, zone: store.state.settings.zone)) · \(alert.title)")
+                                        Text("\(Format.historyDate(alert.createdAt, zone: store.state.settings.zone)) · \(alert.title)")
                                         Text(store.state.settings.privacy ? "Account Details Hidden" : alert.detail)
                                         Text(alert.delivered ? "Sent to macOS" : "Recorded in history")
                                     }.font(.system(size: 14)).frame(maxWidth: .infinity, alignment: .leading)
