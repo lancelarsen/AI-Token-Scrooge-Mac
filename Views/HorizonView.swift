@@ -3,6 +3,7 @@ import SwiftUI
 struct HorizonView: View {
     @Environment(AppStore.self) private var store
     @State private var showSettings = false
+    @State private var timelineWidth: CGFloat = 1000
     @State private var viewport = HorizonViewport(now: .now, furthestFuture: nil, zone: TimeZone(identifier: "America/Chicago")!, width: 1000)
     @State private var position = ScrollPosition(x: 0)
     @State private var selectedEvent: HorizonEvent?
@@ -16,8 +17,8 @@ struct HorizonView: View {
     private var events: [HorizonEvent] { HorizonEvent.events(state: store.state, now: .now) }
     private var timelineAccounts: [ProviderAccount] { AccountPolicy.ordered(store.state, mode: .custom).filter(\.enabled) }
     var body: some View {
-        ScroogeCard {
-            VStack(spacing: 18) {
+        ScroogeCard(inset: 0) {
+            VStack(spacing: 16) {
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: 24) { heading; legend; historyToggle; Text(store.state.settings.historyEnabled ? "Scroll Left for History" : "Select Services to Filter Timeline").font(.system(size: 13)).foregroundStyle(Theme.secondary); Spacer(); settingsButton }
                     VStack(alignment: .leading, spacing: 16) {
@@ -30,13 +31,16 @@ struct HorizonView: View {
                         }
                     }
                 }
-                Divider().overlay(Theme.border)
+                .padding(.leading, 12)
+                Divider().overlay(Theme.border).padding(.horizontal, 12)
                 if store.state.accounts.isEmpty {
                     emptyTimeline
                 } else {
-                HStack(alignment: .top, spacing: 16) {
-                    selectors.frame(width: 90)
-                    Divider()
+                HStack(alignment: .top, spacing: 10) {
+                    HStack(spacing: 0) {
+                        selectors
+                        Rectangle().fill(Theme.border).frame(width: 1).padding(.vertical, 6)
+                    }.frame(width: timelineWidth < 850 ? 95 : 112)
                     HStack(spacing: 0) {
                         historyAxis.frame(width: 40).opacity(store.state.settings.historyEnabled ? 1 : 0)
                         GeometryReader { geometry in
@@ -54,6 +58,7 @@ struct HorizonView: View {
                         }
                     }
                 }.frame(height: timelineHeight)
+                    .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { timelineWidth = $0 }
                 }
                 if store.state.accounts.isEmpty {
                     RoundedRectangle(cornerRadius: 5).fill(Theme.activeControl)
@@ -64,13 +69,13 @@ struct HorizonView: View {
                             }
                             .accessibilityHidden(true)
                         }
-                        .frame(height: 22).padding(.horizontal, -8)
-                } else { navigator.frame(height: 22).padding(.horizontal, -8) }
+                        .frame(height: 22)
+                } else { navigator.frame(height: 22) }
                 if let historyStatus {
                     Text(historyStatus).font(.system(size: 13)).foregroundStyle(Theme.secondary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("historyStatus")
                 }
-            }
+            }.padding(.horizontal, 12).padding(.vertical, 18)
         }
         .background {
             GeometryReader { geometry in
@@ -236,7 +241,8 @@ struct HorizonView: View {
                     }.buttonStyle(.plain).accessibilityLabel("Show \(account.provider.rawValue) \(store.state.settings.privacy ? "Account" : account.nickname) on Timeline")
                         .modifier(ImmediateReferenceTooltip(text: historyHelp(account)))
                 }
-            }
+            }.padding(.leading, 3).padding(.trailing, 10).padding(.top, 8)
+                .frame(maxWidth: .infinity)
         }.scrollIndicators(.hidden)
     }
     private func selectorBadge(_ text: String, size: CGFloat, accent: Color) -> some View {

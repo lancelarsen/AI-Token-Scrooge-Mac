@@ -491,3 +491,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Live relaunch contradicted the earlier assumption that defaultSize plus disabled restoration guaranteed compact dimensions: the process had --demo --compact but reopened at 1496 points wide. Added a once-per-launch frame application on activation, gated by both demo flags; regular launches keep existing restoration.
 - Canonical build passed (`artifacts/compact-demo-frame-build.log`). Native screenshot after relaunch measured 1578×1388 Retina pixels, proving the intended 789×694 frame.
 - Compared reference 26: the current populated compact selector rail/chart are too far right (chart starts around x215 versus reference x190); current fixed 90-point selector allocation has no compact adaptation. Header/timeline vertical placement and font metrics also remain different. This comparison does not establish screenshot parity.
+
+### Populated timeline rail geometry
+
+- Matched Windows HorizonView padding (12 horizontal, 18 vertical), header/divider inset and 16-point section spacing. Matched timeline rail widths (95 compact, 112 wide, breakpoint 850), 10-point chart gap, selector inset (3/10/8), and rail divider vertical inset. Removed the previous 90-point selector plus two 16-point gaps.
+- Canonical build passed (`artifacts/timeline-rail-layout-build.log`), diff checks passed. Native compact screenshot compared with reference 26: chart origin moved from approximately x215 to x189, versus reference x190; selector rail moved correspondingly. Navigator remains within the card.
+- Vertical placement, font metrics, wide-layout rendering, and empty timeline geometry still need comparison. This is a verified horizontal alignment improvement, not full reference parity.
