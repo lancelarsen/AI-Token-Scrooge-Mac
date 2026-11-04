@@ -62,3 +62,7 @@ Mac desktop demo inspected after build: switches now align to the right with 40 
 ## Global Settings Controls Pass
 
 Inspected images 03–07 individually. Applied reference switch styling to global settings, reordered behavior switches, expanded behavior actions with icons, and reordered reminder rows to severity / amount / unit / delete. Reminder menus now use severity colors and 44-point controls; add button aligns left. Canonical build passed. Rendered global settings comparison and editable reminder interaction verification remain pending, along with quiet-hours geometry, slider styling and panel presentation.
+
+## Quiet Hours Reference Geometry
+
+Replaced midnight-to-11-PM axis with reference noon-to-noon scale, 32-point track insets, 6-point range, 24-point handles, five 16-point labels, 94/116-point track heights and staggered near-overlap time labels. Added duration/overnight summary and moved the enable switch into the section heading. Canonical build passed. Inspected the disabled 10 PM–8 AM range on Mac: placement and summary render correctly. Enabled dragging, keyboard behavior and overlap states still require runtime verification; final heading-switch placement is build-verified only.
