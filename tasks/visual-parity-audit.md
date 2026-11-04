@@ -20,10 +20,10 @@ Acceptance requires individual inspection and equivalent Mac captures; a success
 | 12-demo-all-capacity-levels.png | Pending | Awaiting detailed inspection and Mac comparison |
 | 13-usage-details.png | Pending | Awaiting detailed inspection and Mac comparison |
 | 14-account-settings.png | Inspected | Inspected: account header should identify provider/account/plan; swatch outline and form columns differ. |
-| 15-custom-color-chooser.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 16-custom-color-added.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 17-polling-snapped.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 18-account-connection-actions.png | Pending | Awaiting detailed inspection and Mac comparison |
+| 15-custom-color-chooser.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
+| 16-custom-color-added.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
+| 17-polling-snapped.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
+| 18-account-connection-actions.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
 | 19-first-launch.png | Pending | Awaiting detailed inspection and Mac comparison |
 | 20-provider-chooser.png | Pending | Awaiting detailed inspection and Mac comparison |
 | 21-connect-codex.png | Pending | Awaiting detailed inspection and Mac comparison |
@@ -33,9 +33,9 @@ Acceptance requires individual inspection and equivalent Mac captures; a success
 | 25-connect-claude.png | Pending | Awaiting detailed inspection and Mac comparison |
 | 26-compact-dashboard.png | Inspected | Inspected: compact timeline keeps legends on first row and History/hint on second; corrected Mac wrapping, awaiting compact capture. |
 | 27-compact-account-rows.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 28-compact-account-settings.png | Pending | Awaiting detailed inspection and Mac comparison |
+| 28-compact-account-settings.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
 | 29-compact-tooltip-placement.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 30-polling-tooltip.png | Pending | Awaiting detailed inspection and Mac comparison |
+| 30-polling-tooltip.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
 | 31-compact-global-settings.png | Pending | Awaiting detailed inspection and Mac comparison |
 | 32-notification-banner.png | Pending | Awaiting detailed inspection and Mac comparison |
 | 33-quota-alerts-muted.png | Pending | Awaiting detailed inspection and Mac comparison |
@@ -50,3 +50,7 @@ Acceptance requires individual inspection and equivalent Mac captures; a success
 - Compact timeline header: legends remain beside heading; History and contextual hint wrap beneath.
 
 The supplied capture manifest contains invalid dimensions; use PNG headers for actual pixel sizes.
+
+## Account Settings Pass
+
+Provider/account/plan heading, two-column name/color form, selected swatch border, switch-style alert controls, compact reserve summary and full-width connection actions now follow the reference. Panel targets 1000 x 800 with host-window limits. Canonical build passed; equivalent Mac desktop/compact captures, exact slider styling and custom-color wrapper remain to verify.
