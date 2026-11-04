@@ -120,7 +120,6 @@ struct SettingsView: View {
                         settingsSwitch("Launch at Sign-In", isOn: Binding(get: { store.state.settings.launchAtSignIn }, set: { store.setLaunchAtSignIn($0) }))
                         if let message = store.loginItemMessage { Text(message).font(.caption).foregroundStyle(Theme.secondary) }
                         if store.loginItemNeedsApproval { Button("Open Login Items") { LoginItemService.openSettings() }.buttonStyle(ScroogeButtonStyle()) }
-                        settingsSwitch("Privacy Mode", isOn: binding(\.privacy))
                         Button { store.showAlertHistory = true } label: { DialogActionLabel(title: "Alert History", symbol: "clock.arrow.circlepath").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle())
                         Button { dismiss(); Task { await store.sendTestNotification() } } label: { DialogActionLabel(title: "Send Test Notification", symbol: "desktopcomputer").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle())
                     }

@@ -20,7 +20,16 @@ import Network
                 .onAppear { delegate.store = store }
         }
         .defaultSize(width: 1460, height: 900)
-        .commands { CommandGroup(after: .appInfo) { Button("Check for Updates…") { AppUpdater.shared.checkNow() } } }
+        .commands {
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") { AppUpdater.shared.checkNow() }
+            }
+            CommandGroup(after: .toolbar) {
+                Toggle("Privacy Mode", isOn: Binding(
+                    get: { store.state.settings.privacy },
+                    set: { value in store.edit { $0.settings.privacy = value } }))
+            }
+        }
         Settings { SettingsView().environment(store) }
             .defaultSize(width: 1000, height: 800)
         MenuBarExtra {
@@ -44,6 +53,9 @@ struct MenuBarContent: View {
         Text(store.iconDescription)
         Button("Refresh All") { Task { await store.refresh() } }.disabled(store.isRefreshing)
         SettingsLink()
+        Toggle("Privacy Mode", isOn: Binding(
+            get: { store.state.settings.privacy },
+            set: { value in store.edit { $0.settings.privacy = value } }))
         Divider()
         Button("Quit AI Token Scrooge") { NSApp.terminate(nil) }.keyboardShortcut("q")
     }

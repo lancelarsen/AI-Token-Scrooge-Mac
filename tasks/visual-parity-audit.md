@@ -287,3 +287,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Standard offsets subtract DST rather than changing displayed offset seasonally, matching Windows DisplayName semantics.
 - Formatter checks passed for Chicago in winter/summer and half-hour Kolkata/Adelaide offsets. Canonical build passed (`artifacts/time-zone-label-build.log`). Runtime selected Chicago label inspected at compact width, single-line and accessible by the same readable text.
 - Complete Windows display-name catalog and ordering are not reproduced; non-Chicago names use platform data. The expanded menu remains a native Mac adaptation, not verified visually identical.
+
+### Privacy control placement and App Behavior parity (image07)
+- Removed the Mac-only Privacy Mode row from App Behavior to match the reference's two switches followed by Alert History and Send Test Notification.
+- Preserved the existing preference and behavior through Privacy Mode in the native View menu and menu-bar menu. Both use the existing serialized store edit path; no preference migration/reset.
+- Canonical build passed (`artifacts/privacy-menu-placement-build.log`). In demo, enabled Privacy Mode through View and verified timeline account names became Account; toggled back and verified Personal/Work returned. Inspected bottom Settings: expected row order, section help and outlined test-notification icon visible.
+- Menu-bar extra's duplicate control shares the binding but was not independently clicked. Exact font metrics and other section glyphs remain open; this placement does not establish full image07 parity.
