@@ -230,3 +230,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Set earned-reset detail body to13pt system while retaining21pt heading. This intentionally uses a different native point size to match the supplied rendered reference's line wrapping.
 - Canonical build passed (`artifacts/reset-detail-font-build.log`). Runtime popup now shows account summary and fetched-status on single lines, as image35 does, with both expiration lines unclipped.
 - Glyph rasterization and vertical spacing are not yet proven identical; usage-detail body font is unchanged and its timestamp wrapping remains open.
+
+### Usage detail native font metrics
+- Located Segoe UI inside Microsoft Remote Desktop and registered it only in a temporary measurement process; no font copied into the app or repository. Compared sample widths against system, Helvetica Neue, Arial and Tahoma.
+- Usage popup supporting text now uses13pt system; heading remains21pt. Fetch timestamp is single-line with at most10% scaling to fit294pt content width, avoiding condensed letter shapes.
+- Canonical build passed (`artifacts/usage-font-parity-build.log`). Weekly usage popup inspected: full fetched timestamp including timezone fits, account identity and provider-data lines remain readable and untruncated.
+- Vertical rhythm still differs from Segoe's taller line metrics and needs correction; this is a measured width improvement, not proof of exact typography.

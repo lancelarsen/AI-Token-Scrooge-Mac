@@ -272,6 +272,7 @@ struct QuotaDetailsView: View {
                 DetailLine(label: "Scope", value: account.scope)
             }
             DetailLine(label: "Last successful fetch", value: Format.detailDate(snapshot.observedAt, zone: store.state.settings.zone))
+                .lineLimit(1).minimumScaleFactor(0.9)
             DetailLine(label: "Provider data as of", value: Format.detailDate(snapshot.providerDataAt, zone: store.state.settings.zone))
             if snapshot.health == .demo {
                 Color.clear.frame(height: 6)
@@ -288,6 +289,6 @@ struct QuotaDetailsView: View {
                     }
                 }.buttonStyle(ScroogeButtonStyle())
             }
-        }.font(.system(size: 14)).foregroundStyle(Theme.secondary).textSelection(.enabled).frame(maxWidth: 440, alignment: .leading).preferredColorScheme(.dark)
+        }.font(.system(size: 13)).foregroundStyle(Theme.secondary).textSelection(.enabled).frame(maxWidth: 440, alignment: .leading).preferredColorScheme(.dark)
     }
 }
