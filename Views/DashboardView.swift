@@ -162,13 +162,30 @@ struct QuotaRow: View {
     let wide: Bool
     @State private var showDetails = false
     var body: some View {
-        let layout = wide ? AnyLayout(HStackLayout(spacing: 12)) : AnyLayout(VStackLayout(alignment: .leading, spacing: 7))
-        layout {
-            VStack(alignment: .leading, spacing: 5) {
+        Group {
+            if wide {
+                HStack(spacing: 12) { quotaLabel; usageControls; resetCountdown }
+            } else {
+                VStack(alignment: .leading, spacing: 7) {
+                    HStack(alignment: .top) { quotaLabel; Spacer(); resetCountdown }
+                    usageControls
+                }
+            }
+        }
+        .sheet(isPresented: $showDetails) {
+            DetailsDialog(close: { showDetails = false }) {
+                QuotaDetailsView(account: account, window: window, snapshot: snapshot)
+            }
+        }
+    }
+    private var quotaLabel: some View {
+VStack(alignment: .leading, spacing: 5) {
                 Text(window.name).font(.system(size: 14))
                 Text(!account.enabled ? "Monitoring Disabled" : snapshot.health == .demo ? "Demo Data" : snapshot.health == .healthy ? "" : snapshot.message ?? snapshot.health.rawValue)
                     .font(.system(size: 11)).foregroundStyle(Theme.secondary)
             }.frame(width: wide ? 150 : nil, alignment: .leading)
+    }
+    private var usageControls: some View {
             HStack(spacing: 10) {
                 HStack(spacing: 0) {
                     ForEach([true, false], id: \.self) { enabled in
@@ -191,7 +208,10 @@ struct QuotaRow: View {
                 UsageBar(window: window, alertsEnabled: store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id), thresholds: store.state.settings.rule(accountID: account.id, windowID: window.id).thresholds ?? store.state.settings.thresholds,
                          changed: { store.setThresholds(account: account.id, window: window.id, thresholds: $0) }, details: { showDetails = true })
                     .frame(minWidth: 180)
-                TimelineView(.periodic(from: .now, by: 30)) { context in
+            }
+    }
+    private var resetCountdown: some View {
+TimelineView(.periodic(from: .now, by: 30)) { context in
                     VStack(alignment: .leading, spacing: 5) {
                         HStack(spacing: 12) {
                             let enabled = store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id)
@@ -208,14 +228,8 @@ struct QuotaRow: View {
                         Text(Format.date(window.resetsAt, zone: store.state.settings.zone)).font(.system(size: 12)).foregroundStyle(Theme.secondary).padding(.leading, 35)
                     }.frame(width: 165, alignment: .leading)
                 }
-            }
-        }
-        .sheet(isPresented: $showDetails) {
-            DetailsDialog(close: { showDetails = false }) {
-                QuotaDetailsView(account: account, window: window, snapshot: snapshot)
-            }
-        }
     }
+
 }
 
 struct QuotaDetailsView: View {

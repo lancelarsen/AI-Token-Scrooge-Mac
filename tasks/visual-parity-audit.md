@@ -6,7 +6,7 @@ Acceptance requires individual inspection and equivalent Mac captures; a success
 
 | Image | Inspection | Findings / Verification |
 | --- | --- | --- |
-| 01-live-dashboard.png | Pending | Awaiting detailed inspection and Mac comparison |
+| 01-live-dashboard.png | Inspected | Reference reviewed; equivalent Mac state capture and detailed parity verification remain pending. |
 | 02-settings-updates-time-retention.png | Inspected | Inspected: global Settings must be a centered panel with scrolling cards; current Mac separate window needs review. |
 | 03-settings-sounds-quiet-hours.png | Inspected | Reference reviewed. Global switches and behavior actions aligned; slider styling, reminder control dimensions and rendered comparison pending. |
 | 04-settings-thresholds.png | Inspected | Reference reviewed. Global switches and behavior actions aligned; slider styling, reminder control dimensions and rendered comparison pending. |
@@ -15,9 +15,9 @@ Acceptance requires individual inspection and equivalent Mac captures; a success
 | 07-settings-app-behavior.png | Inspected | Reference reviewed. Global switches and behavior actions aligned; slider styling, reminder control dimensions and rendered comparison pending. |
 | 08-alert-history.png | Inspected | Reference hierarchy and spacing reviewed; detail heading/history row changes implemented. Runtime comparison remains pending. |
 | 09-demo-history-on.png | Inspected | Inspected: compare logical dimensions at 1463-wide baseline; preserve native title bar. |
-| 10-demo-history-off.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 11-demo-filter-off-tooltip.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 12-demo-all-capacity-levels.png | Pending | Awaiting detailed inspection and Mac comparison |
+| 10-demo-history-off.png | Inspected | Reference reviewed; equivalent Mac state capture and detailed parity verification remain pending. |
+| 11-demo-filter-off-tooltip.png | Inspected | Reference reviewed; equivalent Mac state capture and detailed parity verification remain pending. |
+| 12-demo-all-capacity-levels.png | Inspected | Reference reviewed; equivalent Mac state capture and detailed parity verification remain pending. |
 | 13-usage-details.png | Inspected | Reference hierarchy and spacing reviewed; detail heading/history row changes implemented. Runtime comparison remains pending. |
 | 14-account-settings.png | Inspected | Inspected: account header should identify provider/account/plan; swatch outline and form columns differ. |
 | 15-custom-color-chooser.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
@@ -37,9 +37,9 @@ Acceptance requires individual inspection and equivalent Mac captures; a success
 | 29-compact-tooltip-placement.png | Inspected | Desktop/compact reference inspected. Empty-state button and dashboard Settings presentation corrected; equivalent compact captures pending. |
 | 30-polling-tooltip.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
 | 31-compact-global-settings.png | Inspected | Desktop/compact reference inspected. Empty-state button and dashboard Settings presentation corrected; equivalent compact captures pending. |
-| 32-notification-banner.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 33-quota-alerts-muted.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 34-threshold-drag-feedback.png | Pending | Awaiting detailed inspection and Mac comparison |
+| 32-notification-banner.png | Inspected | Reference reviewed; equivalent Mac state capture and detailed parity verification remain pending. |
+| 33-quota-alerts-muted.png | Inspected | Reference reviewed; equivalent Mac state capture and detailed parity verification remain pending. |
+| 34-threshold-drag-feedback.png | Inspected | Reference reviewed; equivalent Mac state capture and detailed parity verification remain pending. |
 | 35-earned-reset-details.png | Inspected | Reference hierarchy and spacing reviewed; detail heading/history row changes implemented. Runtime comparison remains pending. |
 | 36-timeline-event-tooltip.png | Inspected | Reference hierarchy and spacing reviewed; detail heading/history row changes implemented. Runtime comparison remains pending. |
 | 37-history-sample-readout.png | Inspected | Reference hierarchy and spacing reviewed; detail heading/history row changes implemented. Runtime comparison remains pending. |
@@ -90,3 +90,7 @@ Inspected images 08, 13, 35, 36 and 37 individually. Usage detail heading now id
 ## Dashboard Settings Presentation
 
 Dashboard Settings now presents a sheet over its dashboard with host-limited 1000 x 800 sizing. Runtime accessibility confirmed sheet presentation and scrollable content. Native Settings menu scene remains available separately. Empty-state description now uses 14-point text and demo action spans the content width with the reference external-link icon. Reviewed images 19, 24, 27, 29 and 31; compact resizing and screenshot comparison remain pending. Added explicit accessibility name to header switches after runtime inspection exposed the missing name.
+
+## Compact Quota Rows and Notification Actions
+
+All 37 reference images have received initial visual inspection; none of this implies all-state parity. Compact quota rows now place name/status and reset countdown above the full-width alarm/bar row, following image 27. Notification actions now include info, clock and dismiss icons with 8-point spacing. Canonical build passed. Compact runtime layout and notification rendering remain to verify. Images 01/10/11/12 show additional audit targets: refreshing purple busy state, consistent history-off rail height, faded disabled selector with filter tooltip, and capacity-state bar/marker colors.

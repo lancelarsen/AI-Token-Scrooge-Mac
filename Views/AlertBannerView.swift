@@ -27,14 +27,14 @@ struct AlertBannerView: View {
                     }
                 }
                 Text(store.state.settings.privacy ? "Account Details Hidden" : alert.detail).font(.system(size: 12)).foregroundStyle(Theme.secondary)
-                HStack {
-                    Button("Show Info") {
+                HStack(spacing: 8) {
+                    Button {
                         store.showAlertAccount(alert)
                         store.activeAlert = nil
                         SoundPlayer.shared.play(settings: store.state.settings, cue: "info")
-                    }
-                    Button("Snooze 1 Hour") { store.snooze(alert.id, minutes: 60) }
-                    Button("Dismiss") { store.dismissAlert(alert.id) }
+                    } label: { DialogActionLabel(title: "Show Info", symbol: "info.circle") }
+                    Button { store.snooze(alert.id, minutes: 60) } label: { DialogActionLabel(title: "Snooze 1 Hour", symbol: "clock") }
+                    Button { store.dismissAlert(alert.id) } label: { DialogActionLabel(title: "Dismiss", symbol: "xmark") }
                 }.buttonStyle(ScroogeButtonStyle())
             }
         }.padding(18).frame(maxWidth: 520, alignment: .leading)
