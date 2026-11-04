@@ -3,6 +3,7 @@ import SwiftUI
 struct DashboardView: View {
     @Environment(AppStore.self) private var store
     @State private var showSettings = false
+    @State private var refreshRequested = false
     @Environment(\.openWindow) private var openWindow
     var body: some View {
         @Bindable var store = store
@@ -71,8 +72,22 @@ struct DashboardView: View {
             HStack(spacing: 14) {
                 Text(freshness)
                     .font(.system(size: 12)).foregroundStyle(Theme.secondary).frame(maxWidth: .infinity, alignment: .trailing)
-                Button { Task { await store.refresh() } } label: { ActionLabel(title: "Refresh", symbol: "arrow.clockwise") }
-                    .disabled(store.isRefreshing).accessibilityIdentifier("refreshButton")
+                Button {
+                    refreshRequested = true
+                    Task {
+                        defer { refreshRequested = false }
+                        await store.refresh()
+                    }
+                } label: {
+                    HStack(spacing: 10) {
+                        if refreshRequested || store.isRefreshing {
+                            ProgressView().controlSize(.small).tint(.white).frame(width: 19, height: 19)
+                        } else { ActionIcon(symbol: "arrow.clockwise", size: 19) }
+                        Text(refreshRequested || store.isRefreshing ? "Refreshing…" : "Refresh")
+                    }
+                }
+                .buttonStyle(ScroogeButtonStyle(selected: refreshRequested || store.isRefreshing))
+                .disabled(refreshRequested || store.isRefreshing).accessibilityIdentifier("refreshButton")
                 Button { showSettings = true } label: { ActionLabel(title: "Settings", symbol: "gearshape") }.accessibilityIdentifier("settingsButton")
             }.frame(maxWidth: wide ? 500 : .infinity).buttonStyle(ScroogeButtonStyle())
         }.padding(.horizontal, 32).padding(.vertical, 18)

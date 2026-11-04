@@ -94,3 +94,7 @@ Dashboard Settings now presents a sheet over its dashboard with host-limited 100
 ## Compact Quota Rows and Notification Actions
 
 All 37 reference images have received initial visual inspection; none of this implies all-state parity. Compact quota rows now place name/status and reset countdown above the full-width alarm/bar row, following image 27. Notification actions now include info, clock and dismiss icons with 8-point spacing. Canonical build passed. Compact runtime layout and notification rendering remain to verify. Images 01/10/11/12 show additional audit targets: refreshing purple busy state, consistent history-off rail height, faded disabled selector with filter tooltip, and capacity-state bar/marker colors.
+
+## Refresh Feedback and Regression Check
+
+Dashboard Refresh immediately disables after click, displays Refreshing… with a spinner, and uses purple active styling until the request returns. Canonical build passed. Full unit run attempted with ScroogeTests: host stalled before test execution in dyld library loading (sample saved in ignored artifacts/test-host-sample.txt); interrupted the run and terminated its host. No passing unit result claimed. Busy-state visual capture still pending because demo/empty accounts complete immediately.
