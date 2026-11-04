@@ -145,6 +145,21 @@ struct ActionIcon: View {
                         }
                     }
                 }.frame(width: 20, height: 22)
+            } else if symbol == "clock.arrow.circlepath" {
+                Canvas { context, _ in
+                    context.scaleBy(x: size / 30, y: size / 30)
+                    var path = Path()
+                    path.addArc(center: CGPoint(x: 15, y: 15), radius: 13,
+                                startAngle: .degrees(180), endAngle: .degrees(225), clockwise: true)
+                    path.move(to: CGPoint(x: 2, y: 2))
+                    path.addLine(to: CGPoint(x: 2, y: 9))
+                    path.addLine(to: CGPoint(x: 9, y: 9))
+                    path.move(to: CGPoint(x: 15, y: 6))
+                    path.addLine(to: CGPoint(x: 15, y: 15))
+                    path.addLine(to: CGPoint(x: 21, y: 15))
+                    context.stroke(path, with: .color(foreground),
+                                   style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
+                }.frame(width: size, height: size)
             } else if symbol == "account.reorder" {
                 Canvas { context, _ in
                     for row in 0..<3 {

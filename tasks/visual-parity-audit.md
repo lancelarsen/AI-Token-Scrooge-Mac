@@ -413,3 +413,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched `QuotaRowView.cs` reset layout: clock with a 3-point top inset beside a single countdown/date column, 12-point horizontal and 3-point vertical spacing. This preserves date alignment when the countdown wraps.
 - Matched the untriggered reminder clock color to Windows `#B5A0F4`; severity colors and reminder logic remain unchanged.
 - Verification: canonical build passed (`artifacts/reset-label-alignment-build.log`), and `git diff --check` passed. This is source-level layout verification; exact rendered font/glyph parity and wrapped countdown screenshots remain unverified.
+
+### Reset Horizon heading glyph
+
+- Compared image 09 and `HorizonView.cs`: replaced the heavy SF history symbol with a thin vector history-clock outline, using the action lavender `#B5A0F4`, a 30-point slot and explicit 12-point title spacing.
+- Canonical build passed (`artifacts/horizon-heading-icon-build.log`); native wide-window screenshot confirmed the new outline renders without clipping. This improves the reference silhouette; exact glyph pixel equality is not established. Overall font metrics and all 37 matched-state captures remain incomplete.

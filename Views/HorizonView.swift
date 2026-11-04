@@ -175,7 +175,7 @@ struct HorizonView: View {
         let future = 56 + 21 + Double(max(1, groups.values.map(\.count).max() ?? 0)) * 76
         return max(selectors, future)
     }
-    private var heading: some View { HStack { Image(systemName: "clock.arrow.circlepath").font(.system(size: 30)).foregroundStyle(Theme.accent); Text("Reset Horizon").font(.system(size: 26, weight: .semibold)) } }
+    private var heading: some View { HStack(spacing: 12) { ActionIcon(symbol: "clock.arrow.circlepath", size: 30); Text("Reset Horizon").font(.system(size: 26, weight: .semibold)) } }
     private var historyStatus: String? {
         guard !store.state.accounts.isEmpty else { return nil }
         if !store.state.settings.historyEnabled { return events.isEmpty ? "No Upcoming Events Reported" : nil }
