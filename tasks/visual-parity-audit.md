@@ -248,3 +248,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Shared Close/Cancel glyph now draws a14-point diagonal cross inside its20-point icon slot, matching the reference screenshot footprint instead of the larger SF Symbol. Button hit targets and keyboard dismissal are retained.
 - Canonical build passed (`artifacts/dialog-palette-build.log`). Opened weekly usage popup, visually checked palette, separator, smaller cross and complete metadata; clicked Close and verified dismissal.
 - Other shared action icons inherit the corrected idle accent; their individual geometry still requires screenshot comparison. Native sheet outline and remaining typography differences are unresolved.
+
+### Notification banner sizing (image32)
+- Compared captured MainPage.Alerts.cs and image32. Corrected vertical stack spacing12→10 and removed forced expansion to520 points by allowing intrinsic sizing within that maximum.
+- Canonical build passed (`artifacts/banner-sizing-build.log`). Generated a demo notification test through Settings; rebuilt app rendered the banner at approximately450x153 points with20-point bottom/right margins, versus reference442x154. Provider icon, title, detail and three action buttons are visible without clipping.
+- An earlier screenshot capture showed a blank dashboard region; it did not recur after rebuilding. Notification delivery outside the app was not visually verified.
+- Remaining8-point width difference relates to typography/icon metrics. Long and multiline banner content still needs visual verification; exact image32 parity remains open.

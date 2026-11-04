@@ -14,7 +14,7 @@ struct AlertBannerView: View {
     }
     var body: some View {
         Group {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 12) {
                     if let provider { ProviderIcon(provider: provider, size: 38) }
                     else if let url = Bundle.main.url(forResource: "token_baron", withExtension: "png"), let image = NSImage(contentsOf: url) {
@@ -38,6 +38,7 @@ struct AlertBannerView: View {
                 }.buttonStyle(ScroogeButtonStyle())
             }
         }.padding(18).frame(maxWidth: 520, alignment: .leading)
+            .fixedSize(horizontal: true, vertical: true)
             .background(Color(hex: "#222329"))
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .overlay(RoundedRectangle(cornerRadius: 14).stroke(severityColor))
