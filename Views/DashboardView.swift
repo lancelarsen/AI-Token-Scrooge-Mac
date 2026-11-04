@@ -139,7 +139,7 @@ struct AccountCard: View {
                 ActionIcon(symbol: "circle.grid.3x3.fill", size: 14).draggable(account.id).help("Drag to Reorder Account")
                     .accessibilityLabel("Reorder \(store.state.settings.privacy ? "Account" : account.nickname)")
             }
-            if wide { Rectangle().fill(Theme.border).frame(width: 1).padding(.vertical, 2) }
+            Rectangle().fill(Theme.border).frame(width: 1).padding(.vertical, 2)
             let layout = wide ? AnyLayout(HStackLayout(spacing: 20)) : AnyLayout(VStackLayout(alignment: .leading, spacing: 14))
             layout {
                 identity.frame(width: wide ? 214 : nil, alignment: .leading)
@@ -182,7 +182,10 @@ struct QuotaRow: View {
                 HStack(spacing: 12) { quotaLabel; usageControls; resetCountdown }
             } else {
                 VStack(alignment: .leading, spacing: 7) {
-                    HStack(alignment: .top) { quotaLabel; Spacer(); resetCountdown }
+                    HStack(alignment: .top, spacing: 12) {
+                        quotaLabel.frame(maxWidth: .infinity, alignment: .leading)
+                        resetCountdown.frame(maxWidth: .infinity, alignment: .leading)
+                    }
                     usageControls
                 }
             }

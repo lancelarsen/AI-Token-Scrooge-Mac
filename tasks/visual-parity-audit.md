@@ -130,3 +130,7 @@ Compared image 19 with the running empty Mac dashboard. Added a distinct no-acco
 ## Compact Window Reachability
 
 Found the app scene imposed an 860-point minimum width, overriding DashboardView's 760-point minimum and preventing the 789-point compact reference viewport. Removed the redundant scene constraint; the dashboard remains the owner of minimum size. Canonical build passed. Runtime right-edge resize reached approximately 790 logical points (1580-pixel Retina capture), showing the compact header and wrapped horizon controls without truncation. Exact compact height and populated screenshots 26–31 remain to compare; this does not certify compact parity.
+
+## Compact Account Columns
+
+Compared image 27 and QuotaRowView.cs with populated demo at approximately 790 logical points. Restored the account's vertical divider in compact mode and changed label/countdown layout to two equal flexible columns with the source 12-point gap. Canonical build passed. Runtime screenshot verified divider and countdown position alongside the label, with full-width alarm/bar row below. Scrolling outside the horizon moved the page vertically; scrolling over the horizon moved the timeline horizontally. Exact font metrics, card insets and full compact-height matching remain open.
