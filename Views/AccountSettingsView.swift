@@ -4,11 +4,15 @@ struct AccountSettingsView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     let accountID: String
+    var hostSize = CGSize(width: 1048, height: 864)
     @State private var newColor = Color(hex: "#B5A0F4")
     @State private var showColor = false
     @State private var confirmRemove = false
     @State private var nicknameDraft = ""
-    @State private var panelSize = CGSize(width: 1000, height: 800)
+    private var panelSize: CGSize {
+        CGSize(width: min(1000, max(640, hostSize.width - 48)),
+               height: min(800, max(400, hostSize.height - 64)))
+    }
     @FocusState private var editingNickname: Bool
     private var account: ProviderAccount? { store.state.accounts.first { $0.id == accountID } }
     private var lineColors: [String] {
@@ -102,12 +106,7 @@ struct AccountSettingsView: View {
         }.font(.system(size: 14)).frame(width: panelSize.width, height: panelSize.height).background(Theme.background).preferredColorScheme(.dark).tint(Theme.accent)
         .onAppear {
             nicknameDraft = account?.nickname ?? ""
-            if let window = NSApp.keyWindow {
-                let host = window.sheetParent ?? window
-                let size = host.contentView?.bounds.size ?? host.frame.size
-                panelSize = CGSize(width: min(1000, max(640, size.width - 48)),
-                                   height: min(800, max(400, size.height - 64)))
-            }
+
         }
         .onDisappear { saveNickname() }
         .sheet(isPresented: $confirmRemove) {

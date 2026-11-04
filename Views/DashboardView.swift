@@ -4,6 +4,7 @@ struct DashboardView: View {
     @Environment(AppStore.self) private var store
     @State private var showSettings = false
     @State private var refreshRequested = false
+    @State private var hostSize = CGSize(width: 1000, height: 800)
     @Environment(\.openWindow) private var openWindow
     var body: some View {
         @Bindable var store = store
@@ -37,9 +38,10 @@ struct DashboardView: View {
                 }
             }.background(Theme.background).foregroundStyle(Color(hex: "#F2F1F5"))
         }.frame(minWidth: 760, minHeight: 600)
+        .onGeometryChange(for: CGSize.self) { $0.size } action: { hostSize = $0 }
         .preferredColorScheme(.dark).tint(Theme.accent)
         .overlay(alignment: .bottomTrailing) { if let alert = store.activeAlert { AlertBannerView(alert: alert) } }
-        .sheet(item: $store.selectedAccount) { account in AccountSettingsView(accountID: account.id).environment(store) }
+        .sheet(item: $store.selectedAccount) { account in AccountSettingsView(accountID: account.id, hostSize: hostSize).environment(store) }
         .sheet(isPresented: $showSettings) { SettingsView().environment(store) }
         .sheet(isPresented: $store.showConnection) { ConnectionView().environment(store) }
         .sheet(isPresented: $store.showAlertHistory) { AlertHistoryView().environment(store) }

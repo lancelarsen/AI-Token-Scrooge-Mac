@@ -171,3 +171,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched quota title (#BEC1D2), status note (#A5A8BA), countdown (#BDA3F5), reset date (#BEC1D2), and account badge fill/border (#2C293E/#51476D).
 - Reset clock now uses the source's 25-point size; date indentation follows the 25+12 layout and countdown/date gap is 3 points.
 - Canonical build passed (`artifacts/account-row-metrics-build.log`); inspected four desktop demo cards. Two-window cards now have the reference 132-point content height. Compact rendering after this change remains to be checked; exact font metrics remain unresolved.
+
+### Compact account sheet sizing
+- Inspected the updated cards at 790-point dashboard width against image 27: compact label/countdown columns and full-width usage controls remain visible.
+- Found account settings initially rendered at 1000 points despite the compact parent. Replaced post-presentation key-window guessing with the dashboard's measured size passed into AccountSettingsView before presentation.
+- Canonical build passed (`artifacts/compact-account-sheet-build.log`). Reopened account settings at compact width: screenshot width now 1484 Retina pixels (742 points), correctly within the 790-point host with 24-point side margins, instead of 2000 pixels.
+- Popup content typography and exact Windows compact dimensions still need comparison; other sheet types still use the old sizing approach.
