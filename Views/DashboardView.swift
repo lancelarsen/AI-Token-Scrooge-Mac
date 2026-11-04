@@ -225,9 +225,9 @@ struct QuotaDetailsView: View {
     let snapshot: QuotaSnapshot
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(window.name).font(.system(size: 20, weight: .semibold)).foregroundStyle(.white)
-            Text("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname)")
-            Text("\(Format.percent(window.usedPercent)) Used / \(Format.percent(window.remainingPercent)) Left")
+            Text("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))").font(.system(size: 21, weight: .semibold)).foregroundStyle(Theme.accent)
+            Text(window.name)
+            Text("\(Format.percent(window.usedPercent)) used · \(Format.percent(window.remainingPercent)) left")
             if let used = window.used, window.unit != .percent { DetailLine(label: "Used", value: "\(NSDecimalNumber(decimal: used).stringValue) \(window.unit.rawValue)") }
             if let limit = window.limit { DetailLine(label: "Allowance", value: "\(NSDecimalNumber(decimal: limit).stringValue) · \(window.allowanceSource.rawValue.capitalized)") }
             DetailLine(label: "Resets", value: Format.date(window.resetsAt, zone: store.state.settings.zone))

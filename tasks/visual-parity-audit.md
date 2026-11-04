@@ -13,12 +13,12 @@ Acceptance requires individual inspection and equivalent Mac captures; a success
 | 05-settings-reset-reminders.png | Inspected | Reference reviewed. Global switches and behavior actions aligned; slider styling, reminder control dimensions and rendered comparison pending. |
 | 06-settings-refresh-reminders.png | Inspected | Reference reviewed. Global switches and behavior actions aligned; slider styling, reminder control dimensions and rendered comparison pending. |
 | 07-settings-app-behavior.png | Inspected | Reference reviewed. Global switches and behavior actions aligned; slider styling, reminder control dimensions and rendered comparison pending. |
-| 08-alert-history.png | Pending | Awaiting detailed inspection and Mac comparison |
+| 08-alert-history.png | Inspected | Reference hierarchy and spacing reviewed; detail heading/history row changes implemented. Runtime comparison remains pending. |
 | 09-demo-history-on.png | Inspected | Inspected: compare logical dimensions at 1463-wide baseline; preserve native title bar. |
 | 10-demo-history-off.png | Pending | Awaiting detailed inspection and Mac comparison |
 | 11-demo-filter-off-tooltip.png | Pending | Awaiting detailed inspection and Mac comparison |
 | 12-demo-all-capacity-levels.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 13-usage-details.png | Pending | Awaiting detailed inspection and Mac comparison |
+| 13-usage-details.png | Inspected | Reference hierarchy and spacing reviewed; detail heading/history row changes implemented. Runtime comparison remains pending. |
 | 14-account-settings.png | Inspected | Inspected: account header should identify provider/account/plan; swatch outline and form columns differ. |
 | 15-custom-color-chooser.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
 | 16-custom-color-added.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
@@ -40,9 +40,9 @@ Acceptance requires individual inspection and equivalent Mac captures; a success
 | 32-notification-banner.png | Pending | Awaiting detailed inspection and Mac comparison |
 | 33-quota-alerts-muted.png | Pending | Awaiting detailed inspection and Mac comparison |
 | 34-threshold-drag-feedback.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 35-earned-reset-details.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 36-timeline-event-tooltip.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 37-history-sample-readout.png | Pending | Awaiting detailed inspection and Mac comparison |
+| 35-earned-reset-details.png | Inspected | Reference hierarchy and spacing reviewed; detail heading/history row changes implemented. Runtime comparison remains pending. |
+| 36-timeline-event-tooltip.png | Inspected | Reference hierarchy and spacing reviewed; detail heading/history row changes implemented. Runtime comparison remains pending. |
+| 37-history-sample-readout.png | Inspected | Reference hierarchy and spacing reviewed; detail heading/history row changes implemented. Runtime comparison remains pending. |
 
 ## Source-Confirmed Corrections
 
@@ -82,3 +82,7 @@ Provider forms now target a 1000 x 800 host-limited panel with centered 550-poin
 ## Connection Field Styling
 
 Matched source Entry background #2A2B30, 32-point field heights, bottom focus line, full-width billing menu and source placeholders. Form now uses source 18-point spacing and 640-point total maximum width including 32-point padding on each side. Added scrolling inside the host-limited panel and solid #141519 panel background. Canonical build passed; final field rendering, compact scrolling and focus behavior still require runtime comparison.
+
+## History and Detail Formatting Pass
+
+Inspected images 08, 13, 35, 36 and 37 individually. Usage detail heading now identifies provider/account/plan in lavender, followed by quota name and used/remaining values. Earned reset details combine account/count and fetched/status lines with bullet credit rows. Alert history now uses three-line action rows with leading category icons and hover styling; snooze/dismiss retained in context menu. Canonical build passed. History panel dimensions, detail dialog widths, date formatting and equivalent runtime screenshots remain open; tooltip image inspection alone does not establish Mac parity.

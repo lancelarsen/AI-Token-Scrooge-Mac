@@ -10,22 +10,22 @@ struct AlertHistoryView: View {
             if store.state.alerts.isEmpty { Text("No Alerts Yet").foregroundStyle(Theme.secondary); Spacer() }
             else {
                 ScrollView {
-                    ForEach(store.state.alerts.sorted { $0.createdAt > $1.createdAt }) { alert in
-                        ScroogeCard {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Button { selectedAlert = alert } label: {
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        Text(alert.title).font(.system(size: 14))
-                                        Text(store.state.settings.privacy ? "Account Details Hidden" : alert.detail).font(.system(size: 14)).foregroundStyle(Theme.secondary)
-                                        Text(Format.date(alert.createdAt, zone: store.state.settings.zone)).font(.system(size: 14))
-                                        Text(alert.delivered ? "Sent to macOS" : "Recorded in History").font(.system(size: 14)).foregroundStyle(Theme.secondary)
-                                    }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
-                                }.buttonStyle(.plain).help("Show Usage Details")
-                                HStack {
-                                    Menu("Snooze") { ForEach([15,30,60,120], id: \.self) { minutes in Button("\(minutes) Minutes") { store.snooze(alert.id, minutes: minutes) } } }
-                                    Button("Dismiss") { store.dismissAlert(alert.id) }
-                                }.disabled(alert.dismissed)
-                            }.frame(maxWidth: .infinity, alignment: .leading)
+                    LazyVStack(spacing: 16) {
+                        ForEach(store.state.alerts.sorted { $0.createdAt > $1.createdAt }) { alert in
+                            Button { selectedAlert = alert } label: {
+                                HStack(spacing: 10) {
+                                    ActionIcon(symbol: alert.isRefreshReminder ? "arrow.clockwise" : alert.reminderID != nil ? "folder" : alert.delivered ? "arrow.up.right.square" : "clock.arrow.circlepath")
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("\(Format.date(alert.createdAt, zone: store.state.settings.zone)) · \(alert.title)")
+                                        Text(store.state.settings.privacy ? "Account Details Hidden" : alert.detail)
+                                        Text(alert.delivered ? "Sent to macOS" : "Recorded in history")
+                                    }.font(.system(size: 14)).frame(maxWidth: .infinity, alignment: .leading)
+                                }.padding(.vertical, 12).frame(minHeight: 56)
+                            }.buttonStyle(ScroogeButtonStyle()).help("Show Usage Details")
+                            .contextMenu {
+                                Menu("Snooze") { ForEach([15,30,60,120], id: \.self) { minutes in Button("\(minutes) Minutes") { store.snooze(alert.id, minutes: minutes) } } }
+                                Button("Dismiss") { store.dismissAlert(alert.id) }.disabled(alert.dismissed)
+                            }
                         }
                     }
                 }
@@ -48,15 +48,13 @@ struct AccountUsageDetailsView: View {
            let snapshot = store.state.snapshots[account.id], snapshot.belongs(to: account) {
             if windowID == nil, let reserve = snapshot.reserve {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Available Resets").font(.system(size: 20, weight: .semibold)).foregroundStyle(.white)
-                    Text("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))")
-                    Text("\(reserve.availableCount.map(String.init) ?? "Unknown") Reported Available")
-                    DetailLine(label: "Snapshot Fetched", value: Format.date(snapshot.observedAt, zone: store.state.settings.zone))
-                    Text(account.enabled ? snapshot.health.rawValue : "Monitoring Paused")
+                    Text("Available resets").font(.system(size: 21, weight: .semibold)).foregroundStyle(Theme.accent)
+                    DetailLine(label: "\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))", value: "\(reserve.availableCount.map(String.init) ?? "Unknown") reported available")
+                    Text("Snapshot fetched \(Format.date(snapshot.observedAt, zone: store.state.settings.zone)) · \(account.enabled ? snapshot.health.rawValue.capitalized : "Monitoring Paused")")
                     if reserve.hasPartialDetails { Text("Provider supplied only partial credit details.") }
                     if let credits = reserve.credits {
                         ForEach(credits) { credit in
-                            Text("\(Format.date(credit.expiresAt, zone: store.state.settings.zone)) · \(credit.expiresAt.map { $0 <= Date() } == true ? "Expired Locally — Checking Provider" : credit.status)")
+                            Text("• \(Format.date(credit.expiresAt, zone: store.state.settings.zone)) · \(credit.expiresAt.map { $0 <= Date() } == true ? "Expired Locally — Checking Provider" : credit.status)")
                         }
                     } else { Text("Credit Details Unavailable") }
                 }.frame(maxWidth: .infinity, alignment: .leading)
