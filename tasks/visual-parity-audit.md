@@ -218,3 +218,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Replaced native compact RGB/HSV picker with the reference-sized 120x32 dark field and chevron; inline picker style avoids a redundant Color Model submenu.
 - Canonical build passed (`artifacts/color-editor-edge-build.log`). Runtime HSV selection verified; brightness pointer at both ends produced #000000 then #FFA2C6 while preserving hue336/saturation36. Cancel returned to the original selected #D587A5 account color.
 - Final inline-menu-style adjustment was build-checked after those runtime checks; its expanded menu remains to be reinspected. Exact rendering and full keyboard/input edge coverage remain open.
+
+### Earned-reset popup width and snapshot format
+- Matched image35's 332-point popup width for earned-reset events; quota windows retain342. Snapshot fetched now uses M/d/yyyy h:mm a in the selected display zone, matching the reference numeric format.
+- Matched lowercase expiration/partial-data status wording.
+- Canonical build passed (`artifacts/reset-details-parity-build.log`). Opened demo expiration event; inspected332-point popup and numeric snapshot date with both expiration bullets.
+- Typography still causes the account summary and snapshot status to wrap where the reference fits single lines. This popup is not yet visually identical; its font metrics need correction.

@@ -86,7 +86,7 @@ struct HorizonView: View {
         .onChange(of: store.state.settings.timeZoneID) { _, _ in prepareHistory() }
         .sheet(isPresented: $showSettings) { SettingsView().environment(store) }
         .sheet(item: $selectedEvent) { event in
-            DetailsDialog(width: 342, close: { selectedEvent = nil }) {
+            DetailsDialog(width: event.windowID == nil && event.reportedAt == nil ? 332 : 342, close: { selectedEvent = nil }) {
               VStack(alignment: .leading, spacing: 8) {
                 if event.reportedAt == nil {
                     AccountUsageDetailsView(accountID: event.account.id, windowID: event.windowID)

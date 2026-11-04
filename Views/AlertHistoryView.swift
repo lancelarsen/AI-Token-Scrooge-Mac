@@ -46,7 +46,7 @@ struct AlertHistoryView: View {
         .frame(width: panelSize.width, height: panelSize.height)
         .background(Color(hex: "#141519")).preferredColorScheme(.dark)
         .sheet(item: $selectedAlert) { alert in
-            DetailsDialog(width: 342, close: { selectedAlert = nil }) {
+            DetailsDialog(width: alert.windowID == nil ? 332 : 342, close: { selectedAlert = nil }) {
                 AccountUsageDetailsView(accountID: alert.accountID, windowID: alert.windowID)
             }
         }
@@ -64,13 +64,13 @@ struct AccountUsageDetailsView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Available resets").font(.system(size: 21, weight: .semibold)).foregroundStyle(Theme.accent)
                     DetailLine(label: "\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))", value: "\(reserve.availableCount.map(String.init) ?? "Unknown") reported available")
-                    Text("Snapshot fetched \(Format.date(snapshot.observedAt, zone: store.state.settings.zone)) · \(account.enabled ? snapshot.health.rawValue.capitalized : "Monitoring Paused")")
+                    Text("Snapshot fetched \(Format.snapshotDate(snapshot.observedAt, zone: store.state.settings.zone)) · \(account.enabled ? snapshot.health.rawValue.capitalized : "Monitoring paused")")
                     if reserve.hasPartialDetails { Text("Provider supplied only partial credit details.") }
                     if let credits = reserve.credits {
                         ForEach(credits) { credit in
-                            Text("• \(Format.date(credit.expiresAt, zone: store.state.settings.zone)) · \(credit.expiresAt.map { $0 <= Date() } == true ? "Expired Locally — Checking Provider" : credit.status)")
+                            Text("• \(Format.date(credit.expiresAt, zone: store.state.settings.zone)) · \(credit.expiresAt.map { $0 <= Date() } == true ? "Expired locally — checking provider" : credit.status)")
                         }
-                    } else { Text("Credit Details Unavailable") }
+                    } else { Text("Credit details unavailable") }
                 }.frame(maxWidth: .infinity, alignment: .leading)
             } else if let window = snapshot.windows.first(where: { windowID == nil || $0.id == windowID }) {
                 QuotaDetailsView(account: account, window: window, snapshot: snapshot)

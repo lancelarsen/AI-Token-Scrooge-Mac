@@ -1,6 +1,14 @@
 import Foundation
 
 enum Format {
+    static func snapshotDate(_ date: Date, zone: TimeZone) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = zone
+        formatter.dateFormat = "M/d/yyyy h:mm a"
+        return formatter.string(from: date)
+    }
+
     static func updated(_ date: Date, zone: TimeZone) -> String {
         var calendar = Calendar(identifier: .gregorian); calendar.timeZone = zone
         let day = calendar.component(.day, from: date)
