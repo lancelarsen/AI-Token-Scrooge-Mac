@@ -6,6 +6,7 @@ import Network
 @main struct ScroogeApp: App {
     @NSApplicationDelegateAdaptor(ScroogeAppDelegate.self) private var delegate
     @State private var store = AppStore()
+    private let compactDemo = ProcessInfo.processInfo.arguments.contains("--demo") && ProcessInfo.processInfo.arguments.contains("--compact")
     private var statusSymbol: String {
         switch store.iconAlert?.severity {
         case .critical: "exclamationmark.octagon.fill"
@@ -19,7 +20,8 @@ import Network
             DashboardView().environment(store)
                 .onAppear { delegate.store = store }
         }
-        .defaultSize(width: 1460, height: 900)
+        .defaultSize(width: compactDemo ? 789 : 1460, height: compactDemo ? 694 : 900)
+        .restorationBehavior(compactDemo ? .disabled : .automatic)
         .commands {
             CommandGroup(after: .appInfo) {
                 Button("Check for Updates…") { AppUpdater.shared.checkNow() }

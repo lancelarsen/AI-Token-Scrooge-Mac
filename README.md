@@ -26,7 +26,7 @@ xcodebuild -project AITokenScrooge.xcodeproj -scheme AITokenScrooge -destination
 
 The test scheme sets `SCROOGE_TEST_MODE=1`, which uses temporary state and disables scheduled monitoring. UI tests also set this explicitly.
 
-Use `--demo` in the scheme's launch arguments for synthetic accounts. Add `--scenario offline|auth|permission|unknown|exhausted|due|partial|history-long|reserve-only` to reproduce the Windows reference scenarios. `healthy` and `no-reset` additionally exercise conditional row layouts. Scenario arguments apply only when entering demo; they never modify saved accounts. Unknown scenario names use the standard demo. `--data-dir /absolute/path` isolates local state for development.
+Use `--demo` in the scheme's launch arguments for synthetic accounts. Add `--scenario offline|auth|permission|unknown|exhausted|due|partial|history-long|reserve-only` to reproduce the Windows reference scenarios. `healthy` and `no-reset` additionally exercise conditional row layouts. Scenario arguments apply only when entering demo; they never modify saved accounts. Unknown scenario names use the standard demo. Add `--compact` alongside `--demo` to start a 789-point-wide compact comparison window without restoring a previous window size. `--data-dir /absolute/path` isolates local state for development.
 
 ## Local data
 

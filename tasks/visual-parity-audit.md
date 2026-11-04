@@ -460,3 +460,10 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Unknown fixture exposed mismatched labels. Changed bar labels to Windows `Usage unavailable` / `Left unavailable`; native wide capture verified both labels on every quota and empty fill rather than zero usage. Exact text metrics remain different.
 - Restored the Windows CardNote conditions: healthy provider messages and manual allowance notes remain visible unless explicitly suppressed by its Claude/GitHub rules; provider-paused usage is shown; nonhealthy notes include the health name. This corrects overly broad healthy-note suppression from the earlier pass.
 - Canonical build and diff checks passed (`artifacts/quota-unavailable-status-build.log`). Provider-note branches are source-verified, not yet exhaustively exercised in UI.
+
+### Repeatable compact launch and conditional row verification
+
+- Added `--demo --compact` launch sizing (789 × 694 points); normal launches retain automatic restoration and their existing default size. Compact demo disables restoration so previous zoom state cannot defeat a reference capture.
+- Native screenshot measured 1578 × 1388 Retina pixels, matching the intended 789 × 694 logical comparison dimensions. The earlier 662-point trial was corrected after runtime measurement.
+- Compact unknown fixture showed both unavailable labels without truncation, stacked identities, and countdown/date columns. Compact no-reset fixture showed the quota label in its left column, no false reset text, and aligned full-width usage controls. This closes the missing-reset compact runtime gap; exact font metrics and full 37-image parity remain open.
+- Canonical build and diff checks passed (`artifacts/compact-demo-launch-build.log`). Manual edge dragging was ineffective; the explicit demo option removes that dependency for future comparisons.
