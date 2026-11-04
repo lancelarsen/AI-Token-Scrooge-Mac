@@ -165,3 +165,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched lowercase `used`, `left`, and `Demo data` text from captured QuotaRow.
 - Canonical build passed (`artifacts/usage-label-parity-build.log`). Desktop demo inspection confirmed intact percentage characters where critical markers overlap them. Clicking label text opened usage details; dragging the critical marker under the label changed 10% to 12%, then accessibility decrements restored 10%.
 - This verifies layering and input behavior, not exact font rasterization or full dashboard parity.
+
+### Account row height and text colors
+- Matched captured QuotaRowView's 56-point minimum row height, 8-point compact row gap, 4-point title/note gap and 8-point alert-toggle/bar gap.
+- Matched quota title (#BEC1D2), status note (#A5A8BA), countdown (#BDA3F5), reset date (#BEC1D2), and account badge fill/border (#2C293E/#51476D).
+- Reset clock now uses the source's 25-point size; date indentation follows the 25+12 layout and countdown/date gap is 3 points.
+- Canonical build passed (`artifacts/account-row-metrics-build.log`); inspected four desktop demo cards. Two-window cards now have the reference 132-point content height. Compact rendering after this change remains to be checked; exact font metrics remain unresolved.

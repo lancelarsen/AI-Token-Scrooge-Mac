@@ -162,7 +162,7 @@ struct AccountCard: View {
                     Text(account.provider.rawValue).font(.system(size: 20, weight: .semibold))
                     Text("\(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot?.planType))")
                         .font(.system(size: 12)).foregroundStyle(Theme.accent).padding(.horizontal, 11).padding(.vertical, 3)
-                        .background(Theme.accent.opacity(0.12)).clipShape(Capsule()).overlay(Capsule().stroke(Theme.accent.opacity(0.3)))
+                        .background(Color(hex: "#2C293E")).clipShape(Capsule()).overlay(Capsule().stroke(Color(hex: "#51476D")))
                 }
             }
         }.buttonStyle(.plain)
@@ -181,7 +181,7 @@ struct QuotaRow: View {
             if wide {
                 HStack(spacing: 12) { quotaLabel; usageControls; resetCountdown }
             } else {
-                VStack(alignment: .leading, spacing: 7) {
+                VStack(alignment: .leading, spacing: 8) {
                     HStack(alignment: .top, spacing: 12) {
                         quotaLabel.frame(maxWidth: .infinity, alignment: .leading)
                         resetCountdown.frame(maxWidth: .infinity, alignment: .leading)
@@ -190,6 +190,7 @@ struct QuotaRow: View {
                 }
             }
         }
+        .frame(minHeight: 56)
         .sheet(isPresented: $showDetails) {
             DetailsDialog(width: 342, close: { showDetails = false }) {
                 QuotaDetailsView(account: account, window: window, snapshot: snapshot)
@@ -197,14 +198,14 @@ struct QuotaRow: View {
         }
     }
     private var quotaLabel: some View {
-VStack(alignment: .leading, spacing: 5) {
-                Text(window.name).font(.system(size: 14))
+        VStack(alignment: .leading, spacing: 4) {
+                Text(window.name).font(.system(size: 14)).foregroundStyle(Color(hex: "#BEC1D2"))
                 Text(!account.enabled ? "Monitoring Disabled" : snapshot.health == .demo ? "Demo data" : snapshot.health == .healthy ? "" : snapshot.message ?? snapshot.health.rawValue)
-                    .font(.system(size: 11)).foregroundStyle(Theme.secondary)
+                    .font(.system(size: 11)).foregroundStyle(Color(hex: "#A5A8BA"))
             }.frame(width: wide ? 156 : nil, alignment: .leading)
     }
     private var usageControls: some View {
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 HStack(spacing: 0) {
                     ForEach([true, false], id: \.self) { enabled in
                         Button {
@@ -228,7 +229,7 @@ VStack(alignment: .leading, spacing: 5) {
     }
     private var resetCountdown: some View {
 TimelineView(.periodic(from: .now, by: 30)) { context in
-                    VStack(alignment: .leading, spacing: 5) {
+                    VStack(alignment: .leading, spacing: 3) {
                         HStack(spacing: 12) {
                             let enabled = store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id)
                             let severity = enabled ? window.resetsAt.flatMap { TimedReminder.due(store.state.settings.quotaRefreshReminders, at: $0, now: context.date)?.severity } : nil
@@ -238,10 +239,10 @@ TimelineView(.periodic(from: .now, by: 30)) { context in
                             case .info: Color(hex: "#58A6FF")
                             case nil: Theme.accent
                             }
-                            Image(systemName: "clock").font(.system(size: 23)).foregroundStyle(clockColor)
-                            Text(Format.countdown(window.resetsAt, now: context.date)).font(.system(size: 20, weight: .semibold)).foregroundStyle(Theme.accent)
+                            Image(systemName: "clock").font(.system(size: 25)).foregroundStyle(clockColor)
+                            Text(Format.countdown(window.resetsAt, now: context.date)).font(.system(size: 20, weight: .semibold)).foregroundStyle(Color(hex: "#BDA3F5"))
                         }
-                        Text(Format.date(window.resetsAt, zone: store.state.settings.zone)).font(.system(size: 12)).foregroundStyle(Theme.secondary).padding(.leading, 35)
+                        Text(Format.date(window.resetsAt, zone: store.state.settings.zone)).font(.system(size: 12)).foregroundStyle(Color(hex: "#BEC1D2")).padding(.leading, 37)
                     }.frame(width: wide ? 200 : nil, alignment: .leading)
                 }
     }
