@@ -265,3 +265,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Added a dedicated POSIX history formatter and applied it only to history row timestamps, retaining the selected display zone.
 - Executed the formatter extracted from current source with reference Nov4 3:01AM, UTC conversion and previous-local-day rollover assertions; all passed. Canonical build passed (`artifacts/history-date-build.log`).
 - Populated history row geometry/icons still require runtime comparison against image08. These date checks do not establish full screen parity.
+
+### Populated Alert History runtime check
+- Generated a demo test alert, reopened Settings → Alert History and inspected its actual populated row after the timestamp change. Verified three lines,80-point row height,28-point panel inset,16-point gap to Close, corrected `Nov 4, 12:39 PM` formatting and complete detail/delivery text at742-point panel width.
+- Clicked the account-level test alert: it opened Available resets for the matching OpenAI Personal account. This matches captured MainPage.Actions.cs OpenAccount behavior for a nil window ID and a reserve-bearing account.
+- Existing build470088e was used; no production code changed in this check. Only one delivered demo test row was exercised. Multi-row scrolling, refresh/expiration/undelivered icon variants and exact font metrics remain unverified against image08.
