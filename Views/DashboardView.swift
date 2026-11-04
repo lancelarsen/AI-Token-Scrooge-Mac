@@ -41,9 +41,14 @@ struct DashboardView: View {
         .sheet(item: $store.selectedAccount) { account in AccountSettingsView(accountID: account.id).environment(store) }
         .sheet(isPresented: $store.showConnection) { ConnectionView().environment(store) }
         .sheet(isPresented: $store.showAlertHistory) { AlertHistoryView().environment(store) }
-        .alert("Scrooge Needs Attention", isPresented: Binding(get: { store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })) {
-            Button("OK") { store.errorMessage = nil }
-        } message: { Text(store.errorMessage ?? "") }
+        .sheet(isPresented: Binding(get: { store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })) {
+            DetailsDialog(close: { store.errorMessage = nil }) {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Scrooge Needs Attention").font(.system(size: 20, weight: .semibold)).foregroundStyle(.white)
+                    Text(store.errorMessage ?? "")
+                }
+            }
+        }
         .task {
             store.openDashboard = { openWindow(id: "dashboard"); NSApp.activate(ignoringOtherApps: true) }
             await store.load()
@@ -204,8 +209,10 @@ struct QuotaRow: View {
                 }
             }
         }
-        .popover(isPresented: $showDetails) {
-            QuotaDetailsView(account: account, window: window, snapshot: snapshot).padding(24)
+        .sheet(isPresented: $showDetails) {
+            DetailsDialog(close: { showDetails = false }) {
+                QuotaDetailsView(account: account, window: window, snapshot: snapshot)
+            }
         }
     }
 }
@@ -221,8 +228,8 @@ struct QuotaDetailsView: View {
             Text(window.name).font(.system(size: 20, weight: .semibold)).foregroundStyle(.white)
             Text("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname)")
             Text("\(Format.percent(window.usedPercent)) Used / \(Format.percent(window.remainingPercent)) Left")
-            if let used = window.used, window.unit != .percent { Text("Used: \(NSDecimalNumber(decimal: used).stringValue) \(window.unit.rawValue)") }
-            if let limit = window.limit { Text("Allowance: \(NSDecimalNumber(decimal: limit).stringValue) · \(window.allowanceSource.rawValue.capitalized)") }
+            if let used = window.used, window.unit != .percent { DetailLine(label: "Used", value: "\(NSDecimalNumber(decimal: used).stringValue) \(window.unit.rawValue)") }
+            if let limit = window.limit { DetailLine(label: "Allowance", value: "\(NSDecimalNumber(decimal: limit).stringValue) · \(window.allowanceSource.rawValue.capitalized)") }
             DetailLine(label: "Resets", value: Format.date(window.resetsAt, zone: store.state.settings.zone))
             if !store.state.settings.privacy {
                 DetailLine(label: "Account", value: account.login ?? account.subject)

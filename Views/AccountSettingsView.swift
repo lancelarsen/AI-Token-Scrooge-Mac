@@ -16,7 +16,7 @@ struct AccountSettingsView: View {
     }
     var body: some View {
         VStack(spacing: 0) {
-            HStack { Text("Account Settings").font(.system(size: 26, weight: .semibold)).foregroundStyle(Theme.accent); Spacer(); Button("Close") { dismiss() }.buttonStyle(ScroogeButtonStyle()) }.padding(24)
+            HStack { Text("Account Settings").font(.system(size: 26, weight: .semibold)).foregroundStyle(Theme.accent); Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction) }.padding(24)
             ScrollView {
                 if let account {
                     VStack(spacing: 12) {
@@ -34,12 +34,17 @@ struct AccountSettingsView: View {
                                 }
                                 Button { showColor = true } label: { Image(systemName: "plus").frame(width: 32, height: 32).background(Theme.control).clipShape(RoundedRectangle(cornerRadius: 5)) }.buttonStyle(.plain).help("Add Custom Color")
                                     .popover(isPresented: $showColor) {
-                                        VStack { ColorPicker("Custom Line Color", selection: $newColor, supportsOpacity: false); Button("Add Color") {
+                                        DetailsDialog(closeTitle: "Cancel", primaryTitle: "Add Color", primaryAction: {
                                             let hex = newColor.hex; store.edit { state in
                                                 if !state.settings.customColors.contains(hex) { state.settings.customColors.append(hex) }
                                                 if let i = state.accounts.firstIndex(where: { $0.id == accountID }) { state.accounts[i].lineColor = hex }
                                             }; showColor = false
-                                        } }.padding(20)
+                                        }, close: { showColor = false }) {
+                                            VStack(alignment: .leading, spacing: 16) {
+                                                Text("Custom Line Color").font(.system(size: 20, weight: .semibold)).foregroundStyle(.white)
+                                                ColorPicker("Line Color", selection: $newColor, supportsOpacity: false)
+                                            }
+                                        }
                                     }
                             }
                             HStack {
@@ -79,9 +84,14 @@ struct AccountSettingsView: View {
         }.frame(width: 760, height: 760).background(Theme.background).preferredColorScheme(.dark).tint(Theme.accent)
         .onAppear { nicknameDraft = account?.nickname ?? "" }
         .onDisappear { saveNickname() }
-        .confirmationDialog("Remove This Account?", isPresented: $confirmRemove) {
-            Button("Remove Account", role: .destructive) { Task { await store.removeAccount(accountID); dismiss() } }
-        } message: { Text("This removes its local history and Scrooge-owned connection. Your other apps stay signed in.") }
+        .sheet(isPresented: $confirmRemove) {
+            ConfirmationDetailsDialog(title: "Remove This Account?",
+                message: "This removes its local history and Scrooge-owned connection. Your other apps stay signed in.",
+                actionTitle: "Remove Account", cancel: { confirmRemove = false }) {
+                    confirmRemove = false
+                    Task { await store.removeAccount(accountID); dismiss() }
+                }
+        }
     }
     private func saveNickname() {
         guard let account else { return }

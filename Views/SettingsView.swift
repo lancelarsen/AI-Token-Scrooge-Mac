@@ -95,11 +95,13 @@ struct SettingsView: View {
         }.frame(minWidth: 700, idealWidth: 1000, minHeight: 600, idealHeight: 800).background(Theme.background).preferredColorScheme(.dark).tint(Theme.accent)
         .onAppear { store.refreshLoginItemStatus() }
         .onChange(of: scenePhase) { _, phase in if phase == .active { store.refreshLoginItemStatus() } }
-        .confirmationDialog("Remove Older History?", isPresented: Binding(get: { pendingRetention != nil }, set: { if !$0 { pendingRetention = nil } })) {
-            Button("Keep \(pendingRetention ?? 90) Days", role: .destructive) {
-                if let days = pendingRetention { store.edit { $0.settings.historyRetentionDays = days }; pendingRetention = nil }
-            }
-        } message: { Text("Records older than the selected period will be removed. Increasing the period later cannot restore them.") }
+        .sheet(isPresented: Binding(get: { pendingRetention != nil }, set: { if !$0 { pendingRetention = nil } })) {
+            ConfirmationDetailsDialog(title: "Remove Older History?",
+                message: "Records older than the selected period will be removed. Increasing the period later cannot restore them.",
+                actionTitle: "Keep \(pendingRetention ?? 90) Days", cancel: { pendingRetention = nil }) {
+                    if let days = pendingRetention { store.edit { $0.settings.historyRetentionDays = days }; pendingRetention = nil }
+                }
+        }
         .sheet(isPresented: Binding(get: { store.showAlertHistory }, set: { store.showAlertHistory = $0 })) { AlertHistoryView().environment(store) }
     }
     private func settingsSwitch(_ title: String, isOn: Binding<Bool>) -> some View {

@@ -6,7 +6,7 @@ struct AlertHistoryView: View {
     @State private var selectedAlert: AlertEvent?
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            HStack { Text("Alert History").font(.title2).foregroundStyle(Theme.accent); Spacer(); Button("Close") { dismiss() } }
+            HStack { Text("Alert History").font(.system(size: 26, weight: .semibold)); Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction) }
             if store.state.alerts.isEmpty { Text("No Alerts Yet").foregroundStyle(Theme.secondary); Spacer() }
             else {
                 ScrollView {
@@ -67,7 +67,7 @@ struct AccountUsageDetailsView: View {
     }
     private var unavailableDetails: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Usage Details Unavailable").font(.title2)
+            Text("Usage Details Unavailable").font(.system(size: 20, weight: .semibold)).foregroundStyle(.white)
             Text("This account or quota window is no longer available. Refresh the dashboard to check current connections.")
         }
     }
@@ -75,6 +75,9 @@ struct AccountUsageDetailsView: View {
 
 /// Shared Windows-style detail dialog: content-sized body and a separate action footer.
 struct DetailsDialog<Content: View>: View {
+    var closeTitle = "Close"
+    var primaryTitle: String? = nil
+    var primaryAction: (() -> Void)? = nil
     let close: () -> Void
     @ViewBuilder let content: () -> Content
 
@@ -92,8 +95,13 @@ struct DetailsDialog<Content: View>: View {
             Divider()
             HStack {
                 Spacer()
+                if let primaryTitle, let primaryAction {
+                    Button(action: primaryAction) {
+                        DialogActionLabel(title: primaryTitle, symbol: "checkmark")
+                    }.buttonStyle(ScroogeButtonStyle())
+                }
                 Button(action: close) {
-                    Label("Close", systemImage: "xmark")
+                    DialogActionLabel(title: closeTitle, symbol: "xmark")
                 }
                 .buttonStyle(ScroogeButtonStyle())
                 .keyboardShortcut(.cancelAction)
@@ -113,5 +121,32 @@ struct DetailLine: View {
     var body: some View {
         (Text(label + ": ").fontWeight(.semibold).foregroundColor(.white)
          + Text(value).foregroundColor(Theme.secondary))
+    }
+}
+
+struct DialogActionLabel: View {
+    let title: String
+    let symbol: String
+    var body: some View {
+        HStack(spacing: 9) {
+            Image(systemName: symbol).font(.system(size: 20)).foregroundStyle(Theme.accent)
+            Text(title).font(.system(size: 14)).foregroundStyle(.white)
+        }
+    }
+}
+
+struct ConfirmationDetailsDialog: View {
+    let title: String
+    let message: String
+    let actionTitle: String
+    let cancel: () -> Void
+    let confirm: () -> Void
+    var body: some View {
+        DetailsDialog(closeTitle: "Cancel", primaryTitle: actionTitle, primaryAction: confirm, close: cancel) {
+            VStack(alignment: .leading, spacing: 16) {
+                Text(title).font(.system(size: 20, weight: .semibold)).foregroundStyle(.white)
+                Text(message)
+            }
+        }
     }
 }

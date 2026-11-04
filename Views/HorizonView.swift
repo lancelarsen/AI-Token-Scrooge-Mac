@@ -68,7 +68,7 @@ struct HorizonView: View {
                 if event.reportedAt == nil {
                     AccountUsageDetailsView(accountID: event.account.id, windowID: event.windowID)
                 } else {
-                    Label(event.title, systemImage: event.expiration ? "hourglass" : "arrow.clockwise").font(.title2).foregroundStyle(event.expiration ? Theme.amber : Theme.accent)
+                    Label(event.title, systemImage: event.expiration ? "hourglass" : "arrow.clockwise").font(.system(size: 20, weight: .semibold)).foregroundStyle(event.expiration ? Theme.amber : Theme.accent)
                     Text("\(event.account.provider.rawValue) · \(store.state.settings.privacy ? "Account" : event.account.nickname)")
                     Text(Format.date(event.date, zone: store.state.settings.zone))
                     if let reportedAt = event.reportedAt {
@@ -544,8 +544,8 @@ struct HistoryPointerTracking: NSViewRepresentable {
             let lines = text.split(separator: "\n", maxSplits: 1).map(String.init)
             let content = NSHostingView(rootView:
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(lines[0]).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.accent)
-                    if lines.count > 1 { Text(lines[1]).font(.system(size: 12)).foregroundStyle(Theme.secondary) }
+                    Text(lines[0]).font(.system(size: 14, weight: .semibold)).foregroundStyle(Color(hex: "#F2F1F5"))
+                    if lines.count > 1 { Text(lines[1]).font(.system(size: 13)).foregroundStyle(Theme.secondary) }
                 }.padding(.horizontal, 14).padding(.vertical, 10).frame(maxWidth: 420, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
                     .background(Color(hex: "#222329"), in: RoundedRectangle(cornerRadius: 12))

@@ -15,7 +15,7 @@ struct ConnectionView: View {
     @State private var error: String?
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            HStack { Text("Connect Account").font(.title); Spacer(); Button("Cancel") { dismiss() }.disabled(connecting) }
+            HStack { Text("Connect Account").font(.system(size: 26, weight: .semibold)); Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Cancel", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction).disabled(connecting) }
             Picker("Provider", selection: $provider) { ForEach(Provider.allCases) { Text($0.rawValue).tag($0) } }.disabled(connecting)
             TextField("Nickname", text: $nickname)
             if provider == .codex {
@@ -47,7 +47,7 @@ struct ConnectionView: View {
                 ClaudeConnectView(nickname: nickname, original: store.state.accounts.first { $0.id == store.reconnectAccountID })
             }
             if let error { Text(error).foregroundStyle(Theme.amber) }
-        }.padding(28).frame(width: 560).background(Theme.background).preferredColorScheme(.dark)
+        }.font(.system(size: 14)).textFieldStyle(.roundedBorder).padding(32).frame(width: 560).background(Theme.background).preferredColorScheme(.dark).tint(Theme.accent)
         .onDisappear { connectionTask?.cancel(); token = "" }
         .onAppear {
             if let original = store.state.accounts.first(where: { $0.id == store.reconnectAccountID }) {
