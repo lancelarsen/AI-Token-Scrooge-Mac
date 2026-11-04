@@ -58,22 +58,34 @@ struct ConnectionView: View {
         }
     }
     private var connectionForm: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        ScrollView {
+        VStack(alignment: .leading, spacing: 18) {
             Text("Connect \(provider == .codex ? "OpenAI Codex" : provider.rawValue)").font(.system(size: 26, weight: .semibold))
             Text(connectionDescription).foregroundStyle(Theme.secondary).fixedSize(horizontal: false, vertical: true)
-            TextField("Nickname", text: $nickname).frame(height: 32)
+            TextField("Account nickname (Personal, Work…)", text: $nickname).modifier(ConnectionFieldStyle())
             if provider == .codex {
                 CodexConnectView(nickname: nickname, original: store.state.accounts.first { $0.id == store.reconnectAccountID })
             } else if provider == .copilot {
-                Picker("Billing Unit", selection: $unit) { Text("AI Credits").tag(UsageUnit.credits); Text("Premium Requests").tag(UsageUnit.requests) }.labelsHidden().frame(height: 32)
-                TextField("Fallback allowance (optional; detected automatically when available)", text: $allowance).frame(height: 32)
+                Menu {
+                    Button("AI credits") { unit = .credits }
+                    Button("Premium requests") { unit = .requests }
+                } label: {
+                    HStack {
+                        Text(unit == .credits ? "AI credits" : "Premium requests")
+                        Spacer()
+                        Image(systemName: "chevron.down").font(.system(size: 10))
+                    }.padding(.horizontal, 12).frame(height: 32)
+                        .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
+                }.menuStyle(.borderlessButton).menuIndicator(.hidden)
+                    .accessibilityLabel("Billing Unit").accessibilityValue(unit == .credits ? "AI credits" : "Premium requests")
+                TextField("Fallback allowance (optional; detected automatically when available)", text: $allowance).modifier(ConnectionFieldStyle())
                 Button { advanced.toggle() } label: {
                     DialogActionLabel(title: advanced ? "Use browser sign-in instead" : "Use an access token instead", symbol: advanced ? "arrow.up.right.square" : "key")
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }.buttonStyle(ScroogeButtonStyle()).disabled(connecting)
                 if !advanced { GitHubConnectView(nickname: nickname, unit: $unit, allowance: $allowance) } else {
-                SecureField("GitHub Token", text: $token)
-                TextField("Organization (optional)", text: $organization)
+                SecureField("Fine-grained personal access token", text: $token).modifier(ConnectionFieldStyle())
+                TextField("Organization billing owner (optional)", text: $organization).modifier(ConnectionFieldStyle())
                 Button {
                     connecting = true; error = nil
                     connectionTask = Task {
@@ -94,8 +106,8 @@ struct ConnectionView: View {
             if let error { Text(error).foregroundStyle(Theme.amber) }
             Button { dismiss() } label: { DialogActionLabel(title: "Cancel", symbol: "xmark").frame(maxWidth: .infinity, alignment: .leading) }
                 .buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction).disabled(connecting)
-            Spacer(minLength: 0)
-        }.font(.system(size: 14)).textFieldStyle(.roundedBorder).frame(maxWidth: 550).padding(32).frame(width: panelSize.width, height: panelSize.height, alignment: .top).background(Theme.background).preferredColorScheme(.dark).tint(Theme.accent)
+        }.font(.system(size: 14)).frame(maxWidth: 576).padding(32).frame(maxWidth: .infinity, alignment: .top)
+        }.frame(width: panelSize.width, height: panelSize.height).background(Color(hex: "#141519")).preferredColorScheme(.dark).tint(Theme.accent)
         .onDisappear { connectionTask?.cancel(); token = "" }
         .onAppear {
             if let original = store.state.accounts.first(where: { $0.id == store.reconnectAccountID }) {
@@ -104,5 +116,18 @@ struct ConnectionView: View {
                 allowance = original.allowance.map { NSDecimalNumber(decimal: $0).stringValue } ?? ""
             }
         }
+    }
+}
+
+private struct ConnectionFieldStyle: ViewModifier {
+    @FocusState private var focused: Bool
+    func body(content: Content) -> some View {
+        content.textFieldStyle(.plain).focused($focused)
+            .padding(.horizontal, 12).frame(height: 32)
+            .background(Color(hex: "#2A2B30"), in: RoundedRectangle(cornerRadius: 10))
+            .overlay(alignment: .bottom) {
+                Rectangle().fill(focused ? Theme.accent : Theme.secondary.opacity(0.55))
+                    .frame(height: focused ? 2 : 1).padding(.horizontal, 10)
+            }
     }
 }

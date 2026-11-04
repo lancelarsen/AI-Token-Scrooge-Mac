@@ -78,3 +78,7 @@ Inspected images 20–23 and 25. Added reference 320-point three-provider choose
 ## Connection Forms Pass
 
 Provider forms now target a 1000 x 800 host-limited panel with centered 550-point content column, description above nickname and full-width sign-in/Cancel actions. GitHub billing unit and fallback allowance stay above the browser/token mode button; shared bindings preserve these fields across mode changes. Authentication status remains visible after starting an operation; Keychain wording retained. Canonical build passed. GitHub browser form inspected at runtime and token mode transition verified without credentials or sign-in. Remaining: native field/picker styling, precise vertical gaps, compact panel behavior, other provider captures and busy/error states.
+
+## Connection Field Styling
+
+Matched source Entry background #2A2B30, 32-point field heights, bottom focus line, full-width billing menu and source placeholders. Form now uses source 18-point spacing and 640-point total maximum width including 32-point padding on each side. Added scrolling inside the host-limited panel and solid #141519 panel background. Canonical build passed; final field rendering, compact scrolling and focus behavior still require runtime comparison.
