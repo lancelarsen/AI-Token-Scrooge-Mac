@@ -236,3 +236,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Usage popup supporting text now uses13pt system; heading remains21pt. Fetch timestamp is single-line with at most10% scaling to fit294pt content width, avoiding condensed letter shapes.
 - Canonical build passed (`artifacts/usage-font-parity-build.log`). Weekly usage popup inspected: full fetched timestamp including timezone fits, account identity and provider-data lines remain readable and untruncated.
 - Vertical rhythm still differs from Segoe's taller line metrics and needs correction; this is a measured width improvement, not proof of exact typography.
+
+### Detail popup row heights
+- Compared image13 and captured ThemedDialogs.cs: supporting rows use an eight-point gap and approximately19-point line boxes (27-point baseline steps). Native13-point text previously compressed the layout.
+- Added19-point minimum row heights and32-point title boxes to usage and earned-reset details, preserving blank separators and allowing multiline content to grow.
+- Canonical build passed (`artifacts/detail-row-height-build.log`). Runtime demo weekly popup measured342x417 points versus reference342x422; earned-reset popup332x281 versus reference332x283. Text and complete timestamps remain visible; four earned-reset body lines stay single-line.
+- Remaining few-point overall-height differences and font rasterization are not exact parity. No live provider behavior changed or tested.

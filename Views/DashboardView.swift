@@ -260,9 +260,9 @@ struct QuotaDetailsView: View {
     let snapshot: QuotaSnapshot
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))").font(.system(size: 21, weight: .semibold)).foregroundStyle(Theme.accent)
-            Text(window.name)
-            Text("\(Format.percent(window.usedPercent)) used · \(Format.percent(window.remainingPercent)) left")
+            Text("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))").font(.system(size: 21, weight: .semibold)).foregroundStyle(Theme.accent).frame(minHeight: 32, alignment: .leading)
+            Text(window.name).frame(minHeight: 19, alignment: .leading)
+            Text("\(Format.percent(window.usedPercent)) used · \(Format.percent(window.remainingPercent)) left").frame(minHeight: 19, alignment: .leading)
             if let used = window.used, window.unit != .percent { DetailLine(label: "Used", value: "\(NSDecimalNumber(decimal: used).stringValue) \(window.unit.rawValue)") }
             if let limit = window.limit, window.unit != .percent { DetailLine(label: "Allowance", value: "\(NSDecimalNumber(decimal: limit).stringValue) · \(window.allowanceSource.rawValue.capitalized)") }
             DetailLine(label: "Resets", value: Format.detailDate(window.resetsAt, zone: store.state.settings.zone))
@@ -276,7 +276,7 @@ struct QuotaDetailsView: View {
             DetailLine(label: "Provider data as of", value: Format.detailDate(snapshot.providerDataAt, zone: store.state.settings.zone))
             if snapshot.health == .demo {
                 Color.clear.frame(height: 6)
-                Text("Demo data")
+                Text("Demo data").frame(minHeight: 19, alignment: .leading)
             } else if let message = snapshot.message, !message.isEmpty {
                 Color.clear.frame(height: 6)
                 Text(message).foregroundStyle(Theme.secondary)
