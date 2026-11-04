@@ -257,13 +257,25 @@ private struct InlineLineColorEditor: View {
                     }
             }.frame(height: 32)
             HStack {
-                Picker("Color Model", selection: $mode) { Text("RGB").tag("RGB"); Text("HSV").tag("HSV") }
-                    .labelsHidden().frame(width: 120)
+                Menu {
+                    Picker("Color Model", selection: $mode) { Text("RGB").tag("RGB"); Text("HSV").tag("HSV") }.pickerStyle(.inline)
+                } label: {
+                    HStack {
+                        Text(mode)
+                        Spacer()
+                        Image(systemName: "chevron.down").font(.system(size: 10))
+                    }.padding(.horizontal, 12).frame(width: 120, height: 32)
+                        .background(Color(hex: "#303138"), in: RoundedRectangle(cornerRadius: 8))
+                }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
+                    .accessibilityLabel("Color Model").accessibilityValue(mode)
                 Spacer()
                 TextField("Hex Color", text: $hexDraft)
                     .onChange(of: hexDraft) { _, value in
                         let digits = value.hasPrefix("#") ? String(value.dropFirst()) : value
-                        if digits.count == 6, UInt64(digits, radix: 16) != nil {
+                        if digits.count == 6, UInt64(digits, radix: 16) != nil,
+                           "#" + digits.uppercased() != color.hex {
+                            // Only external hex edits should replace HSV coordinates.
+                            // Re-decoding our own black/gray output would discard hue.
                             color = Color(hex: digits); loadComponents()
                         }
                     }.modifier(ColorEntryStyle()).frame(width: 132)

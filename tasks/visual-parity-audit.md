@@ -212,3 +212,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Fixed existing Color.hex truncation by using rounded sRGB components. Runtime test initially exposed #58A6FF becoming #57A6FF; rebuilt fix preserves #58A6FF and RGB88/166/255 exactly.
 - Canonical build passed (`artifacts/inline-color-editor-build.log`). Inspected spectrum and fields; edited red88→122 and verified #7AA6FF, then Add Color selected #7AA6FF in the demo account palette.
 - Remaining: RGB/HSV picker visual styling, hue/brightness pointer and keyboard edge cases, cancel behavior, and exact selector/gradient raster equivalence need verification. No live account settings changed.
+
+### Color editor edge cases and selector styling
+- Prevented programmatic hex synchronization from re-decoding HSV: black/gray output must not discard the selected hue or saturation.
+- Replaced native compact RGB/HSV picker with the reference-sized 120x32 dark field and chevron; inline picker style avoids a redundant Color Model submenu.
+- Canonical build passed (`artifacts/color-editor-edge-build.log`). Runtime HSV selection verified; brightness pointer at both ends produced #000000 then #FFA2C6 while preserving hue336/saturation36. Cancel returned to the original selected #D587A5 account color.
+- Final inline-menu-style adjustment was build-checked after those runtime checks; its expanded menu remains to be reinspected. Exact rendering and full keyboard/input edge coverage remain open.
