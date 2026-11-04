@@ -48,24 +48,27 @@ extension EnvironmentValues {
 }
 struct ScroogeButtonStyle: ButtonStyle {
     var selected = false
+    var processing = false
     var segmented = false
     var horizontalPadding: CGFloat = 16
     func makeBody(configuration: Configuration) -> some View {
-        Surface(configuration: configuration, selected: selected, segmented: segmented, horizontalPadding: horizontalPadding)
+        Surface(configuration: configuration, selected: selected, processing: processing, segmented: segmented, horizontalPadding: horizontalPadding)
     }
     private struct Surface: View {
         let configuration: ButtonStyleConfiguration
         let selected: Bool
+        let processing: Bool
         let segmented: Bool
         let horizontalPadding: CGFloat
         @Environment(\.isEnabled) private var enabled
         @State private var hovered = false
-        private var highlighted: Bool { selected || (enabled && (hovered || configuration.isPressed)) }
+        private var interacting: Bool { processing || (enabled && (hovered || configuration.isPressed)) }
+        private var highlighted: Bool { selected || interacting }
         var body: some View {
             configuration.label
                 .font(.system(size: 14))
-                .foregroundStyle(.white)
-                .environment(\.actionForeground, highlighted ? .white : Theme.actionAccent)
+                .foregroundStyle(interacting ? Color.white : Color(hex: "#F2F1F5"))
+                .environment(\.actionForeground, interacting ? .white : Theme.actionAccent)
                 .padding(.horizontal, segmented ? 0 : horizontalPadding)
                 .frame(minHeight: 44)
                 .background(highlighted ? Theme.activeControl : Theme.control)

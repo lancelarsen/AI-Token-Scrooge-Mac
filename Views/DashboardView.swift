@@ -89,7 +89,7 @@ struct DashboardView: View {
                         Text(refreshRequested || store.isRefreshing ? "Refreshing…" : "Refresh")
                     }
                 }
-                .buttonStyle(ScroogeButtonStyle(selected: refreshRequested || store.isRefreshing))
+                .buttonStyle(ScroogeButtonStyle(processing: refreshRequested || store.isRefreshing))
                 .disabled(refreshRequested || store.isRefreshing).accessibilityIdentifier("refreshButton")
                 Button { showSettings = true } label: { ActionLabel(title: "Settings", symbol: "gearshape") }.accessibilityIdentifier("settingsButton")
             }.frame(maxWidth: wide ? 500 : .infinity).buttonStyle(ScroogeButtonStyle())
@@ -109,11 +109,11 @@ struct DashboardView: View {
             HStack(spacing: 0) {
                 ForEach(AccountSort.allCases, id: \.self) { sort in
                     Button { store.edit { AccountPolicy.selectSort(sort, state: &$0) } } label: {
-                        HStack(spacing: 10) { ActionIcon(symbol: icon(sort), size: 20); Text(sort.rawValue).font(.system(size: 13)) }.frame(maxWidth: .infinity, minHeight: 44)
+                        HStack(spacing: 9) { ActionIcon(symbol: icon(sort), size: 20); Text(sort.rawValue).font(.system(size: 13)) }.frame(maxWidth: .infinity, minHeight: 44)
                     }.buttonStyle(ScroogeButtonStyle(selected: store.state.settings.accountSort == sort, segmented: true))
-                        .overlay(alignment: .trailing) { if sort != AccountSort.allCases.last { Rectangle().fill(Theme.border).frame(width: 1) } }
+                        .overlay(alignment: .trailing) { if sort != AccountSort.allCases.last { Rectangle().fill(Color(hex: "#45464D")).frame(width: 1) } }
                 }
-            }.clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
+            }.clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#45464D")))
             Button { if store.isDemo { store.exitDemo() } else { store.showConnection = true } } label: {
                 ActionLabel(title: store.isDemo ? "Exit demo" : "Add account", symbol: store.isDemo ? "arrow.up.forward.square" : "plus")
             }.buttonStyle(ScroogeButtonStyle()).accessibilityIdentifier("addAccountButton")

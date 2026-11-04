@@ -418,3 +418,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 
 - Compared image 09 and `HorizonView.cs`: replaced the heavy SF history symbol with a thin vector history-clock outline, using the action lavender `#B5A0F4`, a 30-point slot and explicit 12-point title spacing.
 - Canonical build passed (`artifacts/horizon-heading-icon-build.log`); native wide-window screenshot confirmed the new outline renders without clipping. This improves the reference silhouette; exact glyph pixel equality is not established. Overall font metrics and all 37 matched-state captures remain incomplete.
+
+### Action state palette and sort borders
+
+- Windows `ActionButton.ApplyColors` uses off-white normal text and lavender icons even over a selected background; white foreground is reserved for hover/busy. Separated processing from selection in the shared Mac button style so refresh retains its white processing state while selected sort/alarm controls retain normal icon colors.
+- Matched sort segment separators and outline to `AccountSortControl` (#45464D), and icon/text gap to the shared action grid's 9 points.
+- Canonical build and diff checks passed (`artifacts/action-state-palette-build.log`). Source-state comparison verified; hover/processing render captures remain outstanding.
