@@ -66,9 +66,9 @@ struct DashboardView: View {
                 if let url = Bundle.main.url(forResource: "token_baron", withExtension: "png"), let mascot = NSImage(contentsOf: url) {
                     Image(nsImage: mascot).resizable().scaledToFit().frame(width: 66, height: 66)
                 }
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("AI Token Scrooge").font(.system(size: 32, weight: .semibold))
-                    Text("Never Waste a Token! Never Miss a Reset!").font(.system(size: 16)).foregroundStyle(Theme.accent)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("AI Token Scrooge").font(.system(size: 32, weight: .semibold)).frame(height: 40)
+                    Text("Never Waste a Token! Never Miss a Reset!").font(.system(size: 16)).foregroundStyle(Theme.accent).frame(height: 26)
                 }
                 Spacer(minLength: 0)
             }
@@ -96,9 +96,9 @@ struct DashboardView: View {
         }.padding(.horizontal, 32).padding(.vertical, 18)
     }
     private var freshness: String {
-        var text = store.isDemo ? "DEMO DATA · Live Monitoring Paused" : store.state.snapshots.values.map(\.observedAt).max().map {
+        var text = store.isDemo ? "DEMO DATA · Live monitoring paused" : store.state.snapshots.values.map(\.observedAt).max().map {
             Format.updated($0, zone: store.state.settings.zone)
-        } ?? "Connect an Account to Start Monitoring"
+        } ?? "Connect an account to start monitoring"
         if !store.isDemo && (!store.state.retiredAccounts.isEmpty || !store.state.retiredCredentialIDs.isEmpty) {
             text += " · Previous Sign-in Cleanup Pending"
         }
@@ -115,7 +115,7 @@ struct DashboardView: View {
                 }
             }.clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
             Button { if store.isDemo { store.exitDemo() } else { store.showConnection = true } } label: {
-                ActionLabel(title: store.isDemo ? "Exit Demo" : "Add Account", symbol: store.isDemo ? "arrow.up.forward.square" : "plus")
+                ActionLabel(title: store.isDemo ? "Exit demo" : "Add account", symbol: store.isDemo ? "arrow.up.forward.square" : "plus")
             }.buttonStyle(ScroogeButtonStyle()).accessibilityIdentifier("addAccountButton")
         }
     }

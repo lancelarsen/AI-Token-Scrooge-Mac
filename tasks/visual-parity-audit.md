@@ -358,3 +358,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched source HorizonView legend spacing:7-point dot/text gap and20-point separation between legend items, plus exact refresh-dot #B5A0F4 and label #BEC1D2 colors.
 - Corrected icon-only Timeline Settings button from52 to44 points wide, matching the Windows WidthRequest44 while preserving44-point height.
 - Canonical build passed (`artifacts/horizon-header-controls-build.log`). Runtime compact header shows both complete count labels and square settings control without clipping. Source uses wrapping FlexLayout; Mac's two-layout fallback and native font metrics remain broader parity gaps.
+
+### Dashboard brand line boxes and casing
+- Matched source brand stack: zero spacing,40-point title line and26-point subtitle line, centered alongside66-point mascot. Previously intrinsic text heights and3-point spacing shifted the title down.
+- Matched source sentence casing for empty/live-paused status and Add account/Exit demo labels.
+- Canonical build passed (`artifacts/dashboard-header-parity-build.log`). Runtime compact empty dashboard shows complete brand/status text and Add account with no clipping. Demo casing follows the shared expression but was not reopened. Font-family differences and wide-layout baseline alignment remain unverified.
