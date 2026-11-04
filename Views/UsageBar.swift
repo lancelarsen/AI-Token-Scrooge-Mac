@@ -12,12 +12,11 @@ struct UsageBar: View {
         GeometryReader { geometry in
             let current = editing ?? thresholds
             ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 11).fill(Color(hex: "#30323C"))
+                RoundedRectangle(cornerRadius: 11).fill(Color(hex: "#30333E"))
                 RoundedRectangle(cornerRadius: 11).fill(LinearGradient(colors: Theme.colors(window.capacity(current)), startPoint: .leading, endPoint: .trailing))
                     .frame(width: geometry.size.width * window.fill)
                 Button(action: details) {
-                    HStack { Text("\(Format.percent(window.usedPercent)) Used").fontWeight(.semibold); Spacer(); Text("\(Format.percent(window.remainingPercent)) Left") }
-                        .font(.system(size: 16)).padding(.horizontal, 14).frame(height: 48).contentShape(Rectangle())
+                    Color.clear.frame(height: 48).contentShape(Rectangle())
                 }.buttonStyle(.plain).accessibilityLabel("\(window.name), \(Format.percent(window.remainingPercent)) Remaining. Open Details")
                 ForEach(alertsEnabled ? ReminderSeverity.allCases : [], id: \.self) { level in
                     let value = value(level, current)
@@ -48,7 +47,15 @@ struct UsageBar: View {
                             var next = thresholds; next.move(level, to: value + (direction == .increment ? 1 : -1)); changed(next)
                         }
                 }
-            }.coordinateSpace(name: "usageBar").overlay(RoundedRectangle(cornerRadius: 11).stroke(Color(hex: "#45464D")))
+                // Keep labels above the draggable markers without intercepting input.
+                HStack {
+                    Text("\(Format.percent(window.usedPercent)) used").fontWeight(.semibold)
+                    Spacer()
+                    Text("\(Format.percent(window.remainingPercent)) left")
+                }
+                .font(.system(size: 16)).padding(.horizontal, 15)
+                .allowsHitTesting(false).accessibilityHidden(true)
+            }.coordinateSpace(name: "usageBar").overlay(RoundedRectangle(cornerRadius: 11).stroke(Color(hex: "#515461")))
         }.frame(height: 48)
     }
     private func value(_ severity: ReminderSeverity, _ thresholds: AlertThresholds) -> Decimal {

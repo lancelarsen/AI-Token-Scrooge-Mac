@@ -199,7 +199,7 @@ struct QuotaRow: View {
     private var quotaLabel: some View {
 VStack(alignment: .leading, spacing: 5) {
                 Text(window.name).font(.system(size: 14))
-                Text(!account.enabled ? "Monitoring Disabled" : snapshot.health == .demo ? "Demo Data" : snapshot.health == .healthy ? "" : snapshot.message ?? snapshot.health.rawValue)
+                Text(!account.enabled ? "Monitoring Disabled" : snapshot.health == .demo ? "Demo data" : snapshot.health == .healthy ? "" : snapshot.message ?? snapshot.health.rawValue)
                     .font(.system(size: 11)).foregroundStyle(Theme.secondary)
             }.frame(width: wide ? 156 : nil, alignment: .leading)
     }

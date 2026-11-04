@@ -159,3 +159,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched remaining-sort meters to 22x20 with 14-point outline height and 4/14x7 fills; removed proportional approximations.
 - Account drag handles now use separate filled six-dot artwork, matching the Windows braille grip's filled appearance rather than reusing Custom Order's hollow circles. Exact font-glyph raster equivalence remains unproven.
 - Canonical build passed (`artifacts/action-icon-parity-build.log`). Inspected desktop demo with all four account grips and sorting controls visible. Other typography and icon comparisons remain pending.
+
+### Usage bar text layering and reference colors
+- Matched captured UsageBar.cs: paint labels above threshold markers, keeping labels input-transparent; use 15-point horizontal padding, #30333E track and #515461 border.
+- Matched lowercase `used`, `left`, and `Demo data` text from captured QuotaRow.
+- Canonical build passed (`artifacts/usage-label-parity-build.log`). Desktop demo inspection confirmed intact percentage characters where critical markers overlap them. Clicking label text opened usage details; dragging the critical marker under the label changed 10% to 12%, then accessibility decrements restored 10%.
+- This verifies layering and input behavior, not exact font rasterization or full dashboard parity.
