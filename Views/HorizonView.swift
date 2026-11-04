@@ -56,7 +56,12 @@ struct HorizonView: View {
                 if store.state.accounts.isEmpty {
                     RoundedRectangle(cornerRadius: 5).fill(Theme.activeControl)
                         .overlay(RoundedRectangle(cornerRadius: 5).stroke(Theme.accent))
-                        .overlay(Image(systemName: "ellipsis").font(.system(size: 10)).foregroundStyle(Theme.accent))
+                        .overlay {
+                            Canvas { context, size in
+                                drawNavigatorGrip(in: &context, centerX: size.width / 2)
+                            }
+                            .accessibilityHidden(true)
+                        }
                         .frame(height: 22)
                 } else { navigator.frame(height: 22) }
                 if let historyStatus {
@@ -381,6 +386,17 @@ struct HorizonView: View {
         hoverText = details
     }
 
+    private func drawNavigatorGrip(in context: inout GraphicsContext, centerX: Double) {
+        for column in -1...1 {
+            for row in 0...1 {
+                let x = centerX + Double(column * 4)
+                let y = Double(9 + row * 4)
+                context.fill(Path(ellipseIn: CGRect(x: x - 1, y: y - 1, width: 2, height: 2)),
+                             with: .color(Color(hex: "#D1BEFF")))
+            }
+        }
+    }
+
     private var navigator: some View {
         GeometryReader { geometry in
             let trackWidth = max(1, geometry.size.width - 2)
@@ -408,13 +424,7 @@ struct HorizonView: View {
                 var nowLine = Path()
                 nowLine.move(to: CGPoint(x: nowX, y: 3)); nowLine.addLine(to: CGPoint(x: nowX, y: 19))
                 context.stroke(nowLine, with: .color(Color(hex: "#E5DCF9")), lineWidth: 1)
-                for column in -1...1 {
-                    for row in 0...1 {
-                        let x = overview.left + overview.width / 2 + Double(column * 4)
-                        let y = Double(9 + row * 4)
-                        context.fill(Path(ellipseIn: CGRect(x: x - 1, y: y - 1, width: 2, height: 2)), with: .color(Color(hex: "#D1BEFF")))
-                    }
-                }
+                drawNavigatorGrip(in: &context, centerX: overview.left + overview.width / 2)
             }.contentShape(Rectangle()).gesture(DragGesture(minimumDistance: 0).onChanged { value in
                 viewport.centerFromOverview(pointerX: value.location.x - 1, trackWidth: trackWidth)
                 position.scrollTo(x: viewport.scrollOffset)

@@ -148,3 +148,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched demo subjects and scopes for all four accounts and restored the `Demo data` footer with the source's 6-point blank spacer and 8-point stack spacing.
 - Canonical build passed (`artifacts/demo-details-parity-build.log`); running popup confirmed Personal address, scope, and footer.
 - Discarded a condensed-system-font experiment: it fixed line wrapping but visibly distorted the reference letter proportions. Standard font remains; timestamp wrapping and exact typography remain unresolved. This is not full popup parity.
+
+### Empty navigator grip
+- Replaced the empty timeline's three-dot SF Symbol with the Windows navigator's six-dot drawing (two rows, three columns, 2-point dots, 4-point center spacing, #D1BEFF).
+- Shared the drawing with the populated navigator to keep both states consistent.
+- Canonical build passed (`artifacts/navigator-grip-parity-build.log`); inspected first-launch rendering and confirmed the six-dot grip centered in the track. Overall typography and remaining screenshot comparisons are still open.
