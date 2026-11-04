@@ -508,3 +508,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 
 - Shared history hint now uses Windows 8-point vertical margins and #BEC1D2 foreground in both header arrangements. The missing margin previously pulled the compact divider/chart upward.
 - Canonical build passed (`artifacts/timeline-header-spacing-build.log`), diff checks passed. Compact native screenshot puts the rail at approximately y414, matching reference 26, and divider near y342 versus reference y340. Native chrome and font metrics still differ; these are approximate screenshot coordinates, not a pixel-diff certification.
+
+### Quota threshold inset comparison (reference 27)
+
+- Compared QuotaRowView, AccountQuotaView, UsageBar and Windows ThresholdEditor. Row spacing and nominal text sizes match source; threshold positions did not. Applied Windows eight-point endpoint inset and width-minus-sixteen span consistently to marker placement, drag-to-percent conversion and readout anchors.
+- Canonical build passed (`artifacts/threshold-inset-build.log`) and diff checks passed. Native compact account screenshot confirms markers remain aligned within both bars, with labels and controls intact. Pointer endpoint dragging is not yet verified; font shapes/widths and card positioning still differ from reference 27.

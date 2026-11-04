@@ -14,6 +14,7 @@ struct UsageBar: View {
     var body: some View {
         GeometryReader { geometry in
             let current = editing ?? thresholds
+            let markerSpan = max(0, geometry.size.width - 16)
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 11).fill(Color(hex: "#30333E"))
                 RoundedRectangle(cornerRadius: 11).fill(LinearGradient(colors: Theme.colors(window.capacity(current)), startPoint: .leading, endPoint: .trailing))
@@ -41,10 +42,11 @@ struct UsageBar: View {
                             editing = nil; editingSeverity = nil; hoveredSeverity = nil; focusedThreshold = nil
                             return .handled
                         }
-                        .position(x: (1 - NSDecimalNumber(decimal: value).doubleValue / 100) * geometry.size.width, y: 24)
+                        .position(x: 8 + (1 - NSDecimalNumber(decimal: value).doubleValue / 100) * markerSpan, y: 24)
                         .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .named("usageBar")).onChanged { drag in
+                            guard markerSpan > 0 else { return }
                             var next = editing ?? thresholds
-                            next.move(level, to: Decimal(min(100, max(0, (1 - drag.location.x / geometry.size.width) * 100))))
+                            next.move(level, to: Decimal(min(100, max(0, (1 - (drag.location.x - 8) / markerSpan) * 100))))
                             editingSeverity = level
                             editing = next
                         }.onEnded { _ in if let editing { changed(editing) }; editing = nil; editingSeverity = nil })
@@ -69,7 +71,7 @@ struct UsageBar: View {
                         HistoryPointerTracking(severity: level,
                             text: "\(level.rawValue) Alert @ \(Format.percent(value(level, current))) Left",
                             pinned: true,
-                            anchor: CGPoint(x: (1 - NSDecimalNumber(decimal: value(level, current)).doubleValue / 100) * geometry.size.width, y: 0),
+                            anchor: CGPoint(x: 8 + (1 - NSDecimalNumber(decimal: value(level, current)).doubleValue / 100) * markerSpan, y: 0),
                             onMove: { _ in })
                     }
                 }
