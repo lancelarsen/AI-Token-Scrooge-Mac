@@ -25,12 +25,12 @@ Acceptance requires individual inspection and equivalent Mac captures; a success
 | 17-polling-snapped.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
 | 18-account-connection-actions.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
 | 19-first-launch.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 20-provider-chooser.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 21-connect-codex.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 22-connect-github-browser.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 23-connect-github-advanced.png | Pending | Awaiting detailed inspection and Mac comparison |
+| 20-provider-chooser.png | Inspected | Provider chooser and named form headings implemented; full form sizing, field order and rendered comparison pending. |
+| 21-connect-codex.png | Inspected | Provider chooser and named form headings implemented; full form sizing, field order and rendered comparison pending. |
+| 22-connect-github-browser.png | Inspected | Provider chooser and named form headings implemented; full form sizing, field order and rendered comparison pending. |
+| 23-connect-github-advanced.png | Inspected | Provider chooser and named form headings implemented; full form sizing, field order and rendered comparison pending. |
 | 24-compact-empty.png | Pending | Awaiting detailed inspection and Mac comparison |
-| 25-connect-claude.png | Pending | Awaiting detailed inspection and Mac comparison |
+| 25-connect-claude.png | Inspected | Provider chooser and named form headings implemented; full form sizing, field order and rendered comparison pending. |
 | 26-compact-dashboard.png | Inspected | Inspected: compact timeline keeps legends on first row and History/hint on second; corrected Mac wrapping, awaiting compact capture. |
 | 27-compact-account-rows.png | Pending | Awaiting detailed inspection and Mac comparison |
 | 28-compact-account-settings.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
@@ -70,3 +70,7 @@ Replaced midnight-to-11-PM axis with reference noon-to-noon scale, 32-point trac
 ## Percentage Slider Pass
 
 Volume and threshold sliders now use 4-point colored rails and 20-point outer/10-point inner thumbs rather than native gray controls. Threshold labels include Alert and use blue/yellow/red severity colors. Volume rendered in purple during runtime inspection. That inspection also exposed a hidden-label layout expansion in the quiet-hours heading; the switch style now explicitly omits the visual label for header controls. Final canonical build passed. Final heading rendering, threshold rendering and pointer/keyboard interaction checks remain pending.
+
+## Provider Chooser Pass
+
+Inspected images 20–23 and 25. Added reference 320-point three-provider chooser with lavender title, 44-point buttons, divider and right-aligned Cancel footer. Selecting a provider opens a named form with Personal prefilled; reconnect skips chooser. GitHub advanced-mode selector now uses a full-width action button. Canonical build passed. Runtime chooser screenshot inspected and OpenAI selection verified; no authentication initiated. Larger form panels, description/field order and provider action layout remain open parity work.

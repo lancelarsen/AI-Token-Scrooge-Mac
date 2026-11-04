@@ -4,6 +4,7 @@ struct ConnectionView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var provider: Provider = .copilot
+    @State private var providerChosen = false
     @State private var nickname = ""
     @State private var token = ""
     @State private var organization = ""
@@ -14,14 +15,45 @@ struct ConnectionView: View {
     @State private var connectionTask: Task<Void, Never>?
     @State private var error: String?
     var body: some View {
+        Group {
+            if providerChosen || store.reconnectAccountID != nil { connectionForm }
+            else { providerChooser }
+        }
+    }
+    private var providerChooser: some View {
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Connect account").font(.system(size: 21, weight: .semibold)).foregroundStyle(Theme.accent)
+                ForEach([Provider.codex, .copilot, .claude]) { choice in
+                    Button {
+                        provider = choice
+                        nickname = "Personal"
+                        providerChosen = true
+                    } label: {
+                        DialogActionLabel(title: choice == .codex ? "OpenAI Codex" : choice.rawValue, symbol: "person")
+                            .frame(maxWidth: .infinity)
+                    }.buttonStyle(ScroogeButtonStyle())
+                }
+            }.padding(24)
+            Divider().overlay(Theme.border)
+            HStack {
+                Spacer()
+                Button { dismiss() } label: { DialogActionLabel(title: "Cancel", symbol: "xmark") }
+                    .buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction)
+            }.padding(24)
+        }.frame(width: 320).background(Theme.card).preferredColorScheme(.dark)
+    }
+    private var connectionForm: some View {
         VStack(alignment: .leading, spacing: 20) {
-            HStack { Text("Connect Account").font(.system(size: 26, weight: .semibold)); Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Cancel", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction).disabled(connecting) }
-            Picker("Provider", selection: $provider) { ForEach(Provider.allCases) { Text($0.rawValue).tag($0) } }.disabled(connecting)
+            HStack { Text("Connect \(provider == .codex ? "OpenAI Codex" : provider.rawValue)").font(.system(size: 26, weight: .semibold)); Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Cancel", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction).disabled(connecting) }
             TextField("Nickname", text: $nickname)
             if provider == .codex {
                 CodexConnectView(nickname: nickname, original: store.state.accounts.first { $0.id == store.reconnectAccountID })
             } else if provider == .copilot {
-                Toggle("Advanced Token Connection", isOn: $advanced).disabled(connecting)
+                Button { advanced.toggle() } label: {
+                    DialogActionLabel(title: advanced ? "Use browser sign-in instead" : "Use an access token instead", symbol: advanced ? "arrow.up.right.square" : "key")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }.buttonStyle(ScroogeButtonStyle()).disabled(connecting)
                 if !advanced { GitHubConnectView(nickname: nickname) } else {
                 Text("Advanced token connection").font(.headline)
                 Text("Use a GitHub token with Plan read access. It is saved in your Mac’s Keychain.").foregroundStyle(Theme.secondary)
