@@ -20,13 +20,12 @@ struct HorizonView: View {
         ScroogeCard(inset: 0) {
             VStack(spacing: 16) {
                 ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 24) { heading; legend; historyToggle; Text(store.state.settings.historyEnabled ? "Scroll Left for History" : "Select Services to Filter Timeline").font(.system(size: 13)).foregroundStyle(Theme.secondary); Spacer(); settingsButton }
+                    HStack(spacing: 24) { heading; legend; historyToggle; historyHint; Spacer(); settingsButton }
                     VStack(alignment: .leading, spacing: 16) {
                         HStack(spacing: 22) { heading; legend; Spacer(minLength: 0); settingsButton }
                         HStack(spacing: 18) {
                             historyToggle
-                            Text(store.state.settings.historyEnabled ? "Scroll Left for History" : "Select Services to Filter Timeline")
-                                .font(.system(size: 13)).foregroundStyle(Theme.secondary)
+                            historyHint
                             Spacer(minLength: 0)
                         }
                     }
@@ -202,6 +201,11 @@ struct HorizonView: View {
             HStack(spacing: 7) { Circle().fill(Theme.actionAccent).frame(width: 10, height: 10); Text("Quota Refresh (\(events.filter { !$0.expiration }.count))") }
             HStack(spacing: 7) { Circle().fill(Theme.amber).frame(width: 10, height: 10); Text("Reset Expires (\(events.filter(\.expiration).count))") }
         }.font(.system(size: 13)).foregroundStyle(Theme.dialogText)
+    }
+    private var historyHint: some View {
+        Text(store.state.settings.historyEnabled ? "Scroll Left for History" : "Select Services to Filter Timeline")
+            .font(.system(size: 13)).foregroundStyle(Theme.dialogText)
+            .padding(.vertical, 8)
     }
     private var historyToggle: some View {
         HStack(spacing: 7) {

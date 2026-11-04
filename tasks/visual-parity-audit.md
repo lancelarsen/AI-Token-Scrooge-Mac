@@ -503,3 +503,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Compared TimelineDayHeading and chart drawing source. Corrected Today heading to #D1BEFF, ordinary headings/day circles to #B5A0F4, dates to #BEC1D2, and day/date spacing to 7. Rail now uses opaque #8170B7 rather than translucent general accent. Empty Today heading/date/rail share those colors.
 - Historical marker text/symbol size corrected from 11 to 14 points, foreground #232429, refresh circle #B99AF8. SF Symbols still differ from Segoe Fluent glyphs; exact symbol outlines remain open.
 - Canonical build passed (`artifacts/timeline-typography-palette-build.log`), diff checks passed, and compact native screenshot confirmed the updated day/date layout and differentiated Today color. Historical marker glyphs were not visible in that capture; full font metrics and vertical parity remain open.
+
+### Timeline hint vertical spacing
+
+- Shared history hint now uses Windows 8-point vertical margins and #BEC1D2 foreground in both header arrangements. The missing margin previously pulled the compact divider/chart upward.
+- Canonical build passed (`artifacts/timeline-header-spacing-build.log`), diff checks passed. Compact native screenshot puts the rail at approximately y414, matching reference 26, and divider near y342 versus reference y340. Native chrome and font metrics still differ; these are approximate screenshot coordinates, not a pixel-diff certification.
