@@ -177,3 +177,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Found account settings initially rendered at 1000 points despite the compact parent. Replaced post-presentation key-window guessing with the dashboard's measured size passed into AccountSettingsView before presentation.
 - Canonical build passed (`artifacts/compact-account-sheet-build.log`). Reopened account settings at compact width: screenshot width now 1484 Retina pixels (742 points), correctly within the 790-point host with 24-point side margins, instead of 2000 pixels.
 - Popup content typography and exact Windows compact dimensions still need comparison; other sheet types still use the old sizing approach.
+
+### Shared compact sheet sizing
+- Settings, connection forms and Alert History now derive initial dimensions from dashboard geometry through a shared environment value, rather than measuring keyWindow after presentation. Standalone Settings retains its 1000x800 default.
+- Canonical build passed (`artifacts/compact-sheets-build.log`). At a 790-point dashboard width, Settings and the OpenAI connection form both rendered at 742 points (1484 Retina pixels); provider chooser retained its separate compact width. No authentication was started.
+- Alert History uses the same sizing calculation but runtime presentation of that screen remains unverified in this pass. Content parity, native Settings scene behavior and exact typography remain open.

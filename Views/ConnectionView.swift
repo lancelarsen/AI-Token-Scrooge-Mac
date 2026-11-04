@@ -5,7 +5,12 @@ struct ConnectionView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var provider: Provider = .copilot
     @State private var providerChosen = false
-    @State private var panelSize = CGSize(width: 1000, height: 800)
+    @Environment(\.dashboardHostSize) private var hostSize
+    private var panelSize: CGSize {
+        guard let hostSize else { return CGSize(width: 1000, height: 800) }
+        return CGSize(width: min(1000, max(640, hostSize.width - 48)),
+                      height: min(800, max(400, hostSize.height - 64)))
+    }
     @State private var nickname = ""
     @State private var token = ""
     @State private var organization = ""
@@ -19,14 +24,9 @@ struct ConnectionView: View {
         Group {
             if providerChosen || store.reconnectAccountID != nil { connectionForm }
             else { providerChooser }
-        }.onAppear {
-            if let window = NSApp.keyWindow {
-                let host = window.sheetParent ?? window
-                let size = host.contentView?.bounds.size ?? host.frame.size
-                panelSize = CGSize(width: min(1000, max(640, size.width - 48)), height: min(800, max(400, size.height - 64)))
-            }
         }
     }
+
     private var providerChooser: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 10) {

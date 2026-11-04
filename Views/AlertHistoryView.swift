@@ -4,7 +4,12 @@ struct AlertHistoryView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var selectedAlert: AlertEvent?
-    @State private var panelSize = CGSize(width: 1000, height: 800)
+    @Environment(\.dashboardHostSize) private var hostSize
+    private var panelSize: CGSize {
+        guard let hostSize else { return CGSize(width: 1000, height: 800) }
+        return CGSize(width: min(1000, max(640, hostSize.width - 48)),
+                      height: min(800, max(400, hostSize.height - 64)))
+    }
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -40,12 +45,6 @@ struct AlertHistoryView: View {
         }
         .frame(width: panelSize.width, height: panelSize.height)
         .background(Color(hex: "#141519")).preferredColorScheme(.dark)
-        .onAppear {
-            if let parent = NSApp.keyWindow?.sheetParent {
-                let size = parent.contentView?.bounds.size ?? parent.frame.size
-                panelSize = CGSize(width: min(1000, max(640, size.width - 48)), height: min(800, max(400, size.height - 64)))
-            }
-        }
         .sheet(item: $selectedAlert) { alert in
             DetailsDialog(width: 342, close: { selectedAlert = nil }) {
                 AccountUsageDetailsView(accountID: alert.accountID, windowID: alert.windowID)

@@ -39,12 +39,13 @@ struct DashboardView: View {
             }.background(Theme.background).foregroundStyle(Color(hex: "#F2F1F5"))
         }.frame(minWidth: 760, minHeight: 600)
         .onGeometryChange(for: CGSize.self) { $0.size } action: { hostSize = $0 }
+        .environment(\.dashboardHostSize, hostSize)
         .preferredColorScheme(.dark).tint(Theme.accent)
         .overlay(alignment: .bottomTrailing) { if let alert = store.activeAlert { AlertBannerView(alert: alert) } }
         .sheet(item: $store.selectedAccount) { account in AccountSettingsView(accountID: account.id, hostSize: hostSize).environment(store) }
-        .sheet(isPresented: $showSettings) { SettingsView().environment(store) }
-        .sheet(isPresented: $store.showConnection) { ConnectionView().environment(store) }
-        .sheet(isPresented: $store.showAlertHistory) { AlertHistoryView().environment(store) }
+        .sheet(isPresented: $showSettings) { SettingsView().environment(store).environment(\.dashboardHostSize, hostSize) }
+        .sheet(isPresented: $store.showConnection) { ConnectionView().environment(store).environment(\.dashboardHostSize, hostSize) }
+        .sheet(isPresented: $store.showAlertHistory) { AlertHistoryView().environment(store).environment(\.dashboardHostSize, hostSize) }
         .sheet(isPresented: Binding(get: { store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })) {
             DetailsDialog(close: { store.errorMessage = nil }) {
                 VStack(alignment: .leading, spacing: 16) {
