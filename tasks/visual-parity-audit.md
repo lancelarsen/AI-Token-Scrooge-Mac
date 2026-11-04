@@ -299,3 +299,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Reminder Delete uses shared button styling with12-point horizontal padding around20-point icon, preserving44-point width/height while providing the standard selected/hover/pressed surface.
 - Canonical build passed (`artifacts/reminder-action-icons-build.log`). Inspected rendered reminder rows and Add Reminder: icons are centered, fields retain their widths and44-point buttons remain aligned. No reminders deleted or settings changed during verification.
 - Hover coloring follows the shared style but was not pointer-tested here. Exact glyph corner rasterization and account-dialog instances remain unverified; full parity is still open.
+
+### Reminder default and visual ordering (images05/06/07)
+- Matched captured ReminderEditor.cs: Add Reminder creates Info/1/Days, unit choices list Days before Hours, and displayed rows sort by descending lead time with stable original order for equal durations. Display sorting also responds to amount/unit edits without changing reminder identities.
+- Increased gap before Add Reminder from6 to8 points while retaining6-point row gaps.
+- Canonical build passed (`artifacts/reminder-order-build.log`). In isolated demo settings added a reminder: Info/1/Days appeared immediately after the existing1-day row and before12-hours. Deleted that created row and visually verified original list restoration. Live reminder settings untouched.
+- Editing existing amounts/units and invalid-entry feedback still require parity verification; default insertion/deletion evidence does not cover all editor states.

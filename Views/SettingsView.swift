@@ -210,9 +210,15 @@ struct ThresholdSetting: View {
 }
 struct ReminderEditor: View {
     @Binding var reminders: [TimedReminder]
+    private var orderedReminders: [TimedReminder] {
+        reminders.enumerated().sorted { left, right in
+            left.element.hours == right.element.hours
+                ? left.offset < right.offset : left.element.hours > right.element.hours
+        }.map(\.element)
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            ForEach(reminders) { reminder in
+            ForEach(orderedReminders) { reminder in
                 HStack(spacing: 8) {
                     Menu {
                         ForEach(ReminderSeverity.allCases, id: \.self) { level in
@@ -227,7 +233,7 @@ struct ReminderEditor: View {
                         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
                         .accessibilityLabel("Reminder Amount")
                     Menu {
-                        ForEach(["Hours", "Days"], id: \.self) { unit in
+                        ForEach(["Days", "Hours"], id: \.self) { unit in
                             Button(unit) { update(reminder.id) { $0.unit = unit } }
                         }
                     } label: { menuLabel(reminder.unit) }
@@ -238,7 +244,7 @@ struct ReminderEditor: View {
                         .help("Remove Reminder").accessibilityLabel("Remove Reminder")
                 }
             }
-            Button { reminders.append(TimedReminder(amount: 1, unit: "Hours", severity: .info)) } label: { ActionLabel(title: "Add Reminder", symbol: "plus") }.buttonStyle(ScroogeButtonStyle())
+            Button { reminders.append(TimedReminder(amount: 1, unit: "Days", severity: .info)) } label: { ActionLabel(title: "Add Reminder", symbol: "plus") }.buttonStyle(ScroogeButtonStyle()).padding(.top, 2)
         }
     }
     private func menuLabel(_ title: String, color: Color = .white) -> some View {
