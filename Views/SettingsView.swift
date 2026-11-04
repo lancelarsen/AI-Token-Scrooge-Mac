@@ -50,7 +50,7 @@ struct SettingsView: View {
                     }
                     SettingsCard(title: "Sounds", symbol: "speaker.wave.2") {
                         settingsSwitch("Notification Sounds", isOn: binding(\.sound))
-                        HStack { Text("Volume: \(Int(store.state.settings.soundVolume))%").frame(width: 112, alignment: .leading); Slider(value: binding(\.soundVolume), in: 0...100, step: 1).accessibilityLabel("Sound Volume") }
+                        HStack { Text("Volume: \(Int(store.state.settings.soundVolume))%").frame(width: 112, alignment: .leading); ScroogePercentSlider(value: binding(\.soundVolume), color: Color(hex: "#A990ED")).accessibilityLabel("Sound Volume") }
                         Picker("Sound Theme", selection: binding(\.soundTheme)) { Text("Duck Sounds").tag("Ducks"); Text("Classic Chimes").tag("Classic") }.pickerStyle(.radioGroup).labelsHidden()
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: 8) {
                             ForEach(["Alarm", "Snooze", "Dismiss", "Show Info"], id: \.self) { cue in
@@ -129,7 +129,7 @@ struct SettingsCard<Content: View>: View {
                     if let help { Image(systemName: "info.circle").foregroundStyle(Theme.secondary).help(help) }
                     if let headerToggle {
                         Spacer()
-                        Toggle(title, isOn: headerToggle).labelsHidden().toggleStyle(ScroogeSwitchStyle()).frame(width: 40)
+                        Toggle(title, isOn: headerToggle).toggleStyle(ScroogeSwitchStyle(showsLabel: false)).frame(width: 40, height: 20)
                     }
                 }
                 content
@@ -142,10 +142,17 @@ struct ThresholdSetting: View {
     let thresholds: AlertThresholds
     let change: (AlertThresholds) -> Void
     private var value: Decimal { switch level { case .info: thresholds.info; case .warning: thresholds.warning; case .critical: thresholds.critical } }
+    private var color: Color {
+        switch level {
+        case .info: Color(hex: "#58A6FF")
+        case .warning: Color(hex: "#F2C94C")
+        case .critical: Color(hex: "#F05B69")
+        }
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("\(level.rawValue) @ \(Format.percent(value)) Left")
-            Slider(value: Binding(get: { NSDecimalNumber(decimal: value).doubleValue }, set: { number in var next = thresholds; next.move(level, to: Decimal(number)); change(next) }), in: 0...100, step: 1)
+            Text("\(level.rawValue) Alert @ \(Format.percent(value)) Left").foregroundStyle(color)
+            ScroogePercentSlider(value: Binding(get: { NSDecimalNumber(decimal: value).doubleValue }, set: { number in var next = thresholds; next.move(level, to: Decimal(number)); change(next) }), color: color)
                 .accessibilityLabel("\(level.rawValue) Alert Threshold")
         }
     }

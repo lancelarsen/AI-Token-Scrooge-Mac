@@ -149,10 +149,13 @@ struct ActionIcon: View {
 
 /// Matches the reference switch geometry while retaining Toggle accessibility.
 struct ScroogeSwitchStyle: ToggleStyle {
+    var showsLabel = true
     func makeBody(configuration: Configuration) -> some View {
         HStack(spacing: 12) {
-            configuration.label
-            Spacer(minLength: 12)
+            if showsLabel {
+                configuration.label
+                Spacer(minLength: 12)
+            }
             Button { configuration.isOn.toggle() } label: {
                 Capsule().fill(configuration.isOn ? Color(hex: "#8973DB") : Theme.control)
                     .overlay(Capsule().stroke(configuration.isOn ? Color.clear : Theme.secondary, lineWidth: 1))
@@ -167,5 +170,54 @@ struct ScroogeSwitchStyle: ToggleStyle {
         .accessibilityRepresentation {
             Toggle(isOn: configuration.$isOn) { configuration.label }.toggleStyle(.switch)
         }
+    }
+}
+
+struct ScroogePercentSlider: View {
+    @Binding var value: Double
+    var color: Color = Theme.accent
+    @FocusState private var focused: Bool
+    var body: some View {
+        GeometryReader { geometry in
+            let span = max(0, geometry.size.width - 20)
+            let x = 10 + span * min(100, max(0, value)) / 100
+            Canvas { context, size in
+                let y = size.height / 2
+                func rail(_ width: CGFloat, _ color: Color) {
+                    context.fill(Path(roundedRect: CGRect(x: 10, y: y - 2, width: width, height: 4), cornerRadius: 2), with: .color(color))
+                }
+                rail(span, Color(hex: "#41434F"))
+                rail(max(0, x - 10), color)
+                context.fill(Path(ellipseIn: CGRect(x: x - 10, y: y - 10, width: 20, height: 20)), with: .color(Color(hex: "#41434F")))
+                context.fill(Path(ellipseIn: CGRect(x: x - 5, y: y - 5, width: 10, height: 10)), with: .color(color))
+                if focused {
+                    context.stroke(Path(ellipseIn: CGRect(x: x - 13, y: y - 13, width: 26, height: 26)), with: .color(Theme.accent), lineWidth: 1)
+                }
+            }
+            .contentShape(Rectangle())
+            .gesture(DragGesture(minimumDistance: 0).onChanged { event in
+                focused = true
+                guard span > 0 else { return }
+                setValue((event.location.x - 10) / span * 100)
+            })
+        }.frame(height: 32)
+        .focusable().focused($focused).focusEffectDisabled()
+        .onKeyPress(keys: [.leftArrow, .downArrow, .rightArrow, .upArrow]) { press in
+            setValue(value + (press.key == .leftArrow || press.key == .downArrow ? -1 : 1)); return .handled
+        }
+        .onKeyPress(.home) { setValue(0); return .handled }
+        .onKeyPress(.end) { setValue(100); return .handled }
+        .accessibilityValue("\(Int(value))%")
+        .accessibilityAdjustableAction { direction in
+            switch direction {
+            case .increment: setValue(value + 1)
+            case .decrement: setValue(value - 1)
+            @unknown default: break
+            }
+        }
+    }
+    private func setValue(_ proposed: Double) {
+        let next = min(100, max(0, proposed.rounded()))
+        if value != next { value = next }
     }
 }

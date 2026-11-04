@@ -66,3 +66,7 @@ Inspected images 03–07 individually. Applied reference switch styling to globa
 ## Quiet Hours Reference Geometry
 
 Replaced midnight-to-11-PM axis with reference noon-to-noon scale, 32-point track insets, 6-point range, 24-point handles, five 16-point labels, 94/116-point track heights and staggered near-overlap time labels. Added duration/overnight summary and moved the enable switch into the section heading. Canonical build passed. Inspected the disabled 10 PM–8 AM range on Mac: placement and summary render correctly. Enabled dragging, keyboard behavior and overlap states still require runtime verification; final heading-switch placement is build-verified only.
+
+## Percentage Slider Pass
+
+Volume and threshold sliders now use 4-point colored rails and 20-point outer/10-point inner thumbs rather than native gray controls. Threshold labels include Alert and use blue/yellow/red severity colors. Volume rendered in purple during runtime inspection. That inspection also exposed a hidden-label layout expansion in the quiet-hours heading; the switch style now explicitly omits the visual label for header controls. Final canonical build passed. Final heading rendering, threshold rendering and pointer/keyboard interaction checks remain pending.
