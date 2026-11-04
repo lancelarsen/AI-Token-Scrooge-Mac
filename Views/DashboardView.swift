@@ -121,10 +121,10 @@ struct DashboardView: View {
     }
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: 15) {
-            Text("Your AI capacity, in one quiet place.").font(.system(size: 24, weight: .semibold))
-            Text("Connect OpenAI Codex, GitHub Copilot, or Claude to see usage, upcoming resets and earned-reset expirations.").font(.system(size: 14)).foregroundStyle(Theme.secondary)
+            Text("Your AI capacity, in one quiet place.").font(.system(size: 24, weight: .semibold)).frame(minHeight: 32, alignment: .leading)
+            Text("Connect OpenAI Codex or GitHub Copilot to see usage, upcoming resets and earned-reset expirations.").font(.system(size: 14)).foregroundStyle(Theme.secondary)
             Button { store.enterDemo() } label: { ActionLabel(title: "Explore with demo data", symbol: "arrow.up.right.square").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).accessibilityIdentifier("exploreDemoButton")
-        }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
+        }.padding(.horizontal, 24).padding(.vertical, 36).frame(maxWidth: .infinity, alignment: .leading)
     }
     private func icon(_ sort: AccountSort) -> String {
         switch sort { case .custom: "circle.grid.3x3.fill"; case .mostRemaining: "battery.100percent"; case .leastRemaining: "battery.25percent"; case .nextReset: "clock" }

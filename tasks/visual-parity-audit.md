@@ -338,3 +338,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Runtime Claude inspection exposed nickname/actions approximately9 points above the reference relative to panel origin. Added35-point title minimum height and3-point description line spacing with1-point vertical padding to account for the shorter native font line boxes.
 - Canonical build passed (`artifacts/connection-line-height-build.log`). Reopened Claude without initiating authentication: nickname top approximately140pt and sign-in227pt from panel top, versus reference139/225. Full description, nickname, Sign In and Cancel remain visible.
 - Native wrapping still breaks before read rather than your; title glyph shape and panel height differ. The shared adjustment needs expanded-provider-state verification and is not exact typography parity.
+
+### First-launch empty-state spacing (image19)
+- Matched source VerticalStackLayout's24-point horizontal/36-point vertical padding; Mac previously used24 on all edges, placing empty-state content12 points too high.
+- Matched the reference explanatory copy and32-point heading line box. Claude remains available in the provider chooser.
+- Canonical build passed (`artifacts/empty-dashboard-spacing-build.log`). Runtime compact dashboard shows the heading, explanatory copy and demo action with corrected top spacing; demo action reaches the viewport bottom and remains in the scroll view. Full-size positioning, native font weight/width and compact timeline geometry still need comparison.
