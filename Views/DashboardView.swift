@@ -2,7 +2,7 @@ import SwiftUI
 
 struct DashboardView: View {
     @Environment(AppStore.self) private var store
-    @Environment(\.openSettings) private var openSettings
+    @State private var showSettings = false
     @Environment(\.openWindow) private var openWindow
     var body: some View {
         @Bindable var store = store
@@ -39,6 +39,7 @@ struct DashboardView: View {
         .preferredColorScheme(.dark).tint(Theme.accent)
         .overlay(alignment: .bottomTrailing) { if let alert = store.activeAlert { AlertBannerView(alert: alert) } }
         .sheet(item: $store.selectedAccount) { account in AccountSettingsView(accountID: account.id).environment(store) }
+        .sheet(isPresented: $showSettings) { SettingsView().environment(store) }
         .sheet(isPresented: $store.showConnection) { ConnectionView().environment(store) }
         .sheet(isPresented: $store.showAlertHistory) { AlertHistoryView().environment(store) }
         .sheet(isPresented: Binding(get: { store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })) {
@@ -72,7 +73,7 @@ struct DashboardView: View {
                     .font(.system(size: 12)).foregroundStyle(Theme.secondary).frame(maxWidth: .infinity, alignment: .trailing)
                 Button { Task { await store.refresh() } } label: { ActionLabel(title: "Refresh", symbol: "arrow.clockwise") }
                     .disabled(store.isRefreshing).accessibilityIdentifier("refreshButton")
-                Button { openSettings() } label: { ActionLabel(title: "Settings", symbol: "gearshape") }.accessibilityIdentifier("settingsButton")
+                Button { showSettings = true } label: { ActionLabel(title: "Settings", symbol: "gearshape") }.accessibilityIdentifier("settingsButton")
             }.frame(maxWidth: wide ? 500 : .infinity).buttonStyle(ScroogeButtonStyle())
         }.padding(.horizontal, 32).padding(.vertical, 18)
     }
@@ -103,8 +104,8 @@ struct DashboardView: View {
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: 15) {
             Text("Your AI capacity, in one quiet place.").font(.system(size: 24, weight: .semibold))
-            Text("Connect OpenAI Codex, GitHub Copilot, or Claude to see usage, upcoming resets and earned-reset expirations.").foregroundStyle(Theme.secondary)
-            Button { store.enterDemo() } label: { ActionLabel(title: "Explore with Demo Data", symbol: "chart.xyaxis.line") }.buttonStyle(ScroogeButtonStyle()).accessibilityIdentifier("exploreDemoButton")
+            Text("Connect OpenAI Codex, GitHub Copilot, or Claude to see usage, upcoming resets and earned-reset expirations.").font(.system(size: 14)).foregroundStyle(Theme.secondary)
+            Button { store.enterDemo() } label: { ActionLabel(title: "Explore with demo data", symbol: "arrow.up.right.square").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).accessibilityIdentifier("exploreDemoButton")
         }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
     }
     private func icon(_ sort: AccountSort) -> String {

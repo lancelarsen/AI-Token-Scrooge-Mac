@@ -24,19 +24,19 @@ Acceptance requires individual inspection and equivalent Mac captures; a success
 | 16-custom-color-added.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
 | 17-polling-snapped.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
 | 18-account-connection-actions.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
-| 19-first-launch.png | Pending | Awaiting detailed inspection and Mac comparison |
+| 19-first-launch.png | Inspected | Desktop/compact reference inspected. Empty-state button and dashboard Settings presentation corrected; equivalent compact captures pending. |
 | 20-provider-chooser.png | Inspected | Provider chooser and named form headings implemented; full form sizing, field order and rendered comparison pending. |
 | 21-connect-codex.png | Inspected | Provider chooser and named form headings implemented; full form sizing, field order and rendered comparison pending. |
 | 22-connect-github-browser.png | Inspected | Provider chooser and named form headings implemented; full form sizing, field order and rendered comparison pending. |
 | 23-connect-github-advanced.png | Inspected | Provider chooser and named form headings implemented; full form sizing, field order and rendered comparison pending. |
-| 24-compact-empty.png | Pending | Awaiting detailed inspection and Mac comparison |
+| 24-compact-empty.png | Inspected | Desktop/compact reference inspected. Empty-state button and dashboard Settings presentation corrected; equivalent compact captures pending. |
 | 25-connect-claude.png | Inspected | Provider chooser and named form headings implemented; full form sizing, field order and rendered comparison pending. |
 | 26-compact-dashboard.png | Inspected | Inspected: compact timeline keeps legends on first row and History/hint on second; corrected Mac wrapping, awaiting compact capture. |
-| 27-compact-account-rows.png | Pending | Awaiting detailed inspection and Mac comparison |
+| 27-compact-account-rows.png | Inspected | Desktop/compact reference inspected. Empty-state button and dashboard Settings presentation corrected; equivalent compact captures pending. |
 | 28-compact-account-settings.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
-| 29-compact-tooltip-placement.png | Pending | Awaiting detailed inspection and Mac comparison |
+| 29-compact-tooltip-placement.png | Inspected | Desktop/compact reference inspected. Empty-state button and dashboard Settings presentation corrected; equivalent compact captures pending. |
 | 30-polling-tooltip.png | Inspected | Account form alignment, switches, swatches, connection buttons and polling help corrected; rendered comparison still pending. |
-| 31-compact-global-settings.png | Pending | Awaiting detailed inspection and Mac comparison |
+| 31-compact-global-settings.png | Inspected | Desktop/compact reference inspected. Empty-state button and dashboard Settings presentation corrected; equivalent compact captures pending. |
 | 32-notification-banner.png | Pending | Awaiting detailed inspection and Mac comparison |
 | 33-quota-alerts-muted.png | Pending | Awaiting detailed inspection and Mac comparison |
 | 34-threshold-drag-feedback.png | Pending | Awaiting detailed inspection and Mac comparison |
@@ -86,3 +86,7 @@ Matched source Entry background #2A2B30, 32-point field heights, bottom focus li
 ## History and Detail Formatting Pass
 
 Inspected images 08, 13, 35, 36 and 37 individually. Usage detail heading now identifies provider/account/plan in lavender, followed by quota name and used/remaining values. Earned reset details combine account/count and fetched/status lines with bullet credit rows. Alert history now uses three-line action rows with leading category icons and hover styling; snooze/dismiss retained in context menu. Canonical build passed. History panel dimensions, detail dialog widths, date formatting and equivalent runtime screenshots remain open; tooltip image inspection alone does not establish Mac parity.
+
+## Dashboard Settings Presentation
+
+Dashboard Settings now presents a sheet over its dashboard with host-limited 1000 x 800 sizing. Runtime accessibility confirmed sheet presentation and scrollable content. Native Settings menu scene remains available separately. Empty-state description now uses 14-point text and demo action spans the content width with the reference external-link icon. Reviewed images 19, 24, 27, 29 and 31; compact resizing and screenshot comparison remain pending. Added explicit accessibility name to header switches after runtime inspection exposed the missing name.

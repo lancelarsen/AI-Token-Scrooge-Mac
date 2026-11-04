@@ -6,6 +6,7 @@ struct SettingsView: View {
     @Environment(\.scenePhase) private var scenePhase
     @ObservedObject private var updater = AppUpdater.shared
     @State private var pendingRetention: Int?
+    @State private var panelSize = CGSize(width: 1000, height: 800)
     var body: some View {
         VStack(spacing: 0) {
             HStack { ActionLabel(title: "Settings", symbol: "gearshape").font(.system(size: 26, weight: .semibold)); Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()) }.padding(.horizontal, 20).padding(.vertical, 12)
@@ -92,8 +93,14 @@ struct SettingsView: View {
                 }.frame(maxWidth: 960).padding(.horizontal, 36).padding(.top, 12).padding(.bottom, 20).frame(maxWidth: .infinity)
             }
             if let error = store.errorMessage { Text(error).foregroundStyle(Theme.amber).padding() }
-        }.font(.system(size: 14)).frame(minWidth: 700, idealWidth: 1000, minHeight: 600, idealHeight: 800).background(Theme.background).preferredColorScheme(.dark).tint(Theme.accent)
-        .onAppear { store.refreshLoginItemStatus() }
+        }.font(.system(size: 14)).frame(width: panelSize.width, height: panelSize.height).background(Theme.background).preferredColorScheme(.dark).tint(Theme.accent)
+        .onAppear {
+            store.refreshLoginItemStatus()
+            if let parent = NSApp.keyWindow?.sheetParent {
+                let size = parent.contentView?.bounds.size ?? parent.frame.size
+                panelSize = CGSize(width: min(1000, max(640, size.width - 48)), height: min(800, max(400, size.height - 64)))
+            }
+        }
         .onChange(of: scenePhase) { _, phase in if phase == .active { store.refreshLoginItemStatus() } }
         .sheet(isPresented: Binding(get: { pendingRetention != nil }, set: { if !$0 { pendingRetention = nil } })) {
             ConfirmationDetailsDialog(title: "Remove Older History?",
@@ -129,7 +136,7 @@ struct SettingsCard<Content: View>: View {
                     if let help { Image(systemName: "info.circle").foregroundStyle(Theme.secondary).help(help) }
                     if let headerToggle {
                         Spacer()
-                        Toggle(title, isOn: headerToggle).toggleStyle(ScroogeSwitchStyle(showsLabel: false)).frame(width: 40, height: 20)
+                        Toggle(title, isOn: headerToggle).toggleStyle(ScroogeSwitchStyle(showsLabel: false)).frame(width: 40, height: 20).accessibilityLabel(title)
                     }
                 }
                 content
