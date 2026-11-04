@@ -138,10 +138,10 @@ struct HorizonView: View {
                     var rail = Path()
                     rail.move(to: CGPoint(x: left, y: 56))
                     rail.addLine(to: CGPoint(x: size.width, y: 56))
-                    context.stroke(rail, with: .color(Theme.accent.opacity(0.7)), lineWidth: 2)
-                    context.draw(Text("Today").font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.accent), at: CGPoint(x: anchor, y: 7))
+                    context.stroke(rail, with: .color(Color(hex: "#8170B7")), lineWidth: 2)
+                    context.draw(Text("Today").font(.system(size: 14, weight: .semibold)).foregroundStyle(Color(hex: "#D1BEFF")), at: CGPoint(x: anchor, y: 7))
                     let date = Date.now.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone))
-                    context.draw(Text(date).font(.system(size: 12)).foregroundStyle(Theme.secondary), at: CGPoint(x: anchor, y: 31))
+                    context.draw(Text(date).font(.system(size: 12)).foregroundStyle(Theme.dialogText), at: CGPoint(x: anchor, y: 31))
                     context.fill(Path(ellipseIn: CGRect(x: anchor - 8, y: 48, width: 16, height: 16)), with: .color(Color(hex: "#D1BEFF")))
                     if store.state.settings.historyEnabled {
                         var boundary = Path()
@@ -261,7 +261,7 @@ struct HorizonView: View {
         ZStack(alignment: .topLeading) {
             Canvas { context, size in
                 var rail = Path(); rail.move(to: CGPoint(x: 0, y: 56)); rail.addLine(to: CGPoint(x: size.width, y: 56))
-                context.stroke(rail, with: .color(Theme.accent.opacity(0.7)), lineWidth: 2)
+                context.stroke(rail, with: .color(Color(hex: "#8170B7")), lineWidth: 2)
                 if store.state.settings.historyEnabled { drawHistory(context: &context, size: size) }
             }
             .contentShape(Rectangle())
@@ -295,8 +295,8 @@ struct HorizonView: View {
                         Group {
                             if marker.events.count > 1 { Text(String(marker.events.count)) }
                             else { Image(systemName: marker.expiration ? "hourglass" : "arrow.clockwise") }
-                        }.font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.card)
-                            .frame(width: 22, height: 22).background(marker.expiration ? Theme.amber : Theme.accent).clipShape(Circle())
+                        }.font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.control)
+                            .frame(width: 22, height: 22).background(marker.expiration ? Theme.amber : Color(hex: "#B99AF8")).clipShape(Circle())
                     }.buttonStyle(.plain)
                         .modifier(ImmediateReferenceTooltip(text: historicalTooltip(marker)))
                         .position(x: marker.x, y: Double(56 + marker.lane * 24))
@@ -304,17 +304,18 @@ struct HorizonView: View {
             }
             ForEach(days, id: \.self) { date in
                 let dayEvents = events.filter { calendar.isDate($0.date, inSameDayAs: date) }
-                VStack(spacing: 8) {
-                    Text(dayName(date)).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.accent)
-                    Text(date.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone))).font(.system(size: 12)).foregroundStyle(Theme.secondary)
+                VStack(spacing: 7) {
+                    Text(dayName(date)).font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(isToday(date) ? Color(hex: "#D1BEFF") : Theme.actionAccent)
+                    Text(date.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone))).font(.system(size: 12)).foregroundStyle(Theme.dialogText)
                 }.frame(width: viewport.pixelsPerDay, height: 40, alignment: .top)
                     .position(x: viewport.dayAnchor(date), y: 20)
                 Circle()
-                    .fill(isToday(date) ? Color(hex: "#D1BEFF") : dayEvents.isEmpty ? Color(hex: "#1C1E24") : Theme.accent)
+                    .fill(isToday(date) ? Color(hex: "#D1BEFF") : dayEvents.isEmpty ? Color(hex: "#1C1E24") : Theme.actionAccent)
                     .frame(width: isToday(date) ? 16 : 10, height: isToday(date) ? 16 : 10)
                     .overlay {
                         if !isToday(date), dayEvents.isEmpty {
-                            Circle().strokeBorder(Theme.accent, lineWidth: 2)
+                            Circle().strokeBorder(Theme.actionAccent, lineWidth: 2)
                         }
                     }
                     .position(x: viewport.dayAnchor(date), y: 56)

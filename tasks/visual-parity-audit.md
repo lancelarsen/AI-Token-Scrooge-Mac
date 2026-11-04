@@ -497,3 +497,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched Windows HorizonView padding (12 horizontal, 18 vertical), header/divider inset and 16-point section spacing. Matched timeline rail widths (95 compact, 112 wide, breakpoint 850), 10-point chart gap, selector inset (3/10/8), and rail divider vertical inset. Removed the previous 90-point selector plus two 16-point gaps.
 - Canonical build passed (`artifacts/timeline-rail-layout-build.log`), diff checks passed. Native compact screenshot compared with reference 26: chart origin moved from approximately x215 to x189, versus reference x190; selector rail moved correspondingly. Navigator remains within the card.
 - Vertical placement, font metrics, wide-layout rendering, and empty timeline geometry still need comparison. This is a verified horizontal alignment improvement, not full reference parity.
+
+### Timeline heading and marker palette
+
+- Compared TimelineDayHeading and chart drawing source. Corrected Today heading to #D1BEFF, ordinary headings/day circles to #B5A0F4, dates to #BEC1D2, and day/date spacing to 7. Rail now uses opaque #8170B7 rather than translucent general accent. Empty Today heading/date/rail share those colors.
+- Historical marker text/symbol size corrected from 11 to 14 points, foreground #232429, refresh circle #B99AF8. SF Symbols still differ from Segoe Fluent glyphs; exact symbol outlines remain open.
+- Canonical build passed (`artifacts/timeline-typography-palette-build.log`), diff checks passed, and compact native screenshot confirmed the updated day/date layout and differentiated Today color. Historical marker glyphs were not visible in that capture; full font metrics and vertical parity remain open.
