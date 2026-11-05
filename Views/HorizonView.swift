@@ -617,7 +617,8 @@ struct HorizonView: View {
     }
     private func historyX(_ date: Date) -> Double { presentation.positions[date] ?? viewport.position(at: date) }
     private var historicalEvents: [HorizonEvent] {
-        presentation.events.filter { !store.state.settings.hiddenHistoryAccounts.contains($0.account.id) }
+        guard store.state.settings.historyEnabled else { return [] }
+        return presentation.events.filter { !store.state.settings.hiddenHistoryAccounts.contains($0.account.id) }
     }
     private var historySeries: [UsageHistorySeries] {
         presentation.series.filter { !store.state.settings.hiddenHistoryAccounts.contains($0.account.id) }
