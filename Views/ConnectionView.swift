@@ -98,6 +98,7 @@ struct ConnectionView: View {
                 } label: {
                     HStack {
                         Text(unit == .credits ? "AI credits" : "Legacy premium requests")
+                            .font(ReferenceTypography.nativeTextFont())
                         Spacer()
                         Image(systemName: "chevron.down").accessibilityHidden(true).font(.reference(size: 10))
                     }.padding(.horizontal, 12).frame(height: 32)
@@ -154,6 +155,7 @@ private struct ConnectionFieldStyle: ViewModifier {
     @FocusState private var focused: Bool
     func body(content: Content) -> some View {
         content.textFieldStyle(.plain).focused($focused)
+            .font(ReferenceTypography.nativeTextFont())
             .padding(.horizontal, 12).frame(height: 32)
             .background(Color(hex: "#2A2B30"), in: RoundedRectangle(cornerRadius: 10))
             .overlay(alignment: .bottom) {
