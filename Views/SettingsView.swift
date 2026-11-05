@@ -7,6 +7,7 @@ struct SettingsView: View {
     @ObservedObject private var updater = AppUpdater.shared
     @State private var pendingRetention: Int?
     @State private var demoAutomaticChecks = true
+    @State private var soundPreviewStatus: String?
     @Environment(\.dashboardHostSize) private var hostSize
     private var panelSize: CGSize {
         guard let hostSize else { return CGSize(width: 1000, height: 800) }
@@ -79,7 +80,7 @@ struct SettingsView: View {
                     }
                     SettingsCard(title: "Sounds", symbol: "speaker.wave.2") {
                         settingsSwitch("Notification Sounds", isOn: binding(\.sound))
-                        HStack(spacing: 12) { Text("Volume: \(Int(store.state.settings.soundVolume.rounded()))%").foregroundStyle(Theme.dialogText).frame(width: 112, alignment: .leading); ScroogePercentSlider(value: binding(\.soundVolume), color: Color(hex: "#A990ED")).accessibilityLabel("Sound Volume") }
+                        HStack(spacing: 12) { Text("Volume: \(Int(store.state.settings.soundVolume.rounded(.toNearestOrEven)))%").foregroundStyle(Theme.dialogText).frame(width: 112, alignment: .leading); ScroogePercentSlider(value: binding(\.soundVolume), color: Color(hex: "#A990ED"), thumbColor: Theme.accent, roundsValue: false).accessibilityLabel("Sound Volume") }
                         VStack(alignment: .leading, spacing: 0) {
                             soundThemeOption("Duck Sounds", value: "Ducks")
                             soundThemeOption("Classic Chimes", value: "Classic")
@@ -88,12 +89,15 @@ struct SettingsView: View {
                             ForEach(["Alarm", "Snooze", "Dismiss", "Show Info"], id: \.self) { cue in
                                 Button {
                                     let sound = cue == "Alarm" ? "alert" : cue == "Show Info" ? "info" : cue.lowercased()
-                                    SoundPlayer.shared.play(settings: store.state.settings, cue: sound, preview: true)
+                                    soundPreviewStatus = SoundPlayer.shared.play(settings: store.state.settings, cue: sound, preview: true)
                                 } label: {
                                     DialogActionLabel(title: "Preview \(cue)", symbol: "play").frame(maxWidth: .infinity, alignment: .leading)
                                 }.buttonStyle(ScroogeButtonStyle())
                             }
                         }
+                        Text(soundPreviewStatus ?? "").font(.system(size: 12)).foregroundStyle(Theme.amber)
+                            .frame(minHeight: 16, alignment: .leading)
+                            .accessibilityHidden(soundPreviewStatus == nil)
                     }
                     SettingsCard(title: "Quiet Hours", symbol: "moon", help: "Quiet notification delivery during this time range while monitoring continues.", headerToggle: binding(\.quietHours), description: "A little peace, right on schedule.") {
                         QuietHoursControl(start: binding(\.quietStartHour), end: binding(\.quietEndHour))

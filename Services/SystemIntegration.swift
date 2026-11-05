@@ -5,16 +5,20 @@ import UserNotifications
 @MainActor final class SoundPlayer {
     static let shared = SoundPlayer()
     private var player: AVAudioPlayer?
-    func play(settings: RadarSettings, cue: String, preview: Bool = false) {
-        guard preview || settings.sound, ["alert", "info", "snooze", "dismiss", "refresh"].contains(cue) else { return }
+    private let bundle: Bundle
+    init(bundle: Bundle = .main) { self.bundle = bundle }
+    @discardableResult func play(settings: RadarSettings, cue: String, preview: Bool = false) -> String? {
+        guard preview || settings.sound, ["alert", "info", "snooze", "dismiss", "refresh"].contains(cue) else { return nil }
         let name = "\(settings.soundTheme == "Classic" ? "classic" : "duck")-\(cue == "refresh" ? "dismiss" : cue)"
-        guard let url = Bundle.main.url(forResource: name, withExtension: "wav") else { return }
+        guard let url = bundle.url(forResource: name, withExtension: "wav") else { return "Sound File Unavailable" }
         do {
             player?.stop()
             player = try AVAudioPlayer(contentsOf: url)
-            player?.volume = Float(min(100, max(0, settings.soundVolume))) / 100
-            player?.play()
-        } catch { NSSound.beep() }
+            let volume = settings.soundVolume.isFinite ? min(100, max(0, settings.soundVolume)) : 65
+            player?.volume = Float(volume) / 100
+            guard player?.play() == true else { return "Sound Playback Unavailable" }
+            return nil
+        } catch { return "Sound Playback Unavailable" }
     }
 }
 

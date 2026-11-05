@@ -394,6 +394,8 @@ struct ScroogeSwitchStyle: ToggleStyle {
 struct ScroogePercentSlider: View {
     @Binding var value: Double
     var color: Color = Theme.accent
+    var thumbColor: Color? = nil
+    var roundsValue = true
     @FocusState private var focused: Bool
     var body: some View {
         GeometryReader { geometry in
@@ -407,7 +409,7 @@ struct ScroogePercentSlider: View {
                 rail(span, Color(hex: "#41434F"))
                 rail(max(0, x - 10), color)
                 context.fill(Path(ellipseIn: CGRect(x: x - 10, y: y - 10, width: 20, height: 20)), with: .color(Color(hex: "#41434F")))
-                context.fill(Path(ellipseIn: CGRect(x: x - 5, y: y - 5, width: 10, height: 10)), with: .color(color))
+                context.fill(Path(ellipseIn: CGRect(x: x - 5, y: y - 5, width: 10, height: 10)), with: .color(thumbColor ?? color))
                 if focused {
                     context.stroke(Path(ellipseIn: CGRect(x: x - 13, y: y - 13, width: 26, height: 26)), with: .color(Theme.accent), lineWidth: 1)
                 }
@@ -425,7 +427,7 @@ struct ScroogePercentSlider: View {
         }
         .onKeyPress(.home) { setValue(0); return .handled }
         .onKeyPress(.end) { setValue(100); return .handled }
-        .accessibilityValue("\(Int(value))%")
+        .accessibilityValue("\(Int(value.rounded(.toNearestOrEven)))%")
         .accessibilityAdjustableAction { direction in
             switch direction {
             case .increment: setValue(value + 1)
@@ -435,7 +437,7 @@ struct ScroogePercentSlider: View {
         }
     }
     private func setValue(_ proposed: Double) {
-        let next = min(100, max(0, proposed.rounded()))
+        let next = min(100, max(0, roundsValue ? proposed.rounded(.toNearestOrEven) : proposed))
         if value != next { value = next }
     }
 }
