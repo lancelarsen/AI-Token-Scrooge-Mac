@@ -54,8 +54,8 @@ struct DashboardWindowSizeReader: NSViewRepresentable {
 
 enum Theme {
     static let dialogTitleFont = Font.reference(size: 22, weight: .semibold)
-    // Match the Windows dialog body size now that Segoe UI is available.
-    static let dialogBodyFont = Font.reference(size: 14)
+    // Native WinUI dialog TextBlocks use the Segoe UI Variable Text face.
+    static let dialogBodyFont = ReferenceTypography.nativeTextFont()
     static let primaryText = Color(hex: "#F2F1F5")
     static let canvas = Color(hex: "#141519")
     static let background = LinearGradient(colors: [Color(hex: "#1B1C20"), Color(hex: "#141519")], startPoint: .topLeading, endPoint: .bottomTrailing)

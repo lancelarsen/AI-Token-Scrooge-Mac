@@ -13,6 +13,23 @@ enum ReferenceTypography {
         return loaded
     }()
 
+    private static let nativeTextRegistered: Bool = {
+        var loaded = true
+        for name in ["SegoeUIVariable-Text", "SegoeUIVariable-Text-Semibold"] {
+            guard let url = Bundle.main.url(forResource: name, withExtension: "ttf") else { loaded = false; continue }
+            loaded = CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil) && loaded
+        }
+        return loaded
+    }()
+
+    /// WinUI TextBlock's default Text face differs metrically from classic Segoe UI.
+    static func nativeTextFont(size: CGFloat = 14, semibold: Bool = false) -> Font {
+        _ = nativeTextRegistered
+        let name = semibold ? "SegoeUIVariableStatic-2580000-a8000" : "SegoeUIVariableStatic-1900000-a8000"
+        guard NSFont(name: name, size: size) != nil else { return font(size: size, weight: semibold ? .semibold : .regular) }
+        return .custom(name, fixedSize: size)
+    }
+
     private static let iconsRegistered: Bool = {
         guard let url = Bundle.main.url(forResource: "SegoeFluentIcons", withExtension: "ttf") else { return false }
         return CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)

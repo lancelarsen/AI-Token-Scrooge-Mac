@@ -66,6 +66,7 @@
 		A20D12738A47984775832AB6 /* GitHubClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6502C89BBD005778525E926 /* GitHubClient.swift */; };
 		A219946338C836080124166E /* ConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D7FB1672F7CCAA26AEA17D /* ConnectionView.swift */; };
 		A4A2E5B249E9328772B2494D /* threshold_warning.svg in Resources */ = {isa = PBXBuildFile; fileRef = BEC72F64FE949C33C5EF664F /* threshold_warning.svg */; };
+		A79B5850A75FD68799374F55 /* SegoeUIVariable-Text.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E88C65C2848C9E889518050D /* SegoeUIVariable-Text.ttf */; };
 		AAE0FE8097F16A41805AE096 /* DemoReferenceWindowFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 464C6C599D303DAEF44E73B1 /* DemoReferenceWindowFrame.swift */; };
 		AC942FC2692415138E12E6DE /* CodexConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6F0DF0DEFE748A49FA167B /* CodexConnectView.swift */; };
 		B02AE482156892BA8529548A /* AccountDragLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFD532470D17D4EE513C651D /* AccountDragLayoutTests.swift */; };
@@ -80,10 +81,12 @@
 		C842ACBE9E68B3340C3767D6 /* SegoeFluentIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 18DF3506F10ED039C2E35700 /* SegoeFluentIcons.ttf */; };
 		CA209A1227DC66EEAE612DFD /* SegoeUI.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 897EBC93EE1D68A23502ED59 /* SegoeUI.ttf */; };
 		CB6C6D05ADC1F4FFFF65658E /* LocalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC048AAA6E4767EF18709FD0 /* LocalStore.swift */; };
+		CB8C70F7AFCBA83C135105F9 /* SegoeUIVariable-EULA.txt in Resources */ = {isa = PBXBuildFile; fileRef = 24581CFA900CBB96F831DCDC /* SegoeUIVariable-EULA.txt */; };
 		D2180C29BA6C8EC1BB99B32A /* classic-info.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1CE84E17CBE82C4DB3B77B2D /* classic-info.wav */; };
 		D62E139AF9F68B8411B2E9DE /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36386F305B5106D36AA5C9A /* Theme.swift */; };
 		D6B091FD1FEA4C4B3E02F5C3 /* duck-info.wav in Resources */ = {isa = PBXBuildFile; fileRef = 5B5FE9D875BCE334EAC07010 /* duck-info.wav */; };
 		D6C61E39205A96F285B56E50 /* BoundedProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59FA3788DAC32DB6AA240532 /* BoundedProcess.swift */; };
+		D756B5878DC2FC86C4C91539 /* SegoeUIVariable-Text-Semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9DF88B6C3666C808D2A8FD6E /* SegoeUIVariable-Text-Semibold.ttf */; };
 		D7753510825E316136C3F4BD /* SpectrumSelectionContrast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FE31F36657B650759A144CB /* SpectrumSelectionContrast.swift */; };
 		D9683D715A441351B9636FAF /* ColorPickerChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12A2883DD3F8B576BA9D3D77 /* ColorPickerChannel.swift */; };
 		DBE7F5FA7D194FA5F4C1EFC1 /* HorizonPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762A319808F8C17BAC31D1B3 /* HorizonPresentation.swift */; };
@@ -138,6 +141,7 @@
 		1CE84E17CBE82C4DB3B77B2D /* classic-info.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "classic-info.wav"; sourceTree = "<group>"; };
 		1EFFB3B427B1675530260BA6 /* Format.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Format.swift; sourceTree = "<group>"; };
 		2016481A22DAA1073A10FF0B /* LUCIDE-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "LUCIDE-LICENSE.txt"; sourceTree = "<group>"; };
+		24581CFA900CBB96F831DCDC /* SegoeUIVariable-EULA.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "SegoeUIVariable-EULA.txt"; sourceTree = "<group>"; };
 		2577AF9D09659648D0FC781C /* github-app.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "github-app.json"; sourceTree = "<group>"; };
 		2CA0AA2D41ED3D3978E313E3 /* SystemIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemIntegration.swift; sourceTree = "<group>"; };
 		2E5184BDAC856DAAC20AFC19 /* HistoryEventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryEventTests.swift; sourceTree = "<group>"; };
@@ -190,6 +194,7 @@
 		9114E87C76735510A121AC43 /* ReferenceTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceTypography.swift; sourceTree = "<group>"; };
 		97D9C485C181A33B6B701DD9 /* ScroogeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScroogeApp.swift; sourceTree = "<group>"; };
 		9899342C79AC822060AA3775 /* MonitoringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringTests.swift; sourceTree = "<group>"; };
+		9DF88B6C3666C808D2A8FD6E /* SegoeUIVariable-Text-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SegoeUIVariable-Text-Semibold.ttf"; sourceTree = "<group>"; };
 		A1EFDF115E7709BB9A4B0763 /* duck-snooze.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "duck-snooze.wav"; sourceTree = "<group>"; };
 		A5E296A644421B5FD6A43424 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		A9401B94B0F50306880D7295 /* HistoryRunCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRunCache.swift; sourceTree = "<group>"; };
@@ -208,6 +213,7 @@
 		E02114ECC4D16CF3A54239D6 /* HistoryLabelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryLabelTests.swift; sourceTree = "<group>"; };
 		E307AA3FFA64A347BDA807AF /* duck-alert.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "duck-alert.wav"; sourceTree = "<group>"; };
 		E6502C89BBD005778525E926 /* GitHubClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubClient.swift; sourceTree = "<group>"; };
+		E88C65C2848C9E889518050D /* SegoeUIVariable-Text.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SegoeUIVariable-Text.ttf"; sourceTree = "<group>"; };
 		EC048AAA6E4767EF18709FD0 /* LocalStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStore.swift; sourceTree = "<group>"; };
 		EDEF58C3513F89FF61BBFE6F /* HistoryCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryCacheTests.swift; sourceTree = "<group>"; };
 		F3FECAF4E9864E84728EB3B7 /* alarm_on.svg */ = {isa = PBXFileReference; path = alarm_on.svg; sourceTree = "<group>"; };
@@ -417,6 +423,9 @@
 				8E939D421CB32FF7A5D04685 /* SegoeUI-Semibold.ttf */,
 				897EBC93EE1D68A23502ED59 /* SegoeUI.ttf */,
 				32EF134E344E9C2463AA0D44 /* SegoeUISymbol.ttf */,
+				24581CFA900CBB96F831DCDC /* SegoeUIVariable-EULA.txt */,
+				9DF88B6C3666C808D2A8FD6E /* SegoeUIVariable-Text-Semibold.ttf */,
+				E88C65C2848C9E889518050D /* SegoeUIVariable-Text.ttf */,
 			);
 			path = Fonts;
 			sourceTree = "<group>";
@@ -567,6 +576,9 @@
 				1C6F490FBF55F37031CF2A4C /* SegoeUI-Semibold.ttf in Resources */,
 				CA209A1227DC66EEAE612DFD /* SegoeUI.ttf in Resources */,
 				693481EDEAAC3101C3585412 /* SegoeUISymbol.ttf in Resources */,
+				CB8C70F7AFCBA83C135105F9 /* SegoeUIVariable-EULA.txt in Resources */,
+				D756B5878DC2FC86C4C91539 /* SegoeUIVariable-Text-Semibold.ttf in Resources */,
+				A79B5850A75FD68799374F55 /* SegoeUIVariable-Text.ttf in Resources */,
 				FA787AF5C9A21EA1E50490FA /* alarm_off.svg in Resources */,
 				1005FCA7612EB48F234A93A0 /* alarm_on.svg in Resources */,
 				3871C893EC7CDC1282F9F7F2 /* classic-alert.wav in Resources */,

@@ -44,7 +44,7 @@ Cross-cutting open requirements: exact Semibold font metrics and Segoe Fluent gl
 | 32-notification-banner.png | 789 × 694 | Test banner captured; approximate dimensions checked; text metrics differ. |
 | 33-quota-alerts-muted.png | 789 × 694 | Compact muted first-row state captured; selection and threshold hide/restore checked; equivalent full-image comparison remains. |
 | 34-threshold-drag-feedback.png | 789 × 694 | Native threshold grab/drag and keyboard checked; floating readout capture missing. |
-| 35-earned-reset-details.png | 789 × 694 | Matching-timestamp capture reset-details-reference-date.jpg confirms title/palette and exact text, but the snapshot line wraps before Demo unlike Windows, adding about 18 points of height. Both tested Microsoft regular font versions measure 285.749 points versus 284 available. Confirmed wrapping/metric gap remains open. |
+| 35-earned-reset-details.png | 789 × 694 | Matching-date reset-details-variable-font.jpg resolves the snapshot-line wrap using the official Segoe UI Variable Text face (276.9648-point advance, matching the reference). Native popup 332×281 points versus reference about 332×282. Full rasterization and final line-position comparison remain open. |
 | 36-timeline-event-tooltip.png | 789 × 694 | Windows 3c863a5 supersedes this image with a styled countdown tooltip. Shared quota-row/countdown component implemented; offscreen production-component renders checked at normal and narrow widths. Floating hover placement remains unverified. |
 | 37-history-sample-readout.png | 789 × 694 | History readout source/keyboard checked; equivalent floating readout capture missing. |
 

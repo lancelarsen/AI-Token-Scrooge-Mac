@@ -127,7 +127,7 @@ struct DetailsDialog<Content: View>: View {
                 content().fixedSize(horizontal: false, vertical: true)
                 ScrollView { content() }
             }
-            .font(.reference(size: 14))
+            .font(Theme.dialogBodyFont)
             .foregroundStyle(Theme.dialogText)
             .textSelection(.enabled)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -168,7 +168,7 @@ struct DetailLine: View {
     let label: String
     let value: String
     var body: some View {
-        (Text(label + ": ").font(.reference(size: 14, weight: .semibold)).foregroundColor(Color(hex: "#F2F1F5"))
+        (Text(label + ": ").font(ReferenceTypography.nativeTextFont(semibold: true)).foregroundColor(Color(hex: "#F2F1F5"))
          + Text(value).foregroundColor(Theme.dialogText))
             .frame(minHeight: 19, alignment: .leading)
     }
@@ -205,7 +205,7 @@ struct DialogActionLabel: View {
                 .font(ReferenceTypography.iconFont(size: 20))
                 .foregroundStyle(foreground)
                 .accessibilityHidden(true)
-            Text(title).font(.reference(size: 14))
+            Text(title).font(Theme.dialogBodyFont)
         }
     }
 }
