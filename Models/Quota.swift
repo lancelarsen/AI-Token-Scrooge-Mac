@@ -122,15 +122,6 @@ struct QuotaSnapshot: Codable, Equatable, Sendable {
 }
 
 enum AccountPolicy {
-    static func reorder(_ dragged: String, relativeTo target: String, after: Bool, state: inout PersistedState) {
-        guard state.settings.accountSort == .custom, dragged != target,
-              state.accounts.contains(where: { $0.id == dragged }) else { return }
-        var order = ordered(state).map(\.id).filter { $0 != dragged }
-        guard let index = order.firstIndex(of: target) else { return }
-        order.insert(dragged, at: index + (after ? 1 : 0))
-        state.settings.accountOrder = order
-    }
-
     static func selectSort(_ mode: AccountSort, state: inout PersistedState) {
         guard mode != state.settings.accountSort else { return }
         if mode == .custom, !state.settings.accountOrder.contains(where: { id in state.accounts.contains { $0.id == id } }) {

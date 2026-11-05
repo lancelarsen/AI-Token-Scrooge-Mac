@@ -299,10 +299,16 @@ import AppKit
             state.settings.rules.append(rule)
         }
     }
-    func reorder(_ dragged: String, relativeTo target: String, after: Bool) {
+    func moveAccount(_ id: String, to slot: Int, expectedOrder: [String]) async {
         edit { state in
-            AccountPolicy.reorder(dragged, relativeTo: target, after: after, state: &state)
+            guard state.settings.accountSort == .custom,
+                  AccountPolicy.ordered(state).map(\.id) == expectedOrder,
+                  expectedOrder.contains(id), expectedOrder.indices.contains(slot) else { return }
+            var order = expectedOrder.filter { $0 != id }
+            order.insert(id, at: slot)
+            state.settings.accountOrder = order
         }
+        await mutationTail?.value
     }
     func reloadHistory() async {
         guard !isDemo, let database else { return }

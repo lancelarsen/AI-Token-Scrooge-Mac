@@ -2,6 +2,35 @@ import XCTest
 @testable import AITokenScrooge
 
 final class AccountDragLayoutTests: XCTestCase {
+    @MainActor
+    func testFinalSlotPersistsAndStaleOrInvalidDragsDoNotOverwriteOrder() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("order.db"))
+        var initial = PersistedState()
+        initial.accounts = ["a", "b", "c"].map {
+            ProviderAccount(id: $0, provider: .codex, nickname: $0, subject: $0, scope: "scope")
+        }
+        initial.settings.accountSort = .custom
+        try await database.save(initial)
+        let store = AppStore(database: database)
+        await store.load()
+        await store.moveAccount("a", to: 2, expectedOrder: ["a", "b", "c"])
+        XCTAssertEqual(store.accounts.map(\.id), ["b", "c", "a"])
+        let saved = try await database.load()
+        XCTAssertEqual(saved.settings.accountOrder, ["b", "c", "a"])
+        await store.moveAccount("b", to: 2, expectedOrder: ["a", "b", "c"])
+        await store.moveAccount("missing", to: 1, expectedOrder: ["b", "c", "a"])
+        await store.moveAccount("a", to: 3, expectedOrder: ["b", "c", "a"])
+        XCTAssertEqual(store.accounts.map(\.id), ["b", "c", "a"])
+        await store.moveAccount("a", to: 0, expectedOrder: ["b", "c", "a"])
+        XCTAssertEqual(store.accounts.map(\.id), ["a", "b", "c"])
+        store.edit { $0.settings.accountSort = .mostRemaining }
+        await store.waitForPendingMutations()
+        await store.moveAccount("a", to: 2, expectedOrder: ["a", "b", "c"])
+        XCTAssertEqual(store.state.settings.accountOrder, ["a", "b", "c"])
+    }
+
     func testSmallMovementKeepsOriginalGap() throws {
         var layout = try XCTUnwrap(AccountDragLayout(heights: [200, 100, 200], sourceIndex: 0, spacing: 20))
         XCTAssertFalse(layout.move(centerY: 110))

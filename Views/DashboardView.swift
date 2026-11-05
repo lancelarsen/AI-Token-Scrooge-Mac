@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DashboardView: View {
     @Environment(AppStore.self) private var store
+    @State private var dragging = AccountDragging()
     @State private var showSettings = false
     @State private var refreshRequested = false
     @State private var hostSize = CGSize(width: 1000, height: 800)
@@ -22,7 +23,12 @@ struct DashboardView: View {
                                 AccountCard(account: account, wide: geometry.size.width - 64 - (store.state.settings.accountSort == .custom ? 57 : 0) - 56 > 1050)
                                     .id(account.id)
                                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.accent, lineWidth: store.highlightedAccountID == account.id ? 3 : 0))
-                                    .modifier(AccountOrderDropTarget(accountID: account.id))
+                                    .background(AccountDragMarker(id: account.id, dragging: dragging))
+                                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.accent, lineWidth: dragging.activeID == account.id && dragging.moving ? 2 : 0))
+                                    .shadow(color: .black.opacity(dragging.activeID == account.id && dragging.moving ? 0.35 : 0), radius: 16, y: 8)
+                                    .opacity(dragging.activeID == account.id && dragging.moving ? 0.94 : 1)
+                                    .offset(y: dragging.offsets[account.id] ?? 0)
+                                    .zIndex(dragging.activeID == account.id ? 1 : 0)
                             }
                         }.padding(.horizontal, 32).padding(.top, 24).padding(.bottom, 32)
                     }
@@ -37,6 +43,10 @@ struct DashboardView: View {
         }.frame(minWidth: 760, minHeight: 600)
         .background(DashboardWindowSizeReader { hostSize = $0 })
         .environment(\.dashboardHostSize, hostSize)
+        .environment(dragging)
+        .onChange(of: store.accounts.map(\.id)) { dragging.cancel() }
+        .onChange(of: store.state.settings.accountSort) { dragging.cancel() }
+        .onDisappear { dragging.cancel() }
         .preferredColorScheme(.dark).tint(Theme.accent)
         .overlay(alignment: .bottomTrailing) { if let alert = store.activeAlert { AlertBannerView(alert: alert) } }
         .sheet(item: $store.selectedAccount) { account in AccountSettingsView(accountID: account.id, hostSize: hostSize).environment(store) }
@@ -130,6 +140,7 @@ struct DashboardView: View {
 
 struct AccountCard: View {
     @Environment(AppStore.self) private var store
+    @Environment(AccountDragging.self) private var dragging
     let account: ProviderAccount
     let wide: Bool
     private var snapshot: QuotaSnapshot? { store.state.snapshots[account.id] }
@@ -140,7 +151,14 @@ struct AccountCard: View {
     var body: some View {
         HStack(spacing: 0) {
             if store.state.settings.accountSort == .custom {
-                ActionIcon(symbol: "account.reorder", size: 25).frame(width: 56, height: 44).contentShape(Rectangle()).draggable(account.id).modifier(ImmediateReferenceTooltip(text: reorderDescription))
+                ActionIcon(symbol: "account.reorder", size: 25).frame(width: 56, height: 44).contentShape(Rectangle())
+                    .overlay(AccountDragGrip(label: reorderDescription) { event in
+                        let ids = store.accounts.map(\.id)
+                        dragging.begin(id: account.id, ids: ids, event: event) { slot in
+                            await store.moveAccount(account.id, to: slot, expectedOrder: ids)
+                        }
+                    })
+                    .modifier(ImmediateReferenceTooltip(text: reorderDescription))
                     .accessibilityLabel(reorderDescription)
                 Rectangle().fill(Theme.border).frame(width: 1).padding(.vertical, 14)
             }
@@ -361,23 +379,5 @@ struct QuotaDetailsView: View {
                 }.buttonStyle(ScroogeButtonStyle())
             }
         }.font(Theme.dialogBodyFont).foregroundStyle(Theme.dialogText).textSelection(.enabled).frame(maxWidth: 440, alignment: .leading).preferredColorScheme(.dark)
-    }
-}
-
-private struct AccountOrderDropTarget: ViewModifier {
-    @Environment(AppStore.self) private var store
-    let accountID: String
-    @State private var height: CGFloat = 0
-
-    func body(content: Content) -> some View {
-        content
-            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height = $0 }
-            .dropDestination(for: String.self) { items, location in
-                guard items.count == 1, let id = items.first, id != accountID,
-                      height > 0, store.state.settings.accountSort == .custom,
-                      store.state.accounts.contains(where: { $0.id == id }) else { return false }
-                store.reorder(id, relativeTo: accountID, after: location.y >= height / 2)
-                return true
-            }
     }
 }

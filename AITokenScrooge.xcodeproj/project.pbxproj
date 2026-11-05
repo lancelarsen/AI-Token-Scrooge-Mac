@@ -12,6 +12,7 @@
 		04C55EF85EA7BA2842F5F032 /* duck-dismiss.wav in Resources */ = {isa = PBXBuildFile; fileRef = 4ECAF71346136C3AF5ACE5F4 /* duck-dismiss.wav */; };
 		0708BD138CFE6E3FEAFBBCC4 /* classic-dismiss.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3941BE91BC638E8DA8089568 /* classic-dismiss.wav */; };
 		0ADF6DA366E575D858EA927A /* UpdaterConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C435A510E4A4F0CA787C4163 /* UpdaterConfigurationTests.swift */; };
+		0AEF71CCE662E8972CF3FA7B /* AccountDragging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AF8E40D8F6BD8EDFFDAD604 /* AccountDragging.swift */; };
 		1005FCA7612EB48F234A93A0 /* alarm_on.svg in Resources */ = {isa = PBXBuildFile; fileRef = F3FECAF4E9864E84728EB3B7 /* alarm_on.svg */; };
 		10751175C197D93643B8316F /* AccountDragLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85BEB2E04CDA1C8B4CC06916 /* AccountDragLayout.swift */; };
 		14BD82C05C34322DC20750BB /* CoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBEAC2441D10EEB12366B40 /* CoreTests.swift */; };
@@ -146,6 +147,7 @@
 		39135C6BE784A1D2EF821CC5 /* SpectrumSelectionIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrumSelectionIndicator.swift; sourceTree = "<group>"; };
 		3941BE91BC638E8DA8089568 /* classic-dismiss.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "classic-dismiss.wav"; sourceTree = "<group>"; };
 		3A2FF94CD691A6FD9D3EEB04 /* LoginItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemService.swift; sourceTree = "<group>"; };
+		3AF8E40D8F6BD8EDFFDAD604 /* AccountDragging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDragging.swift; sourceTree = "<group>"; };
 		3C69B60006F7E2D89ACCAE6B /* SecretStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecretStore.swift; sourceTree = "<group>"; };
 		3CECC381968D27063EFC9A5B /* github.svg */ = {isa = PBXFileReference; path = github.svg; sourceTree = "<group>"; };
 		3D30E984DB7C2ADE83A5210B /* UsageHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageHistory.swift; sourceTree = "<group>"; };
@@ -352,6 +354,7 @@
 		A64E445F64922E2F0650BAC5 /* Support */ = {
 			isa = PBXGroup;
 			children = (
+				3AF8E40D8F6BD8EDFFDAD604 /* AccountDragging.swift */,
 				464C6C599D303DAEF44E73B1 /* DemoReferenceWindowFrame.swift */,
 				1EFFB3B427B1675530260BA6 /* Format.swift */,
 				F5A5186F536026FDE9E8A856 /* ReferenceHelpTooltip.swift */,
@@ -623,6 +626,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				10751175C197D93643B8316F /* AccountDragLayout.swift in Sources */,
+				0AEF71CCE662E8972CF3FA7B /* AccountDragging.swift in Sources */,
 				411E709C67583AE4D25720F7 /* AccountSettingsView.swift in Sources */,
 				FAE52C8AE2378E9076E0CBC1 /* AlertBannerView.swift in Sources */,
 				0113E2E09EC357A038806818 /* AlertEvent.swift in Sources */,

@@ -2,28 +2,6 @@ import XCTest
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
-    func testAccountDropCanReachBothEndsAndRejectInvalidMoves() {
-        var state = PersistedState()
-        state.accounts = ["a", "b", "c", "d"].map {
-            ProviderAccount(id: $0, provider: .codex, nickname: $0, subject: $0, scope: "scope")
-        }
-        state.settings.accountSort = .custom
-        AccountPolicy.reorder("a", relativeTo: "d", after: true, state: &state)
-        XCTAssertEqual(AccountPolicy.ordered(state).map(\.id), ["b", "c", "d", "a"])
-        AccountPolicy.reorder("a", relativeTo: "b", after: false, state: &state)
-        XCTAssertEqual(AccountPolicy.ordered(state).map(\.id), ["a", "b", "c", "d"])
-        AccountPolicy.reorder("b", relativeTo: "c", after: true, state: &state)
-        XCTAssertEqual(AccountPolicy.ordered(state).map(\.id), ["a", "c", "b", "d"])
-        let saved = state.settings.accountOrder
-        AccountPolicy.reorder("b", relativeTo: "b", after: true, state: &state)
-        AccountPolicy.reorder("missing", relativeTo: "a", after: true, state: &state)
-        AccountPolicy.reorder("a", relativeTo: "missing", after: false, state: &state)
-        XCTAssertEqual(state.settings.accountOrder, saved)
-        state.settings.accountSort = .mostRemaining
-        AccountPolicy.reorder("a", relativeTo: "d", after: true, state: &state)
-        XCTAssertEqual(state.settings.accountOrder, saved)
-    }
-
     func testSimultaneousTimelineEventsFollowWindowsOrdering() {
         let now = Date(timeIntervalSince1970: 1800000000)
         let tied = now.addingTimeInterval(3600)
