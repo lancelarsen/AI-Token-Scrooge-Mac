@@ -12,14 +12,28 @@ RELEASE_REVISION="${SCROOGE_RELEASE_REVISION:-0}"
 [[ "$RELEASE_REVISION" =~ ^[0-9]{1,3}$ ]] || { echo "Release revision must be 0–999." >&2; exit 1; }
 DISPLAY_VERSION="v$RELEASE_DAY.$(printf '%03d' "$((10#$RELEASE_REVISION))")"
 BUILD_NUMBER="$((1000 + $(git rev-list --count HEAD)))"
+# Ad-hoc previews have no Team ID for hardened-runtime library validation.
+# Match the working Debug configuration; Developer ID distribution keeps runtime.
+HARDENED_RUNTIME=NO
+if [[ -n "${SCROOGE_SIGNING_IDENTITY:-}" ]]; then HARDENED_RUNTIME=YES; fi
 xcodebuild -project AITokenScrooge.xcodeproj -scheme AITokenScrooge \
   -configuration Release -destination 'platform=macOS,arch=arm64' \
-  -derivedDataPath "$BUILD_DIR" MARKETING_VERSION="$RELEASE_DAY" CURRENT_PROJECT_VERSION="$BUILD_NUMBER" SCROOGE_DISPLAY_VERSION="$DISPLAY_VERSION" build > "$OUTPUT_DIR/build.log" 2>&1
+  -derivedDataPath "$BUILD_DIR" ENABLE_HARDENED_RUNTIME="$HARDENED_RUNTIME" MARKETING_VERSION="$RELEASE_DAY" CURRENT_PROJECT_VERSION="$BUILD_NUMBER" SCROOGE_DISPLAY_VERSION="$DISPLAY_VERSION" build > "$OUTPUT_DIR/build.log" 2>&1
 /usr/bin/plutil -lint "$APP_BUNDLE/Contents/Info.plist"
 ARCHS_FOUND="$(/usr/bin/lipo -archs "$APP_BUNDLE/Contents/MacOS/$APP_NAME")"
 [[ "$ARCHS_FOUND" == "arm64" ]] || { echo "Expected Apple silicon-only app; got $ARCHS_FOUND" >&2; exit 1; }
 for resource in token_baron.png openai.png github.svg claude.svg github-app.json duck-alert.wav classic-alert.wav Assets.car; do
   [[ -f "$APP_BUNDLE/Contents/Resources/$resource" ]] || { echo "Missing bundle resource: $resource" >&2; exit 1; }
+done
+# Typography, provider marks and alert sounds are part of UI parity. Verify the
+# packaged bytes, not just the presence of a subset of historical resources.
+for source in Resources/Fonts/*.ttf Resources/Images/* Resources/Sounds/*.wav; do
+  [[ -f "$source" ]] || continue
+  resource="$(basename "$source")"
+  /usr/bin/cmp -s "$source" "$APP_BUNDLE/Contents/Resources/$resource" || {
+    echo "Missing or changed bundle resource: $resource" >&2
+    exit 1
+  }
 done
 VERSION="$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$APP_BUNDLE/Contents/Info.plist")"
 ZIP_PATH="$OUTPUT_DIR/AI-Token-Scrooge-Mac-$DISPLAY_VERSION-arm64-preview.zip"
@@ -43,5 +57,5 @@ fi
 /usr/bin/codesign -dv --verbose=2 "$APP_BUNDLE" 2> "$OUTPUT_DIR/signature.txt"
 echo "Packaged: $ZIP_PATH"
 if [[ -z "${SCROOGE_SIGNING_IDENTITY:-}" ]]; then
-  echo "Development preview: ad-hoc signed, not notarized."
+  echo "Development preview: ad-hoc signed, hardened runtime disabled, not notarized."
 fi
