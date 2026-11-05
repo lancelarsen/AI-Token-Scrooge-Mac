@@ -13,7 +13,7 @@ final class DashboardUITests: XCTestCase {
         let history = app.switches["historyToggle"]
         XCTAssertTrue(history.exists)
         history.click()
-        XCTAssertTrue(app.buttons["Show OpenAI Personal on Timeline"].exists, "Selectors must stay visible with history off")
+        XCTAssertTrue(app.buttons["Hide OpenAI / Personal · Plus · Timeline"].exists, "Selectors must stay visible with history off")
         history.click()
         exit.click()
         XCTAssertTrue(app.buttons["exploreDemoButton"].waitForExistence(timeout: 5))

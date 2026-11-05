@@ -143,8 +143,8 @@ struct AccountCard: View {
     var body: some View {
         HStack(spacing: 0) {
             if store.state.settings.accountSort == .custom {
-                ActionIcon(symbol: "account.reorder", size: 25).frame(width: 56, height: 44).contentShape(Rectangle()).draggable(account.id).modifier(ImmediateReferenceTooltip(text: "Drag to Reorder Account"))
-                    .accessibilityLabel("Reorder \(store.state.settings.privacy ? "Account" : account.nickname)")
+                ActionIcon(symbol: "account.reorder", size: 25).frame(width: 56, height: 44).contentShape(Rectangle()).draggable(account.id).modifier(ImmediateReferenceTooltip(text: reorderDescription))
+                    .accessibilityLabel(reorderDescription)
                 Rectangle().fill(Theme.border).frame(width: 1).padding(.vertical, 14)
             }
             if hasQuotaDetails {
@@ -174,6 +174,9 @@ struct AccountCard: View {
                     AccountUsageDetailsView(accountID: account.id, windowID: snapshot?.windows.first?.id)
                 }
             }
+    }
+    private var reorderDescription: String {
+        "Drag \(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) to Reorder Accounts"
     }
     private var settingsDescription: String {
         "Settings for \(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot?.planType))"

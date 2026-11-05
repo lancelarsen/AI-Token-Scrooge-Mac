@@ -264,7 +264,9 @@ struct HorizonView: View {
                                 }
                             }
                         }.frame(width: 82, height: 66)
-                    }.buttonStyle(.plain).accessibilityLabel("Show \(account.provider.rawValue) \(store.state.settings.privacy ? "Account" : account.nickname) on Timeline")
+                    }.buttonStyle(.plain)
+                        .accessibilityIdentifier("timelineAccount-\(account.id)")
+                        .accessibilityLabel("\(store.state.settings.hiddenHistoryAccounts.contains(account.id) ? "Show" : "Hide") \(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, store.state.snapshots[account.id]?.planType)) · Timeline")
                         .modifier(ImmediateReferenceTooltip(text: historyHelp(account)))
                 }
             }.padding(.leading, 3).padding(.trailing, 10).padding(.top, 8)
