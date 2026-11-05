@@ -10,8 +10,13 @@ struct HorizonPresentation {
     var positions: [Date: Double] = [:]
     init() {}
     init(accounts: [ProviderAccount], runs: [HistoryRun], viewport: HorizonViewport, now: Date) {
-        series = accounts.map { UsageHistory.build(account: $0, runs: runs, from: viewport.firstDate, through: now) }
-        events = accounts.flatMap { UsageHistory.events(account: $0, runs: runs, from: viewport.firstDate, through: now) }
+        // Keep the source history independent of navigation and History on/off.
+        // Otherwise narrowing the viewport also loses the samples needed to reopen it.
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = viewport.zone
+        let from = calendar.startOfDay(for: calendar.date(byAdding: .day, value: -7, to: now)!)
+        series = accounts.map { UsageHistory.build(account: $0, runs: runs, from: from, through: now) }
+        events = accounts.flatMap { UsageHistory.events(account: $0, runs: runs, from: from, through: now) }
         for date in Set(series.flatMap { $0.points.map(\.at) } + events.map(\.date)) {
             positions[date] = viewport.position(at: date)
         }

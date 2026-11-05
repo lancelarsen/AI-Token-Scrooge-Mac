@@ -39,6 +39,23 @@ final class HorizonPerformanceTests: XCTestCase {
         motion.enqueue(.infinity)
         XCTAssertEqual(motion.remaining, 0)
     }
+    func testShortHistorySurvivesDisabledViewportAndBoundsNavigation() {
+        let now = Date(timeIntervalSince1970: 1793732400)
+        let demo = DemoData.make(now: now)
+        let cutoff = now.addingTimeInterval(-3600)
+        let runs = demo.1.filter { $0.firstObservedAt >= cutoff }
+        let first = runs.map(\.firstObservedAt).min()!
+        var viewport = HorizonViewport(now: now, furthestFuture: now.addingTimeInterval(7 * 86400), zone: TimeZone(secondsFromGMT: 0)!, width: 700, historyEnabled: false)
+        let disabled = HorizonPresentation(accounts: demo.0.accounts, runs: runs, viewport: viewport, now: now)
+        let earliest = disabled.series.flatMap(\.points).map(\.at).min()!
+        XCTAssertEqual(earliest, first)
+        viewport.update(now: now, furthestFuture: now.addingTimeInterval(7 * 86400), zone: viewport.zone, width: 700, historyEnabled: true, earliestHistory: earliest)
+        viewport.scroll(to: 0)
+        XCTAssertEqual(viewport.visibleStart.timeIntervalSince1970, first.timeIntervalSince1970, accuracy: 0.001)
+        let enabled = HorizonPresentation(accounts: demo.0.accounts, runs: runs, viewport: viewport, now: now)
+        XCTAssertEqual(enabled.series.flatMap(\.points), disabled.series.flatMap(\.points))
+    }
+
     func testPreparedHistoryMatchesProjectionAcrossScrolling() {
         let now = Date(timeIntervalSince1970: 1793732400)
         let demo = DemoData.make(now: now)
