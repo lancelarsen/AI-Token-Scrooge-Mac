@@ -540,3 +540,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 
 - Windows MainPage explicitly uses the #1B1C20-to-#141519 diagonal gradient, while SettingsPage uses a flat #141519 background for both global and account settings. Mac incorrectly reused the dashboard gradient for those two pages. Added Theme.canvas and applied it to both settings surfaces. Dashboard gradient remains source-aligned.
 - Canonical build passed (`artifacts/settings-canvas-build.log`) and diff checks passed. This color correction is verified against authoritative source values; no new rendered settings capture was taken in this pass, so screenshot parity remains unproven.
+
+### Alert history multiline row layout (reference 08)
+
+- Compared reference 08, MainPage.OpenHistoryAsync and ActionButton layout. Windows renders each history entry as one multiline text block with a nine-point icon gap. Mac used three separately spaced labels with a ten-point gap. Replaced the stack with one leading-aligned multiline label and matched the icon gap. Retained macOS delivery wording and privacy masking.
+- Canonical build passed (`artifacts/history-row-text-layout-build.log`) and diff checks passed. This pass verifies source structure; a new populated-history screenshot was not captured, so exact line metrics and screenshot parity remain open.

@@ -21,13 +21,12 @@ struct AlertHistoryView: View {
                     LazyVStack(spacing: 16) {
                         ForEach(store.state.alerts.sorted { $0.createdAt > $1.createdAt }) { alert in
                             Button { selectedAlert = alert } label: {
-                                HStack(spacing: 10) {
+                                HStack(spacing: 9) {
                                     ActionIcon(symbol: alert.isRefreshReminder ? "arrow.clockwise" : alert.reminderID != nil ? "folder" : alert.delivered ? "arrow.up.right.square" : "clock.arrow.circlepath")
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("\(Format.historyDate(alert.createdAt, zone: store.state.settings.zone)) · \(alert.title)")
-                                        Text(store.state.settings.privacy ? "Account Details Hidden" : alert.detail)
-                                        Text(alert.delivered ? "Sent to macOS" : "Recorded in history")
-                                    }.font(.system(size: 14)).frame(maxWidth: .infinity, alignment: .leading)
+                                    Text("\(Format.historyDate(alert.createdAt, zone: store.state.settings.zone)) · \(alert.title)\n\(store.state.settings.privacy ? "Account Details Hidden" : alert.detail)\n\(alert.delivered ? "Sent to macOS" : "Recorded in history")")
+                                        .font(.system(size: 14))
+                                        .multilineTextAlignment(.leading)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
                                 }.padding(.vertical, 12).frame(minHeight: 80)
                             }.buttonStyle(ScroogeButtonStyle()).help("Show Usage Details")
                             .contextMenu {
