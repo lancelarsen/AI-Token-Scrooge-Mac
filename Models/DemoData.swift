@@ -15,6 +15,7 @@ enum DemoData {
         case reserveOnly = "reserve-only"
         case healthy, noReset = "no-reset"
         case alertHistory = "alert-history"
+        case countUsage = "count-usage"
     }
 
     static func make(now: Date, scenario: Scenario = .standard) -> (PersistedState, [HistoryRun]) {
@@ -49,6 +50,15 @@ enum DemoData {
             var snapshot = QuotaSnapshot(accountID: account.id, subject: account.subject, scope: account.scope, observedAt: now, windows: windows, reserve: reserve, health: .demo, planType: config.2)
             switch scenario {
             case .standard, .alertHistory: break
+            case .countUsage:
+                snapshot.windows = snapshot.windows.enumerated().map { offset, original in
+                    var window = original
+                    window.name = offset == 0 ? "request allowance" : "unknown request limit"
+                    window.unit = .requests
+                    window.used = offset == 0 ? 1250 : 50
+                    window.limit = offset == 0 ? 1000 : nil
+                    return window
+                }
             case .healthy: snapshot.health = .healthy
             case .offline:
                 snapshot.health = .offline

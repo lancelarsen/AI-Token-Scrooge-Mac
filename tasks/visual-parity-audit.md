@@ -948,3 +948,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched Windows QuotaRow's DisplayPercent rule: percentage windows and GitHub Copilot display percentages; other unit types display grouped counts with an over-limit amount when remaining is negative.
 - Shared the formatter between the usage bar, bar accessibility label, and usage-details dialog. Missing count limits now say Limit unavailable, distinct from percentage Left unavailable.
 - Added regression cases for count grouping, overage, Copilot's percentage exception, and missing values. A standalone executable compiled the actual production formatter and model declarations and passed those cases plus positive remaining counts (`artifacts/count-allowance-check.swift`, `.log`). Canonical build passed (`artifacts/count-allowance-build.log`). Hosted XCTest and live count-provider rendering remain unverified.
+
+## Native count-usage verification — 2026-11-05
+
+- Added an opt-in `--demo --scenario count-usage` fixture with an over-limit request allowance and an unknown request limit. Standard demo and live providers are unchanged.
+- Canonical build passed (`artifacts/count-usage-demo-build.log`). Native AX verified OpenAI/Claude bars say 1,250 used / 250 over, unknown-limit bars say 50 used / Limit unavailable, and Copilot retains 125% used / 0% left.
+- Opened the overage bar's details popup and verified it shows Request Allowance and 1,250 used · 250 over without clipping (`artifacts/count-usage-details-native.jpg`). This is synthetic demo evidence, not a live-provider check or reference-image identity claim.
