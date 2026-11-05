@@ -86,7 +86,7 @@ struct AccountSettingsView: View {
                             infoIcon("Pause checks and alerts without removing this connection.")
                             Toggle("Monitor This Account", isOn: Binding(get: { account.enabled }, set: { value in update { $0.enabled = value; $0.generation = UUID() } }))
                                 .toggleStyle(ScroogeSwitchStyle()).frame(minHeight: 36)
-                                .help("Pause checks and alerts without removing this connection.")
+                                .modifier(ImmediateReferenceTooltip(text: "Pause checks and alerts without removing this connection."))
                             }
                         }
                         if let savedSnapshot = store.state.snapshots[accountID], savedSnapshot.belongs(to: account), let reserve = savedSnapshot.reserve {
@@ -148,7 +148,7 @@ struct AccountSettingsView: View {
         Toggle(title, isOn: Binding(get: { store.state.settings.rule(accountID: accountID)[keyPath: path] }, set: { value in store.edit { state in
             var rule = state.settings.rule(accountID: accountID); rule[keyPath: path] = value; rule.windowID = nil
             state.settings.rules.removeAll { $0.accountID == accountID && $0.windowID == nil }; state.settings.rules.append(rule)
-        } })).toggleStyle(ScroogeSwitchStyle()).frame(minHeight: 36).help(help)
+        } })).toggleStyle(ScroogeSwitchStyle()).frame(minHeight: 36).modifier(ImmediateReferenceTooltip(text: help))
         }
     }
     private func infoIcon(_ help: String) -> some View {

@@ -216,7 +216,8 @@ struct HorizonView: View {
             Text("History").font(.system(size: 13))
         }
     }
-    private var settingsButton: some View { Button { showSettings = true } label: { ActionLabel(title: "", symbol: "gearshape") }.buttonStyle(ScroogeButtonStyle(horizontalPadding: 12)).help("Timeline Settings") }
+    private var settingsButton: some View { Button { showSettings = true } label: { ActionLabel(title: "", symbol: "gearshape") }.buttonStyle(ScroogeButtonStyle(horizontalPadding: 12)).modifier(ImmediateReferenceTooltip(text: "Earned Reset Alert Settings"))
+        .accessibilityLabel("Earned Reset Alert Settings") }
     private var selectors: some View {
         ScrollView {
             VStack(spacing: 6) {

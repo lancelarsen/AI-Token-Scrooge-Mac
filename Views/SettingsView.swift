@@ -252,7 +252,7 @@ struct ReminderEditor: View {
                     } label: {
                         ActionIcon(symbol: "trash", size: 20)
                     }.buttonStyle(ScroogeButtonStyle(horizontalPadding: 12))
-                        .help("Remove Reminder").accessibilityLabel("Remove Reminder")
+                        .modifier(ImmediateReferenceTooltip(text: "Remove This Reminder from the Schedule")).accessibilityLabel("Remove Reminder")
                 }
             }
             if amountError {

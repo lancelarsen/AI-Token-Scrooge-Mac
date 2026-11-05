@@ -603,3 +603,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Compared Windows OpenDetailsAsync/QuotaRow.SourceNote and reference 13. Removed extra Mac-only numeric Used/Allowance rows from nonpercent quota popups. Missing values now use Usage unavailable / Left unavailable, matching dashboard and Windows.
 - Popup source note now follows Windows rules: Demo data, health plus provider message, provider-paused state, reported message, or manual-allowance note. Previously several of these states were omitted. Privacy masking remains in place.
 - Canonical build passed (`artifacts/quota-details-content-build.log`) and diff checks passed. Native isolated unknown demo popup confirmed the exact unavailable labels alongside reset/account/fetch/source details. Other status branches and nonpercent popup appearance are source-verified pending runtime captures.
+
+### Remaining dashboard/settings native-help replacement
+
+- Replaced delayed native help on account reorder/manage controls, row alert toggles, account rule/monitor toggles, timeline settings and reminder removal with the shared immediate styled tooltip. Existing accessibility labels remain; timeline settings now explicitly names the Windows Earned Reset Alert Settings action.
+- Matched Windows reminder-removal help wording: Remove This Reminder from the Schedule. Source CapacityAlertToggle confirms immediate help for alarms.
+- Canonical build passed (`artifacts/dashboard-tooltip-consistency-build.log`) and diff checks passed. No .help calls remain in DashboardView, HorizonView, AccountSettingsView or SettingsView. This proves consistent use of the shared implementation, not exact popup rendering; floating-panel placement and hover captures remain open.

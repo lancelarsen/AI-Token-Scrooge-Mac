@@ -139,7 +139,7 @@ struct AccountCard: View {
     var body: some View {
         HStack(spacing: 0) {
             if store.state.settings.accountSort == .custom {
-                ActionIcon(symbol: "account.reorder", size: 17).frame(width: 56, height: 44).contentShape(Rectangle()).draggable(account.id).help("Drag to Reorder Account")
+                ActionIcon(symbol: "account.reorder", size: 17).frame(width: 56, height: 44).contentShape(Rectangle()).draggable(account.id).modifier(ImmediateReferenceTooltip(text: "Drag to Reorder Account"))
                     .accessibilityLabel("Reorder \(store.state.settings.privacy ? "Account" : account.nickname)")
                 Rectangle().fill(Theme.border).frame(width: 1).padding(.vertical, 14)
             }
@@ -152,7 +152,7 @@ struct AccountCard: View {
                     } else { Text(!account.enabled ? "Monitoring Disabled" : snapshot?.message ?? "Waiting for Usage Data").foregroundStyle(Theme.secondary).frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 16) }
                 }
             }.padding(.leading, 20).padding(.trailing, 16).padding(.vertical, 8)
-            Button { store.selectedAccount = account } label: { ActionIcon(symbol: "gearshape", size: 20).frame(width: 44, height: 44) }.buttonStyle(ScroogeButtonStyle(segmented: true)).clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border)).help("Manage \(store.state.settings.privacy ? "Account" : account.nickname)")
+            Button { store.selectedAccount = account } label: { ActionIcon(symbol: "gearshape", size: 20).frame(width: 44, height: 44) }.buttonStyle(ScroogeButtonStyle(segmented: true)).clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border)).modifier(ImmediateReferenceTooltip(text: "Manage \(store.state.settings.privacy ? "Account" : account.nickname)"))
                 .padding(.top, 14).padding(.trailing, 12).frame(maxHeight: .infinity, alignment: .top)
         }.background(Theme.card)
             .clipShape(RoundedRectangle(cornerRadius: 13)).overlay(RoundedRectangle(cornerRadius: 13).stroke(Theme.border))
@@ -249,7 +249,7 @@ struct QuotaRow: View {
                                 .frame(width: 40, height: 46)
                         }.buttonStyle(ScroogeButtonStyle(selected: store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) == enabled, segmented: true))
                             .accessibilityAddTraits(store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) == enabled ? .isSelected : [])
-                            .help("Alarms \(enabled ? "On" : "Off") · Row Alerts · \(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType)) · \(window.name)")
+                            .modifier(ImmediateReferenceTooltip(text: "Alarms \(enabled ? "On" : "Off") · Row Alerts · \(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType)) · \(window.name)"))
                             .accessibilityLabel("\(enabled ? "Enable" : "Disable") Alerts for \(window.name)")
                     }
                 }.clipShape(RoundedRectangle(cornerRadius: 9))
