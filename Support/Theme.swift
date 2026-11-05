@@ -236,6 +236,36 @@ struct ActionIcon: View {
                     shoulders.addQuadCurve(to: CGPoint(x: 5, y: 11), control: CGPoint(x: 2, y: 11))
                     context.stroke(shoulders, with: .color(foreground), lineWidth: 1)
                 }
+            } else if symbol == "folder" || symbol == "arrow.up.right.square" {
+                Canvas { context, _ in
+                    context.scaleBy(x: size / 20, y: size / 20)
+                    var outline = Path()
+                    if symbol == "folder" {
+                        outline.move(to: CGPoint(x: 1, y: 7))
+                        outline.addLine(to: CGPoint(x: 1, y: 3))
+                        outline.addLine(to: CGPoint(x: 7, y: 3))
+                        outline.addLine(to: CGPoint(x: 10, y: 5))
+                        outline.addLine(to: CGPoint(x: 19, y: 5))
+                        outline.addLine(to: CGPoint(x: 19, y: 18))
+                        outline.addLine(to: CGPoint(x: 1, y: 18))
+                        outline.closeSubpath()
+                        outline.move(to: CGPoint(x: 1, y: 7))
+                        outline.addLine(to: CGPoint(x: 19, y: 7))
+                    } else {
+                        outline.move(to: CGPoint(x: 10, y: 3))
+                        outline.addLine(to: CGPoint(x: 3, y: 3))
+                        outline.addLine(to: CGPoint(x: 3, y: 18))
+                        outline.addLine(to: CGPoint(x: 18, y: 18))
+                        outline.addLine(to: CGPoint(x: 18, y: 11))
+                        outline.move(to: CGPoint(x: 9, y: 12))
+                        outline.addLine(to: CGPoint(x: 19, y: 2))
+                        outline.move(to: CGPoint(x: 12, y: 2))
+                        outline.addLine(to: CGPoint(x: 19, y: 2))
+                        outline.addLine(to: CGPoint(x: 19, y: 9))
+                    }
+                    context.stroke(outline, with: .color(foreground),
+                                   style: StrokeStyle(lineWidth: 1, lineJoin: .round))
+                }
             } else if symbol == "desktopcomputer" {
                 Canvas { context, _ in
                     context.scaleBy(x: size / 20, y: size / 20)

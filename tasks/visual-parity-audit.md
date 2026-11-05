@@ -551,3 +551,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Added isolated --demo --scenario alert-history with eight synthetic recorded/delivered capacity, expiration and refresh entries. Standard demo remains empty-history; scenario construction performs no notification delivery and uses synthetic demo identities. README documents it.
 - Canonical build passed (`artifacts/alert-history-scenario-build.log`) and diff checks passed. Opened Settings → Alert History through native UI. All eight entries appeared in accessibility state; screenshot confirms single multiline labels, 80-point row heights and 16-point gaps. This verifies the previous history text-layout change in a populated page.
 - Capture was compact, unlike wide reference 08. Exact font-family metrics, glyph outlines and matching-width capture remain open.
+
+### Thin history action icon outlines
+
+- Replaced heavier SF folder/outgoing-arrow symbols with shared one-point vector outlines based on the visible reference 08 silhouettes. Dialog action labels route those symbols through the same shared renderer. Windows source selects Segoe Fluent E8B7/E8A7; these vectors are visual approximations, not extracted font outlines, so exact glyph parity remains unproven.
+- Canonical build passed (`artifacts/history-action-icons-build.log`) and diff checks passed. Native populated-history screenshot confirms thin, unclipped folder/outgoing-arrow outlines and unchanged row geometry.
