@@ -42,7 +42,7 @@ struct SettingsView: View {
                     SettingsCard(title: "Time Zone", symbol: "globe") {
                         Menu {
                             Picker("Time Zone", selection: Binding(get: { store.state.settings.zone.identifier }, set: { zone in store.edit { $0.settings.timeZoneID = zone } })) {
-                                ForEach(Array(Set(TimeZone.knownTimeZoneIdentifiers + [store.state.settings.zone.identifier])).sorted(), id: \.self) { Text(Format.timeZoneName(TimeZone(identifier: $0)!)).tag($0) }
+                                ForEach(Format.sortedTimeZones(identifiers: TimeZone.knownTimeZoneIdentifiers + [store.state.settings.zone.identifier]), id: \.identifier) { zone in Text(Format.timeZoneName(zone)).tag(zone.identifier) }
                             }.pickerStyle(.inline)
                         } label: {
                             HStack {

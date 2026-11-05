@@ -1398,3 +1398,11 @@ Source evidence saved in artifacts/winui-color-spectrum.cpp and artifacts/winui-
 Native testing found the RGB/HSV menu did not open from its accessible label or visible arrow. InlineLineColorEditor inherited DetailsDialog’s enabled text selection. Disabled static text selection within the editor; retained its native Picker and all editable TextFields. After rebuilding, clicking Color Model opens RGB/HSV choices, choosing HSV and confirming updates the mode and Hue/Saturation/Value inputs. Capture artifacts/color-model-menu-hsv.jpg. Closed both dialogs with Escape without adding a color.
 
 Canonical build passes (artifacts/color-model-menu-build.log) and diff checks pass. Before the fix, keyboard spectrum Right changed hue336→337 and brightness Left changed83→82 with selected-color/channel updates. Tab skipped the mode menu in the current Mac configuration; full keyboard traversal remains open. No new unit tests for the SwiftUI hit-testing fix; native execution establishes the regression and repaired behavior.
+
+### Time Zone Menu Ordering — 2026-11-05
+
+Windows SettingsPage uses TimeZoneInfo.GetSystemTimeZones, which orders by standard UTC offset and then display name. Mac previously sorted IANA identifiers alphabetically. Added Format.sortedTimeZones and wired the Settings picker to it: standard offset first, localized display-name comparison second, deterministic identifier tie-break. Deduplicates identifiers, ignores invalid entries, and retains the current selection by including it in the supplied list. Platform identifiers and display-name adaptations remain; this does not claim identical Windows zone inventory.
+
+Focused hosted test verifies winter/summer order for Honolulu, Los Angeles, Phoenix, Kolkata and Kathmandu, including duplicate/invalid inputs; one test passes with zero failures. Canonical build passes. Logs: artifacts/time-zone-order-tests.log and artifacts/time-zone-order-build.log. No fresh rendered menu-order check in this pass. Reference: https://learn.microsoft.com/en-us/dotnet/api/system.timezoneinfo.getsystemtimezones .
+
+Also audited DetailsDialog call sites after the color-menu fix: remaining content is text-only, with action buttons outside the selectable-text subtree. No equivalent nested interactive menu found there.

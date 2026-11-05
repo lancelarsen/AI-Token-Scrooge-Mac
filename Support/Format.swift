@@ -51,6 +51,21 @@ enum Format {
         return result as String
     }
 
+    /// Match GetSystemTimeZones ordering while retaining platform zone identifiers.
+    static func sortedTimeZones(identifiers: [String], at date: Date = .now) -> [TimeZone] {
+        let entries = Set(identifiers).compactMap(TimeZone.init(identifier:)).map { zone in
+            (zone: zone,
+             offset: zone.secondsFromGMT(for: date) - Int(zone.daylightSavingTimeOffset(for: date)),
+             name: timeZoneName(zone, at: date))
+        }
+        return entries.sorted { lhs, rhs in
+            if lhs.offset != rhs.offset { return lhs.offset < rhs.offset }
+            let comparison = lhs.name.localizedStandardCompare(rhs.name)
+            if comparison != .orderedSame { return comparison == .orderedAscending }
+            return lhs.zone.identifier < rhs.zone.identifier
+        }.map(\.zone)
+    }
+
     static func timeZoneName(_ zone: TimeZone, at date: Date = .now) -> String {
         // Windows DisplayName uses the standard offset even during daylight saving.
         let offset = zone.secondsFromGMT(for: date) - Int(zone.daylightSavingTimeOffset(for: date))

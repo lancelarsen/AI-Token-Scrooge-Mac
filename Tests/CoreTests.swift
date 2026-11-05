@@ -2,6 +2,15 @@ import XCTest
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testTimeZoneMenuUsesStandardOffsetsAcrossSeasons() throws {
+        let zones = ["Asia/Kathmandu", "America/Phoenix", "Pacific/Honolulu", "Asia/Kolkata", "America/Los_Angeles", "America/Phoenix", "invalid/zone"]
+        let expected = ["Pacific/Honolulu", "America/Los_Angeles", "America/Phoenix", "Asia/Kolkata", "Asia/Kathmandu"]
+        for instant in ["2026-01-15T12:00:00Z", "2026-07-15T12:00:00Z"] {
+            let date = try XCTUnwrap(ISO8601DateFormatter().date(from: instant))
+            XCTAssertEqual(Format.sortedTimeZones(identifiers: zones, at: date).map(\.identifier), expected)
+        }
+    }
+
     func testProviderFooterOnlyAppearsForCurrentLiveQuotaDetails() {
         var state = PersistedState()
         let account = ProviderAccount(id: "a", provider: .codex, nickname: "A", subject: "s", scope: "scope")
