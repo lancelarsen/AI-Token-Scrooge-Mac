@@ -535,3 +535,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 
 - Windows ReminderEditor accepts positive Int32 values and displays a 12-point #F05B69 Enter a Positive Whole Number message for invalid text. Removed the Mac-only silent 1–365 clamp. Draft text stays visible while invalid; only valid amounts update the reminder. Severity/unit changes also validate the row draft, matching Windows Save behavior. Removing a reminder clears its draft and error.
 - Canonical build passed (`artifacts/reminder-validation-build.log`) and diff checks passed. Native isolated demo check entered 0 and observed the exact validation message; correcting to 366 retained 366 and removed the message. Exact error text metrics/placement are still unverified against a reference capture.
+
+### Settings page canvas palette
+
+- Windows MainPage explicitly uses the #1B1C20-to-#141519 diagonal gradient, while SettingsPage uses a flat #141519 background for both global and account settings. Mac incorrectly reused the dashboard gradient for those two pages. Added Theme.canvas and applied it to both settings surfaces. Dashboard gradient remains source-aligned.
+- Canonical build passed (`artifacts/settings-canvas-build.log`) and diff checks passed. This color correction is verified against authoritative source values; no new rendered settings capture was taken in this pass, so screenshot parity remains unproven.
