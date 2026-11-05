@@ -299,13 +299,9 @@ import AppKit
             state.settings.rules.append(rule)
         }
     }
-    func reorder(_ dragged: String, before target: String) {
+    func reorder(_ dragged: String, relativeTo target: String, after: Bool) {
         edit { state in
-            guard state.settings.accountSort == .custom, dragged != target,
-                  state.accounts.contains(where: { $0.id == dragged }) else { return }
-            var order = AccountPolicy.ordered(state).map(\.id).filter { $0 != dragged }
-            guard let index = order.firstIndex(of: target) else { return }
-            order.insert(dragged, at: index); state.settings.accountOrder = order; state.settings.accountSort = .custom
+            AccountPolicy.reorder(dragged, relativeTo: target, after: after, state: &state)
         }
     }
     func reloadHistory() async {

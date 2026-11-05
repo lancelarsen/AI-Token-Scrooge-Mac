@@ -22,10 +22,7 @@ struct DashboardView: View {
                                 AccountCard(account: account, wide: geometry.size.width - 64 - (store.state.settings.accountSort == .custom ? 57 : 0) - 56 > 1050)
                                     .id(account.id)
                                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.accent, lineWidth: store.highlightedAccountID == account.id ? 3 : 0))
-                                    .dropDestination(for: String.self) { items, _ in
-                                        guard let id = items.first, store.state.accounts.contains(where: { $0.id == id }), store.state.settings.accountSort == .custom else { return false }
-                                        store.reorder(id, before: account.id); return true
-                                    }
+                                    .modifier(AccountOrderDropTarget(accountID: account.id))
                             }
                         }.padding(.horizontal, 32).padding(.top, 24).padding(.bottom, 32)
                     }
@@ -364,5 +361,23 @@ struct QuotaDetailsView: View {
                 }.buttonStyle(ScroogeButtonStyle())
             }
         }.font(Theme.dialogBodyFont).foregroundStyle(Theme.dialogText).textSelection(.enabled).frame(maxWidth: 440, alignment: .leading).preferredColorScheme(.dark)
+    }
+}
+
+private struct AccountOrderDropTarget: ViewModifier {
+    @Environment(AppStore.self) private var store
+    let accountID: String
+    @State private var height: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height = $0 }
+            .dropDestination(for: String.self) { items, location in
+                guard items.count == 1, let id = items.first, id != accountID,
+                      height > 0, store.state.settings.accountSort == .custom,
+                      store.state.accounts.contains(where: { $0.id == id }) else { return false }
+                store.reorder(id, relativeTo: accountID, after: location.y >= height / 2)
+                return true
+            }
     }
 }
