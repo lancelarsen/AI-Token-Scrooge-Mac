@@ -1020,3 +1020,9 @@ Canonical build passed (`artifacts/timeline-plan-badges-build.log`). Native demo
 Added `CoreTests.testSimultaneousTimelineEventsFollowWindowsOrdering` using actual application models. It covers multiple quota windows per account, reversed custom dashboard order, refresh-before-expiry ties, stable expiry account order, chronological precedence, hidden accounts and disabled accounts. This preserves the expected behavior beyond the disposable standalone verification fixture.
 
 `xcodebuild build-for-testing` passed (`artifacts/timeline-order-test-build.log`), including compilation of the new test. Re-ran the standalone production HorizonEvent harness successfully. Hosted XCTest execution was not retried: the previously sampled dyld launch stall remains unresolved, so the new XCTest's runtime is not claimed as passed. No app behavior changed in this test-only update.
+
+### Dynamic Badge Verification — 2026-11-05
+
+Through native UI in the isolated demo, turned off Monitor This Account for OpenAI Personal. AX confirmed off; dashboard capture `artifacts/single-openai-badge-check.jpg` confirmed the account's events disappeared, counts changed to 5 refreshes/0 expirations, and the remaining OpenAI Work events lost their Pro badges. Re-enabled the same account through its settings: AX confirmed on; `artifacts/duplicate-openai-badges-restored.jpg` confirms 7/2 counts and Plus/Pro event badges returned. The demo was left restored. This closes the earlier unverified dynamic enable/disable badge case; no production account settings were touched.
+
+Source review also confirmed Windows OrderedUsageHistory uses saved custom order independently of dashboard sorting, matching Mac timelineAccounts; future event ties use dashboard order as tested previously. No further ordering change was necessary in this pass. Documentation-only update; no rebuild needed beyond the existing tested build.
