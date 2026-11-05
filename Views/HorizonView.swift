@@ -607,10 +607,10 @@ struct HorizonView: View {
             var connector = Path(); connector.move(to: CGPoint(x: x - 4, y: y)); connector.addLine(to: CGPoint(x: labelX + 80, y: labelY + 10))
             context.stroke(connector, with: .color(color.opacity(0.6)), lineWidth: 1)
             let rect = CGRect(x: labelX, y: labelY, width: 80, height: 21)
-            context.fill(Path(roundedRect: rect, cornerRadius: 6), with: .color(Theme.card))
-            context.stroke(Path(roundedRect: rect, cornerRadius: 6), with: .color(color.opacity(0.7)), lineWidth: 1)
+            context.fill(Path(roundedRect: rect, cornerRadius: 6), with: .color(Color(hex: "#202229")))
+            context.stroke(Path(roundedRect: rect, cornerRadius: 6), with: .color(color), lineWidth: 1)
             let plan = Format.plan(series.account.provider, store.state.snapshots[series.account.id]?.planType)
-            context.draw(Text("\(plan) \(Format.percent(100 - point.remaining))").font(.reference(size: 10)).foregroundColor(color), at: CGPoint(x: rect.midX, y: rect.midY))
+            context.draw(Text("\(plan) \(Format.percent(100 - point.remaining, fractionDigits: 1))").font(.reference(size: 10)).foregroundColor(color), at: CGPoint(x: rect.midX, y: rect.midY))
         }
     }
     private func prepareHistory() {

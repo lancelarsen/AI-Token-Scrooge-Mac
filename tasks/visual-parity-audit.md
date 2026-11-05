@@ -1044,3 +1044,9 @@ Canonical build passed (`artifacts/historical-marker-glyphs-build.log`). Relaunc
 Moved the historical marker views after the day-heading/dot/future-event loop in the timeline ZStack, matching Windows' historical-marker-over-day-dot paint order. Previously the hollow day dot could cover part of a nearby historical refresh icon.
 
 Canonical build passed (`artifacts/historical-marker-layer-build.log`). Relaunched the fixed-date wide demo and moved the navigator five days back. Capture `artifacts/historical-marker-layer-fixed.jpg` shows Oct 30, Nov 1 and Nov 2 refresh glyphs unobscured, unlike the prior capture at the same viewport. Clicking the Nov 1 marker opened the correct History Event sheet for Claude / Personal · Pro, Quota Refresh Sun Nov 1 10:11 AM; closed it afterward. Remaining full-image and other interaction gaps are unchanged.
+
+### History Endpoint Label Styling — 2026-11-05
+
+Compared endpoint labels against Windows HistoryTimelineView at origin/main. Matched the #202229 fill, full-opacity series-colored border, and optional single decimal in used percentages (`0.#%`). Previously the Mac used the card background, a 70-percent-opacity border, and rounded to a whole percent. Dimensions, corner radius, connector and font size remain source-matched.
+
+Canonical build passed (`artifacts/history-endpoint-label-build.log`). A standalone harness extracted the production Format.percent declaration and passed fractional rounding and whole-number trailing-zero checks (`artifacts/endpoint-percent-check.swift`). Source/diff checks passed. This pass does not claim native screenshot validation of endpoint labels or full-image identity; those remain open.
