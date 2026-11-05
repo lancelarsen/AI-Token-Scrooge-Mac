@@ -528,7 +528,7 @@ struct HorizonView: View {
         for percent in stride(from: 0, through: 100, by: 25) {
             let y = plotTop + (1 - Double(percent) / 100) * chartHeight
             var line = Path(); line.move(to: CGPoint(x: 0, y: y)); line.addLine(to: CGPoint(x: max(0, nowX), y: y))
-            context.stroke(line, with: .color(Theme.border.opacity(0.6)), lineWidth: 1)
+            context.stroke(line, with: .color(Color(hex: "#343741")), lineWidth: 1)
         }
         for day in days {
             let x = viewport.position(at: day)
@@ -536,7 +536,7 @@ struct HorizonView: View {
             var line = Path()
             line.move(to: CGPoint(x: x, y: plotTop))
             line.addLine(to: CGPoint(x: x, y: plotTop + chartHeight))
-            context.stroke(line, with: .color(Color(hex: "#30333C")), lineWidth: 1)
+            context.stroke(line, with: .color(Color(hex: "#30333C")), lineWidth: 2)
         }
         for series in historySeries {
             let points = presentation.renderPoints[series.account.id] ?? []
@@ -567,7 +567,7 @@ struct HorizonView: View {
             let x = viewport.position(at: event.date)
             guard x >= viewport.scrollOffset, x <= min(nowX, viewport.scrollOffset + viewport.viewportWidth) else { continue }
             var marker = Path(); marker.move(to: CGPoint(x: x, y: plotTop)); marker.addLine(to: CGPoint(x: x, y: plotTop + chartHeight))
-            context.stroke(marker, with: .color((event.expiration ? Theme.amber : Theme.accent).opacity(0.6)), style: StrokeStyle(lineWidth: 1, dash: [4,4]))
+            context.stroke(marker, with: .color((event.expiration ? Theme.amber : Color(hex: "#B99AF8")).opacity(0.6)), style: StrokeStyle(lineWidth: 1, dash: [4,4]))
         }
         if let sample = hoveredSample,
            timelineAccounts.contains(where: { $0.id == sample.account.id }),
@@ -577,7 +577,7 @@ struct HorizonView: View {
             var guide = Path()
             guide.move(to: CGPoint(x: x, y: plotTop))
             guide.addLine(to: CGPoint(x: x, y: plotTop + chartHeight))
-            context.stroke(guide, with: .color(Theme.secondary.opacity(0.6)), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
+            context.stroke(guide, with: .color(Theme.dialogText.opacity(0.6)), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
             let dot = Path(ellipseIn: CGRect(x: x - 4, y: y - 4, width: 8, height: 8))
             context.fill(dot, with: .color(Color(hex: sample.account.resolvedLineColor(plan: store.state.snapshots[sample.account.id]?.planType))))
             context.stroke(dot, with: .color(.white), lineWidth: 1)
@@ -586,7 +586,7 @@ struct HorizonView: View {
             var currentTime = Path()
             currentTime.move(to: CGPoint(x: nowX, y: plotTop))
             currentTime.addLine(to: CGPoint(x: nowX, y: plotTop + chartHeight))
-            context.stroke(currentTime, with: .color(Theme.accent), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
+            context.stroke(currentTime, with: .color(Theme.actionAccent), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
         }
         let latest = historySeries.compactMap { series -> (UsageHistorySeries, HistoryPoint)? in
             guard let point = series.points.last(where: { historyX($0.at) >= viewport.scrollOffset && historyX($0.at) <= viewport.scrollOffset + viewport.viewportWidth }) else { return nil }

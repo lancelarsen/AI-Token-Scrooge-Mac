@@ -1050,3 +1050,9 @@ Canonical build passed (`artifacts/historical-marker-layer-build.log`). Relaunch
 Compared endpoint labels against Windows HistoryTimelineView at origin/main. Matched the #202229 fill, full-opacity series-colored border, and optional single decimal in used percentages (`0.#%`). Previously the Mac used the card background, a 70-percent-opacity border, and rounded to a whole percent. Dimensions, corner radius, connector and font size remain source-matched.
 
 Canonical build passed (`artifacts/history-endpoint-label-build.log`). A standalone harness extracted the production Format.percent declaration and passed fractional rounding and whole-number trailing-zero checks (`artifacts/endpoint-percent-check.swift`). Source/diff checks passed. This pass does not claim native screenshot validation of endpoint labels or full-image identity; those remain open.
+
+### History Chart Grid and Guide Palette — 2026-11-05
+
+Matched HistoryTimelineView's chart-specific drawing values: opaque horizontal grid #343741, vertical grid #30333C at 2 points (Windows retains the rail's StrokeSize=2), historical refresh guides #B99AF8 at 60 percent opacity, hover guide #BEC1D2 at 60 percent, and current-time line #B5A0F4. Previously these used general theme colors or a thinner vertical grid.
+
+Canonical build passed (`artifacts/history-chart-palette-build.log`). Launched isolated fixed-date compact demo and moved six days backward with the navigator's native accessibility action. Capture `artifacts/history-chart-palette.jpg` confirms chart rendering and visible endpoint labels from the previous change (including Max 82% and Plus 74%). The viewport auto-scrolled vertically to reveal the navigator; future-event badges overlap some endpoint labels in this state, so this is not a full-image parity result. Hover-guide appearance was source-checked but not captured. Full reference comparison remains open.
