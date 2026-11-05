@@ -819,3 +819,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Compared all eight shared image assets (`openai.png`, `token_baron.png`, `github.svg`, `claude.svg`, `alarm_off.svg`, `alarm_on.svg`, `refresh.svg`, `settings.svg`) against Windows `origin/main` and the currently built Mac app resources. All eight are byte-identical in all three locations. SHA-256 evidence: `artifacts/shared-image-integrity.json`.
 - ProviderIcon loads the matching bundle PNG/SVG with aspect-fit rendering. No stale alternate GitHub/Claude PNG is present in the built bundle. This proves source and packaging identity only; rasterization, size, placement, and control glyphs still require rendered comparison.
 - Font resolution remains pending: asked whether to adopt shared redistributable fonts/icons in both apps or retain Windows unchanged and use licensed Segoe assets when available. No substitution or Windows edits made while awaiting that decision.
+
+### Rendered shared-surface color check
+
+- Compared reference 31 with native `compact-form-inset-settings.jpg`, converting the Mac Display ICC screenshot into sRGB first. The Windows JPEG reference has no embedded profile and is treated as sRGB.
+- The three dominant colors match exactly in both images: card fill RGB (29,30,35), panel canvas (20,21,25), and control fill (35,36,41). JPEG quantization explains the card fill's slight difference from the source #1C1E24; importantly both decoded images agree. Evidence: `artifacts/settings-surface-colors.json`.
+- Also checked source dashboard gradient endpoints and capacity gradient endpoints against Windows; the defined hex values match. This does not certify full gradient rendering or the whole screenshot. No palette changes were justified by this evidence. Font/glyph selection remains pending user input.
