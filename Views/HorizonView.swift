@@ -308,9 +308,13 @@ struct HorizonView: View {
                 ForEach(HistoricalEventMarker.layout(events: historicalEvents, viewport: viewport, now: now)) { marker in
                     Button { selectedHistoricalMarker = marker } label: {
                         Group {
-                            if marker.events.count > 1 { Text(String(marker.events.count)) }
-                            else { Image(systemName: marker.expiration ? "hourglass" : "arrow.clockwise") }
-                        }.font(.reference(size: 14, weight: .semibold)).foregroundStyle(Theme.control)
+                            if marker.events.count > 1 {
+                                Text(String(marker.events.count)).font(.reference(size: 14, weight: .semibold))
+                            } else {
+                                Text(marker.expiration ? "\u{E823}" : "\u{E72C}")
+                                    .font(ReferenceTypography.iconFont(size: 14))
+                            }
+                        }.foregroundStyle(Theme.control)
                             .frame(width: 22, height: 22).background(marker.expiration ? Theme.amber : Color(hex: "#B99AF8")).clipShape(Circle())
                     }.buttonStyle(.plain)
                         .modifier(ImmediateReferenceTooltip(text: historicalTooltip(marker)))

@@ -1032,3 +1032,9 @@ Source review also confirmed Windows OrderedUsageHistory uses saved custom order
 Windows HistoryTimelineView limits headings and rail dots to `model.LastDate`; extra content width is layout space only. Mac drew an extra day (Dec 1 in the fixed November demo) and could label empty padding beyond a short event range. The shared heading/dot/event loop now stops at the local calendar date of `viewport.lastEventAt`. Viewport width, navigator range and history grid calculations are unchanged.
 
 Canonical build passed (`artifacts/timeline-final-date-build.log`). Relaunched the fixed-date demo and checked native AX: Nov 30 is present and Dec 1 absent. Repeated with History switched off, confirmed the same boundary, then restored History. Saved initial AX evidence in `artifacts/timeline-final-date-ax.txt`. Exact viewport appearance and full-image matching remain open.
+
+### Historical Marker Glyph Parity — 2026-11-05
+
+Matched Windows HistoryTimelineView's single historical marker glyphs: Segoe Fluent U+E823 for expiration and U+E72C for refresh, both 14 points. Replaced the SF hourglass/refresh symbols. Multi-event counts remain Segoe UI Semibold 14; existing 22-point circle dimensions and foreground/background colors already match the source.
+
+Canonical build passed (`artifacts/historical-marker-glyphs-build.log`). Relaunched demo and moved the navigator back five days through its native accessibility action. Capture `artifacts/historical-marker-glyphs.jpg` visibly shows the amber clock and lavender refresh glyphs. The capture also exposes hollow day dots painting over some historical markers; Windows paints historical markers after day dots, so draw-order parity needs a follow-up. No full-image identity claim.
