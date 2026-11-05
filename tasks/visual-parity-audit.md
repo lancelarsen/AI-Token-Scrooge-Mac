@@ -1014,3 +1014,9 @@ Canonical build passed (`artifacts/horizon-event-order-build.log`). A standalone
 Matched Windows `DashboardState.TimelineBadge`: future-event plan badges appear only when more than one enabled account uses that provider. Hidden timeline accounts still count, matching the Windows rule. The Mac previously displayed a plan badge on every event. The icon's reserved 62×49 area and timestamp placement are preserved when the badge is absent.
 
 Canonical build passed (`artifacts/timeline-plan-badges-build.log`). Native demo capture `artifacts/timeline-plan-badges-wide.jpg` confirms both Claude event badges are absent while OpenAI Plus/Pro badges remain, matching reference 09. Sidebar account badges remain unchanged, as intended. Duplicate-provider enable/disable changes have not yet been exercised in the UI; full-image parity remains open.
+
+### Persistent Timeline Ordering Regression — 2026-11-05
+
+Added `CoreTests.testSimultaneousTimelineEventsFollowWindowsOrdering` using actual application models. It covers multiple quota windows per account, reversed custom dashboard order, refresh-before-expiry ties, stable expiry account order, chronological precedence, hidden accounts and disabled accounts. This preserves the expected behavior beyond the disposable standalone verification fixture.
+
+`xcodebuild build-for-testing` passed (`artifacts/timeline-order-test-build.log`), including compilation of the new test. Re-ran the standalone production HorizonEvent harness successfully. Hosted XCTest execution was not retried: the previously sampled dyld launch stall remains unresolved, so the new XCTest's runtime is not claimed as passed. No app behavior changed in this test-only update.

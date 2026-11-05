@@ -2,6 +2,32 @@ import XCTest
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testSimultaneousTimelineEventsFollowWindowsOrdering() {
+        let now = Date(timeIntervalSince1970: 1800000000)
+        let tied = now.addingTimeInterval(3600)
+        var state = PersistedState()
+        state.accounts = ["a", "b"].map {
+            ProviderAccount(id: $0, provider: .codex, nickname: $0, subject: $0, scope: "scope")
+        }
+        state.settings.accountSort = .custom
+        state.settings.accountOrder = ["b", "a"]
+        for account in state.accounts {
+            state.snapshots[account.id] = QuotaSnapshot(accountID: account.id, subject: account.subject,
+                scope: account.scope, observedAt: now,
+                windows: [QuotaWindow(id: "first", name: "First", unit: .percent, resetsAt: tied),
+                          QuotaWindow(id: "second", name: "Second", unit: .percent, resetsAt: tied)],
+                reserve: ResetReserve(availableCount: 1, credits: [ResetCredit(id: "expiry", status: "available", expiresAt: tied)]))
+        }
+        XCTAssertEqual(HorizonEvent.events(state: state, now: now).map(\.id),
+                       ["b/first", "b/second", "a/first", "a/second", "a/expiry", "b/expiry"])
+        state.snapshots["a"]!.reserve!.credits![0].expiresAt = now.addingTimeInterval(60)
+        XCTAssertEqual(HorizonEvent.events(state: state, now: now).first?.id, "a/expiry")
+        state.settings.hiddenHistoryAccounts = ["b"]
+        XCTAssertEqual(HorizonEvent.events(state: state, now: now).map(\.id), ["a/expiry", "a/first", "a/second"])
+        state.accounts[0].enabled = false
+        XCTAssertTrue(HorizonEvent.events(state: state, now: now).isEmpty)
+    }
+
     func testCountAllowanceLabelsAndCopilotPercentException() {
         let window = QuotaWindow(id: "requests", name: "Requests", unit: .requests, used: 1250, limit: 1000)
         let labels = Format.usageText(window, provider: .claude, locale: Locale(identifier: "en_US"))
