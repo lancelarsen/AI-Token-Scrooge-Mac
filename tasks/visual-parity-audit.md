@@ -783,3 +783,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 
 - Reference `04-settings-thresholds.png` shows the rails aligned with the content/label edges, while thumb centers retain their half-thumb inset. Corrected `ScroogePercentSlider` to draw the background across its full width and the filled segment from the leading edge to the thumb center. Thumb travel and input mapping are unchanged.
 - Verification: canonical build passed (`artifacts/percent-slider-rail-build.log`); rebuilt isolated wide demo captured in `artifacts/percent-slider-rail-native.jpg`. Volume and threshold rails now align with their respective content edges. This is a geometry correction, not certification of complete screenshot/font parity.
+
+### Compact settings form width reservation
+
+- Rechecking `SettingsPage.SizeChanged` revealed an omitted rule: form width is `min(960, Width - 24)`, including its 16-point horizontal padding. The previous form-cap change correctly handled wide panels but left compact cards 24 points too wide. Reference 31 confirms the extra outer inset.
+- Applied the rule to global and account settings. At the current 741-point panel width, the form is 717 points and cards 685 points, with 28-point outer margins. At 1000 points the form remains 960 points, preserving wide geometry.
+- Canonical build passed (`artifacts/compact-form-inset-build.log`). Native compact global and account captures (`compact-form-inset-settings.jpg`, `compact-form-inset-account.jpg`) both show the corrected inset. Source and screenshot checks supersede the earlier claim that 709-point compact cards matched Windows. Exact typography and remaining outer-window differences remain unresolved.
