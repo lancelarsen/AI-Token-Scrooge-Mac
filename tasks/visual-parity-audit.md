@@ -530,3 +530,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Updated the empty timeline to the same responsive rail widths as the populated chart (95/112, breakpoint 850), ten-point chart gap, forty-point axis inset and six-point divider end insets. The prior branch retained outdated rail widths and gaps after the populated-layout correction.
 - Canonical build passed (`artifacts/empty-timeline-rail-build.log`) and diff checks passed. Isolated first-launch native screenshot shows divider near x155, chart start x206 and Today x294; reference 19 is near x156/x207/x295. Approximate coordinates differ by about one point.
 - Capture used a 1496-point-wide native window versus the 1463-point reference; exact width, font metrics, and full first-launch parity remain open. No live accounts were used.
+
+### Reminder input validation parity
+
+- Windows ReminderEditor accepts positive Int32 values and displays a 12-point #F05B69 Enter a Positive Whole Number message for invalid text. Removed the Mac-only silent 1–365 clamp. Draft text stays visible while invalid; only valid amounts update the reminder. Severity/unit changes also validate the row draft, matching Windows Save behavior. Removing a reminder clears its draft and error.
+- Canonical build passed (`artifacts/reminder-validation-build.log`) and diff checks passed. Native isolated demo check entered 0 and observed the exact validation message; correcting to 366 retained 366 and removed the message. Exact error text metrics/placement are still unverified against a reference capture.

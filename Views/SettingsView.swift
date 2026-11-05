@@ -212,6 +212,8 @@ struct ThresholdSetting: View {
 }
 struct ReminderEditor: View {
     @Binding var reminders: [TimedReminder]
+    @State private var amountDrafts: [String: String] = [:]
+    @State private var amountError = false
     private var orderedReminders: [TimedReminder] {
         reminders.enumerated().sorted { left, right in
             left.element.hours == right.element.hours
@@ -229,7 +231,10 @@ struct ReminderEditor: View {
                     } label: {
                         menuLabel(reminder.severity.rawValue, color: severityColor(reminder.severity))
                     }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Severity")
-                    TextField("Amount", value: Binding(get: { reminder.amount }, set: { value in update(reminder.id) { $0.amount = min(365, max(1, value)) } }), format: .number)
+                    TextField("Amount", text: Binding(get: { amountDrafts[reminder.id] ?? String(reminder.amount) }, set: { text in
+                        amountDrafts[reminder.id] = text
+                        update(reminder.id) { _ in }
+                    }))
                         .textFieldStyle(.plain).padding(.horizontal, 12).frame(width: 80, height: 44)
                         .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
                         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
@@ -240,11 +245,20 @@ struct ReminderEditor: View {
                         }
                     } label: { menuLabel(reminder.unit) }
                         .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Unit")
-                    Button { reminders.removeAll { $0.id == reminder.id } } label: {
+                    Button {
+                        reminders.removeAll { $0.id == reminder.id }
+                        amountDrafts.removeValue(forKey: reminder.id)
+                        amountError = false
+                    } label: {
                         ActionIcon(symbol: "trash", size: 20)
                     }.buttonStyle(ScroogeButtonStyle(horizontalPadding: 12))
                         .help("Remove Reminder").accessibilityLabel("Remove Reminder")
                 }
+            }
+            if amountError {
+                Text("Enter a Positive Whole Number").font(.system(size: 12))
+                    .foregroundStyle(Color(hex: "#F05B69"))
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             Button { reminders.append(TimedReminder(amount: 1, unit: "Days", severity: .info)) } label: { ActionLabel(title: "Add Reminder", symbol: "plus") }.buttonStyle(ScroogeButtonStyle()).padding(.top, 2)
         }
@@ -266,7 +280,17 @@ struct ReminderEditor: View {
         }
     }
     private func update(_ id: String, change: (inout TimedReminder) -> Void) {
-        var copy = reminders; if let index = copy.firstIndex(where: { $0.id == id }) { change(&copy[index]); reminders = copy }
+        var copy = reminders
+        guard let index = copy.firstIndex(where: { $0.id == id }) else { return }
+        let draft = amountDrafts[id] ?? String(copy[index].amount)
+        guard let amount = Int32(draft.trimmingCharacters(in: .whitespacesAndNewlines)), amount > 0 else {
+            amountError = true
+            return
+        }
+        amountError = false
+        copy[index].amount = Int(amount)
+        change(&copy[index])
+        reminders = copy
     }
 }
 struct QuietHoursControl: View {
