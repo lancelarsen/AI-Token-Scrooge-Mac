@@ -13,8 +13,8 @@ Cross-cutting open requirements: exact Semibold font metrics and Segoe Fluent gl
 | 01-live-dashboard.png | 1463 × 866 | Live-provider equivalent capture missing. |
 | 02-settings-updates-time-retention.png | 1463 × 866 | Wide demo top sections captured; inherited palette corrected; live update-available and final pixel checks needed; persistent lavender scrollbar verified. |
 | 03-settings-sounds-quiet-hours.png | 1463 × 866 | Wide sounds/quiet-hours captured; radio selection, full-track clicks/drags, keyboard, overnight/equal-time summaries, overlap alternation and disabled input/focus checked; all eight preview actions and audio start/error paths checked at zero volume; status row and volume thumb corrected; audible output and exact pixels remain open. |
-| 04-settings-thresholds.png | 1463 × 866 | Threshold controls revised; matching global-settings capture needed. |
-| 05-settings-reset-reminders.png | 1463 × 866 | Validation and ordering checked; matching reminder-list capture needed. |
+| 04-settings-thresholds.png | 1463 × 866 | Fresh wide settings-thresholds-current.jpg capture; threshold card about 243 points high versus 244 in reference, controls fit. Exact text rasterization/full alignment remain open. |
+| 05-settings-reset-reminders.png | 1463 × 866 | Validation and ordering checked; fresh settings-reminders-current.jpg wide capture confirms 44-point rows/6-point gaps and no row clipping. Native menus announce selected values once; exact border/underline/glyph comparison remains open. |
 | 06-settings-refresh-reminders.png | 1463 × 866 | Validation and ordering checked; matching reminder-list capture needed. |
 | 07-settings-app-behavior.png | 1463 × 866 | Behavior section seen during native navigation; exact layout comparison pending. |
 | 08-alert-history.png | 1463 × 866 | Fresh populated wide panel captured at 1000×800 points; 80-point rows, 16-point gaps and 28-point inset confirmed against reference 08. Fixture text/dates, typography and icon shapes still differ. |

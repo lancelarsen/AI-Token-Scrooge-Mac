@@ -48,7 +48,7 @@ struct SettingsView: View {
                             HStack {
                                 Text(Format.timeZoneName(store.state.settings.zone))
                                 Spacer()
-                                Image(systemName: "chevron.down").font(.reference(size: 10)).foregroundStyle(Theme.secondary)
+                                Image(systemName: "chevron.down").accessibilityHidden(true).font(.reference(size: 10)).foregroundStyle(Theme.secondary)
                             }.font(.reference(size: 13)).padding(.horizontal, 12).frame(height: 32)
                                 .background(Theme.control, in: RoundedRectangle(cornerRadius: 8))
                                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.border))
@@ -67,7 +67,7 @@ struct SettingsView: View {
                             HStack {
                                 Text("\(store.state.settings.historyRetentionDays) Days")
                                 Spacer()
-                                Image(systemName: "chevron.down").font(.reference(size: 10)).foregroundStyle(Theme.secondary)
+                                Image(systemName: "chevron.down").accessibilityHidden(true).font(.reference(size: 10)).foregroundStyle(Theme.secondary)
                             }.padding(.horizontal, 12).frame(height: 32)
                                 .background(Theme.control, in: RoundedRectangle(cornerRadius: 8))
                                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.border))
@@ -236,7 +236,7 @@ struct ReminderEditor: View {
                             }
                         } label: {
                             menuLabel(reminder.severity.rawValue, color: severityColor(reminder.severity))
-                        }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Reminder Severity")
+                        }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Reminder Severity").accessibilityValue(reminder.severity.rawValue)
                         TextField("Amount", text: Binding(get: { amountDrafts[reminder.id] ?? String(reminder.amount) }, set: { text in
                             amountDrafts[reminder.id] = text
                             update(reminder.id) { _ in }
@@ -250,7 +250,7 @@ struct ReminderEditor: View {
                                 Button(unit) { update(reminder.id) { $0.unit = unit } }
                             }
                         } label: { menuLabel(reminder.unit) }
-                            .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Days or Hours")
+                            .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Days or Hours").accessibilityValue(reminder.unit)
                         Button {
                             reminders.removeAll { $0.id == reminder.id }
                             amountDrafts.removeValue(forKey: reminder.id)
@@ -274,7 +274,7 @@ struct ReminderEditor: View {
         HStack {
             Text(title).foregroundStyle(color)
             Spacer()
-            Image(systemName: "chevron.down").font(.reference(size: 10)).foregroundStyle(Theme.secondary)
+            Image(systemName: "chevron.down").accessibilityHidden(true).font(.reference(size: 10)).foregroundStyle(Theme.secondary)
         }.padding(.horizontal, 12).frame(maxWidth: .infinity).frame(height: 44)
             .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))

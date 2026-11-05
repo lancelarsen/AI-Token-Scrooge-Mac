@@ -1252,3 +1252,13 @@ Fetched Windows origin/main: still 3c863a5. Compared ConnectAccountPage.GitHub.c
 Removed remaining caption-font substitutions in the provider-details browser note (14-point reference dialog text, matching the Windows dialog body) and Mac-specific login-item status (explicit 12-point reference text). Reminder fields now expose the source's Reminder Severity, Time Before Event, and Days or Hours descriptions. Corrected the lifted account card's border to the source's #B5A0F4 accent.
 
 Canonical build passes (artifacts/sign-in-prompt-parity-build.log), and diff checks pass. Prior 95 hosted test results retained for unchanged provider transports and ordering behavior. The challenge prompt is source-verified but has not been captured during a live sign-in; clipboard feedback/browser-failure branches remain runtime-unverified. No claim of full screenshot identity.
+
+### Connection Action Order and Reminder Accessibility — 2026-11-05
+
+A second source pass through ConnectAccountPage.cs confirmed the GitHub challenge belongs after the status and sign-in action. Moved that prompt below the action (its internal instruction/code/buttons order remains as corrected previously).
+
+Native global Settings inspection exposed duplicate menu accessibility entries from decorative chevron images, and reminder menus did not announce selected severity/unit. Hid decorative arrows from accessibility in global settings, account settings and connection forms; reminder menus now expose their selected values. Rebuilt and natively verified one Time Zone entry, one retention entry, and single reminder entries with Info/Warning/Critical and Days/Hours values. No reminder values changed.
+
+Fresh wide-demo captures: artifacts/settings-thresholds-current.jpg and artifacts/settings-reminders-current.jpg. Settings panel is 1000×800 points (2000×1600 Retina capture). Approximate threshold-card height is 243 points versus 244 in reference04; reminder controls remain 44 points tall with 6-point row gaps, matching source. Current text and controls fit without clipping within their rows. Platform text rasterization, borders/entry underlines, dropdown glyphs and exact per-image alignment still differ or remain unverified; no full visual-equivalence claim. Closed settings after inspection.
+
+Canonical build passed (artifacts/settings-menu-accessibility-build.log); diff checks passed. Prior 95 hosted tests retained for these presentation/accessibility-only changes. No live sign-in initiated, and the challenge's complete live state remains unverified.

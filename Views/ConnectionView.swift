@@ -99,7 +99,7 @@ struct ConnectionView: View {
                     HStack {
                         Text(unit == .credits ? "AI credits" : "Legacy premium requests")
                         Spacer()
-                        Image(systemName: "chevron.down").font(.reference(size: 10))
+                        Image(systemName: "chevron.down").accessibilityHidden(true).font(.reference(size: 10))
                     }.padding(.horizontal, 12).frame(height: 32)
                         .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
                 }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
