@@ -73,15 +73,29 @@ struct MenuBarContent: View {
     private var pathMonitor: NWPathMonitor?
     private var wakeObserver: NSObjectProtocol?
     private var networkWasAvailable: Bool?
+    private var refreshAfterWindowUpdate = false
     private func refreshAfterResume() {
         guard ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] != "1",
               let store, !store.isLoading, !store.isDemo else { return }
         Task { await store.refresh() }
     }
     func applicationDidBecomeActive(_ notification: Notification) {
-        refreshAfterResume()
+        // Let AppKit update the cached windows before starting provider work.
+        refreshAfterWindowUpdate = true
+    }
+    func applicationDidUpdate(_ notification: Notification) {
+        guard refreshAfterWindowUpdate else { return }
+        refreshAfterWindowUpdate = false
+        Task { @MainActor [weak self] in
+            guard NSApp.isActive, NSApp.windows.contains(where: { $0.isVisible && !$0.isMiniaturized }) else { return }
+            self?.refreshAfterResume()
+        }
+    }
+    func applicationDidResignActive(_ notification: Notification) {
+        refreshAfterWindowUpdate = false
     }
     func applicationWillTerminate(_ notification: Notification) {
+        refreshAfterWindowUpdate = false
         pathMonitor?.cancel()
         if let wakeObserver { NSWorkspace.shared.notificationCenter.removeObserver(wakeObserver) }
     }

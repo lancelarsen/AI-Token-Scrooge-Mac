@@ -966,3 +966,9 @@ Verification: canonical build passed (`artifacts/remaining-action-glyphs-build.l
 The dashboard used a second SF Symbols spelling (`arrow.up.forward.square`) for Exit Demo, bypassing the shared generic-action glyph. Routed it through the same U+E8A7 Segoe Fluent mapping as Windows `ActionButton.GlyphFor("Exit demo")`. Windows `MakeButton` ignores its legacy glyph argument, so the text-driven fallback is authoritative. Canonical build passed (`artifacts/exit-demo-glyph-build.log`); source search confirms the unmapped spelling is gone. No new native screenshot was captured for this one-line routing fix.
 
 Also verified the dashboard sort labels against Windows `AccountSortControl`: its explicit 13-point override matches the Mac, so no font-size change was made there.
+
+### Windows Restore Update Review — 2026-11-05
+
+Fetched Windows `aaeb737` (new since `694dc85`). It defers tray/resume refresh until after a rendered frame and moves provider refresh setup off the UI thread. No conversion reference images changed. Mac already retains its snapshot-backed dashboard while refreshing, and Claude/GitHub provider work is actor-isolated. Activation previously started refresh immediately.
+
+Mac activation now waits for `applicationDidUpdate`, clears the pending flag, and queues refresh outside the AppKit update callback. It checks active/visible/non-minimized state before refresh; resignation and termination clear the pending request. Existing demo/test/loading guards and wake/network refresh behavior remain. This is an AppKit window-update boundary, not proof that a compositor frame has been presented. Canonical build passed (`artifacts/restore-update-build.log`). Live-account restore latency, same-app minimized-window restoration, and cancellation/repeated-activation runtime checks remain open; do not claim complete parity with the Windows tray test.
