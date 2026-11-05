@@ -666,7 +666,8 @@ struct HistoryPointerTracking: NSViewRepresentable {
         var severity: ReminderSeverity?
         var plainText = false
         var popupText: String?
-        func hidePopup() { popup?.orderOut(nil) }
+        private var thresholdPlacement = ThresholdPopupPlacement()
+        func hidePopup() { popup?.orderOut(nil); thresholdPlacement.reset() }
         func showPopup(_ text: String?) {
             guard let text, let window, let screen = window.screen else { hidePopup(); return }
             let panel = popup ?? NSPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
@@ -676,10 +677,11 @@ struct HistoryPointerTracking: NSViewRepresentable {
                 panel.hasShadow = true; panel.ignoresMouseEvents = true
                 panel.level = .floating; popup = panel
             }
+            panel.hasShadow = severity == nil
             panel.title = severity != nil ? "Alert Threshold Details" : plainText ? "Help Details" : "Usage History Details"
             // Keep details within the owning app, including when it occupies only part of a screen.
             let contentBounds = window.convertToScreen(window.contentLayoutRect)
-            let visible = contentBounds.intersection(screen.visibleFrame).insetBy(dx: 8, dy: 8)
+            let visible = contentBounds.intersection(screen.visibleFrame).insetBy(dx: severity == nil ? 8 : 4, dy: severity == nil ? 8 : 0)
             guard visible.width > 0, visible.height > 0 else { hidePopup(); return }
             let lines = text.split(separator: "\n", maxSplits: 1).map(String.init)
             let lineWidths = text.components(separatedBy: "\n").enumerated().map { index, line in
@@ -687,7 +689,7 @@ struct HistoryPointerTracking: NSViewRepresentable {
                     weight: index == 0 && !plainText ? .semibold : .regular)]).width
             }
             let popupWidth = plainText ? ReferenceHelpTooltip.width(for: text, availableWidth: visible.width) :
-                min(420, visible.width, ceil((lineWidths.max() ?? 0) + 28 + (severity == nil ? 0 : 26)))
+                min(420, visible.width, ceil((lineWidths.max() ?? 0) + 30 + (severity == nil ? 0 : 26)))
             let content = NSHostingView(rootView:
                 Group {
                     if plainText {
@@ -699,10 +701,10 @@ struct HistoryPointerTracking: NSViewRepresentable {
                                 Text(lines.first ?? "").font(.reference(size: 14, weight: .semibold)).foregroundStyle(severity == nil ? Color(hex: "#F2F1F5") : .white)
                             }
                             if lines.count > 1 { Text(lines[1]).font(.reference(size: 13)).foregroundStyle(Theme.dialogText) }
-                        }.padding(.horizontal, 14).padding(.vertical, 10).frame(width: popupWidth, alignment: .leading)
+                        }.padding(.horizontal, 14).padding(.vertical, 10).padding(1).frame(width: popupWidth, alignment: .leading)
                             .fixedSize(horizontal: false, vertical: true)
                             .background(Color(hex: "#222329"), in: RoundedRectangle(cornerRadius: 12))
-                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: "#65577F")))
+                            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color(hex: "#65577F"), lineWidth: 1))
                     }
                 })
             let size = content.fittingSize
@@ -711,7 +713,9 @@ struct HistoryPointerTracking: NSViewRepresentable {
             let above = anchor.y + (severity == nil ? 14 : 2)
             let y = min(max(visible.minY, above + size.height <= visible.maxY ? above : anchor.y - size.height - 18), visible.maxY - size.height)
             panel.contentView = content
-            panel.setFrame(NSRect(origin: NSPoint(x: x, y: y), size: size), display: true)
+            let frame = severity == nil ? NSRect(origin: NSPoint(x: x, y: y), size: size) :
+                thresholdPlacement.frame(anchor: anchor, size: size, contentBounds: contentBounds.intersection(screen.visibleFrame))
+            panel.setFrame(frame, display: true)
             panel.orderFront(nil)
         }
         override var isFlipped: Bool { true }

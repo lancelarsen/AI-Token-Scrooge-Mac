@@ -857,3 +857,10 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Resizing cancels an active pointer edit and ignores the rest of that gesture until release. Disabling alerts or removing the view clears pending edits; re-enabling does not leave a stale cancellation latch.
 - Canonical build passed (`artifacts/threshold-edit-lifecycle-build.log`). Native demo verification: Left changed the first info threshold 50% → 51%; Escape after release retained 51%, demonstrating the completed edit persisted. Right then Escape restored 50% (`artifacts/threshold-keyboard-lifecycle-ax.txt`).
 - Mid-drag resize and simultaneous held-key cancellation are source/build verified, not automated end-to-end verified. Tooltip positioning and exact font weights remain open.
+
+## Threshold popup placement — 2026-11-05
+
+- Matched Windows ThresholdEditor: horizontal four-point root margins, two-point marker separation, and a captured top offset retained until dismissal. Near the upper edge, clamp to the content top instead of flipping beneath the marker.
+- Removed the threshold panel's extra macOS shadow. Accounted for the one-point border outside the 14/10 content padding, and drew the border inside the rounded rectangle.
+- Canonical build passed (`artifacts/threshold-popup-placement-build.log`). A standalone harness compiled the production `ThresholdPopupPlacement` source and passed initial spacing, fixed top with changing anchor/size, left/right/top edge clamps, and reset/reopen checks (`artifacts/threshold-placement-check.swift`, `.log`).
+- Floating-panel screenshot comparison remains outstanding; these checks verify placement calculations, not final font metrics or screenshot identity.
