@@ -778,3 +778,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 
 - User confirmed there is no other font branch/location and requested using the project. Rechecked committed font extensions/paths: none. NSFontManager.availableFontFamilies reports no installed Segoe family on this Mac. Lucide remains reused with its existing license. Do not keep asking the user for another asset location or pretend the named Windows system fonts are bundled open-license assets.
 - Exact Segoe font rendering remains a known unresolved dependency. Other parity work continues; no font substitution or font-file redistribution was performed in this update.
+
+### Percentage-slider track extents
+
+- Reference `04-settings-thresholds.png` shows the rails aligned with the content/label edges, while thumb centers retain their half-thumb inset. Corrected `ScroogePercentSlider` to draw the background across its full width and the filled segment from the leading edge to the thumb center. Thumb travel and input mapping are unchanged.
+- Verification: canonical build passed (`artifacts/percent-slider-rail-build.log`); rebuilt isolated wide demo captured in `artifacts/percent-slider-rail-native.jpg`. Volume and threshold rails now align with their respective content edges. This is a geometry correction, not certification of complete screenshot/font parity.

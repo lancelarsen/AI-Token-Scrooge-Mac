@@ -473,10 +473,11 @@ struct ScroogePercentSlider: View {
             Canvas { context, size in
                 let y = size.height / 2
                 func rail(_ width: CGFloat, _ color: Color) {
-                    context.fill(Path(roundedRect: CGRect(x: 10, y: y - 2, width: width, height: 4), cornerRadius: 2), with: .color(color))
+                    context.fill(Path(roundedRect: CGRect(x: 0, y: y - 2, width: width, height: 4), cornerRadius: 2), with: .color(color))
                 }
-                rail(span, Color(hex: "#41434F"))
-                rail(max(0, x - 10), color)
+                // WinUI extends the rail to the control edges; only thumb travel is inset.
+                rail(size.width, Color(hex: "#41434F"))
+                rail(x, color)
                 context.fill(Path(ellipseIn: CGRect(x: x - 10, y: y - 10, width: 20, height: 20)), with: .color(Color(hex: "#41434F")))
                 context.fill(Path(ellipseIn: CGRect(x: x - 5, y: y - 5, width: 10, height: 10)), with: .color(thumbColor ?? color))
                 if focused {
