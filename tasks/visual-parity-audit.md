@@ -615,3 +615,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Shared detail dialogs with a primary action now give both footer buttons equal flexible widths with an explicit eight-point gap. Single-action dialogs retain their right-aligned Close button. Reference 15 uses two equally sized footer buttons.
 - Native color-picker capture confirmed both footer buttons span the available row equally, with spectrum, preview, brightness, RGB/hex and channel inputs intact. The capture exposed a native blue spectrum focus outline; disabled that extra system effect while keeping focus and keyboard handlers.
 - Final canonical build passed (`artifacts/dialog-action-width-build.log`) and diff checks passed. Footer geometry is visually checked; spectrum focus suppression is build/source-verified pending post-change capture. Exact gradient interpolation, marker outline and font metrics remain open.
+
+### Custom color synchronization and add/reopen flow (references 15–16)
+
+- Native keyboard test exposed a stale hex field after changing hue: selected color changed to #D587A4 while hex remained #D587A5. Fixed color publishing, hex edits and RGB edits to derive linked values from an explicit new color rather than immediately rereading the parent binding. HSV coordinate preservation for grayscale/black remains intact.
+- Canonical build passed (`artifacts/color-editor-sync-build.log`) and diff checks passed. Native checks: Right changed both selected color and hex to #D587A4; entering #FF9000 changed selected preview and RGB fields to 255/144/0; Add Color created a selected orange swatch; closing/reopening account settings retained that selected swatch. All work used isolated demo state.
+- Post-change spectrum screenshot also confirms keyboard focus works without the unwanted blue system outline. Exact spectrum gradient/selection-marker shape and font metrics still differ from Windows and remain open.

@@ -283,7 +283,8 @@ private struct InlineLineColorEditor: View {
                            "#" + digits.uppercased() != color.hex {
                             // Only external hex edits should replace HSV coordinates.
                             // Re-decoding our own black/gray output would discard hue.
-                            color = Color(hex: digits); loadComponents()
+                            let nextColor = Color(hex: digits)
+                            color = nextColor; loadComponents(nextColor)
                         }
                     }.modifier(ColorEntryStyle()).frame(width: 132)
             }
@@ -315,17 +316,19 @@ private struct InlineLineColorEditor: View {
                 let rgb = NSColor(color).usingColorSpace(.sRGB) ?? .black
                 var channels = [rgb.redComponent, rgb.greenComponent, rgb.blueComponent]
                 channels[index] = Double(max(0, min(255, value))) / 255
-                color = Color(red: channels[0], green: channels[1], blue: channels[2])
-                loadComponents(); hexDraft = color.hex
+                let nextColor = Color(red: channels[0], green: channels[1], blue: channels[2])
+                color = nextColor
+                loadComponents(nextColor); hexDraft = nextColor.hex
             }
         })
     }
     private func publish() {
-        color = Color(hue: hue, saturation: saturation, brightness: brightness)
-        hexDraft = color.hex
+        let nextColor = Color(hue: hue, saturation: saturation, brightness: brightness)
+        color = nextColor
+        hexDraft = nextColor.hex
     }
-    private func loadComponents() {
-        guard let rgb = NSColor(color).usingColorSpace(.sRGB) else { return }
+    private func loadComponents(_ updatedColor: Color? = nil) {
+        guard let rgb = NSColor(updatedColor ?? color).usingColorSpace(.sRGB) else { return }
         hue = rgb.hueComponent; saturation = rgb.saturationComponent; brightness = rgb.brightnessComponent
     }
 }
