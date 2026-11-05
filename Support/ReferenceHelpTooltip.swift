@@ -42,7 +42,7 @@ struct ResetCountdownText: View {
     }
 }
 
-struct ResetTooltipContent {
+struct ResetTooltipContent: Equatable {
     let context: String
     let date: Date
     let now: Date

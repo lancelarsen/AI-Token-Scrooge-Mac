@@ -703,6 +703,14 @@ struct HistoryPointerTracking: NSViewRepresentable {
         var onMove: ((CGPoint?) -> Void)?
         private var area: NSTrackingArea?
         private var popup: NSPanel?
+        private struct ContentKey: Equatable {
+            let text: String
+            let severity: ReminderSeverity?
+            let plainText: Bool
+            let reset: ResetTooltipContent?
+            let width: CGFloat
+        }
+        private var renderedContent: ContentKey?
         private static weak var popupOwner: TrackingView?
         private var dismissalObserver: NSObjectProtocol?
         private var pressMonitor: Any?
@@ -738,7 +746,10 @@ struct HistoryPointerTracking: NSViewRepresentable {
             }
             let popupWidth = resetContent?.width(available: visible.width) ?? (plainText ? ReferenceHelpTooltip.width(for: text, availableWidth: visible.width) :
                 min(420, visible.width, ceil((lineWidths.max() ?? 0) + 30 + (severity == nil ? 0 : 26))))
-            let content = NSHostingView(rootView:
+            let contentKey = ContentKey(text: text, severity: severity, plainText: plainText,
+                                        reset: resetContent, width: popupWidth)
+            if renderedContent != contentKey || panel.contentView == nil {
+                let content = NSHostingView(rootView:
                 Group {
                     if let resetContent {
                         ReferenceResetTooltip(content: resetContent, width: popupWidth)
@@ -757,12 +768,15 @@ struct HistoryPointerTracking: NSViewRepresentable {
                             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color(hex: "#65577F"), lineWidth: 1))
                     }
                 })
+                panel.contentView = content
+                renderedContent = contentKey
+            }
+            guard let content = panel.contentView else { return }
             let size = content.fittingSize
             let anchor = window.convertPoint(toScreen: convert(pointer, to: nil))
             let x = min(max(visible.minX, anchor.x - size.width / 2), visible.maxX - size.width)
             let above = anchor.y + (severity == nil ? 14 : 2)
             let y = min(max(visible.minY, above + size.height <= visible.maxY ? above : anchor.y - size.height - 18), visible.maxY - size.height)
-            panel.contentView = content
             let frame = severity == nil ? NSRect(origin: NSPoint(x: x, y: y), size: size) :
                 thresholdPlacement.frame(anchor: anchor, size: size, contentBounds: contentBounds.intersection(screen.visibleFrame))
             panel.setFrame(frame, display: true)
