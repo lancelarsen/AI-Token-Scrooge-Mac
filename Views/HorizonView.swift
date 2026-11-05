@@ -21,7 +21,14 @@ struct HorizonView: View {
         ScroogeCard(inset: 0) {
             VStack(spacing: 16) {
                 ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 24) { heading; legend; historyToggle; historyHint; Spacer(); settingsButton }
+                    HStack(spacing: 0) {
+                        heading.padding(.trailing, 44)
+                        legend.padding(.trailing, 40)
+                        historyToggle.padding(.trailing, 36)
+                        historyHint
+                        Spacer(minLength: 8)
+                        settingsButton
+                    }
                     VStack(alignment: .leading, spacing: 16) {
                         HStack(spacing: 44) { heading; legend; Spacer(minLength: 0); settingsButton }
                         HStack(spacing: 36) {

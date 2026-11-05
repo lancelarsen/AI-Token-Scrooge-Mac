@@ -18,7 +18,7 @@ Cross-cutting open requirements: exact Semibold font metrics and Segoe Fluent gl
 | 06-settings-refresh-reminders.png | 1463 × 866 | Validation and ordering checked; matching reminder-list capture needed. |
 | 07-settings-app-behavior.png | 1463 × 866 | Behavior section seen during native navigation; exact layout comparison pending. |
 | 08-alert-history.png | 1463 × 866 | Fresh populated wide panel captured at 1000×800 points; 80-point rows, 16-point gaps and 28-point inset confirmed against reference 08. Fixture text/dates, typography and icon shapes still differ. |
-| 09-demo-history-on.png | 1463 × 866 | Timeline geometry revised; fresh wide equivalent capture needed. |
+| 09-demo-history-on.png | 1463 × 866 | Fresh wide header capture `artifacts/wide-header-corrected.jpg`; measured legend/history/hint gaps corrected. Matching timeline viewport and final full-image comparison remain open. |
 | 10-demo-history-off.png | 1463 × 866 | Wide History-off captured at matching size; date/font and switch-hover differences remain. |
 | 11-demo-filter-off-tooltip.png | 1463 × 866 | Wide filter-off captured; event counts and corrected per-element selector colors checked; floating tooltip capture needed. |
 | 12-demo-all-capacity-levels.png | 1463 × 866 | Scenario fixtures available; equivalent capacity-level capture needed. |
@@ -35,7 +35,7 @@ Cross-cutting open requirements: exact Semibold font metrics and Segoe Fluent gl
 | 23-connect-github-advanced.png | 1463 × 866 | Advanced form captured; dummy token mode reset checked; exact metrics differ. |
 | 24-compact-empty.png | 789 × 694 | Empty geometry revised; fresh compact equivalent capture needed. |
 | 25-connect-claude.png | 789 × 694 | Claude form captured with complete version requirement; exact metrics differ. |
-| 26-compact-dashboard.png | 789 × 694 | Fresh Segoe-font compact capture `artifacts/compact-fonts-current.jpg` compared with reference 26; native title-bar height and header legend/hint placement differ. Mac fixed-row header versus Windows wrapping FlexLayout needs reconciliation; full pixel parity remains open. |
+| 26-compact-dashboard.png | 789 × 694 | Fresh Segoe-font compact capture `artifacts/compact-fonts-current.jpg` compared with reference 26; native title-bar height and header legend/hint placement differ. Measured compact legend/hint gaps corrected and natively recaptured; intermediate-width wrapping and full pixel parity remain open. |
 | 27-compact-account-rows.png | 789 × 694 | Compact fixed-date rows captured; alarm divider/81×48 geometry and off/on threshold visibility checked; fonts differ. |
 | 28-compact-account-settings.png | 789 × 694 | Fresh compact account panel captured at 741×630 with shared border and corrected responsive form inset/685-point card width; internal text metrics still differ. |
 | 29-compact-tooltip-placement.png | 789 × 694 | Owner-window clamping implemented; floating tooltip capture missing. |
