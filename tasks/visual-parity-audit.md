@@ -1348,3 +1348,15 @@ This verifies keyboard hex input, RGB synchronization, accepted selection and ca
 Windows App.xaml explicitly sets Entry.PlaceholderColor to #B6B8C8. Mac TextField/SecureField prompts previously inherited the system placeholder color. Added explicit reference-colored prompts for nickname, fallback allowance, personal token and organization fields, retaining their labels, secure input, bindings, native text face and dimensions.
 
 Canonical build and diff checks pass (artifacts/connection-placeholder-color-build.log). This pass verifies source color and compilation; a fresh rendered color comparison remains open. No behavioral tests were added for this presentation-only change. Relaunched the Debug demo.
+
+### Native UI Test Runner Initialization — 2026-11-05
+
+Attempted the existing DashboardUITests test using test-without-building, the generated embedded-framework manifest, and only-testing:ScroogeUITests against source27834c8. The runner launched but failed before any test assertion with “Timed out while enabling automation mode.” A process sample located the wait in XCUIDevice.enableAutomationMode; testmanagerd logs show local authentication requested for “Enable UI Automation.” This is an environment/authentication prerequisite failure, not a dashboard assertion failure. No macOS security settings were changed. Requested the user authorize the system prompt if present; do not retry until that prerequisite changes.
+
+Evidence: artifacts/native-ui-test-run.log and artifacts/ui-runner-startup-sample.txt. Existing hosted-unit results remain valid; native UI assertions and physical history hover remain open.
+
+### Current Published Preview276 — 2026-11-05
+
+GitHub run42124255236 completed successfully for27834c85b5877fd790df8e445d993af61c9d8710, publishing preview-276-1. Hosted suite reports98 tests, zero failures, two installed-CLI skips. Downloaded the release archive (not just the build artifact); SHA25655b1ec105cb5355c0f742ad72c58d71ac2eaddb635aa21c7a5f8a78a03b4be2e matches the published checksum. Strict deep codesign verification and arm64 architecture pass. All25 bundled font/image/sound files match source bytes.
+
+Opened the extracted app with --demo --compact and a fresh isolated data directory. Native accessibility shows all four demo accounts, History enabled and Custom Order selected. Saved artifacts/preview-276-native-launch.jpg; CI log is artifacts/preview-276-ci.log. This closes the current-source archive recheck after the placeholder-color change, not full feature parity or clean-machine Gatekeeper acceptance. Preview remains ad-hoc, non-hardened and not notarized.
