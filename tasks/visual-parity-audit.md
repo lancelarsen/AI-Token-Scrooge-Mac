@@ -621,3 +621,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Native keyboard test exposed a stale hex field after changing hue: selected color changed to #D587A4 while hex remained #D587A5. Fixed color publishing, hex edits and RGB edits to derive linked values from an explicit new color rather than immediately rereading the parent binding. HSV coordinate preservation for grayscale/black remains intact.
 - Canonical build passed (`artifacts/color-editor-sync-build.log`) and diff checks passed. Native checks: Right changed both selected color and hex to #D587A4; entering #FF9000 changed selected preview and RGB fields to 255/144/0; Add Color created a selected orange swatch; closing/reopening account settings retained that selected swatch. All work used isolated demo state.
 - Post-change spectrum screenshot also confirms keyboard focus works without the unwanted blue system outline. Exact spectrum gradient/selection-marker shape and font metrics still differ from Windows and remain open.
+
+### Deterministic HSV spectrum painting
+
+- Replaced the six-stop generic hue gradient plus white overlay with a cached 512×512 sRGB hue/saturation image. Each pixel derives from the same normalized HSV coordinates used by selection, avoiding color-space interpolation between a small number of hue stops. The immutable image is generated once per process.
+- Canonical build passed (`artifacts/color-spectrum-rendering-build.log`) and diff checks passed. Native picker capture confirms the hue/saturation surface, current selection, preview, brightness, channel inputs and footer remain visible and unclipped.
+- This is a rendering-model correction; no per-pixel comparison proves identity to WinUI ColorSpectrum. Exact spectrum/marker appearance and typography remain open.

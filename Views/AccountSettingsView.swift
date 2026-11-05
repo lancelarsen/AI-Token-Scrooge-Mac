@@ -219,8 +219,9 @@ private struct InlineLineColorEditor: View {
             HStack(spacing: 12) {
                 GeometryReader { geometry in
                     ZStack {
-                        LinearGradient(colors: (0...6).map { Color(hue: Double($0) / 6, saturation: 1, brightness: 1) }, startPoint: .leading, endPoint: .trailing)
-                        LinearGradient(colors: [.clear, .white], startPoint: .top, endPoint: .bottom)
+                        if let image = LineColorSpectrum.image {
+                            Image(nsImage: image).resizable().interpolation(.high)
+                        }
                         Circle().stroke(.black, lineWidth: 2).background(Circle().stroke(.white, lineWidth: 4))
                             .frame(width: 12, height: 12)
                             .position(x: min(max(hue * geometry.size.width, 7), geometry.size.width - 7),
@@ -339,4 +340,39 @@ private struct ColorEntryStyle: ViewModifier {
             .background(Color(hex: "#303138"), in: RoundedRectangle(cornerRadius: 8))
             .overlay(alignment: .bottom) { Rectangle().fill(Theme.secondary).frame(height: 1).padding(.horizontal, 10) }
     }
+}
+
+/// Immutable HSV spectrum in sRGB; avoids perceptual interpolation between hue stops.
+private enum LineColorSpectrum {
+    static let image: NSImage? = {
+        let side = 512
+        var pixels = [UInt8](repeating: 255, count: side * side * 4)
+        for y in 0..<side {
+            let saturation = 1 - Double(y) / Double(side - 1)
+            for x in 0..<side {
+                let sector = Double(x) / Double(side - 1) * 6
+                let fraction = sector - floor(sector)
+                let full: [Double]
+                switch Int(sector) % 6 {
+                case 0: full = [1, fraction, 0]
+                case 1: full = [1 - fraction, 1, 0]
+                case 2: full = [0, 1, fraction]
+                case 3: full = [0, 1 - fraction, 1]
+                case 4: full = [fraction, 0, 1]
+                default: full = [1, 0, 1 - fraction]
+                }
+                let offset = (y * side + x) * 4
+                for channel in 0..<3 {
+                    pixels[offset + channel] = UInt8(((1 - saturation + saturation * full[channel]) * 255).rounded())
+                }
+            }
+        }
+        guard let space = CGColorSpace(name: CGColorSpace.sRGB),
+              let provider = CGDataProvider(data: Data(pixels) as CFData),
+              let image = CGImage(width: side, height: side, bitsPerComponent: 8, bitsPerPixel: 32,
+                  bytesPerRow: side * 4, space: space,
+                  bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue),
+                  provider: provider, decode: nil, shouldInterpolate: true, intent: .defaultIntent) else { return nil }
+        return NSImage(cgImage: image, size: NSSize(width: 256, height: 256))
+    }()
 }
