@@ -647,3 +647,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Relaunched the current build at 1463×866, disabled History and filtered OpenAI Personal. Inspected a settled capture after both state updates. The provider container is dimmed, badge text/strokes muted, and unchecked box border remains clearly full accent; this closes the post-change per-element color capture gap from 664ec4a.
 - Account quota rows retain their established wide columns after filtering. An earlier immediate capture appeared transiently misaligned; the settled capture does not reproduce it, so no speculative layout change was made.
 - Updated per-image status for reference 11. Date-dependent event positions, exact fonts/glyphs and floating tooltip capture remain open. This verification-only change needs no rebuild; it used the already built current source.
+
+### Global settings top-section and inherited text palette
+
+- Captured current wide Settings top sections and compared reference 02/source. Version is already the source's sixteen-point size, so retained it. Demo notice corrected from thirteen-point #C3ADF8 to fourteen-point #B5A0F4, matching source with macOS wording.
+- Settings heading icon now explicitly uses #C3ADF8. Global/account settings inherit #F2F1F5 primary text instead of platform default primary; account title uses that color explicitly. Existing specific secondary/severity colors remain explicit.
+- Canonical build passed (`artifacts/settings-text-palette-build.log`) and diff checks passed. Top-section structure captured before this palette correction; exact post-change pixels remain unverified. Live update-available state differs from the demo capture and still needs separate verification.

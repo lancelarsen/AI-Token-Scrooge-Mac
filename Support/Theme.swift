@@ -5,6 +5,7 @@ extension EnvironmentValues {
 }
 
 enum Theme {
+    static let primaryText = Color(hex: "#F2F1F5")
     static let canvas = Color(hex: "#141519")
     static let background = LinearGradient(colors: [Color(hex: "#1B1C20"), Color(hex: "#141519")], startPoint: .topLeading, endPoint: .bottomTrailing)
     static let card = Color(hex: "#1C1E24")

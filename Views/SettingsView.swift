@@ -15,10 +15,10 @@ struct SettingsView: View {
     }
     var body: some View {
         VStack(spacing: 0) {
-            HStack { HStack(spacing: 10) { ActionIcon(symbol: "gearshape", size: 26).frame(width: 29); Text("Settings").font(.system(size: 26, weight: .semibold)) }; Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()) }.padding(.horizontal, 20).padding(.vertical, 12)
+            HStack { HStack(spacing: 10) { ActionIcon(symbol: "gearshape", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text("Settings").font(.system(size: 26, weight: .semibold)) }; Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()) }.padding(.horizontal, 20).padding(.vertical, 12)
             ScrollView {
                 VStack(spacing: 12) {
-                    if store.isDemo { Text("Demo changes stay in this preview. Notification tests use macOS.").font(.system(size: 13)).foregroundStyle(Theme.accent).frame(maxWidth: .infinity, alignment: .leading) }
+                    if store.isDemo { Text("Demo changes stay in this preview. Notification test uses macOS.").font(.system(size: 14)).foregroundStyle(Theme.actionAccent).frame(maxWidth: .infinity, alignment: .leading) }
                     SettingsCard(title: "App Updates", symbol: "gearshape") {
                         Text("Version \(AppUpdater.displayVersion)").font(.system(size: 16))
                         settingsSwitch("Check for Newer Versions", isOn: Binding(
@@ -122,7 +122,7 @@ struct SettingsView: View {
                 }.frame(maxWidth: 960).padding(.horizontal, 28).padding(.top, 12).padding(.bottom, 20).frame(maxWidth: .infinity)
             }
             if let error = store.errorMessage { Text(error).foregroundStyle(Theme.amber).padding() }
-        }.font(.system(size: 14)).frame(width: panelSize.width, height: panelSize.height).background(Theme.canvas).preferredColorScheme(.dark).tint(Theme.accent)
+        }.font(.system(size: 14)).foregroundStyle(Theme.primaryText).frame(width: panelSize.width, height: panelSize.height).background(Theme.canvas).preferredColorScheme(.dark).tint(Theme.accent)
         .onAppear {
             store.refreshLoginItemStatus()
             demoAutomaticChecks = updater.automaticChecks
