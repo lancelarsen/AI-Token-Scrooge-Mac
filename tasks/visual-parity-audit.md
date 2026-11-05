@@ -1294,3 +1294,9 @@ Font SHA256: regular 4e79c52ac2123c0b1d8d62d5ccf1e4bb9599c9a17168e9272357e03fa80
 Windows ActionButton creates a native TextBlock without an explicit FontFamily; AccountSortControl sets its size to 13, while ordinary actions and alert-history row actions use 14. Applied the bundled Segoe UI Variable Text face to ScroogeButtonStyle, the explicit sort-label override, and alert-history row text. Preserved sizes, geometry, icons, and explicit classic Segoe labels elsewhere.
 
 Canonical build passes (artifacts/native-button-font-build.log), and git diff --check passes. No new behavioral tests for this font-only change; previous 96 hosted-test result remains the behavioral baseline. This update was checked against Windows source; a new native screenshot comparison and full pixel parity remain open.
+
+### Current Font Release Archive Verification — 2026-11-05
+
+Packaged app source a691211 with script/package_preview.sh. Release build, all source font/image/sound byte comparisons (including both new Variable Text fonts), Info.plist lint, arm64 architecture, deep strict signature and ZIP checksum checks pass; log artifacts/current-font-release-validation.log. Extracted archive into artifacts/font-release-a691211 and independently verified its deep strict signature. Opened that extracted app with isolated compact demo data and fixed reference timestamp. Native accessibility tree confirms dashboard, timeline, account controls and sorting controls; artifacts/font-release-a691211-dashboard.jpg captures its rendered dashboard. This is actual extracted Release launch evidence, not just a Debug build. No full screenshot identity claim.
+
+Windows App.xaml explicitly sets the plain ToolTip style to Segoe UI/13, so classic tooltip typography remains unchanged. The current Release is still ad-hoc signed, non-hardened and not notarized. This is local archive evidence only; publication and download verification remain open.
