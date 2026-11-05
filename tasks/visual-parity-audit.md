@@ -653,3 +653,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Captured current wide Settings top sections and compared reference 02/source. Version is already the source's sixteen-point size, so retained it. Demo notice corrected from thirteen-point #C3ADF8 to fourteen-point #B5A0F4, matching source with macOS wording.
 - Settings heading icon now explicitly uses #C3ADF8. Global/account settings inherit #F2F1F5 primary text instead of platform default primary; account title uses that color explicitly. Existing specific secondary/severity colors remain explicit.
 - Canonical build passed (`artifacts/settings-text-palette-build.log`) and diff checks passed. Top-section structure captured before this palette correction; exact post-change pixels remain unverified. Live update-available state differs from the demo capture and still needs separate verification.
+
+### Sound options and quiet-hours switch styling (reference 03)
+
+- Matched source volume row's twelve-point gap, secondary text color and rounded percentage display. Radio options now use thirty-two-point rows with no inter-row spacing, twenty-point inset-stroked circles, #A990ED selected ring and #F2F1F5 labels; this replaces a shorter overall option stack and incorrect selected lavender. Quiet-hours header switch uses source #8170CF.
+- Canonical build passed (`artifacts/sound-controls-layout-build.log`) and diff checks passed. Native wide Settings capture confirms revised radio rows, preview grid, volume rail and quiet-hours section. Selecting Classic Chimes moved the selected accessibility state from Duck Sounds to Classic Chimes without invoking an audio preview.
+- Exact radio/native glyph metrics, sound preview playback and quiet-hours drag states remain open.

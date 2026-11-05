@@ -79,8 +79,8 @@ struct SettingsView: View {
                     }
                     SettingsCard(title: "Sounds", symbol: "speaker.wave.2") {
                         settingsSwitch("Notification Sounds", isOn: binding(\.sound))
-                        HStack { Text("Volume: \(Int(store.state.settings.soundVolume))%").frame(width: 112, alignment: .leading); ScroogePercentSlider(value: binding(\.soundVolume), color: Color(hex: "#A990ED")).accessibilityLabel("Sound Volume") }
-                        VStack(alignment: .leading, spacing: 12) {
+                        HStack(spacing: 12) { Text("Volume: \(Int(store.state.settings.soundVolume.rounded()))%").foregroundStyle(Theme.dialogText).frame(width: 112, alignment: .leading); ScroogePercentSlider(value: binding(\.soundVolume), color: Color(hex: "#A990ED")).accessibilityLabel("Sound Volume") }
+                        VStack(alignment: .leading, spacing: 0) {
                             soundThemeOption("Duck Sounds", value: "Ducks")
                             soundThemeOption("Classic Chimes", value: "Classic")
                         }
@@ -142,10 +142,10 @@ struct SettingsView: View {
         let selected = store.state.settings.soundTheme == value
         return Button { store.edit { $0.settings.soundTheme = value } } label: {
             HStack(spacing: 8) {
-                Circle().stroke(selected ? Theme.accent : Theme.secondary, lineWidth: selected ? 5 : 1)
-                    .frame(width: 16, height: 16).padding(2)
-                Text(title).font(.system(size: 14)).foregroundStyle(.white)
-            }.contentShape(Rectangle())
+                Circle().strokeBorder(selected ? Color(hex: "#A990ED") : Theme.secondary, lineWidth: selected ? 5 : 1)
+                    .frame(width: 20, height: 20)
+                Text(title).font(.system(size: 14)).foregroundStyle(Theme.primaryText)
+            }.frame(minHeight: 32).contentShape(Rectangle())
         }.buttonStyle(.plain).accessibilityLabel(title).accessibilityAddTraits(selected ? .isSelected : [])
     }
     private func settingsSwitch(_ title: String, isOn: Binding<Bool>) -> some View {
@@ -178,7 +178,7 @@ struct SettingsCard<Content: View>: View {
                         }.foregroundStyle(Theme.accent)
                         if let headerToggle {
                             Spacer()
-                            Toggle(title, isOn: headerToggle).toggleStyle(ScroogeSwitchStyle(showsLabel: false)).frame(width: 40, height: 20).accessibilityLabel(title)
+                            Toggle(title, isOn: headerToggle).toggleStyle(ScroogeSwitchStyle(showsLabel: false, onColor: Color(hex: "#8170CF"))).frame(width: 40, height: 20).accessibilityLabel(title)
                         }
                     }
                     if let description {
