@@ -317,7 +317,7 @@ struct HorizonView: View {
                         .position(x: marker.x, y: Double(56 + marker.lane * 24))
                 }
             }
-            ForEach(days, id: \.self) { date in
+            ForEach(days.filter { $0 <= calendar.startOfDay(for: viewport.lastEventAt) }, id: \.self) { date in
                 let dayEvents = events.filter { calendar.isDate($0.date, inSameDayAs: date) }
                 VStack(spacing: 7) {
                     Text(dayName(date)).font(.reference(size: 14, weight: .semibold))

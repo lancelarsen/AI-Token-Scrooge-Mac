@@ -1026,3 +1026,9 @@ Added `CoreTests.testSimultaneousTimelineEventsFollowWindowsOrdering` using actu
 Through native UI in the isolated demo, turned off Monitor This Account for OpenAI Personal. AX confirmed off; dashboard capture `artifacts/single-openai-badge-check.jpg` confirmed the account's events disappeared, counts changed to 5 refreshes/0 expirations, and the remaining OpenAI Work events lost their Pro badges. Re-enabled the same account through its settings: AX confirmed on; `artifacts/duplicate-openai-badges-restored.jpg` confirms 7/2 counts and Plus/Pro event badges returned. The demo was left restored. This closes the earlier unverified dynamic enable/disable badge case; no production account settings were touched.
 
 Source review also confirmed Windows OrderedUsageHistory uses saved custom order independently of dashboard sorting, matching Mac timelineAccounts; future event ties use dashboard order as tested previously. No further ordering change was necessary in this pass. Documentation-only update; no rebuild needed beyond the existing tested build.
+
+### Final Reported Day Boundary — 2026-11-05
+
+Windows HistoryTimelineView limits headings and rail dots to `model.LastDate`; extra content width is layout space only. Mac drew an extra day (Dec 1 in the fixed November demo) and could label empty padding beyond a short event range. The shared heading/dot/event loop now stops at the local calendar date of `viewport.lastEventAt`. Viewport width, navigator range and history grid calculations are unchanged.
+
+Canonical build passed (`artifacts/timeline-final-date-build.log`). Relaunched the fixed-date demo and checked native AX: Nov 30 is present and Dec 1 absent. Repeated with History switched off, confirmed the same boundary, then restored History. Saved initial AX evidence in `artifacts/timeline-final-date-ax.txt`. Exact viewport appearance and full-image matching remain open.
