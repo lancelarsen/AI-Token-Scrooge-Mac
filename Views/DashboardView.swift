@@ -24,7 +24,7 @@ struct DashboardView: View {
                                     .id(account.id)
                                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.accent, lineWidth: store.highlightedAccountID == account.id ? 3 : 0))
                                     .background(AccountDragMarker(id: account.id, dragging: dragging))
-                                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.accent, lineWidth: dragging.activeID == account.id && dragging.moving ? 2 : 0))
+                                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.actionAccent, lineWidth: dragging.activeID == account.id && dragging.moving ? 2 : 0))
                                     .shadow(color: .black.opacity(dragging.activeID == account.id && dragging.moving ? 0.35 : 0), radius: 16, y: 8)
                                     .opacity(dragging.activeID == account.id && dragging.moving ? 0.94 : 1)
                                     .offset(y: dragging.offsets[account.id] ?? 0)
@@ -371,7 +371,7 @@ struct QuotaDetailsView: View {
                 Text(sourceNote).foregroundStyle(Theme.dialogText).frame(minHeight: 19, alignment: .leading)
             }
             if !store.isDemo, let url = account.usageURL {
-                Text("Provider pages use your browser’s sign-in. Check its account and workspace before comparing.").font(.caption).foregroundStyle(Theme.dialogText)
+                Text("Provider pages use your browser’s sign-in. Check its account and workspace before comparing.").font(Theme.dialogBodyFont).foregroundStyle(Theme.dialogText)
                 Button("Open Provider Usage") {
                     openURL(url) { accepted in
                         if !accepted { store.errorMessage = "Provider page unavailable. Open your provider’s usage page in your browser and check its connection status." }

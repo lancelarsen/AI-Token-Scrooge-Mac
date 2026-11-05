@@ -31,7 +31,7 @@ Cross-cutting open requirements: exact Semibold font metrics and Segoe Fluent gl
 | 19-first-launch.png | 1463 × 866 | Isolated empty dashboard captured; horizontal coordinates checked; matching width needed. |
 | 20-provider-chooser.png | 1463 × 866 | Chooser recaptured at 320×337 after 22-point title/12-point gap fixes; exact font metrics remain open. |
 | 21-connect-codex.png | 1463 × 866 | Codex form recaptured at compact 741×630 with visible actions and reference outline; exact text metrics differ. |
-| 22-connect-github-browser.png | 1463 × 866 | GitHub browser form captured; zero validation checked; exact metrics differ. |
+| 22-connect-github-browser.png | 1463 × 866 | GitHub browser form captured; zero validation checked. Challenge prompt now uses source-matched centered 28-point Segoe Semibold, instruction/order/spacing and stacked reference action buttons; live challenge capture and exact metrics remain open. |
 | 23-connect-github-advanced.png | 1463 × 866 | Advanced form captured; dummy token mode reset checked; exact metrics differ. |
 | 24-compact-empty.png | 789 × 694 | Empty geometry revised; fresh compact equivalent capture needed. |
 | 25-connect-claude.png | 789 × 694 | Claude form captured with complete version requirement; exact metrics differ. |

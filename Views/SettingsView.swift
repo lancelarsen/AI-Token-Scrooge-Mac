@@ -119,7 +119,7 @@ struct SettingsView: View {
                         settingsSwitch("Keep Monitoring When Window Closes", isOn: binding(\.closeToMenuBar))
                         settingsSwitch("Launch at Sign-In", isOn: Binding(get: { store.state.settings.launchAtSignIn }, set: { store.setLaunchAtSignIn($0) }))
                             .disabled(store.isDemo)
-                        if let message = store.loginItemMessage { Text(message).font(.caption).foregroundStyle(Theme.secondary) }
+                        if let message = store.loginItemMessage { Text(message).font(.reference(size: 12)).foregroundStyle(Theme.secondary) }
                         if store.loginItemNeedsApproval { Button("Open Login Items") { LoginItemService.openSettings() }.buttonStyle(ScroogeButtonStyle()) }
                         Button { store.showAlertHistory = true } label: { DialogActionLabel(title: "Alert History").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle())
                         Button { dismiss(); Task { await store.sendTestNotification() } } label: { DialogActionLabel(title: "Send Test Notification").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle())
@@ -236,7 +236,7 @@ struct ReminderEditor: View {
                             }
                         } label: {
                             menuLabel(reminder.severity.rawValue, color: severityColor(reminder.severity))
-                        }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Severity")
+                        }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Reminder Severity")
                         TextField("Amount", text: Binding(get: { amountDrafts[reminder.id] ?? String(reminder.amount) }, set: { text in
                             amountDrafts[reminder.id] = text
                             update(reminder.id) { _ in }
@@ -244,13 +244,13 @@ struct ReminderEditor: View {
                             .textFieldStyle(.plain).padding(.horizontal, 12).frame(width: 80, height: 44)
                             .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
                             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
-                            .accessibilityLabel("Reminder Amount")
+                            .accessibilityLabel("Time Before Event")
                         Menu {
                             ForEach(["Days", "Hours"], id: \.self) { unit in
                                 Button(unit) { update(reminder.id) { $0.unit = unit } }
                             }
                         } label: { menuLabel(reminder.unit) }
-                            .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Unit")
+                            .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Days or Hours")
                         Button {
                             reminders.removeAll { $0.id == reminder.id }
                             amountDrafts.removeValue(forKey: reminder.id)

@@ -16,11 +16,30 @@ struct GitHubConnectView: View {
         VStack(alignment: .leading, spacing: 18) {
             ConnectionStatusLine(text: status)
             if let challenge {
-                Text(challenge.userCode).font(.system(size: 30, weight: .semibold, design: .monospaced)).textSelection(.enabled)
-                Text("Enter this code on GitHub. Only approve a code you started here.").font(.callout)
-                HStack {
-                    Button("Copy Code") { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(challenge.userCode, forType: .string) }
-                    Button("Open GitHub") { NSWorkspace.shared.open(challenge.verificationURL) }
+                VStack(spacing: 10) {
+                    Text("Enter this code on GitHub, then approve AI Reset Radar (the registered sign-in app for AI Token Scrooge).")
+                        .font(.reference(size: 14)).multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                    Text(challenge.userCode)
+                        .font(.reference(size: 28, weight: .semibold)).foregroundStyle(Theme.actionAccent)
+                        .frame(maxWidth: .infinity).textSelection(.enabled)
+                        .accessibilityLabel("GitHub sign-in code. Enter this code only on github.com.")
+                        .accessibilityValue(challenge.userCode)
+                    Button {
+                        NSPasteboard.general.clearContents()
+                        status = NSPasteboard.general.setString(challenge.userCode, forType: .string)
+                            ? "Code copied. Paste it into GitHub to continue."
+                            : "Could not copy the code. Enter the code shown below directly on GitHub."
+                    } label: {
+                        DialogActionLabel(title: "Copy code").frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    Button {
+                        if !NSWorkspace.shared.open(challenge.verificationURL) {
+                            status = "Could not open GitHub. Open github.com/login/device in your browser and enter the code shown here."
+                        }
+                    } label: {
+                        DialogActionLabel(title: "Open GitHub").frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }.buttonStyle(ScroogeButtonStyle())
             }
             Button { begin() } label: { DialogActionLabel(title: busy ? "Waiting for GitHub…" : "Sign in with GitHub").frame(maxWidth: .infinity, alignment: .leading) }
