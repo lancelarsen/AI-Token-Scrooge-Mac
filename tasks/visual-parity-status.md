@@ -26,7 +26,7 @@ Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluen
 | 14-account-settings.png | 1463 × 866 | Compact account panel captured; Wide panel captured; shared lavender scrollbar and bottom connection actions checked; vertical text metrics still differ. |
 | 15-custom-color-chooser.png | 1463 × 866 | Picker captured; footer and synchronization checked; spectrum/ring pixels remain different. |
 | 16-custom-color-added.png | 1463 × 866 | Orange custom swatch added and retained after reopening; exact comparison pending. |
-| 17-polling-snapped.png | 1463 × 866 | Polling control seen; endpoint and snapped pointer capture needed. |
+| 17-polling-snapped.png | 1463 × 866 | Wide off-center grab, snapped drag, keyboard, both endpoints and localized focus checked; exact rendered comparison remains. |
 | 18-account-connection-actions.png | 1463 × 866 | Connection section source-reviewed; matching capture needed. |
 | 19-first-launch.png | 1463 × 866 | Isolated empty dashboard captured; horizontal coordinates checked; matching width needed. |
 | 20-provider-chooser.png | 1463 × 866 | Chooser captured; border and dimensions checked; text metrics differ. |

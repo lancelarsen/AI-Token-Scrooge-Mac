@@ -159,6 +159,9 @@ struct AccountSettingsView: View {
 
 struct MinuteSlider: View {
     @Binding var value: Int
+    @FocusState private var focused: Bool
+    @State private var keyboardFocus = false
+    @State private var dragOrigin: CGFloat?
     var body: some View {
         GeometryReader { geometry in
             let width = max(0, geometry.size.width - 28)
@@ -173,20 +176,32 @@ struct MinuteSlider: View {
                 }
                 context.fill(Path(ellipseIn: CGRect(x: x - 10, y: y - 10, width: 20, height: 20)), with: .color(Color(hex: "#41434F")))
                 context.fill(Path(ellipseIn: CGRect(x: x - 5, y: y - 5, width: 10, height: 10)), with: .color(Theme.accent))
+                if focused && keyboardFocus {
+                    context.stroke(Path(roundedRect: CGRect(x: x - 14, y: y - 22, width: 28, height: 44), cornerRadius: 3),
+                                   with: .color(Theme.accent), lineWidth: 1.5)
+                }
             }
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 0).onChanged { event in
                 guard width > 0 else { return }
-                setMinute(Int(((event.location.x - 14) / width * 29).rounded()) + 1)
-            })
+                if dragOrigin == nil {
+                    // The Windows thumb has a 28-point hit area and drags from
+                    // its snapped anchor, preserving an off-center grab.
+                    dragOrigin = abs(event.startLocation.x - x) <= 14 ? x : event.startLocation.x
+                }
+                focused = true; keyboardFocus = false
+                let position = (dragOrigin ?? x) + event.translation.width
+                setMinute(Int(((position - 14) / width * 29).rounded()) + 1)
+            }.onEnded { _ in dragOrigin = nil })
         }
-        .focusable()
-        .onKeyPress(.leftArrow) { setMinute(value - 1); return .handled }
-        .onKeyPress(.downArrow) { setMinute(value - 1); return .handled }
-        .onKeyPress(.rightArrow) { setMinute(value + 1); return .handled }
-        .onKeyPress(.upArrow) { setMinute(value + 1); return .handled }
-        .onKeyPress(.home) { setMinute(1); return .handled }
-        .onKeyPress(.end) { setMinute(30); return .handled }
+        .focusable().focused($focused).focusEffectDisabled()
+        .onChange(of: focused) { _, active in if !active { keyboardFocus = false; dragOrigin = nil } }
+        .onKeyPress(.leftArrow) { keyMinute(value - 1); return .handled }
+        .onKeyPress(.downArrow) { keyMinute(value - 1); return .handled }
+        .onKeyPress(.rightArrow) { keyMinute(value + 1); return .handled }
+        .onKeyPress(.upArrow) { keyMinute(value + 1); return .handled }
+        .onKeyPress(.home) { keyMinute(1); return .handled }
+        .onKeyPress(.end) { keyMinute(30); return .handled }
         .accessibilityLabel("Polling Interval in Minutes, 1 to 30")
         .accessibilityValue("\(value)")
         .accessibilityAdjustableAction { direction in
@@ -196,6 +211,10 @@ struct MinuteSlider: View {
             @unknown default: break
             }
         }
+    }
+    private func keyMinute(_ proposed: Int) {
+        keyboardFocus = true
+        setMinute(proposed)
     }
     private func setMinute(_ proposed: Int) {
         let next = min(30, max(1, proposed))
