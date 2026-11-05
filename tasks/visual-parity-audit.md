@@ -1154,3 +1154,9 @@ Canonical build passed (`artifacts/account-status-card-build.log`); all 89 hoste
 Matched WithAccountSettings' full provider/nickname/plan settings description for both the gear tooltip and accessibility label. Identity controls now explicitly announce the account and Open details, matching AccountQuotaView rather than repeating the logo's provider name. Privacy masking remains in both labels. Corrected the gear outline from the outer-card #383B46 to ActionButton's #45464D.
 
 Canonical build passed (`artifacts/account-control-parity-build.log`). Fresh native compact demo accessibility inspection confirmed all four identity labels and all four provider-qualified settings labels. This is label/source-color verification, not proof of native hover opening or pixel-identical border rendering. Reused the immediately prior 89-test pass for unchanged behavior; no domain logic changed in this update.
+
+### Usage Bar Semibold Face — 2026-11-05
+
+Refreshed Windows origin/main: still 3c863a5, with no new source changes. UsageBar.cs explicitly selects Segoe UI Semibold at 16 points for the used label and regular 16-point text for the remaining label. The Mac used generic fontWeight on inherited regular Segoe. It now calls Font.reference(size: 16, weight: .semibold), which explicitly resolves the bundled SegoeUI-SemiBold face, consistent with the other corrected reference headings and labels. No generic fontWeight or semibold weight modifiers remain in Views/Support.
+
+Canonical build and diff whitespace checks passed (`artifacts/usage-label-font-build.log`). This verifies compilation and explicit font selection in source; it does not establish pixel-identical font metrics. Existing behavioral tests were not rerun for this font-only change. Final native screenshot comparisons remain open.
