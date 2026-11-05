@@ -127,12 +127,14 @@ struct HorizonView: View {
     }
     private var emptyTimeline: some View {
         GeometryReader { geometry in
-            let compact = geometry.size.width < 900
-            HStack(spacing: 16) {
-                Color.clear.frame(width: compact ? 72 : 90)
-                Divider()
+            let compact = geometry.size.width < 850
+            HStack(spacing: 10) {
+                HStack(spacing: 0) {
+                    Color.clear
+                    Rectangle().fill(Theme.border).frame(width: 1).padding(.vertical, 6)
+                }.frame(width: compact ? 95 : 112)
                 Canvas { context, size in
-                    let left: CGFloat = compact ? 34 : 40
+                    let left: CGFloat = 40
                     let anchor = left + (compact ? 38 : 88)
                     var rail = Path()
                     rail.move(to: CGPoint(x: left, y: 56))

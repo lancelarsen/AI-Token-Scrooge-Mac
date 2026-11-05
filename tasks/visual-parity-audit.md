@@ -524,3 +524,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Compared reference 32, Windows ShowBanner implementation, and a native compact test notification. Banner measured approximately 444×154 points versus approximately 442×154 in Windows: provider image, heading stack, detail, three actions, severity border, corner radius and bottom/right margin are present and closely aligned. Font-family differences remain; no claim of exact pixel parity. Existing banner geometry needed no speculative change.
 - The test capture exposed a duplicate blue native focus ring around the quota marker in addition to its custom purple focus border. Disabled the native focus effect while retaining focusability and keyboard control.
 - Canonical build passed (`artifacts/threshold-focus-ring-build.log`) and diff checks passed. Native compact check focused Info and pressed Right: 50% changed to 49%; screenshot confirms the purple focus border remains and blue duplicate ring is gone.
+
+### Empty timeline rail geometry (reference 19)
+
+- Updated the empty timeline to the same responsive rail widths as the populated chart (95/112, breakpoint 850), ten-point chart gap, forty-point axis inset and six-point divider end insets. The prior branch retained outdated rail widths and gaps after the populated-layout correction.
+- Canonical build passed (`artifacts/empty-timeline-rail-build.log`) and diff checks passed. Isolated first-launch native screenshot shows divider near x155, chart start x206 and Today x294; reference 19 is near x156/x207/x295. Approximate coordinates differ by about one point.
+- Capture used a 1496-point-wide native window versus the 1463-point reference; exact width, font metrics, and full first-launch parity remain open. No live accounts were used.
