@@ -16,7 +16,7 @@ struct HorizonView: View {
     @State private var hoveredSample: (account: ProviderAccount, point: HistoryPoint)?
     private var now: Date { store.presentationDate }
     private var events: [HorizonEvent] { HorizonEvent.events(state: store.state, now: now) }
-    private var earliestRecordedHistory: Date { presentation.series.lazy.flatMap(\.points).map(\.at).min() ?? now }
+    private var earliestRecordedHistory: Date? { presentation.series.lazy.flatMap(\.points).map(\.at).min() }
     private var timelineAccounts: [ProviderAccount] { AccountPolicy.ordered(store.state, mode: .custom).filter(\.enabled) }
     var body: some View {
         ScroogeCard(inset: 0) {
@@ -650,7 +650,7 @@ struct HorizonView: View {
     private func isToday(_ date: Date) -> Bool { calendar.isDate(date, inSameDayAs: now) }
     private func update(width: Double) {
         hoverText = nil; hoveredSample = nil
-        viewport.update(now: now, furthestFuture: events.map(\.date).max(), zone: store.state.settings.zone, width: width, historyEnabled: store.state.settings.historyEnabled, earliestHistory: earliestRecordedHistory)
+        viewport.update(now: now, furthestFuture: events.map(\.date).max(), zone: store.state.settings.zone, width: width, historyEnabled: store.state.settings.historyEnabled, earliestHistory: earliestRecordedHistory ?? now)
         position.scrollTo(x: viewport.scrollOffset)
     }
 }
