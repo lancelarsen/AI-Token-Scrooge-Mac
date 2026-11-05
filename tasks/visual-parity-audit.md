@@ -936,3 +936,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Tested an isolated fresh derived-data build with ENABLE_DEBUG_DYLIB=NO to rule out split debug-library loading. Build completed, but its host stalled in the same dyld __open stack (`artifacts/threshold-monolithic-host-sample.txt`). Interrupted that run and terminated its host too. No production build settings changed.
 - Evidence: `artifacts/threshold-hosted-retry.log`, `artifacts/threshold-monolithic.log`, and corresponding xcresult bundles. This is a launch/environment problem, not a failed threshold assertion. Hosted test execution remains unverified; prior standalone production-model checks remain the available execution evidence.
 - Next diagnostic should identify the specific blocked library/file-open operation rather than rerunning an unchanged test command. No claim that the broader test suite passed.
+
+## Allowance title casing — 2026-11-05
+
+- Matched Windows QuotaRow.WindowTitle's ASCII word-start capitalization for dashboard allowance titles, usage details, row alarm help, and row accessibility labels. Existing capitals/acronyms remain unchanged; provider model data is not rewritten.
+- Verified current Windows UsedText/LeftText are lowercase; no speculative capitalization change was made to those labels.
+- Canonical build passed (`artifacts/allowance-title-build.log`). Production formatter harness checked lower-case names, AI/API acronyms, punctuation/hyphens, mixed-case preservation, and empty input (`artifacts/allowance-title-check.swift`, `.log`). Native screenshots remain needed for final comparison.

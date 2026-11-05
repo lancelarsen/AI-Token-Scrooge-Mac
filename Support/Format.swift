@@ -1,6 +1,16 @@
 import Foundation
 
 enum Format {
+    private static let titleWordStart = try! NSRegularExpression(pattern: "\\b[a-z]")
+
+    static func windowTitle(_ value: String) -> String {
+        let result = NSMutableString(string: value)
+        for match in titleWordStart.matches(in: value, range: NSRange(value.startIndex..., in: value)).reversed() {
+            result.replaceCharacters(in: match.range, with: result.substring(with: match.range).uppercased())
+        }
+        return result as String
+    }
+
     static func timeZoneName(_ zone: TimeZone, at date: Date = .now) -> String {
         // Windows DisplayName uses the standard offset even during daylight saving.
         let offset = zone.secondsFromGMT(for: date) - Int(zone.daylightSavingTimeOffset(for: date))

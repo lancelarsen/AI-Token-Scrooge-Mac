@@ -204,14 +204,14 @@ struct QuotaRow: View {
         Button { showDetails = true } label: {
             quotaLabel.contentShape(Rectangle())
         }.buttonStyle(.plain)
-            .accessibilityLabel("\(window.name). Open Details")
+            .accessibilityLabel("\(Format.windowTitle(window.name)). Open Details")
     }
     @ViewBuilder private var resetDetailsButton: some View {
         if window.resetsAt != nil {
             Button { showDetails = true } label: {
                 resetCountdown.contentShape(Rectangle())
             }.buttonStyle(.plain)
-                .accessibilityLabel("Reset for \(window.name). Open Details")
+                .accessibilityLabel("Reset for \(Format.windowTitle(window.name)). Open Details")
         } else {
             Color.clear.frame(height: 0).accessibilityHidden(true)
         }
@@ -230,7 +230,7 @@ struct QuotaRow: View {
     }
     private var quotaLabel: some View {
         VStack(alignment: .leading, spacing: 4) {
-                Text(window.name).font(.reference(size: 14)).foregroundStyle(Color(hex: "#BEC1D2"))
+                Text(Format.windowTitle(window.name)).font(.reference(size: 14)).foregroundStyle(Color(hex: "#BEC1D2"))
                 if !quotaNote.isEmpty {
                     Text(quotaNote).font(.reference(size: 11)).foregroundStyle(Color(hex: "#A5A8BA"))
                 }
@@ -250,8 +250,8 @@ struct QuotaRow: View {
                                 .frame(width: 39, height: 46)
                         }.buttonStyle(ScroogeButtonStyle(selected: store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) == enabled, segmented: true))
                             .accessibilityAddTraits(store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) == enabled ? .isSelected : [])
-                            .modifier(ImmediateReferenceTooltip(text: "Alarms \(enabled ? "On" : "Off") · Row Alerts · \(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType)) · \(window.name)"))
-                            .accessibilityLabel("\(enabled ? "Enable" : "Disable") Alerts for \(window.name)")
+                            .modifier(ImmediateReferenceTooltip(text: "Alarms \(enabled ? "On" : "Off") · Row Alerts · \(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType)) · \(Format.windowTitle(window.name))"))
+                            .accessibilityLabel("\(enabled ? "Enable" : "Disable") Alerts for \(Format.windowTitle(window.name))")
                     }
                 }.padding(1)
                     .background(Theme.control)
@@ -311,7 +311,7 @@ struct QuotaDetailsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent).frame(minHeight: 32, alignment: .leading)
-            Text(window.name).frame(minHeight: 19, alignment: .leading)
+            Text(Format.windowTitle(window.name)).frame(minHeight: 19, alignment: .leading)
             Text("\(window.usedPercent.map { "\(Format.percent($0)) used" } ?? "Usage unavailable") · \(window.remainingPercent.map { "\(Format.percent($0)) left" } ?? "Left unavailable")").frame(minHeight: 19, alignment: .leading)
             DetailLine(label: "Resets", value: Format.detailDate(window.resetsAt, zone: store.state.settings.zone))
             Color.clear.frame(height: 6)
