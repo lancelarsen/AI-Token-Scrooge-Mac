@@ -562,3 +562,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Refreshed Windows remote; origin/main remains 694dc85. Compared reference 28 and SettingsPage palette construction. Mac now appends the account's selected color, validates six-digit hex values, normalizes case and deduplicates, matching Windows. This preserves a selected swatch even when the account color is absent from saved custom colors.
 - Swatches now use nine-point corners. Add-color border uses #65577F and immediate Add Custom Line Color help/accessibility name. Color-picker internals were left at their existing radii.
 - Canonical build passed (`artifacts/account-color-palette-build.log`) and diff checks passed. Palette inclusion is source-verified; selected custom-color rendering and exact compact account-settings parity require a new runtime capture.
+
+### Compact settings form insets (reference 28)
+
+- Native account-settings comparison exposed 36-point card insets versus approximately 29 in the Windows screenshot. Changed global/account form insets to 28. Post-change compact screenshot confirms card left edge at x28 relative to the sheet, close to the reference x29, and retains all seven default swatches plus add-color control.
+- Matched Windows partial-reset-details wording and 12-point note size. This note branch is source-verified, not present in the standard capture.
+- Canonical build passed (`artifacts/settings-form-inset-build.log`) and diff checks passed. Card vertical heights, font metrics and global-settings rendered comparison remain open.

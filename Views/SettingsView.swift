@@ -119,7 +119,7 @@ struct SettingsView: View {
                         Button { store.showAlertHistory = true } label: { DialogActionLabel(title: "Alert History", symbol: "clock.arrow.circlepath").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle())
                         Button { dismiss(); Task { await store.sendTestNotification() } } label: { DialogActionLabel(title: "Send Test Notification", symbol: "desktopcomputer").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle())
                     }
-                }.frame(maxWidth: 960).padding(.horizontal, 36).padding(.top, 12).padding(.bottom, 20).frame(maxWidth: .infinity)
+                }.frame(maxWidth: 960).padding(.horizontal, 28).padding(.top, 12).padding(.bottom, 20).frame(maxWidth: .infinity)
             }
             if let error = store.errorMessage { Text(error).foregroundStyle(Theme.amber).padding() }
         }.font(.system(size: 14)).frame(width: panelSize.width, height: panelSize.height).background(Theme.canvas).preferredColorScheme(.dark).tint(Theme.accent)

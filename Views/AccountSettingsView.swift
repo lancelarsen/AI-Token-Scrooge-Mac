@@ -96,7 +96,7 @@ struct AccountSettingsView: View {
                                         Text("Expires \(Format.date(credit.expiresAt, zone: store.state.settings.zone))").foregroundStyle(Theme.amber)
                                     }
                                 } else { Text("Credit Details Unavailable").foregroundStyle(Theme.secondary) }
-                                if reserve.hasPartialDetails { Text("Provider supplied only partial credit details.").foregroundStyle(Theme.secondary) }
+                                if reserve.hasPartialDetails { Text("Some reset details are not supplied by the provider.").font(.system(size: 12)).foregroundStyle(Theme.secondary) }
                             }
                         }
                         SettingsCard(title: "Other Alerts", symbol: "desktopcomputer", description: "Warning and critical levels are adjusted directly on the dashboard bars.") {
@@ -109,7 +109,7 @@ struct AccountSettingsView: View {
                             Button { store.reconnectAccountID = accountID; dismiss(); store.showConnection = true } label: { DialogActionLabel(title: "Sign In Again", symbol: "person").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
                             Button(role: .destructive) { confirmRemove = true } label: { DialogActionLabel(title: "Remove Account", symbol: "trash").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
                         }
-                    }.padding(.horizontal, 36).padding(.vertical, 12)
+                    }.padding(.horizontal, 28).padding(.vertical, 12)
                 }
             }
         }.font(.system(size: 14)).frame(width: panelSize.width, height: panelSize.height).background(Theme.canvas).preferredColorScheme(.dark).tint(Theme.accent)
