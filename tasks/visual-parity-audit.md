@@ -1372,3 +1372,9 @@ Captures: artifacts/preview-276-sound-fonts.jpg, preview-276-reminder-fonts.jpg,
 Windows Platforms/Windows/App.xaml explicitly sets ControlCornerRadius to10. Reminder controls already used10; the Time Zone and history-retention picker backgrounds/outlines still used8. Corrected both to10 without changing dimensions, text or behavior.
 
 Canonical Debug build succeeds (artifacts/settings-picker-radius-build.log); native compact Settings shows complete Central Time and90 Days selections with the updated outlines (artifacts/settings-picker-radius-current.jpg). Closed with Escape without changing settings. Diff checks pass; no behavioral tests added for this shape-only change. Preview276 predates this correction; repeat final archive verification after application changes settle.
+
+### Dropdown Chevron Glyph Parity — 2026-11-05
+
+Replaced five SF Symbol dropdown arrows with shared ReferenceDropdownChevron using bundled Segoe Fluent Icons U+E70D at12 points in a12×12 frame. Applies to time zone, retention, reminder severity/unit labels, GitHub billing unit and color-model selector. Microsoft’s ComboBox template declares this glyph/size as its static fallback: https://github.com/microsoft/microsoft-ui-xaml/blob/main/controls/dev/ComboBox/ComboBox_themeresources.xaml . The Mac uses the static glyph; WinUI animated opening transitions are not reproduced by this change. Existing foreground colors and menu behavior remain intact.
+
+Canonical build passes (artifacts/dropdown-chevron-build.log). Native compact Settings renders both top-level arrows (artifacts/dropdown-chevron-current.jpg); retention menu opens with all six expected options and Escape dismisses menu and settings without value changes. Other shared-component placements compile but were not separately recaptured. No new behavioral tests for the icon-only change; full pixel parity remains open.

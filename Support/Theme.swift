@@ -255,6 +255,16 @@ struct ProviderIcon: View {
 }
 
 
+/// Static fallback glyph used by the WinUI ComboBox template.
+struct ReferenceDropdownChevron: View {
+    var body: some View {
+        Text("\u{E70D}")
+            .font(ReferenceTypography.iconFont(size: 12))
+            .frame(width: 12, height: 12)
+            .accessibilityHidden(true)
+    }
+}
+
 struct ActionIcon: View {
     @Environment(\.actionForeground) private var foreground
     let symbol: String

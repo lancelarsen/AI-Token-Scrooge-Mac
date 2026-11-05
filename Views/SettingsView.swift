@@ -48,7 +48,7 @@ struct SettingsView: View {
                             HStack {
                                 Text(Format.timeZoneName(store.state.settings.zone)).font(ReferenceTypography.nativeTextFont())
                                 Spacer()
-                                Image(systemName: "chevron.down").accessibilityHidden(true).font(.reference(size: 10)).foregroundStyle(Theme.secondary)
+                                ReferenceDropdownChevron().foregroundStyle(Theme.secondary)
                             }.font(.reference(size: 13)).padding(.horizontal, 12).frame(height: 32)
                                 .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
                                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
@@ -67,7 +67,7 @@ struct SettingsView: View {
                             HStack {
                                 Text("\(store.state.settings.historyRetentionDays) Days").font(ReferenceTypography.nativeTextFont())
                                 Spacer()
-                                Image(systemName: "chevron.down").accessibilityHidden(true).font(.reference(size: 10)).foregroundStyle(Theme.secondary)
+                                ReferenceDropdownChevron().foregroundStyle(Theme.secondary)
                             }.padding(.horizontal, 12).frame(height: 32)
                                 .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
                                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
@@ -274,7 +274,7 @@ struct ReminderEditor: View {
         HStack {
             Text(title).font(ReferenceTypography.nativeTextFont()).foregroundStyle(color)
             Spacer()
-            Image(systemName: "chevron.down").accessibilityHidden(true).font(.reference(size: 10)).foregroundStyle(Theme.secondary)
+            ReferenceDropdownChevron().foregroundStyle(Theme.secondary)
         }.padding(.horizontal, 12).frame(maxWidth: .infinity).frame(height: 44)
             .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))

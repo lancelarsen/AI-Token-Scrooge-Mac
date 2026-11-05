@@ -322,7 +322,7 @@ private struct InlineLineColorEditor: View {
                     HStack {
                         Text(mode)
                         Spacer()
-                        Image(systemName: "chevron.down").accessibilityHidden(true).font(.reference(size: 10))
+                        ReferenceDropdownChevron()
                     }.padding(.horizontal, 12).frame(width: 120, height: 32)
                         .background(Color(hex: "#303138"), in: RoundedRectangle(cornerRadius: 8))
                 }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)

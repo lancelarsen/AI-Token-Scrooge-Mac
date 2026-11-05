@@ -100,7 +100,7 @@ struct ConnectionView: View {
                         Text(unit == .credits ? "AI credits" : "Legacy premium requests")
                             .font(ReferenceTypography.nativeTextFont())
                         Spacer()
-                        Image(systemName: "chevron.down").accessibilityHidden(true).font(.reference(size: 10))
+                        ReferenceDropdownChevron()
                     }.padding(.horizontal, 12).frame(height: 32)
                         .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
                 }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
