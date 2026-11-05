@@ -225,38 +225,40 @@ struct ReminderEditor: View {
         }.map(\.element)
     }
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            ForEach(orderedReminders) { reminder in
-                HStack(spacing: 8) {
-                    Menu {
-                        ForEach(ReminderSeverity.allCases, id: \.self) { level in
-                            Button(level.rawValue) { update(reminder.id) { $0.severity = level } }
-                        }
-                    } label: {
-                        menuLabel(reminder.severity.rawValue, color: severityColor(reminder.severity))
-                    }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Severity")
-                    TextField("Amount", text: Binding(get: { amountDrafts[reminder.id] ?? String(reminder.amount) }, set: { text in
-                        amountDrafts[reminder.id] = text
-                        update(reminder.id) { _ in }
-                    }))
-                        .textFieldStyle(.plain).padding(.horizontal, 12).frame(width: 80, height: 44)
-                        .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
-                        .accessibilityLabel("Reminder Amount")
-                    Menu {
-                        ForEach(["Days", "Hours"], id: \.self) { unit in
-                            Button(unit) { update(reminder.id) { $0.unit = unit } }
-                        }
-                    } label: { menuLabel(reminder.unit) }
-                        .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Unit")
-                    Button {
-                        reminders.removeAll { $0.id == reminder.id }
-                        amountDrafts.removeValue(forKey: reminder.id)
-                        amountError = false
-                    } label: {
-                        ActionIcon(symbol: "trash", size: 20)
-                    }.buttonStyle(ScroogeButtonStyle(horizontalPadding: 12))
-                        .modifier(ImmediateReferenceTooltip(text: "Remove This Reminder from the Schedule")).accessibilityLabel("Remove Reminder")
+        VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(orderedReminders) { reminder in
+                    HStack(spacing: 8) {
+                        Menu {
+                            ForEach(ReminderSeverity.allCases, id: \.self) { level in
+                                Button(level.rawValue) { update(reminder.id) { $0.severity = level } }
+                            }
+                        } label: {
+                            menuLabel(reminder.severity.rawValue, color: severityColor(reminder.severity))
+                        }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Severity")
+                        TextField("Amount", text: Binding(get: { amountDrafts[reminder.id] ?? String(reminder.amount) }, set: { text in
+                            amountDrafts[reminder.id] = text
+                            update(reminder.id) { _ in }
+                        }))
+                            .textFieldStyle(.plain).padding(.horizontal, 12).frame(width: 80, height: 44)
+                            .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
+                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
+                            .accessibilityLabel("Reminder Amount")
+                        Menu {
+                            ForEach(["Days", "Hours"], id: \.self) { unit in
+                                Button(unit) { update(reminder.id) { $0.unit = unit } }
+                            }
+                        } label: { menuLabel(reminder.unit) }
+                            .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Unit")
+                        Button {
+                            reminders.removeAll { $0.id == reminder.id }
+                            amountDrafts.removeValue(forKey: reminder.id)
+                            amountError = false
+                        } label: {
+                            ActionIcon(symbol: "trash", size: 20)
+                        }.buttonStyle(ScroogeButtonStyle(horizontalPadding: 12))
+                            .modifier(ImmediateReferenceTooltip(text: "Remove This Reminder from the Schedule")).accessibilityLabel("Remove Reminder")
+                    }
                 }
             }
             if amountError {
@@ -264,7 +266,7 @@ struct ReminderEditor: View {
                     .foregroundStyle(Color(hex: "#F05B69"))
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            Button { reminders.append(TimedReminder(amount: 1, unit: "Days", severity: .info)) } label: { ActionLabel(title: "Add Reminder", symbol: "plus") }.buttonStyle(ScroogeButtonStyle()).padding(.top, 2)
+            Button { reminders.append(TimedReminder(amount: 1, unit: "Days", severity: .info)) } label: { ActionLabel(title: "Add Reminder", symbol: "plus") }.buttonStyle(ScroogeButtonStyle())
         }
     }
     private func menuLabel(_ title: String, color: Color = .white) -> some View {

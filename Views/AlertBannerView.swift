@@ -42,6 +42,6 @@ struct AlertBannerView: View {
             .background(Color(hex: "#222329"))
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .overlay(RoundedRectangle(cornerRadius: 14).stroke(severityColor))
-            .shadow(radius: 16).padding(20)
+            .padding(20)
     }
 }

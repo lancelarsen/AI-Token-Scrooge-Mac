@@ -190,7 +190,7 @@ struct DialogActionLabel: View {
             } else {
                 Image(systemName: symbol).font(.system(size: 20)).foregroundStyle(foreground)
             }
-            Text(title).font(.system(size: 14)).foregroundStyle(.white)
+            Text(title).font(.system(size: 14))
         }
     }
 }

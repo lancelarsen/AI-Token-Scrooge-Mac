@@ -800,3 +800,10 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Rechecked `MainPage.Alerts.OpenHistoryAsync` and `ActionButton` against `AlertHistoryView` and screenshot 08. Fresh isolated `--demo --reference-wide --scenario alert-history` capture: `artifacts/history-wide-current.jpg` (2000×1600 Retina pixels, 1000×800 points).
 - Confirmed 28-point outer padding, 80-point row height and 16-point row gaps in the native capture. Recorded, delivered, reset-expiration and quota-refresh icon categories are present in the eight-row fixture. Reference first-row top is about 76 points relative to panel, Mac about 74; text metrics and glyph shapes remain different. Fixture timestamps/detail strings are not equivalent to the reference's real history. No claim of pixel identity or live notification delivery.
 - Reminder source review confirmed 80-point amount column, 8-point horizontal gaps, 44-point row controls and 6-point row gaps; fresh final reminder-image comparisons remain outstanding.
+
+### Shared action colors, banner shadow and reminder validation spacing
+
+- Removed the pure-white override from `DialogActionLabel` so shared actions inherit `ScroogeButtonStyle` normal #F2F1F5 / interacting white, matching Windows `ActionButton.ApplyColors`.
+- Removed the Mac-only 16-point banner shadow; Windows `ShowBanner` specifies the rounded border/background without a shadow.
+- Separated reminder rows (6-point spacing) from the error/action stack (8-point spacing), matching Windows `ReminderEditor`; normal row-to-add spacing remains 8 points.
+- Canonical build passed (`artifacts/shared-action-format-build.log`). Native isolated demo entered zero, displayed the validation error with separate action spacing (`reminder-error-spacing.jpg`), then restored ten and verified the error cleared. Banner shadow and button color inheritance verified from code/build; no new live notification sent and no claim of complete visual identity.
