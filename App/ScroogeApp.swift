@@ -74,6 +74,7 @@ struct MenuBarContent: View {
     private var wakeObserver: NSObjectProtocol?
     private var networkWasAvailable: Bool?
     private var refreshAfterWindowUpdate = false
+    private var activationRefreshTask: Task<Void, Never>?
     private func refreshAfterResume() {
         guard ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] != "1",
               let store, !store.isLoading, !store.isDemo else { return }
@@ -81,21 +82,30 @@ struct MenuBarContent: View {
     }
     func applicationDidBecomeActive(_ notification: Notification) {
         // Let AppKit update the cached windows before starting provider work.
+        activationRefreshTask?.cancel()
         refreshAfterWindowUpdate = true
     }
     func applicationDidUpdate(_ notification: Notification) {
         guard refreshAfterWindowUpdate else { return }
         refreshAfterWindowUpdate = false
-        Task { @MainActor [weak self] in
-            guard NSApp.isActive, NSApp.windows.contains(where: { $0.isVisible && !$0.isMiniaturized }) else { return }
-            self?.refreshAfterResume()
+        activationRefreshTask?.cancel()
+        activationRefreshTask = Task { @MainActor [weak self] in
+            guard !Task.isCancelled, NSApp.isActive,
+                  NSApp.windows.contains(where: { $0.isVisible && !$0.isMiniaturized }),
+                  ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] != "1",
+                  let store = self?.store, !store.isLoading, !store.isDemo else { return }
+            await store.refresh()
         }
     }
     func applicationDidResignActive(_ notification: Notification) {
         refreshAfterWindowUpdate = false
+        activationRefreshTask?.cancel()
+        activationRefreshTask = nil
     }
     func applicationWillTerminate(_ notification: Notification) {
         refreshAfterWindowUpdate = false
+        activationRefreshTask?.cancel()
+        activationRefreshTask = nil
         pathMonitor?.cancel()
         if let wakeObserver { NSWorkspace.shared.notificationCenter.removeObserver(wakeObserver) }
     }
