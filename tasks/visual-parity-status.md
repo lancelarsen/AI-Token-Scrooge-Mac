@@ -6,7 +6,7 @@ Reference image integrity checked against Windows `origin/main` at `694dc85`. Al
 
 Repeatable captures: `--demo --compact` (789×694 points) and `--demo --reference-wide` (1463×866 points), both verified by native screenshots. `--demo --reference-date 2026-11-04T16:11:00Z` freezes data and presentation time for subsequent comparisons; native compact Today/date/countdown rendering checked.
 
-Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluent glyph shapes; final captures at matching window dimensions; popup captures and positioning; final per-image comparisons after shared changes. Updated user question about Mac-redistributable Segoe text/icon assets versus explicitly changing both apps to portable assets is pending. The exact reference target remains unchanged.
+Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluent glyph shapes; final captures at matching window dimensions; popup captures and positioning; final per-image comparisons after shared changes. User requested the same open-license assets. Latest Windows main has no bundled font files and explicitly names Segoe fonts; a follow-up asking for the font name/asset path is pending. Lucide assets are already reused. The exact reference target remains unchanged.
 
 | Reference | Image pixels | Current evidence / next check |
 | --- | --- | --- |
@@ -23,7 +23,7 @@ Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluen
 | 11-demo-filter-off-tooltip.png | 1463 × 866 | Wide filter-off captured; event counts and corrected per-element selector colors checked; floating tooltip capture needed. |
 | 12-demo-all-capacity-levels.png | 1463 × 866 | Scenario fixtures available; equivalent capacity-level capture needed. |
 | 13-usage-details.png | 1463 × 866 | Standard weekly popup recaptured with 22-point title and complete timestamps; unknown checked earlier; nonpercent comparison and exact body metrics remain open. |
-| 14-account-settings.png | 1463 × 866 | Wide and compact panel frames captured; shared lavender scrollbar and bottom connection actions checked; vertical text metrics still differ. |
+| 14-account-settings.png | 1463 × 866 | Wide and compact panel frames captured; shared lavender scrollbar and bottom connection actions checked; shared 960-point form cap/16-point padding corrected in a native wide capture; vertical text metrics still differ. |
 | 15-custom-color-chooser.png | 1463 × 866 | Picker captured; footer and synchronization checked; contrast-aware 16-point ring, keyboard-only focus ring and pointer/keyboard updates verified; template spacing corrected; ordinary brightness arrows/clamping and spectrum boundary wrapping checked; exact spectrum pixels, named-color keyboard/tooltip and fonts remain open. |
 | 16-custom-color-added.png | 1463 × 866 | Orange custom swatch added and retained after reopening; exact comparison pending. |
 | 17-polling-snapped.png | 1463 × 866 | Wide off-center grab, snapped drag, keyboard, both endpoints and localized focus checked; exact rendered comparison remains. |
@@ -40,7 +40,7 @@ Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluen
 | 28-compact-account-settings.png | 789 × 694 | Fresh compact account panel captured at 741×630 with shared border; internal text metrics still differ. |
 | 29-compact-tooltip-placement.png | 789 × 694 | Owner-window clamping implemented; floating tooltip capture missing. |
 | 30-polling-tooltip.png | 322 × 118 | Exact production help component rendered at 320-point cap; short/narrow wrapping checked; Segoe metrics and actual floating hover placement remain open. |
-| 31-compact-global-settings.png | 789 × 694 | Fresh compact Settings captured at 741×630; scrollbar and outer surface checked; internal typography/vertical spacing still differ. |
+| 31-compact-global-settings.png | 789 × 694 | Fresh compact Settings captured at 741×630; scrollbar and outer surface checked; shared 960-point form cap/16-point padding corrected; internal typography/vertical spacing still differ, and fresh compact width verification is pending. |
 | 32-notification-banner.png | 789 × 694 | Test banner captured; approximate dimensions checked; text metrics differ. |
 | 33-quota-alerts-muted.png | 789 × 694 | Compact muted first-row state captured; selection and threshold hide/restore checked; equivalent full-image comparison remains. |
 | 34-threshold-drag-feedback.png | 789 × 694 | Native threshold grab/drag and keyboard checked; floating readout capture missing. |
