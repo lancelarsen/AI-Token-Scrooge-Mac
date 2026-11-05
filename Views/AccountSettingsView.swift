@@ -67,7 +67,7 @@ struct AccountSettingsView: View {
                                             }; showColor = false
                                         }, close: { showColor = false }) {
                                             VStack(alignment: .leading, spacing: 16) {
-                                                Text("Add Line Color").font(.system(size: 21, weight: .semibold)).foregroundStyle(Theme.accent)
+                                                Text("Add Line Color").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
                                                 ScrollView { InlineLineColorEditor(color: $newColor) }.frame(height: 420)
                                             }
                                         }

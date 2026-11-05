@@ -49,7 +49,7 @@ struct DashboardView: View {
         .sheet(isPresented: Binding(get: { store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })) {
             DetailsDialog(close: { store.errorMessage = nil }) {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Scrooge Needs Attention").font(.system(size: 20, weight: .semibold)).foregroundStyle(.white)
+                    Text("Scrooge Needs Attention").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
                     Text(store.errorMessage ?? "")
                 }
             }
@@ -310,7 +310,7 @@ struct QuotaDetailsView: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))").font(.system(size: 21, weight: .semibold)).foregroundStyle(Theme.accent).frame(minHeight: 32, alignment: .leading)
+            Text("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent).frame(minHeight: 32, alignment: .leading)
             Text(window.name).frame(minHeight: 19, alignment: .leading)
             Text("\(window.usedPercent.map { "\(Format.percent($0)) used" } ?? "Usage unavailable") · \(window.remainingPercent.map { "\(Format.percent($0)) left" } ?? "Left unavailable")").frame(minHeight: 19, alignment: .leading)
             DetailLine(label: "Resets", value: Format.detailDate(window.resetsAt, zone: store.state.settings.zone))
@@ -334,6 +334,6 @@ struct QuotaDetailsView: View {
                     }
                 }.buttonStyle(ScroogeButtonStyle())
             }
-        }.font(.system(size: 13)).foregroundStyle(Theme.dialogText).textSelection(.enabled).frame(maxWidth: 440, alignment: .leading).preferredColorScheme(.dark)
+        }.font(Theme.dialogBodyFont).foregroundStyle(Theme.dialogText).textSelection(.enabled).frame(maxWidth: 440, alignment: .leading).preferredColorScheme(.dark)
     }
 }

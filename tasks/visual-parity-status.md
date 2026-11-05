@@ -22,14 +22,14 @@ Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluen
 | 10-demo-history-off.png | 1463 × 866 | Wide History-off captured at matching size; date/font and switch-hover differences remain. |
 | 11-demo-filter-off-tooltip.png | 1463 × 866 | Wide filter-off captured; event counts and corrected per-element selector colors checked; floating tooltip capture needed. |
 | 12-demo-all-capacity-levels.png | 1463 × 866 | Scenario fixtures available; equivalent capacity-level capture needed. |
-| 13-usage-details.png | 1463 × 866 | Unknown-usage popup checked; standard and nonpercent captures need recheck. |
+| 13-usage-details.png | 1463 × 866 | Standard weekly popup recaptured with 22-point title and complete timestamps; unknown checked earlier; nonpercent comparison and exact body metrics remain open. |
 | 14-account-settings.png | 1463 × 866 | Wide and compact panel frames captured; shared lavender scrollbar and bottom connection actions checked; vertical text metrics still differ. |
 | 15-custom-color-chooser.png | 1463 × 866 | Picker captured; footer and synchronization checked; spectrum/ring pixels remain different. |
 | 16-custom-color-added.png | 1463 × 866 | Orange custom swatch added and retained after reopening; exact comparison pending. |
 | 17-polling-snapped.png | 1463 × 866 | Wide off-center grab, snapped drag, keyboard, both endpoints and localized focus checked; exact rendered comparison remains. |
 | 18-account-connection-actions.png | 1463 × 866 | Connection section source-reviewed; matching capture needed. |
 | 19-first-launch.png | 1463 × 866 | Isolated empty dashboard captured; horizontal coordinates checked; matching width needed. |
-| 20-provider-chooser.png | 1463 × 866 | Chooser captured; border and dimensions checked; text metrics differ. |
+| 20-provider-chooser.png | 1463 × 866 | Chooser recaptured at 320×337 after 22-point title/12-point gap fixes; exact font metrics remain open. |
 | 21-connect-codex.png | 1463 × 866 | Codex form recaptured at compact 741×630 with visible actions and reference outline; exact text metrics differ. |
 | 22-connect-github-browser.png | 1463 × 866 | GitHub browser form captured; zero validation checked; exact metrics differ. |
 | 23-connect-github-advanced.png | 1463 × 866 | Advanced form captured; dummy token mode reset checked; exact metrics differ. |
@@ -44,7 +44,7 @@ Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluen
 | 32-notification-banner.png | 789 × 694 | Test banner captured; approximate dimensions checked; text metrics differ. |
 | 33-quota-alerts-muted.png | 789 × 694 | Compact muted first-row state captured; selection and threshold hide/restore checked; equivalent full-image comparison remains. |
 | 34-threshold-drag-feedback.png | 789 × 694 | Native threshold grab/drag and keyboard checked; floating readout capture missing. |
-| 35-earned-reset-details.png | 789 × 694 | Reset details source-reviewed; equivalent popup capture needs recheck. |
+| 35-earned-reset-details.png | 789 × 694 | Compact reset popup recaptured with 22-point heading and complete count/fetch/credit lines; exact body/font metrics remain open. |
 | 36-timeline-event-tooltip.png | 789 × 694 | Event details and click action checked; floating tooltip capture missing. |
 | 37-history-sample-readout.png | 789 × 694 | History readout source/keyboard checked; equivalent floating readout capture missing. |
 

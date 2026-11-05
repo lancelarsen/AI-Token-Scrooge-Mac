@@ -34,18 +34,20 @@ struct ConnectionView: View {
 
     private var providerChooser: some View {
         VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Connect account").font(.system(size: 21, weight: .semibold)).foregroundStyle(Theme.accent)
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Connect account").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
                     .frame(minHeight: 32, alignment: .leading)
-                ForEach([Provider.codex, .copilot, .claude]) { choice in
-                    Button {
-                        provider = choice
-                        nickname = "Personal"
-                        providerChosen = true
-                    } label: {
-                        DialogActionLabel(title: choice == .codex ? "OpenAI Codex" : choice.rawValue, symbol: "person")
-                            .frame(maxWidth: .infinity)
-                    }.buttonStyle(ScroogeButtonStyle())
+                VStack(spacing: 10) {
+                    ForEach([Provider.codex, .copilot, .claude]) { choice in
+                        Button {
+                            provider = choice
+                            nickname = "Personal"
+                            providerChosen = true
+                        } label: {
+                            DialogActionLabel(title: choice == .codex ? "OpenAI Codex" : choice.rawValue, symbol: "person")
+                                .frame(maxWidth: .infinity)
+                        }.buttonStyle(ScroogeButtonStyle())
+                    }
                 }
             }.padding(24)
             Rectangle().fill(Color(hex: "#3B3D47")).frame(height: 1)

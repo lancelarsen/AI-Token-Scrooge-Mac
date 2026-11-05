@@ -53,6 +53,10 @@ struct DashboardWindowSizeReader: NSViewRepresentable {
 }
 
 enum Theme {
+    static let dialogTitleFont = Font.system(size: 22, weight: .semibold)
+    // The current system-font fallback is retained until the Segoe asset
+    // decision is resolved; Windows uses Segoe UI at 14 points.
+    static let dialogBodyFont = Font.system(size: 13)
     static let primaryText = Color(hex: "#F2F1F5")
     static let canvas = Color(hex: "#141519")
     static let background = LinearGradient(colors: [Color(hex: "#1B1C20"), Color(hex: "#141519")], startPoint: .topLeading, endPoint: .bottomTrailing)
