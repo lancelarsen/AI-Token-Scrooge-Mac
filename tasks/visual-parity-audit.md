@@ -807,3 +807,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Removed the Mac-only 16-point banner shadow; Windows `ShowBanner` specifies the rounded border/background without a shadow.
 - Separated reminder rows (6-point spacing) from the error/action stack (8-point spacing), matching Windows `ReminderEditor`; normal row-to-add spacing remains 8 points.
 - Canonical build passed (`artifacts/shared-action-format-build.log`). Native isolated demo entered zero, displayed the validation error with separate action spacing (`reminder-error-spacing.jpg`), then restored ten and verified the error cleared. Banner shadow and button color inheritance verified from code/build; no new live notification sent and no claim of complete visual identity.
+
+### GitHub reconnect field states
+
+- Rechecked Windows `ConnectAccountPage` and GitHub connection screens 22–23. Windows disables billing-unit changes and makes organization scope read-only for reconnects. Mac previously left both editable despite preloading the original values.
+- Disabled those two fields only while `reconnectAccountID` is set. New-account inputs remain editable, and existing Keychain/identity checks remain in place.
+- Canonical build passed (`artifacts/reconnect-locked-fields-build.log`); source review confirmed both modifiers depend on reconnect state. No live reconnect or authentication was performed. Exact disabled appearance and final connection-screen comparisons remain open.

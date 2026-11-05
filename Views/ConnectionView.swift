@@ -104,6 +104,7 @@ struct ConnectionView: View {
                         .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
                 }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
                     .accessibilityLabel("Billing Unit").accessibilityValue(unit == .credits ? "AI credits" : "Legacy premium requests")
+                    .disabled(store.reconnectAccountID != nil)
                 TextField("Fallback allowance (optional; detected automatically when available)", text: $allowance).modifier(ConnectionFieldStyle())
                 if !organizationReconnect {
                 Button { token = ""; error = nil; advanced.toggle() } label: {
@@ -114,6 +115,7 @@ struct ConnectionView: View {
                 if !advanced && !organizationReconnect { GitHubConnectView(nickname: nickname, unit: $unit, allowance: $allowance) } else {
                 SecureField("Fine-grained personal access token", text: $token).modifier(ConnectionFieldStyle())
                 TextField("Organization billing owner (optional)", text: $organization).modifier(ConnectionFieldStyle())
+                    .disabled(store.reconnectAccountID != nil)
                 ConnectionStatusLine(text: error ?? "")
                 Button {
                     connecting = true; error = nil
