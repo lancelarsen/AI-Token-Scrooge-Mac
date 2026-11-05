@@ -1,5 +1,7 @@
 # Windows Visual Parity Audit
 
+Current per-image status: [visual-parity-status.md](visual-parity-status.md). The original table below predates later fixes and is historical. No screenshot is certified identical.
+
 Reference: Windows commit `5a88731`, November 4 conversion-for-mac pack. Source snapshot is extracted under ignored artifacts/windows-reference/source-snapshot. All 37 original PNGs are available locally.
 
 Acceptance requires individual inspection and equivalent Mac captures; a successful build alone is not visual proof. Native macOS chrome and system-font metrics follow the reference guide's permitted adaptations.
