@@ -170,12 +170,12 @@ struct HorizonView: View {
             guard viewport.position(at: now) - viewport.scrollOffset > 2 else { return }
             for percent in stride(from: 0, through: 100, by: 25) {
                 let y = plotTop + (1 - Double(percent) / 100) * plotHeight
-                context.draw(Text("\(percent)%").font(.reference(size: 11)).foregroundStyle(Theme.secondary),
+                context.draw(Text("\(percent)%").font(.reference(size: 11)).foregroundStyle(Theme.dialogText),
                              at: CGPoint(x: 38, y: y), anchor: .trailing)
             }
             context.translateBy(x: 5, y: (plotTop + plotBottom) / 2)
             context.rotate(by: .degrees(-90))
-            context.draw(Text("% Used").font(.reference(size: 10)).foregroundStyle(Theme.secondary), at: .zero)
+            context.draw(Text("% Used").font(.reference(size: 10)).foregroundStyle(Theme.dialogText), at: .zero)
         }.accessibilityLabel("History axis: zero to one hundred percent used")
     }
     private var timelineHeight: Double {
@@ -405,10 +405,9 @@ struct HorizonView: View {
                 samples.append((series.account, point))
             }
         }
-        samples.sort { left, right in
-            if left.1.at == right.1.at { return left.0.id < right.0.id }
-            return left.1.at < right.1.at
-        }
+        // Stable sorting retains the displayed series order for simultaneous samples,
+        // matching Windows OrderBy(Point.At) after flattening the visible series.
+        samples.sort { $0.1.at < $1.1.at }
         guard !samples.isEmpty else { return }
         let current = samples.firstIndex { $0.0.id == hoveredSample?.account.id && $0.1.at == hoveredSample?.point.at }
         let index = current.map { min(samples.count - 1, max(0, $0 + direction)) } ?? (direction >= 0 ? 0 : samples.count - 1)
@@ -474,7 +473,7 @@ struct HorizonView: View {
                 context.stroke(track, with: .color(Color(hex: "#45464D")), lineWidth: 1)
                 let thumb = Path(roundedRect: CGRect(x: overview.left + 1, y: 1, width: overview.width, height: 20), cornerRadius: 5)
                 context.fill(thumb, with: .color(Color(hex: "#483A64")))
-                context.stroke(thumb, with: .color(Theme.accent), lineWidth: 1)
+                context.stroke(thumb, with: .color(Theme.actionAccent), lineWidth: 1)
                 let markers = events + historicalEvents
                 let groups = Dictionary(grouping: markers) { event in
                     "\(calendar.startOfDay(for: event.date).timeIntervalSince1970)/\(event.expiration)/\(event.reportedAt == nil)"
