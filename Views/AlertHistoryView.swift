@@ -37,7 +37,7 @@ struct AlertHistoryView: View {
                     }
                 }
                 Button { dismiss() } label: {
-                    DialogActionLabel(title: "Close", symbol: "xmark")
+                    DialogActionLabel(title: "Close")
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }.buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction)
             }.padding(28)
@@ -90,7 +90,6 @@ struct DetailsDialog<Content: View>: View {
     var maximumHeight: CGFloat = 560
     var closeTitle = "Close"
     var primaryTitle: String? = nil
-    var primarySymbol: String = "checkmark"
     var primaryAction: (() -> Void)? = nil
     let close: () -> Void
     @ViewBuilder let content: () -> Content
@@ -112,12 +111,12 @@ struct DetailsDialog<Content: View>: View {
                 if !hasPrimaryAction { Spacer() }
                 if let primaryTitle, let primaryAction {
                     Button(action: primaryAction) {
-                        DialogActionLabel(title: primaryTitle, symbol: primarySymbol)
+                        DialogActionLabel(title: primaryTitle)
                             .frame(maxWidth: .infinity)
                     }.buttonStyle(ScroogeButtonStyle())
                 }
                 Button(action: close) {
-                    DialogActionLabel(title: closeTitle, symbol: "xmark")
+                    DialogActionLabel(title: closeTitle)
                         .frame(minWidth: hasPrimaryAction ? 0 : 104, maxWidth: hasPrimaryAction ? .infinity : nil)
                 }
                 .buttonStyle(ScroogeButtonStyle())
@@ -172,11 +171,14 @@ struct DialogMessage: View {
 }
 
 struct DialogActionLabel: View {
+    @Environment(\.actionForeground) private var foreground
     let title: String
-    let symbol: String
     var body: some View {
         HStack(spacing: 9) {
-            ActionIcon(symbol: symbol, size: 20)
+            Text(Format.actionGlyph(title))
+                .font(ReferenceTypography.iconFont(size: 20))
+                .foregroundStyle(foreground)
+                .accessibilityHidden(true)
             Text(title).font(.reference(size: 14))
         }
     }

@@ -19,7 +19,7 @@ struct CodexConnectView: View {
             ConnectionStatusLine(text: status)
             Button {
                 Task { if connection == nil { await start() } else { await finish() } }
-            } label: { DialogActionLabel(title: connection == nil ? "Sign in with OpenAI" : "Check Sign-In", symbol: "person").frame(maxWidth: .infinity, alignment: .leading) }
+            } label: { DialogActionLabel(title: connection == nil ? "Sign in with OpenAI" : "Check Sign-In").frame(maxWidth: .infinity, alignment: .leading) }
             .buttonStyle(ScroogeButtonStyle()).disabled(busy || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             if busy { ProgressView().controlSize(.small) }
         }

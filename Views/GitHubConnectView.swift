@@ -23,7 +23,7 @@ struct GitHubConnectView: View {
                     Button("Open GitHub") { NSWorkspace.shared.open(challenge.verificationURL) }
                 }.buttonStyle(ScroogeButtonStyle())
             }
-            Button { begin() } label: { DialogActionLabel(title: busy ? "Waiting for GitHub…" : "Sign in with GitHub", symbol: "person").frame(maxWidth: .infinity, alignment: .leading) }
+            Button { begin() } label: { DialogActionLabel(title: busy ? "Waiting for GitHub…" : "Sign in with GitHub").frame(maxWidth: .infinity, alignment: .leading) }
                 .buttonStyle(ScroogeButtonStyle()).disabled(busy || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             if busy { ProgressView().controlSize(.small) }
         }.onDisappear { if !committing { task?.cancel() }; challenge = nil }

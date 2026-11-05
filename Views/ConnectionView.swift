@@ -44,7 +44,7 @@ struct ConnectionView: View {
                             nickname = "Personal"
                             providerChosen = true
                         } label: {
-                            DialogActionLabel(title: choice == .codex ? "OpenAI Codex" : choice.rawValue, symbol: "person")
+                            DialogActionLabel(title: choice == .codex ? "OpenAI Codex" : choice.rawValue)
                                 .frame(maxWidth: .infinity)
                         }.buttonStyle(ScroogeButtonStyle())
                     }
@@ -53,7 +53,7 @@ struct ConnectionView: View {
             Rectangle().fill(Color(hex: "#3B3D47")).frame(height: 1)
             HStack {
                 Spacer()
-                Button { dismiss() } label: { DialogActionLabel(title: "Cancel", symbol: "xmark").frame(minWidth: 98) }
+                Button { dismiss() } label: { DialogActionLabel(title: "Cancel").frame(minWidth: 98) }
                     .buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction)
             }.padding(24)
         }.frame(width: 320).background(Theme.dialogBackground)
@@ -108,7 +108,7 @@ struct ConnectionView: View {
                 TextField("Fallback allowance (optional; detected automatically when available)", text: $allowance).modifier(ConnectionFieldStyle())
                 if !organizationReconnect {
                 Button { token = ""; error = nil; advanced.toggle() } label: {
-                    DialogActionLabel(title: advanced ? "Use browser sign-in instead" : "Use an access token instead", symbol: advanced ? "arrow.up.right.square" : "key")
+                    DialogActionLabel(title: advanced ? "Use browser sign-in instead" : "Use an access token instead")
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }.buttonStyle(ScroogeButtonStyle()).disabled(connecting)
                 }
@@ -129,13 +129,13 @@ struct ConnectionView: View {
                             token = ""; dismiss()
                         } catch { self.error = error.localizedDescription }
                     }
-                } label: { DialogActionLabel(title: connecting ? "Connecting…" : "Connect account", symbol: "person").frame(maxWidth: .infinity, alignment: .leading) }
+                } label: { DialogActionLabel(title: connecting ? "Connecting…" : "Connect account").frame(maxWidth: .infinity, alignment: .leading) }
                     .buttonStyle(ScroogeButtonStyle()).disabled(connecting || token.isEmpty || nickname.isEmpty)
                 }
             } else {
                 ClaudeConnectView(nickname: nickname, original: store.state.accounts.first { $0.id == store.reconnectAccountID })
             }
-            Button { dismiss() } label: { DialogActionLabel(title: "Cancel", symbol: "xmark").frame(maxWidth: .infinity, alignment: .leading) }
+            Button { dismiss() } label: { DialogActionLabel(title: "Cancel").frame(maxWidth: .infinity, alignment: .leading) }
                 .buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction).disabled(connecting)
         }.font(.reference(size: 14)).frame(maxWidth: formContentWidth).padding(32).frame(maxWidth: .infinity, alignment: .top)
         }.frame(width: panelSize.width, height: panelSize.height).referencePanelSurface().preferredColorScheme(.dark).tint(Theme.accent)

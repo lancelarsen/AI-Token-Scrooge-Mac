@@ -27,7 +27,7 @@ struct AccountSettingsView: View {
     }
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 10) { ActionIcon(symbol: "person", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text(accountTitle).font(.reference(size: 26, weight: .semibold)).foregroundStyle(Theme.primaryText); Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction) }.padding(.horizontal, 20).padding(.vertical, 12)
+            HStack(spacing: 10) { ActionIcon(symbol: "person", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text(accountTitle).font(.reference(size: 26, weight: .semibold)).foregroundStyle(Theme.primaryText); Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close") }.buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction) }.padding(.horizontal, 20).padding(.vertical, 12)
             SettingsScrollView {
                 if let account {
                     VStack(spacing: 12) {
@@ -60,7 +60,7 @@ struct AccountSettingsView: View {
                                     .modifier(ImmediateReferenceTooltip(text: "Add Custom Line Color"))
                                     .accessibilityLabel("Add Custom Line Color")
                                     .sheet(isPresented: $showColor) {
-                                        DetailsDialog(width: 360, maximumHeight: 640, closeTitle: "Cancel", primaryTitle: "Add Color", primarySymbol: "plus", primaryAction: {
+                                        DetailsDialog(width: 360, maximumHeight: 640, closeTitle: "Cancel", primaryTitle: "Add Color", primaryAction: {
                                             let hex = newColor.hex; store.edit { state in
                                                 if !state.settings.customColors.contains(hex) { state.settings.customColors.append(hex) }
                                                 if let i = state.accounts.firstIndex(where: { $0.id == accountID }) { state.accounts[i].lineColor = hex }
@@ -107,8 +107,8 @@ struct AccountSettingsView: View {
                         }
                         SettingsCard(title: "Connection", symbol: "link", help: "Sign in again to renew the connection while keeping settings. Removing the connection only removes it from Scrooge; your provider account is unaffected.") {
                             Text("Sign in again only if this account needs a new connection. Your saved settings stay in place.").font(.reference(size: 13)).foregroundStyle(Theme.secondary)
-                            Button { store.reconnectAccountID = accountID; dismiss(); store.showConnection = true } label: { DialogActionLabel(title: "Sign In Again", symbol: "person").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
-                            Button(role: .destructive) { confirmRemove = true } label: { DialogActionLabel(title: "Remove Account", symbol: "trash").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
+                            Button { store.reconnectAccountID = accountID; dismiss(); store.showConnection = true } label: { DialogActionLabel(title: "Sign In Again").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
+                            Button(role: .destructive) { confirmRemove = true } label: { DialogActionLabel(title: "Remove Account").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
                         }
                     }.padding(.horizontal, 16).padding(.vertical, 12).frame(width: min(960, panelSize.width - 24)).frame(maxWidth: .infinity)
                 }

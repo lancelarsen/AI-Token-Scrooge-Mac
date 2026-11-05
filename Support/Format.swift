@@ -1,6 +1,37 @@
 import Foundation
 
 enum Format {
+    /// Windows ActionButton.GlyphFor mapping, also used by themed dialog actions.
+    static func actionGlyph(_ title: String) -> String {
+        let value = title.lowercased()
+        if value == "check now" || value == "update and restart" { return "\u{E72C}" }
+        if value == "get update" { return "\u{E896}" }
+        if value.hasPrefix("preview") { return "\u{E768}" }
+        if value == "show info" { return "\u{E946}" }
+        if value == "custom order" { return "\u{E80A}" }
+        if value == "most remaining" { return "\u{E9D9}" }
+        if value == "least remaining" { return "\u{E9D2}" }
+        if value == "next reset" { return "\u{E823}" }
+        if value.contains("rename") { return "\u{E70F}" }
+        if value.hasPrefix("save") { return "\u{E74E}" }
+        if value.contains("remove") { return "\u{E74D}" }
+        if value.contains("copy") { return "\u{E8C8}" }
+        if value.contains("close") || value.contains("cancel") || value.contains("dismiss") { return "\u{E711}" }
+        if value.contains("snooze") { return "\u{E823}" }
+        if value.contains("refresh") || value.contains("default") { return "\u{E72C}" }
+        if value.contains("settings") || value.contains("manage account") || value.contains("rules") { return "\u{E713}" }
+        if value.contains("history") { return "\u{E81C}" }
+        if value.contains("notification") { return "\u{E7F4}" }
+        if value.contains("help") { return "\u{E897}" }
+        if value.contains("quick view") || value.contains("dashboard") { return "\u{E80F}" }
+        if value.contains("token") { return "\u{E8D7}" }
+        if value.contains("sign in") || value.contains("connect") || ["openai codex", "github copilot", "claude"].contains(value) { return "\u{E77B}" }
+        if value.contains("add") { return "\u{E710}" }
+        if value.contains("reset") { return "\u{E8B7}" }
+        if value.contains("usage") { return "\u{E9D9}" }
+        return "\u{E8A7}"
+    }
+
     /// Match ThemedDialogs.ShowAsync: label prefixes are short, non-time text.
     static func dialogLine(_ line: String) -> (label: String?, value: String) {
         guard let colon = line.firstIndex(of: ":") else { return (nil, line) }

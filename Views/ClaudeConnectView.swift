@@ -33,7 +33,7 @@ struct ClaudeConnectView: View {
                         status = (error as? ProviderFailure)?.message ?? (error is AccountError ? error.localizedDescription : "Claude connection could not be completed. Please try again.")
                     }
                 }
-            } label: { DialogActionLabel(title: busy ? "Waiting for Claude Sign-In…" : "Sign in with Claude", symbol: "person").frame(maxWidth: .infinity, alignment: .leading) }
+            } label: { DialogActionLabel(title: busy ? "Waiting for Claude Sign-In…" : "Sign in with Claude").frame(maxWidth: .infinity, alignment: .leading) }
             .buttonStyle(ScroogeButtonStyle()).disabled(busy || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             if busy { ProgressView().controlSize(.small) }
         }.onDisappear {
