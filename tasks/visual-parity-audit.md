@@ -794,3 +794,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 
 - Matched Windows `SettingsPage.AddSwatch` margins: each 32-point button occupies a 40-point cell with 8-point right and bottom margins. The previous adaptive grid omitted the final right margin when deciding how many columns fit. Replaced the add-color vector icon with the source's 22-point plus text and specified accent color.
 - Canonical build passed (`artifacts/swatch-cell-spacing-build.log`). Native compact demo capture: `swatch-cell-spacing-native.jpg`. Added four custom hex colors through the real picker, verified each became selected, and captured `swatch-cell-spacing-wrap.jpg`: eleven swatches occupy row one, add-color wraps to row two, and polling remains below without overlap. Demo changes only; no live account data was edited. Font glyph identity remains unresolved.
+
+### Populated alert-history comparison
+
+- Rechecked `MainPage.Alerts.OpenHistoryAsync` and `ActionButton` against `AlertHistoryView` and screenshot 08. Fresh isolated `--demo --reference-wide --scenario alert-history` capture: `artifacts/history-wide-current.jpg` (2000×1600 Retina pixels, 1000×800 points).
+- Confirmed 28-point outer padding, 80-point row height and 16-point row gaps in the native capture. Recorded, delivered, reset-expiration and quota-refresh icon categories are present in the eight-row fixture. Reference first-row top is about 76 points relative to panel, Mac about 74; text metrics and glyph shapes remain different. Fixture timestamps/detail strings are not equivalent to the reference's real history. No claim of pixel identity or live notification delivery.
+- Reminder source review confirmed 80-point amount column, 8-point horizontal gaps, 44-point row controls and 6-point row gaps; fresh final reminder-image comparisons remain outstanding.

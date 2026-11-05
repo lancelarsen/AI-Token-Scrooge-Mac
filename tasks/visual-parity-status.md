@@ -17,7 +17,7 @@ Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluen
 | 05-settings-reset-reminders.png | 1463 × 866 | Validation and ordering checked; matching reminder-list capture needed. |
 | 06-settings-refresh-reminders.png | 1463 × 866 | Validation and ordering checked; matching reminder-list capture needed. |
 | 07-settings-app-behavior.png | 1463 × 866 | Behavior section seen during native navigation; exact layout comparison pending. |
-| 08-alert-history.png | 1463 × 866 | Populated demo rows checked earlier; fresh empty compact panel captured at 741×630; final populated matching-width capture needed. |
+| 08-alert-history.png | 1463 × 866 | Fresh populated wide panel captured at 1000×800 points; 80-point rows, 16-point gaps and 28-point inset confirmed against reference 08. Fixture text/dates, typography and icon shapes still differ. |
 | 09-demo-history-on.png | 1463 × 866 | Timeline geometry revised; fresh wide equivalent capture needed. |
 | 10-demo-history-off.png | 1463 × 866 | Wide History-off captured at matching size; date/font and switch-hover differences remain. |
 | 11-demo-filter-off-tooltip.png | 1463 × 866 | Wide filter-off captured; event counts and corrected per-element selector colors checked; floating tooltip capture needed. |
