@@ -38,8 +38,9 @@ struct GitHubConnectView: View {
         task = Task {
             defer { busy = false; challenge = nil }
             do {
-                let amount = allowance.isEmpty ? nil : Decimal(string: allowance, locale: Locale(identifier: "en_US_POSIX"))
-                guard allowance.isEmpty || (amount != nil && amount! >= 0) else { throw ProviderFailure(message: "Enter a non-negative allowance, or leave it blank.") }
+                let enteredAllowance = allowance.trimmingCharacters(in: .whitespacesAndNewlines)
+                let amount = enteredAllowance.isEmpty ? nil : Decimal(string: enteredAllowance, locale: Locale(identifier: "en_US_POSIX"))
+                guard enteredAllowance.isEmpty || (amount != nil && amount! > 0) else { throw ProviderFailure(message: "Allowance must be a positive number, or blank.") }
                 let code = try await flow.begin()
                 try Task.checkCancellation()
                 challenge = code

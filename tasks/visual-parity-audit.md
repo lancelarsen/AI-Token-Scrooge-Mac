@@ -585,3 +585,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 
 - Windows App.xaml specifies 14-point Label defaults; provider descriptions do not override that size or line spacing. Removed the Mac 13.5-point override, extra three-point line spacing and one-point vertical padding, using the shared 14-point form text instead. Applies to Codex, GitHub browser/advanced and Claude descriptions.
 - Canonical build passed (`artifacts/connection-description-typography-build.log`) and diff checks passed. Native isolated Codex form capture confirms a complete two-line description, nickname field, sign-in and Cancel controls with no clipping. No sign-in was performed. Exact Windows font metrics and GitHub/Claude post-change captures remain open.
+
+### GitHub browser and token form behavior
+
+- Captured browser form after typography correction: complete description and all fields/actions render. Compared reference 22 and GitHub Windows source. Corrected zero allowance acceptance in both browser/token paths to positive-or-blank validation with exact reference error wording; whitespace-only input counts as blank.
+- Mode switching now clears token text and advanced-form errors, matching Windows SetGitHubMode. Native check entered zero and observed Allowance must be a positive number, or blank before any sign-in began. Entered dummy noncredential text in token field, switched modes twice, and verified Connect returned disabled with an empty token field. No authentication or real credential submission occurred.
+- Canonical build passed (`artifacts/github-form-parity-build.log`) and diff checks passed. Browser rendering checked; exact advanced-form screenshot/font metrics and organization reconnect mode restrictions remain open.
