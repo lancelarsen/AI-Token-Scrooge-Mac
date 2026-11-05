@@ -152,7 +152,7 @@ struct AccountSettingsView: View {
         }
     }
     private func infoIcon(_ help: String) -> some View {
-        Image(systemName: "info.circle").font(.reference(size: 16)).foregroundStyle(Color(hex: "#B5A0F4"))
+        Text("\u{E946}").font(ReferenceTypography.iconFont(size: 16)).accessibilityLabel("Information").foregroundStyle(Color(hex: "#B5A0F4"))
             .frame(width: 20).modifier(ImmediateReferenceTooltip(text: help)).accessibilityLabel(help)
     }
 }

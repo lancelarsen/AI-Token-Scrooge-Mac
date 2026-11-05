@@ -262,6 +262,7 @@ struct ActionIcon: View {
     private var referenceGlyph: String? {
         switch symbol {
         case "clock": "\u{E823}"
+        case "clock.arrow.circlepath": "\u{E81C}"
         case "person": "\u{E77B}"
         case "play": "\u{E768}"
         case "folder": "\u{E8B7}"
@@ -303,21 +304,6 @@ struct ActionIcon: View {
                         }
                     }
                 }.frame(width: 20, height: 22)
-            } else if symbol == "clock.arrow.circlepath" {
-                Canvas { context, _ in
-                    context.scaleBy(x: size / 30, y: size / 30)
-                    var path = Path()
-                    path.addArc(center: CGPoint(x: 15, y: 15), radius: 13,
-                                startAngle: .degrees(180), endAngle: .degrees(225), clockwise: true)
-                    path.move(to: CGPoint(x: 2, y: 2))
-                    path.addLine(to: CGPoint(x: 2, y: 9))
-                    path.addLine(to: CGPoint(x: 9, y: 9))
-                    path.move(to: CGPoint(x: 15, y: 6))
-                    path.addLine(to: CGPoint(x: 15, y: 15))
-                    path.addLine(to: CGPoint(x: 21, y: 15))
-                    context.stroke(path, with: .color(foreground),
-                                   style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
-                }.frame(width: size, height: size)
             } else if symbol == "account.reorder" {
                 Canvas { context, _ in
                     for row in 0..<3 {
@@ -364,21 +350,6 @@ struct ActionIcon: View {
                     }
                     context.stroke(outline, with: .color(foreground),
                                    style: StrokeStyle(lineWidth: 1, lineJoin: .round))
-                }
-            } else if symbol == "desktopcomputer" {
-                Canvas { context, _ in
-                    context.scaleBy(x: size / 20, y: size / 20)
-                    let screen = Path(roundedRect: CGRect(x: 0.5, y: 1.5, width: 19, height: 14),
-                                      cornerRadius: 1)
-                    context.stroke(screen, with: .color(foreground), lineWidth: 1)
-                    var stand = Path()
-                    stand.move(to: CGPoint(x: 8, y: 15.5))
-                    stand.addLine(to: CGPoint(x: 8, y: 19))
-                    stand.move(to: CGPoint(x: 12, y: 15.5))
-                    stand.addLine(to: CGPoint(x: 12, y: 19))
-                    stand.move(to: CGPoint(x: 5, y: 19))
-                    stand.addLine(to: CGPoint(x: 15, y: 19))
-                    context.stroke(stand, with: .color(foreground), lineWidth: 1)
                 }
             } else if let resource, let image = ThemeImages.image(resource, extension: "svg") {
                 Image(nsImage: image).renderingMode(.template).resizable().scaledToFit().foregroundStyle(foreground)
@@ -471,7 +442,7 @@ struct ThresholdReadoutIcon: View {
     let severity: ReminderSeverity
     var body: some View {
         if severity == .info {
-            Image(systemName: "info.circle").font(.reference(size: 18)).foregroundStyle(Color(hex: "#58A6FF")).frame(width: 18, height: 18)
+            Text("\u{E946}").font(ReferenceTypography.iconFont(size: 18)).accessibilityLabel("Information").foregroundStyle(Color(hex: "#58A6FF")).frame(width: 18, height: 18)
         } else if let image = ThemeImages.image(severity == .warning ? "threshold_warning" : "threshold_critical", extension: "svg") {
             Image(nsImage: image).resizable().scaledToFit().frame(width: 18, height: 18)
         }

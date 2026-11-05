@@ -890,3 +890,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - ActionIcon now uses the reference glyphs for clock, person, play, folder, desktop, plus, trash, close, moon, speaker, globe, sliders, link, and info. Removed superseded hand-drawn clock/person/play/plus/trash approximations. Dedicated custom sorting/reordering drawings and existing resource images remain.
 - Canonical build passed (`artifacts/fluent-icons-build.log`); CoreText registration succeeded and all 14 mapped code points resolved to nonzero glyphs. Native visual alignment still needs checking; standalone info images and remaining fallback symbols are not yet migrated.
 - Reviewed Windows ActionButton disabled template: it deliberately retains normal color styling, so no disabled-opacity change was made.
+
+## Fluent information and history glyphs — 2026-11-05
+
+- Replaced standalone settings/account help icons and the threshold information readout with Segoe Fluent E946 at their existing reference sizes (16/18). Preserved readable accessibility descriptions instead of exposing private-use glyph text.
+- Replaced the Reset Horizon heading approximation with Windows HorizonView's E81C glyph at 30 points. Removed obsolete history/desktop drawing branches.
+- Canonical build passed (`artifacts/fluent-info-history-build.log`). Native screenshots verified the information/globe/close glyphs in settings and history glyph on the compact dashboard (`artifacts/fluent-settings-native.jpg`, `artifacts/fluent-horizon-native.jpg`). Accessibility output retained complete Time Zone and Quiet Hours help. This proves rendering availability, not final image identity.
