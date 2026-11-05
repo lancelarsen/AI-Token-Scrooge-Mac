@@ -235,6 +235,9 @@ private struct InlineLineColorEditor: View {
     @State private var spectrumHovered = false
     @State private var spectrumPressed = false
     @State private var spectrumKeyboardFocus = false
+    @FocusState private var brightnessFocused: Bool
+    @State private var brightnessKeyboardFocus = false
+    @State private var brightnessPressed = false
 
     var body: some View {
         VStack(spacing: 12) {
@@ -264,10 +267,10 @@ private struct InlineLineColorEditor: View {
                         .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { press in
                             spectrumKeyboardFocus = true
                             switch press.key {
-                            case .leftArrow: hue = max(0, hue - 1 / 360)
-                            case .rightArrow: hue = min(1, hue + 1 / 360)
-                            case .upArrow: saturation = min(1, saturation + 0.01)
-                            default: saturation = max(0, saturation - 0.01)
+                            case .leftArrow: hue = ColorPickerChannel.stepped(hue * 360, maximum: 360, increasing: false, wraps: true) / 360
+                            case .rightArrow: hue = ColorPickerChannel.stepped(hue * 360, maximum: 360, increasing: true, wraps: true) / 360
+                            case .upArrow: saturation = ColorPickerChannel.stepped(saturation * 100, maximum: 100, increasing: true, wraps: true) / 100
+                            default: saturation = ColorPickerChannel.stepped(saturation * 100, maximum: 100, increasing: false, wraps: true) / 100
                             }
                             publish(); return .handled
                         }
@@ -281,12 +284,30 @@ private struct InlineLineColorEditor: View {
                 ZStack(alignment: .leading) {
                     Capsule().fill(LinearGradient(colors: [.black, Color(hue: hue, saturation: saturation, brightness: 1)], startPoint: .leading, endPoint: .trailing)).frame(height: 12)
                     Circle().fill(.white).overlay(Circle().stroke(Color(hex: "#45464D"), lineWidth: 2))
-                        .frame(width: 14, height: 14).offset(x: brightness * max(0, geometry.size.width - 14))
+                        .frame(width: 14, height: 14)
+                        .overlay {
+                            if brightnessFocused && brightnessKeyboardFocus {
+                                Circle().stroke(Theme.accent, lineWidth: 2).frame(width: 22, height: 22)
+                            }
+                        }
+                        .offset(x: brightness * max(0, geometry.size.width - 14))
                 }.frame(height: 32).contentShape(Rectangle())
                     .gesture(DragGesture(minimumDistance: 0).onChanged { value in
+                        brightnessPressed = true; brightnessKeyboardFocus = false; brightnessFocused = true
                         brightness = min(1, max(0, (value.location.x - 7) / max(1, geometry.size.width - 14)))
                         publish()
-                    })
+                    }.onEnded { _ in brightnessPressed = false })
+                    .focusable().focused($brightnessFocused).focusEffectDisabled()
+                    .onChange(of: brightnessFocused) { _, focused in
+                        if !focused { brightnessKeyboardFocus = false; brightnessPressed = false }
+                        else if !brightnessPressed { brightnessKeyboardFocus = true }
+                    }
+                    .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { press in
+                        brightnessKeyboardFocus = true
+                        let increasing = press.key == .rightArrow || press.key == .upArrow
+                        brightness = ColorPickerChannel.stepped(brightness * 100, maximum: 100, increasing: increasing, wraps: false) / 100
+                        publish(); return .handled
+                    }
                     .accessibilityLabel("Brightness").accessibilityValue("\(Int(brightness * 100)) percent")
                     .accessibilityAdjustableAction { direction in
                         brightness = min(1, max(0, brightness + (direction == .increment ? 0.01 : -0.01)))

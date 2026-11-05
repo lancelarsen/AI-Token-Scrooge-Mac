@@ -2,6 +2,16 @@ import XCTest
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testColorPickerChannelStopsAtBoundaryBeforeWrapping() {
+        XCTAssertEqual(ColorPickerChannel.stepped(0.4, maximum: 100, increasing: false, wraps: true), 0)
+        XCTAssertEqual(ColorPickerChannel.stepped(0, maximum: 100, increasing: false, wraps: true), 100)
+        XCTAssertEqual(ColorPickerChannel.stepped(99.6, maximum: 100, increasing: true, wraps: true), 100)
+        XCTAssertEqual(ColorPickerChannel.stepped(100, maximum: 100, increasing: true, wraps: true), 0)
+        XCTAssertEqual(ColorPickerChannel.stepped(360, maximum: 360, increasing: true, wraps: true), 0)
+        XCTAssertEqual(ColorPickerChannel.stepped(100, maximum: 100, increasing: true, wraps: false), 100)
+        XCTAssertEqual(ColorPickerChannel.stepped(0, maximum: 100, increasing: false, wraps: false), 0)
+    }
+
     func testSpectrumSelectionContrastsWithDisplayedHueAndSaturation() {
         XCTAssertTrue(SpectrumSelectionContrast.usesLightStroke(hue: 0, saturation: 1))
         XCTAssertFalse(SpectrumSelectionContrast.usesLightStroke(hue: 1 / 3, saturation: 1))
