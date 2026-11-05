@@ -50,7 +50,7 @@ struct AccountSettingsView: View {
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 40, maximum: 40), spacing: 0)], alignment: .leading, spacing: 0) {
                                 ForEach(lineColors, id: \.self) { hex in
                                     Button { update { $0.lineColor = hex } } label: {
-                                        ZStack { RoundedRectangle(cornerRadius: 9).fill(Color(hex: hex)); if account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType).caseInsensitiveCompare(hex) == .orderedSame { RoundedRectangle(cornerRadius: 9).stroke(.white, lineWidth: 2); Image(systemName: "checkmark").foregroundStyle(.black) } }.frame(width: 32, height: 32)
+                                        ZStack { RoundedRectangle(cornerRadius: 9).fill(Color(hex: hex)); if account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType).caseInsensitiveCompare(hex) == .orderedSame { RoundedRectangle(cornerRadius: 9).stroke(.white, lineWidth: 2); Text("\u{2713}").font(.reference(size: 14)).foregroundStyle(Color(hex: "#141519")) } }.frame(width: 32, height: 32)
                                     }.buttonStyle(.plain).padding(.trailing, 8).padding(.bottom, 8).accessibilityLabel("Line Color \(hex)")
                                 }
                                 Button {

@@ -246,8 +246,17 @@ struct HorizonView: View {
                                 HStack(alignment: .bottom, spacing: 0) {
                                     selectorBadge(Format.plan(account.provider, store.state.snapshots[account.id]?.planType), size: 10, accent: accent, enabled: enabled)
                                     Spacer(minLength: 0)
-                                    ZStack { if enabled { Image(systemName: "checkmark") } }
-                                        .font(.reference(size: 12, weight: .bold)).foregroundStyle(.white)
+                                    ZStack {
+                                        if enabled {
+                                            Path { path in
+                                                path.move(to: CGPoint(x: 1, y: 6))
+                                                path.addLine(to: CGPoint(x: 4.5, y: 9.5))
+                                                path.addLine(to: CGPoint(x: 11, y: 2.5))
+                                            }
+                                            .stroke(.white, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                                            .frame(width: 12, height: 12)
+                                        }
+                                    }
                                         .frame(width: 19, height: 19)
                                         .background(enabled ? accent : Theme.control)
                                         .clipShape(RoundedRectangle(cornerRadius: 5))
