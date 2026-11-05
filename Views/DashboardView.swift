@@ -278,14 +278,7 @@ struct QuotaRow: View {
                     ActionIcon(symbol: "clock", size: 25)
                         .environment(\.actionForeground, clockColor)
                         .padding(.top, 3)
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(Format.countdown(window.resetsAt, now: now))
-                            .font(.reference(size: 20, weight: .semibold))
-                            .foregroundStyle(Color(hex: "#BDA3F5"))
-                        Text(Format.date(window.resetsAt, zone: store.state.settings.zone))
-                            .font(.reference(size: 12))
-                            .foregroundStyle(Color(hex: "#BEC1D2"))
-                    }
+                    ResetCountdownText(date: window.resetsAt, now: now, zone: store.state.settings.zone)
                 }.frame(width: wide ? 200 : nil, alignment: .leading)
             }
         }

@@ -274,6 +274,10 @@ struct HorizonView: View {
         let detail = event.expiration ? account : event.title
         return "\(first)\n\(detail)\n\(event.expiration ? "Reset Expires" : "Quota Refresh"): \(Format.date(event.date, zone: store.state.settings.zone))"
     }
+    private func eventCountdownContext(_ event: HorizonEvent) -> String {
+        let account = "\(event.account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : event.account.nickname) · \(Format.plan(event.account.provider, event.plan))"
+        return event.expiration ? "Earned Reset Expires\n\(account)" : "\(account)\nQuota Refresh · \(event.title)"
+    }
     private var timeline: some View {
         ZStack(alignment: .topLeading) {
             Canvas { context, size in
@@ -350,7 +354,9 @@ struct HorizonView: View {
                         }.foregroundStyle(accent).frame(width: 62, height: 74, alignment: .top)
                             .contentShape(Rectangle())
                     }.buttonStyle(.plain)
-                        .modifier(ImmediateReferenceTooltip(text: eventTooltip(event)))
+                        .modifier(ImmediateResetTooltip(context: eventCountdownContext(event), date: event.date,
+                            zone: store.state.settings.zone, accessibilityText: eventTooltip(event),
+                            referenceDate: store.isDemo ? now : nil))
                         .position(x: viewport.dayAnchor(date), y: CGFloat(114 + index * 76))
                 }
             }
@@ -657,6 +663,7 @@ private extension Date.FormatStyle {
 struct HistoryPointerTracking: NSViewRepresentable {
     var severity: ReminderSeverity? = nil
     var plainText = false
+    var resetContent: ResetTooltipContent? = nil
     var text: String? = nil
     var pinned = false
     var anchor: CGPoint? = nil
@@ -673,6 +680,7 @@ struct HistoryPointerTracking: NSViewRepresentable {
         view.pinned = pinned
         view.severity = severity
         view.plainText = plainText
+        view.resetContent = resetContent
         if let anchor { view.pointer = anchor }
         view.popupText = text
         view.showPopup(text)
@@ -690,6 +698,7 @@ struct HistoryPointerTracking: NSViewRepresentable {
         var pinned = false
         var severity: ReminderSeverity?
         var plainText = false
+        var resetContent: ResetTooltipContent?
         var popupText: String?
         private var thresholdPlacement = ThresholdPopupPlacement()
         func hidePopup() { popup?.orderOut(nil); thresholdPlacement.reset() }
@@ -715,11 +724,13 @@ struct HistoryPointerTracking: NSViewRepresentable {
                 (line as NSString).size(withAttributes: [.font: ReferenceTypography.measuringFont(ofSize: index == 0 && !plainText ? 14 : 13,
                     weight: index == 0 && !plainText ? .semibold : .regular)]).width
             }
-            let popupWidth = plainText ? ReferenceHelpTooltip.width(for: text, availableWidth: visible.width) :
-                min(420, visible.width, ceil((lineWidths.max() ?? 0) + 30 + (severity == nil ? 0 : 26)))
+            let popupWidth = resetContent?.width(available: visible.width) ?? (plainText ? ReferenceHelpTooltip.width(for: text, availableWidth: visible.width) :
+                min(420, visible.width, ceil((lineWidths.max() ?? 0) + 30 + (severity == nil ? 0 : 26))))
             let content = NSHostingView(rootView:
                 Group {
-                    if plainText {
+                    if let resetContent {
+                        ReferenceResetTooltip(content: resetContent, width: popupWidth)
+                    } else if plainText {
                         ReferenceHelpTooltip(text: text, width: popupWidth)
                     } else {
                         VStack(alignment: .leading, spacing: 5) {

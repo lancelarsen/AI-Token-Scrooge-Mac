@@ -440,3 +440,34 @@ struct ImmediateReferenceTooltip: ViewModifier {
             .onDisappear { visible = false }
     }
 }
+
+/// Refresh the remaining-time label when the pointer opens the tooltip.
+struct ImmediateResetTooltip: ViewModifier {
+    let context: String
+    let date: Date
+    let zone: TimeZone
+    let accessibilityText: String
+    var referenceDate: Date? = nil
+    @State private var visible = false
+    @State private var openedAt = Date.now
+    func body(content: Content) -> some View {
+        content
+            .onHover { hovering in
+                if hovering { openedAt = referenceDate ?? .now }
+                visible = hovering
+            }
+            .simultaneousGesture(TapGesture().onEnded { visible = false })
+            .accessibilityHint(accessibilityText)
+            .background {
+                GeometryReader { geometry in
+                    HistoryPointerTracking(plainText: true,
+                        resetContent: ResetTooltipContent(context: context, date: date, now: openedAt, zone: zone),
+                        text: visible ? context : nil, pinned: true,
+                        anchor: CGPoint(x: geometry.size.width / 2, y: 0),
+                        onMove: { point in if point == nil { visible = false } })
+                }
+            }
+            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { _ in visible = false }
+            .onDisappear { visible = false }
+    }
+}

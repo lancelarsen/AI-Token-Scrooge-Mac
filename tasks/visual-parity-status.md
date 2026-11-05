@@ -45,7 +45,7 @@ Cross-cutting open requirements: exact Semibold font metrics and Segoe Fluent gl
 | 33-quota-alerts-muted.png | 789 × 694 | Compact muted first-row state captured; selection and threshold hide/restore checked; equivalent full-image comparison remains. |
 | 34-threshold-drag-feedback.png | 789 × 694 | Native threshold grab/drag and keyboard checked; floating readout capture missing. |
 | 35-earned-reset-details.png | 789 × 694 | Compact reset popup recaptured with 22-point heading and complete count/fetch/credit lines; exact body/font metrics remain open. |
-| 36-timeline-event-tooltip.png | 789 × 694 | Event details and click action checked; floating tooltip capture missing. |
+| 36-timeline-event-tooltip.png | 789 × 694 | Windows 3c863a5 supersedes this image with a styled countdown tooltip. Shared quota-row/countdown component implemented; offscreen production-component renders checked at normal and narrow widths. Floating hover placement remains unverified. |
 | 37-history-sample-readout.png | 789 × 694 | History readout source/keyboard checked; equivalent floating readout capture missing. |
 
 Detailed implementation and validation evidence: [visual-parity-audit.md](visual-parity-audit.md). This status replaces its original summary table; chronological evidence there remains useful.
