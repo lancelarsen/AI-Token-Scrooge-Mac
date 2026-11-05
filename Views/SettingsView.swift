@@ -126,7 +126,7 @@ struct SettingsView: View {
                 }.frame(maxWidth: 960).padding(.horizontal, 28).padding(.top, 12).padding(.bottom, 20).frame(maxWidth: .infinity)
             }
             if let error = store.errorMessage { Text(error).foregroundStyle(Theme.amber).padding() }
-        }.font(.system(size: 14)).foregroundStyle(Theme.primaryText).frame(width: panelSize.width, height: panelSize.height).background(Theme.canvas).preferredColorScheme(.dark).tint(Theme.accent)
+        }.font(.system(size: 14)).foregroundStyle(Theme.primaryText).frame(width: panelSize.width, height: panelSize.height).referencePanelSurface().preferredColorScheme(.dark).tint(Theme.accent)
         .onAppear {
             store.refreshLoginItemStatus()
             demoAutomaticChecks = updater.automaticChecks

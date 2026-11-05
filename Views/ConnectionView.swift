@@ -134,7 +134,7 @@ struct ConnectionView: View {
             Button { dismiss() } label: { DialogActionLabel(title: "Cancel", symbol: "xmark").frame(maxWidth: .infinity, alignment: .leading) }
                 .buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction).disabled(connecting)
         }.font(.system(size: 14)).frame(maxWidth: formContentWidth).padding(32).frame(maxWidth: .infinity, alignment: .top)
-        }.frame(width: panelSize.width, height: panelSize.height).background(Color(hex: "#141519")).preferredColorScheme(.dark).tint(Theme.accent)
+        }.frame(width: panelSize.width, height: panelSize.height).referencePanelSurface().preferredColorScheme(.dark).tint(Theme.accent)
         .onDisappear { connectionTask?.cancel(); token = "" }
         .onAppear {
             if let original = store.state.accounts.first(where: { $0.id == store.reconnectAccountID }) {

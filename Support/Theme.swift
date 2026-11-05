@@ -4,6 +4,54 @@ extension EnvironmentValues {
     @Entry var dashboardHostSize: CGSize? = nil
 }
 
+/// The Windows reference sizes panels against the complete window frame.
+/// GeometryReader excludes the native Mac title bar, so observe the owning
+/// window directly without changing its appearance or behavior.
+struct DashboardWindowSizeReader: NSViewRepresentable {
+    var changed: (CGSize) -> Void
+    func makeNSView(context: Context) -> FrameView {
+        let view = FrameView()
+        view.changed = changed
+        return view
+    }
+    func updateNSView(_ view: FrameView, context: Context) {
+        view.changed = changed
+        view.publishSize()
+    }
+    static func dismantleNSView(_ view: FrameView, coordinator: ()) { view.stopObserving() }
+
+    final class FrameView: NSView {
+        var changed: ((CGSize) -> Void)?
+        private var observer: NSObjectProtocol?
+        private var lastSize: CGSize?
+        override func hitTest(_ point: NSPoint) -> NSView? { nil }
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            stopObserving()
+            lastSize = nil
+            guard let window else { return }
+            observer = NotificationCenter.default.addObserver(forName: NSWindow.didResizeNotification, object: window, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.publishSize() }
+            }
+            publishSize()
+        }
+        func stopObserving() {
+            if let observer { NotificationCenter.default.removeObserver(observer) }
+            observer = nil
+        }
+        func publishSize() {
+            guard let window else { return }
+            let size = window.frame.size
+            guard size != lastSize else { return }
+            lastSize = size
+            DispatchQueue.main.async { [weak self, weak window] in
+                guard let self, let window, self.window === window else { return }
+                self.changed?(size)
+            }
+        }
+    }
+}
+
 enum Theme {
     static let primaryText = Color(hex: "#F2F1F5")
     static let canvas = Color(hex: "#141519")
@@ -28,6 +76,23 @@ enum Theme {
         case .unknown: [Color(hex: "#353641"), Color(hex: "#45464D")]
         }
     }
+}
+
+struct ReferencePanelSurface: ViewModifier {
+    func body(content: Content) -> some View {
+        content.foregroundStyle(Theme.primaryText)
+            .background(Theme.canvas)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay {
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(Color(hex: "#65577F"), lineWidth: 1)
+                    .allowsHitTesting(false)
+            }
+            .presentationCornerRadius(16)
+    }
+}
+extension View {
+    func referencePanelSurface() -> some View { modifier(ReferencePanelSurface()) }
 }
 extension Color {
     init(hex: String) {

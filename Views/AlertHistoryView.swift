@@ -43,7 +43,7 @@ struct AlertHistoryView: View {
             }.padding(28)
         }
         .frame(width: panelSize.width, height: panelSize.height)
-        .background(Color(hex: "#141519")).preferredColorScheme(.dark)
+        .referencePanelSurface().preferredColorScheme(.dark)
         .sheet(item: $selectedAlert) { alert in
             DetailsDialog(width: alert.windowID == nil ? 332 : 342, close: { selectedAlert = nil }) {
                 AccountUsageDetailsView(accountID: alert.accountID, windowID: alert.windowID)

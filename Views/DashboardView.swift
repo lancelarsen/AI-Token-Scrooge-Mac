@@ -38,7 +38,7 @@ struct DashboardView: View {
                 }
             }.background(Theme.background).foregroundStyle(Color(hex: "#F2F1F5"))
         }.frame(minWidth: 760, minHeight: 600)
-        .onGeometryChange(for: CGSize.self) { $0.size } action: { hostSize = $0 }
+        .background(DashboardWindowSizeReader { hostSize = $0 })
         .environment(\.dashboardHostSize, hostSize)
         .preferredColorScheme(.dark).tint(Theme.accent)
         .overlay(alignment: .bottomTrailing) { if let alert = store.activeAlert { AlertBannerView(alert: alert) } }

@@ -113,7 +113,7 @@ struct AccountSettingsView: View {
                     }.padding(.horizontal, 28).padding(.vertical, 12)
                 }
             }
-        }.font(.system(size: 14)).foregroundStyle(Theme.primaryText).frame(width: panelSize.width, height: panelSize.height).background(Theme.canvas).preferredColorScheme(.dark).tint(Theme.accent)
+        }.font(.system(size: 14)).foregroundStyle(Theme.primaryText).frame(width: panelSize.width, height: panelSize.height).referencePanelSurface().preferredColorScheme(.dark).tint(Theme.accent)
         .onAppear {
             nicknameDraft = account?.nickname ?? ""
 
