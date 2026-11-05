@@ -5,14 +5,24 @@ struct AlertThresholds: Codable, Equatable, Sendable {
     var critical: Decimal = 10
     var info: Decimal = 50
     var isValid: Bool { critical >= 0 && critical < warning && warning <= info && info <= 100 }
+    static func remaining(at position: Double, width: Double) -> Decimal {
+        guard width > 0, width.isFinite, position.isFinite else { return 0 }
+        return Decimal((min(1, max(0, 1 - position / width)) * 100).rounded(.toNearestOrAwayFromZero))
+    }
     mutating func move(_ level: ReminderSeverity, to remaining: Decimal) {
         var number = remaining
         var rounded = Decimal()
-        NSDecimalRound(&rounded, &number, 0, .plain)
+        NSDecimalRound(&rounded, &number, 0, level == .info ? .bankers : .plain)
+        var warningCeiling = Decimal()
+        var criticalFloor = Decimal()
+        var warningValue = warning
+        var criticalValue = critical
+        NSDecimalRound(&warningCeiling, &warningValue, 0, .up)
+        NSDecimalRound(&criticalFloor, &criticalValue, 0, .down)
         switch level {
         case .info: info = min(100, max(warning, rounded))
-        case .warning: warning = min(info, max(critical + 1, rounded))
-        case .critical: critical = min(warning - 1, max(0, rounded))
+        case .warning: warning = min(info, max(criticalFloor + 1, rounded))
+        case .critical: critical = min(warningCeiling - 1, max(0, rounded))
         }
     }
 }

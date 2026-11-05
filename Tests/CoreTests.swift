@@ -2,6 +2,21 @@ import XCTest
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testFractionalThresholdBoundariesMatchWindows() {
+        var thresholds = AlertThresholds(warning: 30.5, critical: 10.5, info: 50)
+        thresholds.move(.warning, to: 0)
+        XCTAssertEqual(thresholds.warning, 11)
+        thresholds = AlertThresholds(warning: 30.5, critical: 10.5, info: 50)
+        thresholds.move(.critical, to: 100)
+        XCTAssertEqual(thresholds.critical, 30)
+        thresholds.move(.info, to: 50.5)
+        XCTAssertEqual(thresholds.info, 50)
+        XCTAssertEqual(AlertThresholds.remaining(at: 49.5, width: 100), 51)
+        XCTAssertEqual(AlertThresholds.remaining(at: .infinity, width: 100), 0)
+        XCTAssertEqual(AlertThresholds.remaining(at: 10, width: 0), 0)
+        XCTAssertTrue(thresholds.isValid)
+    }
+
     func testColorPickerChannelStopsAtBoundaryBeforeWrapping() {
         XCTAssertEqual(ColorPickerChannel.stepped(0.4, maximum: 100, increasing: false, wraps: true), 0)
         XCTAssertEqual(ColorPickerChannel.stepped(0, maximum: 100, increasing: false, wraps: true), 100)

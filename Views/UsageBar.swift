@@ -63,7 +63,7 @@ struct UsageBar: View {
                             }
                             var next = editing ?? thresholds
                             let position = (dragStartPosition ?? 0) + drag.translation.width
-                            next.move(level, to: Decimal(min(100, max(0, (1 - position / markerSpan) * 100))))
+                            next.move(level, to: AlertThresholds.remaining(at: position, width: markerSpan))
                             editingSeverity = level
                             editing = next
                         }.onEnded { _ in

@@ -922,3 +922,10 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Windows HistoryTimelineView details use 0.# for used percentage and observed replenishment amounts; ThresholdEditor uses it for threshold readouts. Mac previously rounded all of these to whole percentages.
 - Added an opt-in fractionDigits parameter to Format.percent and requested one digit in history details and threshold popup/accessibility values. Dashboard whole-number labels and compact chart labels retain their existing formatting.
 - Production Format.swift passed a standalone harness for fractional values, midpoint rounding, integer trailing-zero trimming, nil values, and unchanged whole-number defaults (`artifacts/readout-precision-check.swift`, `.log`). Canonical build passed (`artifacts/readout-precision-build.log`). Floating detail rendering still requires final comparison.
+
+## Fractional threshold boundary parity — 2026-11-05
+
+- Matched Windows AlertThresholds: warning's minimum uses floor(critical)+1; critical's maximum uses ceiling(warning)-1. Existing fractional saved values no longer force an unnecessary fractional gap.
+- Info edits use midpoint-to-even rounding like decimal.Round; pointer positions first use whole-percent midpoint-away rounding like RemainingAt. Added finite/positive geometry guards.
+- Added CoreTests regression cases for fractional neighbors, info midpoint rounding, pointer midpoint rounding, invalid geometry, and valid resulting order.
+- Canonical build and build-for-testing passed (`artifacts/threshold-boundaries-build.log`, `artifacts/threshold-boundaries-test-build.log`). A standalone run of the exact production model declarations passed the regression scenarios (`artifacts/threshold-boundaries-check.swift`, `.log`). Hosted XCTest execution was not run; prior host-launch issue remains unresolved.
