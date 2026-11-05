@@ -1360,3 +1360,9 @@ Evidence: artifacts/native-ui-test-run.log and artifacts/ui-runner-startup-sampl
 GitHub run42124255236 completed successfully for27834c85b5877fd790df8e445d993af61c9d8710, publishing preview-276-1. Hosted suite reports98 tests, zero failures, two installed-CLI skips. Downloaded the release archive (not just the build artifact); SHA25655b1ec105cb5355c0f742ad72c58d71ac2eaddb635aa21c7a5f8a78a03b4be2e matches the published checksum. Strict deep codesign verification and arm64 architecture pass. All25 bundled font/image/sound files match source bytes.
 
 Opened the extracted app with --demo --compact and a fresh isolated data directory. Native accessibility shows all four demo accounts, History enabled and Custom Order selected. Saved artifacts/preview-276-native-launch.jpg; CI log is artifacts/preview-276-ci.log. This closes the current-source archive recheck after the placeholder-color change, not full feature parity or clean-machine Gatekeeper acceptance. Preview remains ad-hoc, non-hardened and not notarized.
+
+### Packaged Settings Typography Inspection — 2026-11-05
+
+Inspected the previously unrecaptured native-control font changes in downloaded Preview276 at27834c8. In the compact741×630-point Settings sheet, Duck Sounds and Classic Chimes fit fully; severity names Info/Warning/Critical, reminder amounts including12, and Days/Hours fit their controls without text clipping. Scrolled both earned-reset and quota-refresh lists through their lower rows and Add Reminder buttons. Closed with Escape without editing values or playing audio.
+
+Captures: artifacts/preview-276-sound-fonts.jpg, preview-276-reminder-fonts.jpg, preview-276-refresh-reminder-fonts.jpg. Compared the reminder structure against reference05; this establishes current rendered text fit, not exact border, glyph or pixel parity with the wide Windows reference. No application changes or additional build required; published archive validation from the preceding check still applies.
