@@ -46,7 +46,7 @@ struct SettingsView: View {
                             }.pickerStyle(.inline)
                         } label: {
                             HStack {
-                                Text(Format.timeZoneName(store.state.settings.zone))
+                                Text(Format.timeZoneName(store.state.settings.zone)).font(ReferenceTypography.nativeTextFont())
                                 Spacer()
                                 Image(systemName: "chevron.down").accessibilityHidden(true).font(.reference(size: 10)).foregroundStyle(Theme.secondary)
                             }.font(.reference(size: 13)).padding(.horizontal, 12).frame(height: 32)
@@ -65,7 +65,7 @@ struct SettingsView: View {
                             }
                         } label: {
                             HStack {
-                                Text("\(store.state.settings.historyRetentionDays) Days")
+                                Text("\(store.state.settings.historyRetentionDays) Days").font(ReferenceTypography.nativeTextFont())
                                 Spacer()
                                 Image(systemName: "chevron.down").accessibilityHidden(true).font(.reference(size: 10)).foregroundStyle(Theme.secondary)
                             }.padding(.horizontal, 12).frame(height: 32)
@@ -149,7 +149,7 @@ struct SettingsView: View {
             HStack(spacing: 8) {
                 Circle().strokeBorder(selected ? Color(hex: "#A990ED") : Theme.secondary, lineWidth: selected ? 5 : 1)
                     .frame(width: 20, height: 20)
-                Text(title).font(.reference(size: 14)).foregroundStyle(Theme.primaryText)
+                Text(title).font(ReferenceTypography.nativeTextFont()).foregroundStyle(Theme.primaryText)
             }.frame(minHeight: 32).contentShape(Rectangle())
         }.buttonStyle(.plain).accessibilityLabel(title).accessibilityAddTraits(selected ? .isSelected : [])
     }
@@ -241,7 +241,7 @@ struct ReminderEditor: View {
                             amountDrafts[reminder.id] = text
                             update(reminder.id) { _ in }
                         }))
-                            .textFieldStyle(.plain).padding(.horizontal, 12).frame(width: 80, height: 44)
+                            .textFieldStyle(.plain).font(ReferenceTypography.nativeTextFont()).padding(.horizontal, 12).frame(width: 80, height: 44)
                             .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
                             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
                             .accessibilityLabel("Time Before Event")
@@ -272,7 +272,7 @@ struct ReminderEditor: View {
     }
     private func menuLabel(_ title: String, color: Color = .white) -> some View {
         HStack {
-            Text(title).foregroundStyle(color)
+            Text(title).font(ReferenceTypography.nativeTextFont()).foregroundStyle(color)
             Spacer()
             Image(systemName: "chevron.down").accessibilityHidden(true).font(.reference(size: 10)).foregroundStyle(Theme.secondary)
         }.padding(.horizontal, 12).frame(maxWidth: .infinity).frame(height: 44)

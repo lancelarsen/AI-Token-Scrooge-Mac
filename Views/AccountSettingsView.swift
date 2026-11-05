@@ -35,6 +35,7 @@ struct AccountSettingsView: View {
                             HStack(spacing: 12) {
                                 Text("Account Name").frame(width: 190, alignment: .leading)
                                 TextField("Personal, Work", text: $nicknameDraft).textFieldStyle(.plain)
+                                    .font(ReferenceTypography.nativeTextFont())
                                     .padding(.horizontal, 12).frame(height: 32)
                                     .background(Color(hex: "#2A2B30"), in: RoundedRectangle(cornerRadius: 10))
                                     .overlay(alignment: .bottom) {
