@@ -6,6 +6,7 @@ enum DemoData {
         case historyLong = "history-long"
         case reserveOnly = "reserve-only"
         case healthy, noReset = "no-reset"
+        case alertHistory = "alert-history"
     }
 
     static func make(now: Date, scenario: Scenario = .standard) -> (PersistedState, [HistoryRun]) {
@@ -39,7 +40,7 @@ enum DemoData {
                 .init(id: "demo-r2", status: "available", expiresAt: now.addingTimeInterval(9 * 86400))]) : nil
             var snapshot = QuotaSnapshot(accountID: account.id, subject: account.subject, scope: account.scope, observedAt: now, windows: windows, reserve: reserve, health: .demo, planType: config.2)
             switch scenario {
-            case .standard: break
+            case .standard, .alertHistory: break
             case .healthy: snapshot.health = .healthy
             case .offline:
                 snapshot.health = .offline
@@ -80,6 +81,20 @@ enum DemoData {
             runs += history(account: account, current: snapshot, index: index, now: now, zone: state.settings.zone)
         }
         state.settings.accountOrder = state.accounts.map(\.id)
+        if scenario == .alertHistory, let account = state.accounts.first {
+            state.alerts = (0..<8).map { index in
+                let refresh = index % 4 == 3
+                let expiration = index % 4 == 2
+                let reminder = refresh || expiration
+                return AlertEvent(id: "demo-alert-\(index)", accountID: account.id,
+                    windowID: expiration ? nil : "codex/secondary",
+                    title: reminder ? "\(refresh ? "Critical" : "Warning") Alert · \(refresh ? "Quota Refresh" : "Reset Expiration")" : "Codex · Weekly Is Running Low",
+                    detail: reminder ? "\(expiration ? "Earned Reset" : "Codex · Weekly") · In 2d 17h · \(account.nickname)" : "27% Left · OpenAI / \(account.nickname)",
+                    createdAt: now.addingTimeInterval(-Double(index) * 3600), delivered: index != 0,
+                    severity: refresh ? .critical : .warning,
+                    reminderID: reminder ? "demo-reminder-\(index)" : nil, isRefreshReminder: refresh)
+            }
+        }
         return (state, runs)
     }
     // Mirrors HistoryDemo.cs: synthetic sessions, exact current endpoint, explicit gaps.

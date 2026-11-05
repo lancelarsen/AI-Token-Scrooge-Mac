@@ -545,3 +545,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 
 - Compared reference 08, MainPage.OpenHistoryAsync and ActionButton layout. Windows renders each history entry as one multiline text block with a nine-point icon gap. Mac used three separately spaced labels with a ten-point gap. Replaced the stack with one leading-aligned multiline label and matched the icon gap. Retained macOS delivery wording and privacy masking.
 - Canonical build passed (`artifacts/history-row-text-layout-build.log`) and diff checks passed. This pass verifies source structure; a new populated-history screenshot was not captured, so exact line metrics and screenshot parity remain open.
+
+### Repeatable populated alert-history verification
+
+- Added isolated --demo --scenario alert-history with eight synthetic recorded/delivered capacity, expiration and refresh entries. Standard demo remains empty-history; scenario construction performs no notification delivery and uses synthetic demo identities. README documents it.
+- Canonical build passed (`artifacts/alert-history-scenario-build.log`) and diff checks passed. Opened Settings → Alert History through native UI. All eight entries appeared in accessibility state; screenshot confirms single multiline labels, 80-point row heights and 16-point gaps. This verifies the previous history text-layout change in a populated page.
+- Capture was compact, unlike wide reference 08. Exact font-family metrics, glyph outlines and matching-width capture remain open.
