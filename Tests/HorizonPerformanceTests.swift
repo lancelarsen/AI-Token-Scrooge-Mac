@@ -39,6 +39,19 @@ final class HorizonPerformanceTests: XCTestCase {
         motion.enqueue(.infinity)
         XCTAssertEqual(motion.remaining, 0)
     }
+    func testWheelDistanceIsIndependentOfDisplayCadence() {
+        for cadence in [30.0, 60, 120, 144] {
+            var motion = HorizonWheelMotion()
+            motion.enqueue(240)
+            var distance = 0.0
+            for _ in 0..<Int(cadence * 2) {
+                distance += motion.step(seconds: 1 / cadence)
+            }
+            XCTAssertEqual(distance, 240, accuracy: 0.0001, "Cadence: \(cadence)")
+            XCTAssertEqual(motion.remaining, 0)
+        }
+    }
+
     func testBoundedHistorySearchPreservesInclusiveTiesWithoutFullScan() {
         let points = (0..<50_000).map { index in
             HistoryPoint(at: Date(timeIntervalSince1970: Double(index / 2)), remaining: 50,

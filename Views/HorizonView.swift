@@ -1,4 +1,5 @@
 import SwiftUI
+import QuartzCore
 
 struct HorizonView: View {
     @Environment(AppStore.self) private var store
@@ -834,7 +835,7 @@ struct HorizonWheelRouting: NSViewRepresentable {
     final class WheelView: NSView {
         var onScroll: ((Double) -> Void)?
         private var monitor: Any?
-        private var timer: Timer?
+        private var motionDisplayLink: CADisplayLink?
         private var motion = HorizonWheelMotion()
         private var lastFrame = 0.0
         override func hitTest(_ point: NSPoint) -> NSView? { nil }
@@ -858,22 +859,28 @@ struct HorizonWheelRouting: NSViewRepresentable {
                 return nil
             }
         }
-        private func startAnimation() {
-            guard timer == nil else { return }
-            lastFrame = ProcessInfo.processInfo.systemUptime
-            let next = Timer(timeInterval: 1.0 / 120.0, target: self, selector: #selector(advanceScroll), userInfo: nil, repeats: true)
-            timer = next
-            RunLoop.main.add(next, forMode: .common)
+        override func viewDidHide() {
+            super.viewDidHide()
+            stopAnimation()
         }
-        @objc private func advanceScroll() {
-            guard window != nil, !isHiddenOrHasHiddenAncestor else { stopAnimation(); return }
-            let now = ProcessInfo.processInfo.systemUptime
+        private func startAnimation() {
+            guard motionDisplayLink == nil else { return }
+            lastFrame = CACurrentMediaTime()
+            // Follow the refresh cadence of the display hosting this view instead
+            // of issuing unsynchronized 120 Hz updates on every kind of screen.
+            let next = displayLink(target: self, selector: #selector(advanceScroll(_:)))
+            motionDisplayLink = next
+            next.add(to: .main, forMode: .common)
+        }
+        @objc private func advanceScroll(_ link: CADisplayLink) {
+            guard let window, window.attachedSheet == nil, !isHiddenOrHasHiddenAncestor else { stopAnimation(); return }
+            let now = link.targetTimestamp
             let delta = motion.step(seconds: now - lastFrame)
             lastFrame = now
             if delta != 0 { onScroll?(delta) }
             if motion.remaining == 0 { stopAnimation() }
         }
-        private func stopAnimation() { timer?.invalidate(); timer = nil; motion.cancel() }
+        private func stopAnimation() { motionDisplayLink?.invalidate(); motionDisplayLink = nil; motion.cancel() }
         func stopMonitoring() {
             stopAnimation()
             if let monitor { NSEvent.removeMonitor(monitor) }
