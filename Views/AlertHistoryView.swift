@@ -185,7 +185,7 @@ struct DialogActionLabel: View {
                     }
                     context.stroke(detail, with: .color(foreground), lineWidth: 1)
                 }.frame(width: 20, height: 20).accessibilityHidden(true)
-            } else if ["desktopcomputer", "plus", "trash", "person", "folder", "arrow.up.right.square"].contains(symbol) {
+            } else if ["desktopcomputer", "plus", "trash", "person", "folder", "arrow.up.right.square", "play"].contains(symbol) {
                 ActionIcon(symbol: symbol, size: 20)
             } else {
                 Image(systemName: symbol).font(.system(size: 20)).foregroundStyle(foreground)

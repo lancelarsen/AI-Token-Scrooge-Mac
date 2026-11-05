@@ -237,6 +237,17 @@ struct ActionIcon: View {
                     shoulders.addQuadCurve(to: CGPoint(x: 5, y: 11), control: CGPoint(x: 2, y: 11))
                     context.stroke(shoulders, with: .color(foreground), lineWidth: 1)
                 }
+            } else if symbol == "play" {
+                Canvas { context, _ in
+                    context.scaleBy(x: size / 20, y: size / 20)
+                    var triangle = Path()
+                    triangle.move(to: CGPoint(x: 3, y: 2))
+                    triangle.addLine(to: CGPoint(x: 18, y: 10))
+                    triangle.addLine(to: CGPoint(x: 3, y: 18))
+                    triangle.closeSubpath()
+                    context.stroke(triangle, with: .color(foreground),
+                                   style: StrokeStyle(lineWidth: 1, lineJoin: .round))
+                }
             } else if symbol == "folder" || symbol == "arrow.up.right.square" {
                 Canvas { context, _ in
                     context.scaleBy(x: size / 20, y: size / 20)

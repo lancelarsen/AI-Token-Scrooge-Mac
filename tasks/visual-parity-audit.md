@@ -665,3 +665,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Native current-build wide Settings check moved the end boundary with keyboard input from 8 AM toward midnight. At 2 AM, screenshot confirms vertically staggered start/end labels and increased track height; at 1 AM, summary shows 1 hours exactly as the Windows string construction does. At midnight, summary switches to Choose different start and end times to set a quiet period.
 - Dragged the overlapping end handle from midnight to 8 AM; accessibility state and summary updated to 12 AM – 8 AM · 8 hours. This verifies an enabled pointer-drag path in addition to keyboard adjustment. A rapid initial key batch ended at 2 AM, so it is not evidence that every accelerated key event was processed.
 - Source comparison confirms hour wrap, close-label threshold and equal-time text match Windows. No code changed; used current canonical build. Overnight wrap, disabled controls and exact focus/typographic pixels remain open.
+
+### Thin sound-preview icons and corrected image metadata
+
+- Routed the four sound-preview buttons through a shared twenty-point outlined play icon, replacing the heavier SF symbol. The path uses a one-point stroke and rounded joins, following reference 03 and Windows ActionButton E768. This is a vector approximation, not an extracted Segoe Fluent glyph.
+- Canonical build passed (`artifacts/preview-play-icon-build.log`); native Settings screenshot confirms all four outlined triangles render without clipping. Audio playback was not invoked. Exact font and glyph identity remain open.
+- Corrected the status table image dimensions by decoding all thirty-seven files: despite .png names, every reference is JPEG. Earlier attempts to read PNG headers produced invalid dimensions. References 01–23 are 1463×866, 24–29 and 31–37 are 789×694, and the cropped polling tooltip 30 is 322×118. Byte-identity evidence is unaffected by the file-format correction.
