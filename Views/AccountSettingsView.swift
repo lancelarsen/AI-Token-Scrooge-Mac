@@ -252,7 +252,7 @@ private struct InlineLineColorEditor: View {
                                                    hovered: spectrumHovered, pressed: spectrumPressed,
                                                    keyboardFocused: spectrumFocused && spectrumKeyboardFocus)
                             .position(x: hue * geometry.size.width, y: (1 - saturation) * geometry.size.height)
-                    }.clipShape(RoundedRectangle(cornerRadius: 8)).contentShape(Rectangle())
+                    }.clipShape(RoundedRectangle(cornerRadius: 10)).contentShape(Rectangle())
                         .gesture(DragGesture(minimumDistance: 0).onChanged { value in
                             spectrumPressed = true; spectrumKeyboardFocus = false; spectrumFocused = true
                             hue = min(1, max(0, value.location.x / geometry.size.width))
@@ -278,7 +278,7 @@ private struct InlineLineColorEditor: View {
                         .accessibilityLabel("Color Spectrum")
                         .accessibilityValue("Hue \(Int(hue * 360)), saturation \(Int(saturation * 100)) percent")
                 }.frame(height: 256)
-                RoundedRectangle(cornerRadius: 8).fill(color).frame(width: 44, height: 256)
+                RoundedRectangle(cornerRadius: 10).fill(color).frame(width: 44, height: 256)
                     .accessibilityLabel("Selected Color").accessibilityValue(color.hex)
             }.padding(.bottom, 16)
             GeometryReader { geometry in
@@ -324,7 +324,7 @@ private struct InlineLineColorEditor: View {
                         Spacer()
                         ReferenceDropdownChevron()
                     }.padding(.horizontal, 12).frame(width: 120, height: 32)
-                        .background(Color(hex: "#303138"), in: RoundedRectangle(cornerRadius: 8))
+                        .background(Color(hex: "#303138"), in: RoundedRectangle(cornerRadius: 10))
                 }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
                     .accessibilityLabel("Color Model").accessibilityValue(mode)
                 Spacer()
@@ -345,12 +345,12 @@ private struct InlineLineColorEditor: View {
                     HStack(spacing: 8) {
                         TextField(channelName(index), value: channel(index), format: .number)
                             .modifier(ColorEntryStyle()).frame(width: 120)
-                        Text(channelName(index)).font(.reference(size: 12))
+                        Text(channelName(index)).font(ReferenceTypography.nativeTextFont())
                         Spacer()
                     }
                 }
             }
-        }.textFieldStyle(.plain).font(.reference(size: 13))
+        }.textFieldStyle(.plain).font(ReferenceTypography.nativeTextFont()).foregroundStyle(Theme.primaryText)
             .padding(.vertical, 4)
             .onAppear { loadComponents(); hexDraft = color.hex }
     }
@@ -391,7 +391,7 @@ private struct InlineLineColorEditor: View {
 private struct ColorEntryStyle: ViewModifier {
     func body(content: Content) -> some View {
         content.padding(.horizontal, 12).frame(height: 32)
-            .background(Color(hex: "#303138"), in: RoundedRectangle(cornerRadius: 8))
+            .background(Color(hex: "#303138"), in: RoundedRectangle(cornerRadius: 10))
             .overlay(alignment: .bottom) { Rectangle().fill(Theme.secondary).frame(height: 1).padding(.horizontal, 10) }
     }
 }
