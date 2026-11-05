@@ -568,3 +568,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Native account-settings comparison exposed 36-point card insets versus approximately 29 in the Windows screenshot. Changed global/account form insets to 28. Post-change compact screenshot confirms card left edge at x28 relative to the sheet, close to the reference x29, and retains all seven default swatches plus add-color control.
 - Matched Windows partial-reset-details wording and 12-point note size. This note branch is source-verified, not present in the standard capture.
 - Canonical build passed (`artifacts/settings-form-inset-build.log`) and diff checks passed. Card vertical heights, font metrics and global-settings rendered comparison remain open.
+
+### Account swatch-row vertical spacing and polling help
+
+- Matched the Windows swatch row's trailing eight-point vertical margin and centered its label alongside the full palette height. This also supports wrapped palettes without leaving the label top-aligned.
+- Polling information icon and label now share the complete Windows reference help wording using the immediate styled tooltip; removed the shortened icon text/default label help mismatch.
+- Canonical build passed (`artifacts/account-swatch-spacing-build.log`) and diff checks passed. Native compact account-settings screenshot confirms the extra row margin, centered label, intact palette, and following polling/reset sections. Wrapped/custom palette and floating help appearance still require visual checks; typography differences remain.

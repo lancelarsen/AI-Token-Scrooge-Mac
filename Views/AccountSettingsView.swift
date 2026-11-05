@@ -9,6 +9,7 @@ struct AccountSettingsView: View {
     @State private var showColor = false
     @State private var confirmRemove = false
     @State private var nicknameDraft = ""
+    private let pollingHelp = "How often Scrooge automatically checks this account for updated usage, from 1 to 30 minutes. Shorter intervals show changes sooner; longer intervals make fewer requests. Changes save automatically."
     private var panelSize: CGSize {
         CGSize(width: min(1000, max(640, hostSize.width - 48)),
                height: min(800, max(400, hostSize.height - 64)))
@@ -44,7 +45,7 @@ struct AccountSettingsView: View {
                                 .onSubmit { saveNickname() }
                                 .onChange(of: editingNickname) { _, focused in if !focused { saveNickname() } }
                             }
-                            HStack(alignment: .top, spacing: 12) {
+                            HStack(spacing: 12) {
                             Text("Line Color").frame(width: 190, height: 32, alignment: .leading)
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 32, maximum: 32), spacing: 8)], alignment: .leading, spacing: 8) {
                                 ForEach(lineColors, id: \.self) { hex in
@@ -71,13 +72,13 @@ struct AccountSettingsView: View {
                                             }
                                         }
                                     }
-                            }
+                            }.padding(.bottom, 8)
                             }
                             HStack(spacing: 12) {
                                 HStack(spacing: 6) {
-                                infoIcon("How often Scrooge checks this account, from 1 to 30 minutes.")
+                                infoIcon(pollingHelp)
                                 Text("Polling Interval: \(account.effectivePollingMinutes) Min").frame(width: 190, alignment: .leading)
-                                    .help("How often Scrooge automatically checks this account for updated usage, from 1 to 30 minutes. Shorter intervals show changes sooner; longer intervals make fewer requests. Changes save automatically.")
+                                    .modifier(ImmediateReferenceTooltip(text: pollingHelp))
                                 }
                                 MinuteSlider(value: Binding(get: { account.effectivePollingMinutes }, set: { value in update { $0.pollingMinutes = value } })).frame(height: 44)
                             }
