@@ -1424,3 +1424,12 @@ Canonical build passes (artifacts/quota-label-case-build.log). Native compact da
 The hosted suite for last published ea3d79f completed successfully in run42128345663:99 tests, two installed-CLI skips, zero failures. This excludes the later quota-label commit2984c91. Git push of2984c91 repeatedly failed with GitHub's fatal commit_refs_rules error; the repository rulesets endpoint returns an empty list. Remote main remains ea3d79f. No rules or protections were changed.
 
 To verify2984c91 without the stalled Xcode test launcher, compiled the production Support/Format.swift and Models/Settings.swift with the unchanged quota-model declarations preceding AccountPolicy in Models/Quota.swift. A standalone assertion harness passed count/overage formatting, Copilot percentage behavior, missing-value labels and unknown-plan period fallbacks. Artifacts are formatter-direct/QuotaTypes.swift, Check.swift, check and result.txt. This verifies the pure formatter directly; it does not claim the hosted XCTest suite executed.
+
+
+### Current Chooser Capture and Hosted Verification — 2026-11-05
+
+Native current-font chooser capture provider-chooser-current-fonts.jpg is 640×674 Retina pixels, corresponding to the Windows reference20 panel's 320×337 logical size. The three 44-point provider buttons, 10-point row gaps, inset footer and Cancel placement match the reference layout; current Title Case follows the guide rather than the older screenshot. Cancel returns to the isolated empty dashboard without adding an account. This is layout evidence, not exact text rasterization signoff.
+
+The empty-wide-current.jpg capture is 2506×1750 Retina pixels (1253×875 points); the current display constrains the requested reference window, so it cannot establish equivalent-wide-layout parity. No clipping observed.
+
+Publication recovered: remote main reached6077a91. Hosted run42129128258 at that revision completed successfully, including the changed quota-label expectations:99 tests, two installed-CLI skips, zero failures. Preview build, archive validation and publication also passed. Full log:artifacts/current-6077a91-ci.log. This supersedes the prior publication-failure note; local Xcode launch and UI-automation limitations remain distinct from these passing hosted unit tests. No application code changed in this verification pass.

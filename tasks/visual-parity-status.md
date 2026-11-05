@@ -28,8 +28,8 @@ Cross-cutting open requirements: exact Semibold font metrics and Segoe Fluent gl
 | 16-custom-color-added.png | 1463 × 866 | Published Preview272 keyboard hex #123456 produces RGB18/52/86, adds and retains the swatch; cancelling a #FFFFFF draft preserves #123456. Earlier orange-swatch check also passed. Exact comparison pending. |
 | 17-polling-snapped.png | 1463 × 866 | Wide off-center grab, snapped drag, keyboard, both endpoints and localized focus checked; exact rendered comparison remains. |
 | 18-account-connection-actions.png | 1463 × 866 | Connection section source-reviewed; matching capture needed. |
-| 19-first-launch.png | 1463 × 866 | Isolated empty dashboard captured; horizontal coordinates checked; matching width needed. |
-| 20-provider-chooser.png | 1463 × 866 | Chooser recaptured at 320×337 after 22-point title/12-point gap fixes; exact font metrics remain open. |
+| 19-first-launch.png | 1463 × 866 | Current-font empty dashboard captured in empty-wide-current.jpg at 2506×1750 Retina pixels (1253×875 points), constrained by the current display rather than the requested reference size. No clipping observed; equivalent-width comparison remains open. |
+| 20-provider-chooser.png | 1463 × 866 | Current-font chooser recaptured in provider-chooser-current-fonts.jpg at 640×674 Retina pixels (320×337 points). Panel dimensions, 44-point buttons, 10-point button gaps and footer layout match reference20; Cancel returns to the empty dashboard. Title Case follows the conversion guide. Exact text rasterization remains unverified. |
 | 21-connect-codex.png | 1463 × 866 | Codex form recaptured at compact 741×630 with visible actions and reference outline; exact text metrics differ. |
 | 22-connect-github-browser.png | 1463 × 866 | GitHub browser form captured; zero validation checked. Challenge prompt now uses source-matched centered 28-point Segoe Semibold, instruction/order/spacing and stacked reference action buttons; live challenge capture and exact metrics remain open. |
 | 23-connect-github-advanced.png | 1463 × 866 | Advanced form captured; dummy token mode reset checked; exact metrics differ. |
