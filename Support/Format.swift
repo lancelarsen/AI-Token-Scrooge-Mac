@@ -62,6 +62,24 @@ enum Format {
         }
         return value.flatMap { labels[$0] } ?? "Plan unavailable"
     }
+    static func usageText(_ window: QuotaWindow, provider: Provider, locale: Locale = .current) -> (used: String, left: String) {
+        if window.unit == .percent || provider == .copilot {
+            return (window.usedPercent.map { "\(percent($0)) used" } ?? "Usage unavailable",
+                    window.remainingPercent.map { "\(percent($0)) left" } ?? "Left unavailable")
+        }
+        let formatter = NumberFormatter()
+        formatter.locale = locale
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        formatter.minimumFractionDigits = 0
+        formatter.roundingMode = .halfEven
+        func count(_ value: Decimal) -> String {
+            formatter.string(from: NSDecimalNumber(decimal: value)) ?? NSDecimalNumber(decimal: value).stringValue
+        }
+        return (window.used.map { "\(count($0)) used" } ?? "Usage unavailable",
+                window.remaining.map { $0 < 0 ? "\(count(-$0)) over" : "\(count($0)) left" } ?? "Limit unavailable")
+    }
+
     static func percent(_ value: Decimal?, fractionDigits: Int = 0) -> String {
         guard var number = value else { return "Unknown" }
         var rounded = Decimal(); NSDecimalRound(&rounded, &number, fractionDigits, .plain)

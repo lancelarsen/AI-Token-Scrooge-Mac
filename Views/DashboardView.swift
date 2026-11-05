@@ -257,7 +257,7 @@ struct QuotaRow: View {
                     .background(Theme.control)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                     .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color(hex: "#45464D")))
-                UsageBar(window: window, alertsEnabled: store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id), thresholds: store.state.settings.rule(accountID: account.id, windowID: window.id).thresholds ?? store.state.settings.thresholds,
+                UsageBar(window: window, provider: account.provider, alertsEnabled: store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id), thresholds: store.state.settings.rule(accountID: account.id, windowID: window.id).thresholds ?? store.state.settings.thresholds,
                          changed: { store.setThresholds(account: account.id, window: window.id, thresholds: $0) }, details: { showDetails = true })
                     .frame(minWidth: 180)
             }
@@ -312,7 +312,7 @@ struct QuotaDetailsView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent).frame(minHeight: 32, alignment: .leading)
             Text(Format.windowTitle(window.name)).frame(minHeight: 19, alignment: .leading)
-            Text("\(window.usedPercent.map { "\(Format.percent($0)) used" } ?? "Usage unavailable") · \(window.remainingPercent.map { "\(Format.percent($0)) left" } ?? "Left unavailable")").frame(minHeight: 19, alignment: .leading)
+            Text("\(Format.usageText(window, provider: account.provider).used) · \(Format.usageText(window, provider: account.provider).left)").frame(minHeight: 19, alignment: .leading)
             DetailLine(label: "Resets", value: Format.detailDate(window.resetsAt, zone: store.state.settings.zone))
             Color.clear.frame(height: 6)
             if !store.state.settings.privacy {

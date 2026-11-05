@@ -2,6 +2,19 @@ import XCTest
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testCountAllowanceLabelsAndCopilotPercentException() {
+        let window = QuotaWindow(id: "requests", name: "Requests", unit: .requests, used: 1250, limit: 1000)
+        let labels = Format.usageText(window, provider: .claude, locale: Locale(identifier: "en_US"))
+        XCTAssertEqual(labels.used, "1,250 used")
+        XCTAssertEqual(labels.left, "250 over")
+        let copilot = Format.usageText(window, provider: .copilot)
+        XCTAssertEqual(copilot.used, "125% used")
+        XCTAssertEqual(copilot.left, "0% left")
+        let unknown = QuotaWindow(id: "requests", name: "Requests", unit: .requests)
+        XCTAssertEqual(Format.usageText(unknown, provider: .claude).used, "Usage unavailable")
+        XCTAssertEqual(Format.usageText(unknown, provider: .claude).left, "Limit unavailable")
+    }
+
     func testFractionalThresholdBoundariesMatchWindows() {
         var thresholds = AlertThresholds(warning: 30.5, critical: 10.5, info: 50)
         thresholds.move(.warning, to: 0)

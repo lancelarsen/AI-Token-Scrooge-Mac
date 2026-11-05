@@ -942,3 +942,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched Windows QuotaRow.WindowTitle's ASCII word-start capitalization for dashboard allowance titles, usage details, row alarm help, and row accessibility labels. Existing capitals/acronyms remain unchanged; provider model data is not rewritten.
 - Verified current Windows UsedText/LeftText are lowercase; no speculative capitalization change was made to those labels.
 - Canonical build passed (`artifacts/allowance-title-build.log`). Production formatter harness checked lower-case names, AI/API acronyms, punctuation/hyphens, mixed-case preservation, and empty input (`artifacts/allowance-title-check.swift`, `.log`). Native screenshots remain needed for final comparison.
+
+## Count-based quota labels — 2026-11-05
+
+- Matched Windows QuotaRow's DisplayPercent rule: percentage windows and GitHub Copilot display percentages; other unit types display grouped counts with an over-limit amount when remaining is negative.
+- Shared the formatter between the usage bar, bar accessibility label, and usage-details dialog. Missing count limits now say Limit unavailable, distinct from percentage Left unavailable.
+- Added regression cases for count grouping, overage, Copilot's percentage exception, and missing values. A standalone executable compiled the actual production formatter and model declarations and passed those cases plus positive remaining counts (`artifacts/count-allowance-check.swift`, `.log`). Canonical build passed (`artifacts/count-allowance-build.log`). Hosted XCTest and live count-provider rendering remain unverified.

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct UsageBar: View {
     let window: QuotaWindow
+    let provider: Provider
     var alertsEnabled = true
     let thresholds: AlertThresholds
     let changed: (AlertThresholds) -> Void
@@ -17,6 +18,7 @@ struct UsageBar: View {
     var body: some View {
         GeometryReader { geometry in
             let current = editing ?? thresholds
+            let labels = Format.usageText(window, provider: provider)
             let markerSpan = max(0, geometry.size.width - 16)
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 11).fill(Color(hex: "#30333E"))
@@ -24,7 +26,7 @@ struct UsageBar: View {
                     .frame(width: geometry.size.width * window.fill)
                 Button(action: details) {
                     Color.clear.frame(height: 48).contentShape(Rectangle())
-                }.buttonStyle(.plain).accessibilityLabel("\(window.name), \(Format.percent(window.remainingPercent)) Remaining. Open Details")
+                }.buttonStyle(.plain).accessibilityLabel("\(Format.windowTitle(window.name)), \(labels.used), \(labels.left). Open Details")
                 ForEach(alertsEnabled ? ReminderSeverity.allCases : [], id: \.self) { level in
                     let value = value(level, current)
                     Capsule().fill(color(level))
@@ -80,9 +82,9 @@ struct UsageBar: View {
                 }
                 // Keep labels above the draggable markers without intercepting input.
                 HStack {
-                    Text(window.usedPercent.map { "\(Format.percent($0)) used" } ?? "Usage unavailable").fontWeight(.semibold)
+                    Text(labels.used).fontWeight(.semibold)
                     Spacer()
-                    Text(window.remainingPercent.map { "\(Format.percent($0)) left" } ?? "Left unavailable")
+                    Text(labels.left)
                 }
                 .font(.reference(size: 16)).padding(.horizontal, 15)
                 .allowsHitTesting(false).accessibilityHidden(true)
