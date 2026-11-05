@@ -102,6 +102,11 @@ enum Format {
         }
         return value.flatMap { labels[$0] } ?? "Plan unavailable"
     }
+    static func historyPlanBadge(_ provider: Provider, _ value: String?) -> String {
+        let label = plan(provider, value)
+        return label == "Plan unavailable" ? (provider == .copilot ? "Monthly" : "Weekly") : label
+    }
+
     static func usageText(_ window: QuotaWindow, provider: Provider, locale: Locale = .current) -> (used: String, left: String) {
         if window.unit == .percent || provider == .copilot {
             return (window.usedPercent.map { "\(percent($0)) used" } ?? "Usage unavailable",

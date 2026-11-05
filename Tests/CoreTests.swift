@@ -165,6 +165,11 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(Format.plan(.claude, "team"), "Team")
         XCTAssertEqual(Format.plan(.claude, "individual_max"), "Plan unavailable")
         XCTAssertEqual(Format.plan(.codex, nil), "Plan unavailable")
+        XCTAssertEqual(Format.historyPlanBadge(.codex, nil), "Weekly")
+        XCTAssertEqual(Format.historyPlanBadge(.claude, "unrecognized"), "Weekly")
+        XCTAssertEqual(Format.historyPlanBadge(.copilot, nil), "Monthly")
+        XCTAssertEqual(Format.historyPlanBadge(.copilot, "individual_pro"), "Pro+")
+        XCTAssertEqual(Format.historyPlanBadge(.codex, "plus"), "Plus")
     }
     func testCodexProtocolExcludesInferenceAndRedemption() {
         XCTAssertEqual(CodexConnection.allowed, ["initialize", "account/read", "account/rateLimits/read", "account/login/start", "account/login/cancel", "account/logout"])

@@ -1184,3 +1184,9 @@ Canonical build passed (`artifacts/reorder-symbol-font-build.log`). Native compa
 Removed two SF Symbol substitutions. Timeline selector checkmarks now use HistoryTimelineView's exact polyline points (1,6), (4.5,9.5), (11,2.5), 2.5-point white round-cap stroke and 12×12 layout inside the existing 19-point checkbox. Selected account color swatches now use U+2713 text, 14-point reference font (Windows App.xaml Button default), and #141519 foreground, matching SettingsPage rather than a black SF Symbol.
 
 Canonical build and diff checks passed (`artifacts/reference-checkmarks-build.log`). Native compact screenshots show the timeline marks (`artifacts/reference-timeline-checkmarks.jpg`) and selected pink swatch text mark (`artifacts/reference-swatch-checkmark.jpg`) without clipping. Closed account settings without editing. Prior 89-test pass retained for unchanged behavior; no new behavioral tests added for these visual replacements. Cross-platform rasterization and final full-image comparison remain open.
+
+### Missing-Plan Timeline Badges — 2026-11-05
+
+Windows HistoryTimelineView substitutes the history period when PlanLabel is Plan unavailable. Added Format.historyPlanBadge and applied it only to selector badges: missing or unknown plans show Monthly for Copilot and Weekly for OpenAI/Claude. Known plans still display their provider-specific labels. Tooltip/account plan text continues to report Plan unavailable rather than implying a subscription tier.
+
+Canonical build passed (`artifacts/history-plan-badge-build.log`). Added regression assertions for nil, unknown and known plan values; all 89 hosted tests passed (`artifacts/history-plan-badge-tests.log`). Native missing-plan screenshot remains open; the normal demo supplies known plans, so its existing captures do not establish this edge-state layout.

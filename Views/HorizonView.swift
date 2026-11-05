@@ -244,7 +244,7 @@ struct HorizonView: View {
                                 selectorBadge(store.state.settings.privacy ? "Account" : account.nickname, size: 11, accent: accent, enabled: enabled)
                                 Spacer(minLength: 0)
                                 HStack(alignment: .bottom, spacing: 0) {
-                                    selectorBadge(Format.plan(account.provider, store.state.snapshots[account.id]?.planType), size: 10, accent: accent, enabled: enabled)
+                                    selectorBadge(Format.historyPlanBadge(account.provider, store.state.snapshots[account.id]?.planType), size: 10, accent: accent, enabled: enabled)
                                     Spacer(minLength: 0)
                                     ZStack {
                                         if enabled {
