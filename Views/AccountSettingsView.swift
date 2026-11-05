@@ -28,7 +28,7 @@ struct AccountSettingsView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 10) { ActionIcon(symbol: "person", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text(accountTitle).font(.system(size: 26, weight: .semibold)).foregroundStyle(Theme.primaryText); Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction) }.padding(.horizontal, 20).padding(.vertical, 12)
-            ScrollView {
+            SettingsScrollView {
                 if let account {
                     VStack(spacing: 12) {
                         SettingsCard(title: "Account", symbol: "person", help: "Account name, history line color, polling interval and monitoring preferences.") {

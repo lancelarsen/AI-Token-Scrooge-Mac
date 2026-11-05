@@ -93,6 +93,69 @@ struct ScroogeCard<Content: View>: View {
     var body: some View { content.padding(inset).background(Theme.card).clipShape(RoundedRectangle(cornerRadius: 15))
         .overlay(RoundedRectangle(cornerRadius: 15).stroke(Theme.border)) }
 }
+
+/// Settings use the reference's persistent lavender indicator while SwiftUI keeps
+/// ownership of wheel, trackpad, keyboard and momentum scrolling.
+struct SettingsScrollView<Content: View>: View {
+    @ViewBuilder var content: Content
+    @State private var position = ScrollPosition(y: 0)
+    @State private var metrics = Metrics()
+    @State private var dragStart: CGFloat?
+
+    private struct Metrics: Equatable {
+        var offset: CGFloat = 0
+        var contentHeight: CGFloat = 0
+        var viewportHeight: CGFloat = 0
+        var maximumOffset: CGFloat { max(0, contentHeight - viewportHeight) }
+    }
+
+    var body: some View {
+        ScrollView { content }
+            .scrollPosition($position)
+            .scrollIndicators(.hidden)
+            .onScrollGeometryChange(for: Metrics.self) { geometry in
+                Metrics(offset: geometry.contentOffset.y + geometry.contentInsets.top,
+                        contentHeight: geometry.contentSize.height + geometry.contentInsets.top + geometry.contentInsets.bottom,
+                        viewportHeight: geometry.containerSize.height)
+            } action: { _, next in metrics = next }
+            .overlay(alignment: .trailing) {
+                if metrics.maximumOffset > 0 {
+                    GeometryReader { geometry in
+                        let height = geometry.size.height
+                        let thumbHeight = min(height, max(30, height * metrics.viewportHeight / max(1, metrics.contentHeight)))
+                        let travel = max(0, height - thumbHeight)
+                        let offset = min(metrics.maximumOffset, max(0, metrics.offset))
+                        let thumbTop = travel * offset / metrics.maximumOffset
+                        Color.clear.contentShape(Rectangle())
+                            .onTapGesture { location in
+                                scroll(to: offset + (location.y < thumbTop ? -1 : 1) * metrics.viewportHeight)
+                            }
+                            .accessibilityHidden(true)
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color(hex: "#B197F2"))
+                            .frame(width: 8, height: thumbHeight)
+                            .frame(width: 14)
+                            .contentShape(Rectangle())
+                            .offset(y: thumbTop)
+                            .gesture(DragGesture(minimumDistance: 0).onChanged { event in
+                                if dragStart == nil { dragStart = offset }
+                                guard travel > 0 else { return }
+                                scroll(to: (dragStart ?? offset) + event.translation.height / travel * metrics.maximumOffset)
+                            }.onEnded { _ in dragStart = nil })
+                            .accessibilityLabel("Settings Scroll Position")
+                            .accessibilityValue("\(Int((offset / metrics.maximumOffset * 100).rounded())) percent")
+                            .accessibilityAdjustableAction { direction in
+                                scroll(to: offset + (direction == .increment ? 1 : -1) * metrics.viewportHeight * 0.9)
+                            }
+                    }.frame(width: 14)
+                }
+            }
+    }
+
+    private func scroll(to offset: CGFloat) {
+        position.scrollTo(y: min(metrics.maximumOffset, max(0, offset)))
+    }
+}
 /// Bundle assets are immutable; decoding SVGs during each scroll frame is unnecessary.
 @MainActor private enum ThemeImages {
     private static var images: [String: NSImage] = [:]

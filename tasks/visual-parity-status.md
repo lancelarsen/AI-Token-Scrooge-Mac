@@ -11,7 +11,7 @@ Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluen
 | Reference | Image pixels | Current evidence / next check |
 | --- | --- | --- |
 | 01-live-dashboard.png | 1463 × 866 | Live-provider equivalent capture missing. |
-| 02-settings-updates-time-retention.png | 1463 × 866 | Wide demo top sections captured; inherited palette corrected; live update-available and post-change pixel checks needed. |
+| 02-settings-updates-time-retention.png | 1463 × 866 | Wide demo top sections captured; inherited palette corrected; live update-available and final pixel checks needed; persistent lavender scrollbar verified. |
 | 03-settings-sounds-quiet-hours.png | 1463 × 866 | Wide sounds/quiet-hours captured; radio selection, keyboard/equal-time summaries, close labels and end-handle drag checked; playback, overnight/disabled states and exact pixels remain open. |
 | 04-settings-thresholds.png | 1463 × 866 | Threshold controls revised; matching global-settings capture needed. |
 | 05-settings-reset-reminders.png | 1463 × 866 | Validation and ordering checked; matching reminder-list capture needed. |
@@ -23,7 +23,7 @@ Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluen
 | 11-demo-filter-off-tooltip.png | 1463 × 866 | Wide filter-off captured; event counts and corrected per-element selector colors checked; floating tooltip capture needed. |
 | 12-demo-all-capacity-levels.png | 1463 × 866 | Scenario fixtures available; equivalent capacity-level capture needed. |
 | 13-usage-details.png | 1463 × 866 | Unknown-usage popup checked; standard and nonpercent captures need recheck. |
-| 14-account-settings.png | 1463 × 866 | Compact account panel captured; matching wide panel needed. |
+| 14-account-settings.png | 1463 × 866 | Compact account panel captured; Wide panel captured; shared lavender scrollbar and bottom connection actions checked; vertical text metrics still differ. |
 | 15-custom-color-chooser.png | 1463 × 866 | Picker captured; footer and synchronization checked; spectrum/ring pixels remain different. |
 | 16-custom-color-added.png | 1463 × 866 | Orange custom swatch added and retained after reopening; exact comparison pending. |
 | 17-polling-snapped.png | 1463 × 866 | Polling control seen; endpoint and snapped pointer capture needed. |
@@ -40,7 +40,7 @@ Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluen
 | 28-compact-account-settings.png | 789 × 694 | Account panel captured after inset/swatch fixes; vertical metrics differ. |
 | 29-compact-tooltip-placement.png | 789 × 694 | Owner-window clamping implemented; floating tooltip capture missing. |
 | 30-polling-tooltip.png | 322 × 118 | Complete polling help shared; floating tooltip capture missing. |
-| 31-compact-global-settings.png | 789 × 694 | Global card inset/background revised; fresh compact capture needed. |
+| 31-compact-global-settings.png | 789 × 694 | Global card inset/background revised; fresh compact capture needed after shared scrollbar change. |
 | 32-notification-banner.png | 789 × 694 | Test banner captured; approximate dimensions checked; text metrics differ. |
 | 33-quota-alerts-muted.png | 789 × 694 | Alert toggle tooltips revised; muted-state equivalent capture needed. |
 | 34-threshold-drag-feedback.png | 789 × 694 | Native threshold grab/drag and keyboard checked; floating readout capture missing. |

@@ -16,7 +16,7 @@ struct SettingsView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack { HStack(spacing: 10) { ActionIcon(symbol: "gearshape", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text("Settings").font(.system(size: 26, weight: .semibold)) }; Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()) }.padding(.horizontal, 20).padding(.vertical, 12)
-            ScrollView {
+            SettingsScrollView {
                 VStack(spacing: 12) {
                     if store.isDemo { Text("Demo changes stay in this preview. Notification test uses macOS.").font(.system(size: 14)).foregroundStyle(Theme.actionAccent).frame(maxWidth: .infinity, alignment: .leading) }
                     SettingsCard(title: "App Updates", symbol: "gearshape") {
