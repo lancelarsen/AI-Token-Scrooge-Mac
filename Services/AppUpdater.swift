@@ -15,6 +15,11 @@ import Sparkle
     static var displayVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "ScroogeDisplayVersion") as? String ?? "Development Build"
     }
+    static var versionLabel: String {
+        let version = displayVersion
+        let isDevelopment = version.split(separator: ".").last.flatMap { Int($0) } == 0
+        return "Version \(version)" + (isDevelopment ? " (Development Build)" : "")
+    }
     private init() {
         controller = SPUStandardUpdaterController(startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil)
         automaticChecks = controller.updater.automaticallyChecksForUpdates

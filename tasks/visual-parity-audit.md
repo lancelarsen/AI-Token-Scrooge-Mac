@@ -903,3 +903,10 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Bundled and registered the actual face; corrected the PostScript spelling to SegoeUI-SemiBold. Explicit semibold SwiftUI text and AppKit tooltip measurements now use the real face instead of the previous fallback.
 - Canonical build passed (`artifacts/segoe-semibold-build.log`). CoreText/AppKit registration resolved the exact face with weight trait 0.30 and family Segoe UI. Native settings capture (`artifacts/segoe-semibold-settings.jpg`) verified visibly weighted headings without layout overlap in the captured sections.
 - Final matching screenshots/metrics and possible Windows font-version differences remain to verify. Font availability is no longer the blocker it was earlier.
+
+## Update label and selected-zone display — 2026-11-05
+
+- Added the Windows Development Build suffix for display versions whose revision is zero. Matched the demo status text: Update Checks Are Paused in Demo.
+- Last Checked now uses the selected Scrooge time zone and reference numeric date format, instead of the Mac's implicit local-zone formatter.
+- Canonical build passed (`artifacts/update-label-timezone-build.log`). Native demo settings showed the Development Build suffix; changing Time Zone from Chicago to Los Angeles changed Last Checked from 11/5/2026 9:33 AM to 7:33 AM (`artifacts/update-zone-native-ax.txt`). No live updater action was triggered.
+- Compact screenshot comparison still includes platform window/frame differences and live update-state differences; no full image certified identical.
