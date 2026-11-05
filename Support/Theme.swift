@@ -261,6 +261,8 @@ struct ActionIcon: View {
     var size: CGFloat = 19
     private var referenceGlyph: String? {
         switch symbol {
+        case "gearshape": "\u{E713}"
+        case "arrow.clockwise": "\u{E72C}"
         case "clock": "\u{E823}"
         case "clock.arrow.circlepath": "\u{E81C}"
         case "person": "\u{E77B}"
@@ -281,8 +283,6 @@ struct ActionIcon: View {
     }
     private var resource: String? {
         switch symbol {
-        case "gearshape": "settings"
-        case "arrow.clockwise": "refresh"
         case "bell.badge": "alarm_on"
         case "bell.slash": "alarm_off"
         default: nil

@@ -910,3 +910,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Last Checked now uses the selected Scrooge time zone and reference numeric date format, instead of the Mac's implicit local-zone formatter.
 - Canonical build passed (`artifacts/update-label-timezone-build.log`). Native demo settings showed the Development Build suffix; changing Time Zone from Chicago to Los Angeles changed Last Checked from 11/5/2026 9:33 AM to 7:33 AM (`artifacts/update-zone-native-ax.txt`). No live updater action was triggered.
 - Compact screenshot comparison still includes platform window/frame differences and live update-state differences; no full image certified identical.
+
+## Shared dialog/action glyph routing — 2026-11-05
+
+- Removed DialogActionLabel's separate hand-drawn Close, Info, and Snooze icons and routed all dialog symbols through ActionIcon. The previous Fluent migration did not cover those bypasses.
+- Mapped Settings and Refresh to reference E713/E72C. Windows MainPage, HorizonView, and account-settings buttons use ActionButton glyphs, so their former SVG selection was mismatched. Alarm SVGs remain in use where appropriate.
+- Canonical build passed (`artifacts/shared-dialog-glyphs-build.log`). Native settings capture (`artifacts/shared-dialog-glyphs-native.jpg`) verified Close, Settings, and Check Now glyph rendering. Final comparison with reference screenshot remains open.
