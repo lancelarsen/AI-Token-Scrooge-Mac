@@ -960,3 +960,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 Compared Windows `ActionButton.GlyphFor` at reference `694dc85` with the Mac action icon routing. The generic fallback is Segoe Fluent U+E8A7 (including Explore with demo data and Use browser sign-in instead); token actions use U+E8D7. Mac now uses those bundled glyphs instead of a hand-drawn external arrow and an SF Symbols key. Removed the unreachable folder drawing, already superseded by its font glyph.
 
 Verification: canonical build passed (`artifacts/remaining-action-glyphs-build.log`); CoreText resolved both characters to nonzero glyphs in the bundled SegoeFluentIcons face (`artifacts/remaining-action-glyphs-check.log`). This pass establishes source/glyph parity, not a new pixel-identical screenshot claim. Also checked detail-date formatting against Windows `ResetTime.Exact`: the existing `yyyy-MM-dd HH:mm:ss xxx` format and missing-value label already match; no date change needed.
+
+### Exit Demo glyph routing — 2026-11-05
+
+The dashboard used a second SF Symbols spelling (`arrow.up.forward.square`) for Exit Demo, bypassing the shared generic-action glyph. Routed it through the same U+E8A7 Segoe Fluent mapping as Windows `ActionButton.GlyphFor("Exit demo")`. Windows `MakeButton` ignores its legacy glyph argument, so the text-driven fallback is authoritative. Canonical build passed (`artifacts/exit-demo-glyph-build.log`); source search confirms the unmapped spelling is gone. No new native screenshot was captured for this one-line routing fix.
+
+Also verified the dashboard sort labels against Windows `AccountSortControl`: its explicit 13-point override matches the Mac, so no font-size change was made there.

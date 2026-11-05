@@ -115,7 +115,7 @@ struct DashboardView: View {
                 }
             }.clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#45464D")))
             Button { if store.isDemo { store.exitDemo() } else { store.showConnection = true } } label: {
-                ActionLabel(title: store.isDemo ? "Exit demo" : "Add account", symbol: store.isDemo ? "arrow.up.forward.square" : "plus")
+                ActionLabel(title: store.isDemo ? "Exit demo" : "Add account", symbol: store.isDemo ? "arrow.up.right.square" : "plus")
             }.buttonStyle(ScroogeButtonStyle()).accessibilityIdentifier("addAccountButton")
         }
     }
