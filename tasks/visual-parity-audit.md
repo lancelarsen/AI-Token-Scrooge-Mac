@@ -954,3 +954,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Added an opt-in `--demo --scenario count-usage` fixture with an over-limit request allowance and an unknown request limit. Standard demo and live providers are unchanged.
 - Canonical build passed (`artifacts/count-usage-demo-build.log`). Native AX verified OpenAI/Claude bars say 1,250 used / 250 over, unknown-limit bars say 50 used / Limit unavailable, and Copilot retains 125% used / 0% left.
 - Opened the overage bar's details popup and verified it shows Request Allowance and 1,250 used · 250 over without clipping (`artifacts/count-usage-details-native.jpg`). This is synthetic demo evidence, not a live-provider check or reference-image identity claim.
+
+### Remaining generic action glyphs — 2026-11-05
+
+Compared Windows `ActionButton.GlyphFor` at reference `694dc85` with the Mac action icon routing. The generic fallback is Segoe Fluent U+E8A7 (including Explore with demo data and Use browser sign-in instead); token actions use U+E8D7. Mac now uses those bundled glyphs instead of a hand-drawn external arrow and an SF Symbols key. Removed the unreachable folder drawing, already superseded by its font glyph.
+
+Verification: canonical build passed (`artifacts/remaining-action-glyphs-build.log`); CoreText resolved both characters to nonzero glyphs in the bundled SegoeFluentIcons face (`artifacts/remaining-action-glyphs-check.log`). This pass establishes source/glyph parity, not a new pixel-identical screenshot claim. Also checked detail-date formatting against Windows `ResetTime.Exact`: the existing `yyyy-MM-dd HH:mm:ss xxx` format and missing-value label already match; no date change needed.
