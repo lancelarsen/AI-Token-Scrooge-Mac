@@ -850,3 +850,10 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Added process-local CoreText registration and shared SwiftUI typography; converted explicit reference text sizes across dashboard, timeline, controls, settings, dialogs, and readouts. Monospaced GitHub device code remains monospaced. Tooltip measurements use the same family. Restored Windows 14-point dialog body size.
 - Verification: canonical build succeeded (`artifacts/segoe-font-build.log`); packaged font SHA-256 matches source asset; native demo dashboard launched and captured (`artifacts/segoe-dashboard.jpg`). No all-image identity claim.
 - Dedicated Semibold and Fluent Icons assets remain absent. Requested weights and all 37 comparison captures still need verification. Native screenshot is a wide launch, not a matching-size compact reference capture.
+
+## Threshold edit lifecycle — 2026-11-05
+
+- Matched Windows ThresholdEditor keyboard transaction: arrow down/repeat previews locally; arrow release commits once; Escape cancels the pending edit. Focus loss cancels a pending keyboard edit.
+- Resizing cancels an active pointer edit and ignores the rest of that gesture until release. Disabling alerts or removing the view clears pending edits; re-enabling does not leave a stale cancellation latch.
+- Canonical build passed (`artifacts/threshold-edit-lifecycle-build.log`). Native demo verification: Left changed the first info threshold 50% → 51%; Escape after release retained 51%, demonstrating the completed edit persisted. Right then Escape restored 50% (`artifacts/threshold-keyboard-lifecycle-ax.txt`).
+- Mid-drag resize and simultaneous held-key cancellation are source/build verified, not automated end-to-end verified. Tooltip positioning and exact font weights remain open.

@@ -9,6 +9,8 @@ struct UsageBar: View {
     @State private var editing: AlertThresholds?
     @State private var editingSeverity: ReminderSeverity?
     @State private var dragStartPosition: Double?
+    @State private var cancelledDrag = false
+    @State private var keyboardEditing = false
     @State private var hoveredSeverity: ReminderSeverity?
     private var readoutSeverity: ReminderSeverity? { alertsEnabled ? editingSeverity ?? hoveredSeverity ?? focusedThreshold : nil }
     @FocusState private var focusedThreshold: ReminderSeverity?
@@ -34,20 +36,28 @@ struct UsageBar: View {
                         .focusable()
                         .focused($focusedThreshold, equals: level)
                         .focusEffectDisabled()
-                        .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { press in
-                            let increase = press.key == .leftArrow || press.key == .upArrow
-                            var next = thresholds
-                            next.move(level, to: value + (increase ? 1 : -1))
-                            changed(next)
+                        .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow], phases: [.down, .repeat, .up]) { press in
+                            guard editingSeverity == nil || editingSeverity == level else { return .ignored }
+                            if press.phase == .up {
+                                if keyboardEditing { commitEdit() }
+                            } else {
+                                guard dragStartPosition == nil else { return .ignored }
+                                let increase = press.key == .leftArrow || press.key == .upArrow
+                                var next = editing ?? thresholds
+                                next.move(level, to: self.value(level, next) + (increase ? 1 : -1))
+                                editingSeverity = level
+                                keyboardEditing = true
+                                editing = next
+                            }
                             return .handled
                         }
                         .onKeyPress(.escape) {
-                            editing = nil; editingSeverity = nil; dragStartPosition = nil; hoveredSeverity = nil; focusedThreshold = nil
+                            cancelEdit()
                             return .handled
                         }
                         .position(x: 8 + (1 - NSDecimalNumber(decimal: value).doubleValue / 100) * markerSpan, y: 24)
                         .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .named("usageBar")).onChanged { drag in
-                            guard markerSpan > 0 else { return }
+                            guard markerSpan > 0, !cancelledDrag, !keyboardEditing else { return }
                             if dragStartPosition == nil {
                                 dragStartPosition = (1 - NSDecimalNumber(decimal: self.value(level, thresholds)).doubleValue / 100) * markerSpan
                             }
@@ -57,8 +67,8 @@ struct UsageBar: View {
                             editingSeverity = level
                             editing = next
                         }.onEnded { _ in
-                            if let editing, editing != thresholds { changed(editing) }
-                            editing = nil; editingSeverity = nil; dragStartPosition = nil
+                            if !cancelledDrag { commitEdit() }
+                            cancelledDrag = false
                         })
                         .onHover { hoveredSeverity = $0 ? level : (hoveredSeverity == level ? nil : hoveredSeverity) }
                         .accessibilityLabel("\(level.rawValue) Alert Threshold")
@@ -89,10 +99,32 @@ struct UsageBar: View {
                 .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { _ in
                     if editing == nil { hoveredSeverity = nil; focusedThreshold = nil }
                 }
-                .onChange(of: alertsEnabled) { _, enabled in
-                    if !enabled { editing = nil; editingSeverity = nil; dragStartPosition = nil; hoveredSeverity = nil; focusedThreshold = nil }
+                .onChange(of: geometry.size) { _, _ in cancelEdit() }
+                .onChange(of: focusedThreshold) { _, newValue in
+                    if keyboardEditing, newValue != editingSeverity { cancelEdit() }
                 }
+                .onChange(of: alertsEnabled) { _, enabled in
+                    if !enabled { cancelEdit() } else { cancelledDrag = false }
+                }
+                .onDisappear { cancelEdit(); cancelledDrag = false }
         }.frame(height: 48)
+    }
+    private func commitEdit() {
+        if let editing, editing != thresholds { changed(editing) }
+        editing = nil
+        editingSeverity = nil
+        dragStartPosition = nil
+        keyboardEditing = false
+    }
+    private func cancelEdit() {
+        // Ignore further updates from the same pointer gesture after resize/Escape.
+        if dragStartPosition != nil { cancelledDrag = true }
+        editing = nil
+        editingSeverity = nil
+        dragStartPosition = nil
+        keyboardEditing = false
+        hoveredSeverity = nil
+        focusedThreshold = nil
     }
     private func value(_ severity: ReminderSeverity, _ thresholds: AlertThresholds) -> Decimal {
         switch severity { case .info: thresholds.info; case .warning: thresholds.warning; case .critical: thresholds.critical }
