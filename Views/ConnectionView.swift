@@ -17,6 +17,11 @@ struct ConnectionView: View {
     @State private var allowance = ""
     @State private var unit: UsageUnit = .credits
     @State private var advanced = false
+    private var organizationReconnect: Bool {
+        guard let id = store.reconnectAccountID,
+              let original = store.state.accounts.first(where: { $0.id == id }) else { return false }
+        return original.provider == .copilot && original.scope.hasPrefix("organization:")
+    }
     @State private var connecting = false
     @State private var connectionTask: Task<Void, Never>?
     @State private var error: String?
@@ -62,7 +67,7 @@ struct ConnectionView: View {
         switch provider {
         case .codex: "Sign in through OpenAI in your browser. Scrooge keeps this account in its own protected Codex profile and only reads usage limits."
         case .claude: "Sign in through Claude in your browser. Scrooge uses a separate Claude Code profile to read your session and weekly limits. Requires Claude Code 2.1.310 or later."
-        case .copilot: advanced ? "Advanced connection: use a fine-grained token with Plan read permission for personal billing. Organization billing requires authorized administration access. Your token stays protected in macOS Keychain." : "Sign in through GitHub in your browser. Scrooge reads your personal Copilot usage and protects this account’s sign-in in macOS Keychain."
+        case .copilot: (advanced || organizationReconnect) ? "Advanced connection: use a fine-grained token with Plan read permission for personal billing. Organization billing requires authorized administration access. Your token stays protected in macOS Keychain." : "Sign in through GitHub in your browser. Scrooge reads your personal Copilot usage and protects this account’s sign-in in macOS Keychain."
         }
     }
     // Match the rendered form widths in reference images21–25 while allowing
@@ -70,7 +75,7 @@ struct ConnectionView: View {
     private var formContentWidth: CGFloat {
         switch provider {
         case .codex: 550
-        case .copilot: advanced ? 534 : 544
+        case .copilot: (advanced || organizationReconnect) ? 534 : 544
         case .claude: 576
         }
     }
@@ -98,11 +103,13 @@ struct ConnectionView: View {
                 }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
                     .accessibilityLabel("Billing Unit").accessibilityValue(unit == .credits ? "AI credits" : "Legacy premium requests")
                 TextField("Fallback allowance (optional; detected automatically when available)", text: $allowance).modifier(ConnectionFieldStyle())
+                if !organizationReconnect {
                 Button { token = ""; error = nil; advanced.toggle() } label: {
                     DialogActionLabel(title: advanced ? "Use browser sign-in instead" : "Use an access token instead", symbol: advanced ? "arrow.up.right.square" : "key")
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }.buttonStyle(ScroogeButtonStyle()).disabled(connecting)
-                if !advanced { GitHubConnectView(nickname: nickname, unit: $unit, allowance: $allowance) } else {
+                }
+                if !advanced && !organizationReconnect { GitHubConnectView(nickname: nickname, unit: $unit, allowance: $allowance) } else {
                 SecureField("Fine-grained personal access token", text: $token).modifier(ConnectionFieldStyle())
                 TextField("Organization billing owner (optional)", text: $organization).modifier(ConnectionFieldStyle())
                 ConnectionStatusLine(text: error ?? "")
