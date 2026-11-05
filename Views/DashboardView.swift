@@ -164,7 +164,8 @@ struct AccountCard: View {
                         .padding(.vertical, 10)
                 }.buttonStyle(ScroogeButtonStyle())
             }
-            Button { store.selectedAccount = account } label: { ActionIcon(symbol: "gearshape", size: 20).frame(width: 44, height: 44) }.buttonStyle(ScroogeButtonStyle(segmented: true)).clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border)).modifier(ImmediateReferenceTooltip(text: "Manage \(store.state.settings.privacy ? "Account" : account.nickname)"))
+            Button { store.selectedAccount = account } label: { ActionIcon(symbol: "gearshape", size: 20).frame(width: 44, height: 44) }.buttonStyle(ScroogeButtonStyle(segmented: true)).clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#45464D"))).modifier(ImmediateReferenceTooltip(text: settingsDescription))
+                .accessibilityLabel(settingsDescription)
                 .padding(.top, 14).padding(.trailing, 12).frame(maxHeight: .infinity, alignment: .top)
         }.background(Theme.card)
             .clipShape(RoundedRectangle(cornerRadius: 13)).overlay(RoundedRectangle(cornerRadius: 13).stroke(Theme.border))
@@ -173,6 +174,9 @@ struct AccountCard: View {
                     AccountUsageDetailsView(accountID: account.id, windowID: snapshot?.windows.first?.id)
                 }
             }
+    }
+    private var settingsDescription: String {
+        "Settings for \(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot?.planType))"
     }
     private var accountStatus: String {
         let name = store.state.settings.privacy ? "Account" : account.nickname
@@ -195,6 +199,7 @@ struct AccountCard: View {
                 }
             }
         }.buttonStyle(.plain)
+            .accessibilityLabel("\(account.provider.rawValue), \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot?.planType)). Open details.")
     }
 }
 
