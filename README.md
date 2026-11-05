@@ -21,8 +21,10 @@ The same command is available through Codex's Run action. `--build` builds witho
 To run the unit tests:
 
 ```sh
-xcodebuild -project AITokenScrooge.xcodeproj -scheme AITokenScrooge -destination 'platform=macOS,arch=arm64' -only-testing:ScroogeTests test
+./script/test.sh
 ```
+
+The script builds the tests and runs the unit suite using the app-embedded Sparkle framework; the Xcode staging copy stalls during test-host startup on this Mac. Pass an Xcode filter such as `-only-testing:ScroogeTests/CoreTests` to narrow the run. UI tests are excluded from this command.
 
 The test scheme sets `SCROOGE_TEST_MODE=1`, which uses temporary state and disables scheduled monitoring. UI tests also set this explicitly.
 

@@ -4,6 +4,11 @@ import UserNotifications
 import SQLite3
 @testable import AITokenScrooge
 
+private final class TooltipTestWindow: NSWindow {
+    var testIsKey = false
+    override var isKeyWindow: Bool { testIsKey }
+}
+
 final class MonitoringTests: XCTestCase {
     func testProviderProcessesDoNotInheritOtherCredentialsOrRuntimeInjection() {
         let dangerous = ["OPENAI_API_KEY", "CODEX_HOME", "ANTHROPIC_API_KEY", "CLAUDE_CONFIG_DIR", "GH_TOKEN", "GITHUB_TOKEN", "AZURE_OPENAI_ENDPOINT", "GEMINI_API_KEY", "GOOGLE_APPLICATION_CREDENTIALS", "AWS_PROFILE", "NODE_OPTIONS", "NODE_PATH", "BUN_OPTIONS", "DYLD_INSERT_LIBRARIES", "LD_PRELOAD", "github_token"]
@@ -150,8 +155,10 @@ final class MonitoringTests: XCTestCase {
 
     @MainActor
     func testHistoryPointerCoordinatesAndTrackingLifecycle() throws {
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 800, height: 400),
-                              styleMask: [.borderless], backing: .buffered, defer: true)
+        let window = TooltipTestWindow(contentRect: NSRect(x: 0, y: 0, width: 800, height: 400),
+                                       styleMask: [.borderless], backing: .buffered, defer: true)
+        window.isReleasedWhenClosed = false
+        defer { window.close() }
         let root = NSView(frame: NSRect(x: 0, y: 0, width: 800, height: 400))
         window.contentView = root
         window.acceptsMouseMovedEvents = false
@@ -170,7 +177,11 @@ final class MonitoringTests: XCTestCase {
         tracker.mouseMoved(with: event)
         XCTAssertEqual(locations.count, 1)
         XCTAssertEqual(locations[0], CGPoint(x: 35, y: 30), "History uses top-left coordinates within the full timeline, not window coordinates")
-        tracker.showPopup("OpenAI / Work · Pro\nWeekly History\n57% Used")
+        let popupText = "OpenAI / Work · Pro\nWeekly History\n57% Used"
+        tracker.showPopup(popupText)
+        XCTAssertFalse(NSApp.windows.contains { $0.title == "Usage History Details" && $0.isVisible })
+        window.testIsKey = true
+        tracker.showPopup(popupText)
         let popup = try XCTUnwrap(NSApp.windows.first { $0.title == "Usage History Details" && $0.isVisible })
         XCTAssertTrue(popup.ignoresMouseEvents)
         XCTAssertGreaterThan(popup.frame.width, 100)
