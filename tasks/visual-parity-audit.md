@@ -574,3 +574,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched the Windows swatch row's trailing eight-point vertical margin and centered its label alongside the full palette height. This also supports wrapped palettes without leaving the label top-aligned.
 - Polling information icon and label now share the complete Windows reference help wording using the immediate styled tooltip; removed the shortened icon text/default label help mismatch.
 - Canonical build passed (`artifacts/account-swatch-spacing-build.log`) and diff checks passed. Native compact account-settings screenshot confirms the extra row margin, centered label, intact palette, and following polling/reset sections. Wrapped/custom palette and floating help appearance still require visual checks; typography differences remain.
+
+### Provider chooser outline (reference 20)
+
+- Added missing #65577F one-point border and sixteen-point clipping/presentation corners to the provider chooser, matching Windows dialog style and the other Mac detail dialogs.
+- Canonical build passed (`artifacts/provider-chooser-outline-build.log`) and diff checks passed. Native isolated first-launch Add Account capture confirms the outline, three provider buttons and Cancel footer; captured size is 320×335 points versus approximately 320×337 in reference 20. Font metrics still differ.
+- Reference-folder font inventory found no ttf/otf/ttc files. Asked user whether a Segoe UI bundle licensed for this Mac app is available; exact typography remains unresolved. Other visual work can continue independently.

@@ -49,7 +49,14 @@ struct ConnectionView: View {
                 Button { dismiss() } label: { DialogActionLabel(title: "Cancel", symbol: "xmark").frame(minWidth: 98) }
                     .buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction)
             }.padding(24)
-        }.frame(width: 320).background(Theme.dialogBackground).preferredColorScheme(.dark)
+        }.frame(width: 320).background(Theme.dialogBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay {
+                RoundedRectangle(cornerRadius: 16).strokeBorder(Color(hex: "#65577F"), lineWidth: 1)
+                    .allowsHitTesting(false)
+            }
+            .presentationCornerRadius(16)
+            .preferredColorScheme(.dark)
     }
     private var connectionDescription: String {
         switch provider {
