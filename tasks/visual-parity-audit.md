@@ -659,3 +659,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched source volume row's twelve-point gap, secondary text color and rounded percentage display. Radio options now use thirty-two-point rows with no inter-row spacing, twenty-point inset-stroked circles, #A990ED selected ring and #F2F1F5 labels; this replaces a shorter overall option stack and incorrect selected lavender. Quiet-hours header switch uses source #8170CF.
 - Canonical build passed (`artifacts/sound-controls-layout-build.log`) and diff checks passed. Native wide Settings capture confirms revised radio rows, preview grid, volume rail and quiet-hours section. Selecting Classic Chimes moved the selected accessibility state from Duck Sounds to Classic Chimes without invoking an audio preview.
 - Exact radio/native glyph metrics, sound preview playback and quiet-hours drag states remain open.
+
+### Quiet-hours enabled interaction and close-label verification
+
+- Native current-build wide Settings check moved the end boundary with keyboard input from 8 AM toward midnight. At 2 AM, screenshot confirms vertically staggered start/end labels and increased track height; at 1 AM, summary shows 1 hours exactly as the Windows string construction does. At midnight, summary switches to Choose different start and end times to set a quiet period.
+- Dragged the overlapping end handle from midnight to 8 AM; accessibility state and summary updated to 12 AM – 8 AM · 8 hours. This verifies an enabled pointer-drag path in addition to keyboard adjustment. A rapid initial key batch ended at 2 AM, so it is not evidence that every accelerated key event was processed.
+- Source comparison confirms hour wrap, close-label threshold and equal-time text match Windows. No code changed; used current canonical build. Overnight wrap, disabled controls and exact focus/typographic pixels remain open.
