@@ -47,16 +47,16 @@ struct AccountSettingsView: View {
                             }
                             HStack(spacing: 12) {
                             Text("Line Color").frame(width: 190, height: 32, alignment: .leading)
-                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 32, maximum: 32), spacing: 8)], alignment: .leading, spacing: 8) {
+                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 40, maximum: 40), spacing: 0)], alignment: .leading, spacing: 0) {
                                 ForEach(lineColors, id: \.self) { hex in
                                     Button { update { $0.lineColor = hex } } label: {
                                         ZStack { RoundedRectangle(cornerRadius: 9).fill(Color(hex: hex)); if account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType).caseInsensitiveCompare(hex) == .orderedSame { RoundedRectangle(cornerRadius: 9).stroke(.white, lineWidth: 2); Image(systemName: "checkmark").foregroundStyle(.black) } }.frame(width: 32, height: 32)
-                                    }.buttonStyle(.plain).accessibilityLabel("Line Color \(hex)")
+                                    }.buttonStyle(.plain).padding(.trailing, 8).padding(.bottom, 8).accessibilityLabel("Line Color \(hex)")
                                 }
                                 Button {
                                     newColor = Color(hex: account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType))
                                     showColor = true
-                                } label: { ActionIcon(symbol: "plus", size: 20).frame(width: 32, height: 32).background(Theme.control).clipShape(RoundedRectangle(cornerRadius: 9)).overlay(RoundedRectangle(cornerRadius: 9).stroke(Color(hex: "#65577F"), lineWidth: 1)) }.buttonStyle(.plain)
+                                } label: { Text("+").font(.system(size: 22)).foregroundStyle(Theme.actionAccent).frame(width: 32, height: 32).background(Theme.control).clipShape(RoundedRectangle(cornerRadius: 9)).overlay(RoundedRectangle(cornerRadius: 9).stroke(Color(hex: "#65577F"), lineWidth: 1)) }.buttonStyle(.plain).padding(.trailing, 8).padding(.bottom, 8)
                                     .modifier(ImmediateReferenceTooltip(text: "Add Custom Line Color"))
                                     .accessibilityLabel("Add Custom Line Color")
                                     .sheet(isPresented: $showColor) {
@@ -72,7 +72,7 @@ struct AccountSettingsView: View {
                                             }
                                         }
                                     }
-                            }.padding(.bottom, 8)
+                            }
                             }
                             HStack(spacing: 12) {
                                 HStack(spacing: 6) {
