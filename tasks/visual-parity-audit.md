@@ -1392,3 +1392,9 @@ Inspected Microsoft ColorSpectrum.cpp: OnGotFocus opens ColorNameToolTip, OnLost
 The Mac InlineLineColorEditor has focus/selection handling but no color-name tooltip. This is a confirmed implementation gap rather than merely unverified appearance. Microsoft ColorDisplayNameHelper_Partial.cpp delegates naming to ColorHelper_ToDisplayNameId; that implementation was not found in the inspected repository tree. Do not claim a guessed HSV label or a hex-only popup matches Windows naming. Exact naming requires a compatible implementation or authoritative Windows color/name fixtures.
 
 Source evidence saved in artifacts/winui-color-spectrum.cpp and artifacts/winui-color-names.cpp. References: https://github.com/microsoft/microsoft-ui-xaml/blob/main/controls/dev/ColorPicker/ColorSpectrum.cpp and https://github.com/microsoft/microsoft-ui-xaml/blob/main/dxaml/xcp/dxaml/lib/ColorDisplayNameHelper_Partial.cpp . No application changes or new build in this source audit.
+
+### Repair Color Model Menu Hit Testing — 2026-11-05
+
+Native testing found the RGB/HSV menu did not open from its accessible label or visible arrow. InlineLineColorEditor inherited DetailsDialog’s enabled text selection. Disabled static text selection within the editor; retained its native Picker and all editable TextFields. After rebuilding, clicking Color Model opens RGB/HSV choices, choosing HSV and confirming updates the mode and Hue/Saturation/Value inputs. Capture artifacts/color-model-menu-hsv.jpg. Closed both dialogs with Escape without adding a color.
+
+Canonical build passes (artifacts/color-model-menu-build.log) and diff checks pass. Before the fix, keyboard spectrum Right changed hue336→337 and brightness Left changed83→82 with selected-color/channel updates. Tab skipped the mode menu in the current Mac configuration; full keyboard traversal remains open. No new unit tests for the SwiftUI hit-testing fix; native execution establishes the regression and repaired behavior.

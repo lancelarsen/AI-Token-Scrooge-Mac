@@ -351,6 +351,7 @@ private struct InlineLineColorEditor: View {
                 }
             }
         }.textFieldStyle(.plain).font(ReferenceTypography.nativeTextFont()).foregroundStyle(Theme.primaryText)
+            .textSelection(.disabled)
             .padding(.vertical, 4)
             .onAppear { loadComponents(); hexDraft = color.hex }
     }
