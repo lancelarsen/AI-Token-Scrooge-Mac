@@ -63,6 +63,7 @@ struct UsageBar: View {
                         .onHover { hoveredSeverity = $0 ? level : (hoveredSeverity == level ? nil : hoveredSeverity) }
                         .accessibilityLabel("\(level.rawValue) Alert Threshold")
                         .accessibilityValue(Format.percent(value))
+                        .accessibilityHint("Drag Horizontally or Use Arrow Keys to Adjust")
                         .accessibilityAdjustableAction { direction in
                             var next = thresholds; next.move(level, to: value + (direction == .increment ? 1 : -1)); changed(next)
                         }
@@ -96,5 +97,5 @@ struct UsageBar: View {
     private func value(_ severity: ReminderSeverity, _ thresholds: AlertThresholds) -> Decimal {
         switch severity { case .info: thresholds.info; case .warning: thresholds.warning; case .critical: thresholds.critical }
     }
-    private func color(_ severity: ReminderSeverity) -> Color { switch severity { case .info: Color(hex: "#58A6FF"); case .warning: Color(hex: "#F2C94C"); case .critical: Color(hex: "#F05B69") } }
+    private func color(_ severity: ReminderSeverity) -> Color { switch severity { case .info: Color(hex: "#58A6FF"); case .warning: Color(hex: "#F2C94C"); case .critical: Color(hex: "#FF5D68") } }
 }

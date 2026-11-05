@@ -830,3 +830,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 
 - Windows `ThresholdEditor` defines a 32×48 Thumb around the 10×36 painted marker. Mac's target was 18×44. Matched 32×48 without changing marker paint size, position mapping or threshold rules.
 - Canonical build passed (`artifacts/threshold-target-build.log`). Native compact demo: grabbed the Claude current-session info marker 12 points right of its center (outside the old 9-point half-width, inside the new 16-point half-width), dragged 50 points right, and verified the threshold changed from 50% to 39%. Evidence: `artifacts/threshold-expanded-target-drag.jpg` plus AX values. No live accounts changed. Exact focus/tooltip rendering remains open.
+
+### Critical threshold marker color and help
+
+- Windows `ThresholdEditor.CreateMarker` uses #FF5D68 specifically for the critical marker, distinct from the #F05B69 general critical-alert palette. Corrected only `UsageBar`'s marker fill; capacity gradients and reminder colors retain their source values.
+- Added the Windows drag/arrow-key guidance as the marker accessibility hint. Source comparison also confirmed left/up increases remaining threshold and right/down decreases it, matching current Mac behavior.
+- Canonical build and diff check passed (`artifacts/critical-marker-color-build.log`). This turn verifies the declared color and accessibility metadata through source/build, not final screenshot identity or live-provider behavior.
