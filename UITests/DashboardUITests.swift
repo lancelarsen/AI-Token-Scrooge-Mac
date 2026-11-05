@@ -6,9 +6,10 @@ final class DashboardUITests: XCTestCase {
         app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
         app.launchArguments = ["--demo"]
         app.launch()
+        defer { app.terminate() }
         let exit = app.buttons["addAccountButton"]
         XCTAssertTrue(exit.waitForExistence(timeout: 10))
-        XCTAssertEqual(exit.label, "Exit Demo")
+        XCTAssertEqual(exit.label, "Exit demo")
         let history = app.switches["historyToggle"]
         XCTAssertTrue(history.exists)
         history.click()
@@ -16,6 +17,5 @@ final class DashboardUITests: XCTestCase {
         history.click()
         exit.click()
         XCTAssertTrue(app.buttons["exploreDemoButton"].waitForExistence(timeout: 5))
-        app.terminate()
     }
 }
