@@ -1008,3 +1008,9 @@ Canonical build passed (`artifacts/wide-header-spacing-build.log`). Relaunched a
 Windows `DashboardState.Events` concatenates dashboard-ordered quota refreshes before account-ordered earned resets, then stably sorts by timestamp. Mac previously interleaved each account's refreshes and resets, placing an OpenAI expiry above a Claude refresh at the same instant. Tied events now put refreshes first, order refresh accounts by `AccountPolicy.ordered`, and preserve original expiry order; unequal timestamps still take precedence.
 
 Canonical build passed (`artifacts/horizon-event-order-build.log`). A standalone harness compiled the production HorizonEvent implementation with minimal model fixtures and passed refresh-before-expiry, reversed dashboard account order, stable expiry order, chronological precedence and hidden-account filtering (`artifacts/horizon-event-order-check.swift`). Native demo capture `artifacts/events-ordered-wide.jpg` confirms the Nov 8 Claude refresh is above the OpenAI expiry, matching reference 09. Remaining full-image, viewport and other parity gaps are unchanged.
+
+### Conditional Timeline Plan Badges — 2026-11-05
+
+Matched Windows `DashboardState.TimelineBadge`: future-event plan badges appear only when more than one enabled account uses that provider. Hidden timeline accounts still count, matching the Windows rule. The Mac previously displayed a plan badge on every event. The icon's reserved 62×49 area and timestamp placement are preserved when the badge is absent.
+
+Canonical build passed (`artifacts/timeline-plan-badges-build.log`). Native demo capture `artifacts/timeline-plan-badges-wide.jpg` confirms both Claude event badges are absent while OpenAI Plus/Pro badges remain, matching reference 09. Sidebar account badges remain unchanged, as intended. Duplicate-provider enable/disable changes have not yet been exercised in the UI; full-image parity remains open.

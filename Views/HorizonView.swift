@@ -347,12 +347,15 @@ struct HorizonView: View {
                                     .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(accent, lineWidth: 2))
                             }.frame(width: 62, height: 49, alignment: .top)
                                 .overlay(alignment: .bottom) {
-                                    Text(plan == "Plan unavailable" ? "?" : plan)
-                                        .font(.reference(size: 10, weight: .semibold)).lineLimit(1)
-                                        .padding(.horizontal, 5).padding(.vertical, 1)
-                                        .background(Color(hex: "#1C1E24"))
-                                        .clipShape(RoundedRectangle(cornerRadius: 6))
-                                        .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(accent, lineWidth: 1))
+                                    // Windows badges disambiguate enabled accounts from the same provider.
+                                    if store.state.accounts.filter({ $0.enabled && $0.provider == event.account.provider }).count > 1 {
+                                        Text(plan == "Plan unavailable" ? "?" : plan)
+                                            .font(.reference(size: 10, weight: .semibold)).lineLimit(1)
+                                            .padding(.horizontal, 5).padding(.vertical, 1)
+                                            .background(Color(hex: "#1C1E24"))
+                                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                                            .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(accent, lineWidth: 1))
+                                    }
                                 }
                             Text(event.date.formatted(Date.FormatStyle(date: .omitted, time: .shortened).withTimeZone(store.state.settings.zone))).font(.reference(size: 10))
                         }.foregroundStyle(accent).frame(width: 62, height: 74, alignment: .top)
