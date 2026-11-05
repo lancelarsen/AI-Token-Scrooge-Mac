@@ -232,6 +232,9 @@ private struct InlineLineColorEditor: View {
     @State private var hexDraft = ""
     @State private var mode = "RGB"
     @FocusState private var spectrumFocused: Bool
+    @State private var spectrumHovered = false
+    @State private var spectrumPressed = false
+    @State private var spectrumKeyboardFocus = false
 
     var body: some View {
         VStack(spacing: 12) {
@@ -241,18 +244,25 @@ private struct InlineLineColorEditor: View {
                         if let image = LineColorSpectrum.image {
                             Image(nsImage: image).resizable().interpolation(.high)
                         }
-                        Circle().stroke(.black, lineWidth: 2).background(Circle().stroke(.white, lineWidth: 4))
-                            .frame(width: 12, height: 12)
-                            .position(x: min(max(hue * geometry.size.width, 7), geometry.size.width - 7),
-                                      y: min(max((1 - saturation) * geometry.size.height, 7), geometry.size.height - 7))
+                        SpectrumSelectionIndicator(light: SpectrumSelectionContrast.usesLightStroke(hue: hue, saturation: saturation),
+                                                   hovered: spectrumHovered, pressed: spectrumPressed,
+                                                   keyboardFocused: spectrumFocused && spectrumKeyboardFocus)
+                            .position(x: hue * geometry.size.width, y: (1 - saturation) * geometry.size.height)
                     }.clipShape(RoundedRectangle(cornerRadius: 8)).contentShape(Rectangle())
                         .gesture(DragGesture(minimumDistance: 0).onChanged { value in
+                            spectrumPressed = true; spectrumKeyboardFocus = false; spectrumFocused = true
                             hue = min(1, max(0, value.location.x / geometry.size.width))
                             saturation = 1 - min(1, max(0, value.location.y / geometry.size.height))
                             publish()
-                        })
+                        }.onEnded { _ in spectrumPressed = false })
+                        .onHover { spectrumHovered = $0 }
                         .focusable().focused($spectrumFocused).focusEffectDisabled()
+                        .onChange(of: spectrumFocused) { _, focused in
+                            if !focused { spectrumKeyboardFocus = false; spectrumPressed = false }
+                            else if !spectrumPressed { spectrumKeyboardFocus = true }
+                        }
                         .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { press in
+                            spectrumKeyboardFocus = true
                             switch press.key {
                             case .leftArrow: hue = max(0, hue - 1 / 360)
                             case .rightArrow: hue = min(1, hue + 1 / 360)

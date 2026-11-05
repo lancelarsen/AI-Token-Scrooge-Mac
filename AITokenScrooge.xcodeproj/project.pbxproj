@@ -33,6 +33,7 @@
 		56F0BBAB76FDF42526EB7C3E /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = A5E296A644421B5FD6A43424 /* libsqlite3.tbd */; };
 		5AB7648F6F0AA646BAE4A66C /* claude.svg in Resources */ = {isa = PBXBuildFile; fileRef = FE15488DDEE422AD1AE65657 /* claude.svg */; };
 		5C7E4BEBD7168F85D18B3448 /* token_baron.png in Resources */ = {isa = PBXBuildFile; fileRef = 0DECACAA0835F47C7485E9EC /* token_baron.png */; };
+		5D3B0F50830F1C8484E8C15E /* SpectrumSelectionIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39135C6BE784A1D2EF821CC5 /* SpectrumSelectionIndicator.swift */; };
 		63350E07339E6D24A0D054B6 /* SettingsMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 554E13291A3E3292163BDE97 /* SettingsMigrationTests.swift */; };
 		65D67BC02FB4B2FB7EFC3C2A /* Format.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFFB3B427B1675530260BA6 /* Format.swift */; };
 		69973979FB6675D22035CC82 /* SOUND-CREDITS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7077D27B546EE40D7B52E094 /* SOUND-CREDITS.txt */; };
@@ -72,6 +73,7 @@
 		D62E139AF9F68B8411B2E9DE /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36386F305B5106D36AA5C9A /* Theme.swift */; };
 		D6B091FD1FEA4C4B3E02F5C3 /* duck-info.wav in Resources */ = {isa = PBXBuildFile; fileRef = 5B5FE9D875BCE334EAC07010 /* duck-info.wav */; };
 		D6C61E39205A96F285B56E50 /* BoundedProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59FA3788DAC32DB6AA240532 /* BoundedProcess.swift */; };
+		D7753510825E316136C3F4BD /* SpectrumSelectionContrast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FE31F36657B650759A144CB /* SpectrumSelectionContrast.swift */; };
 		DBE7F5FA7D194FA5F4C1EFC1 /* HorizonPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762A319808F8C17BAC31D1B3 /* HorizonPresentation.swift */; };
 		E2C6F1BDBC77605A265DDF1E /* duck-snooze.wav in Resources */ = {isa = PBXBuildFile; fileRef = A1EFDF115E7709BB9A4B0763 /* duck-snooze.wav */; };
 		E6D9E03A7530598B3293E4E1 /* github.svg in Resources */ = {isa = PBXBuildFile; fileRef = 3CECC381968D27063EFC9A5B /* github.svg */; };
@@ -85,6 +87,7 @@
 		FA787AF5C9A21EA1E50490FA /* alarm_off.svg in Resources */ = {isa = PBXBuildFile; fileRef = F9659CF592B00DF27AA16127 /* alarm_off.svg */; };
 		FAC7030211EE7009AC8D77FC /* SystemIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA0AA2D41ED3D3978E313E3 /* SystemIntegration.swift */; };
 		FAE52C8AE2378E9076E0CBC1 /* AlertBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A646E455C1784A2B419CC10 /* AlertBannerView.swift */; };
+		FB3A852B0CA9103CFD501B34 /* MICROSOFT-UI-XAML-LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 664D976D61E670EDF1E2C47E /* MICROSOFT-UI-XAML-LICENSE.txt */; };
 		FBE19C0BB9C8EA7C0EE48D5A /* ClaudeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1331C3981213DAA78844E7CF /* ClaudeTests.swift */; };
 		FF074F8100C3E5EF55F626E9 /* LoginItemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2FF94CD691A6FD9D3EEB04 /* LoginItemService.swift */; };
 /* End PBXBuildFile section */
@@ -125,6 +128,7 @@
 		2CA0AA2D41ED3D3978E313E3 /* SystemIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemIntegration.swift; sourceTree = "<group>"; };
 		2E5184BDAC856DAAC20AFC19 /* HistoryEventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryEventTests.swift; sourceTree = "<group>"; };
 		2EE9018BC3C01984795AFA21 /* PackedHistoryRun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackedHistoryRun.swift; sourceTree = "<group>"; };
+		39135C6BE784A1D2EF821CC5 /* SpectrumSelectionIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrumSelectionIndicator.swift; sourceTree = "<group>"; };
 		3941BE91BC638E8DA8089568 /* classic-dismiss.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "classic-dismiss.wav"; sourceTree = "<group>"; };
 		3A2FF94CD691A6FD9D3EEB04 /* LoginItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemService.swift; sourceTree = "<group>"; };
 		3C69B60006F7E2D89ACCAE6B /* SecretStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecretStore.swift; sourceTree = "<group>"; };
@@ -148,7 +152,9 @@
 		62A88643CC0477CD0CB1DA26 /* UsageBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageBar.swift; sourceTree = "<group>"; };
 		64B96C3E5E45E53D4F146D96 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		66031B2D20D103F7DA4B5042 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		664D976D61E670EDF1E2C47E /* MICROSOFT-UI-XAML-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "MICROSOFT-UI-XAML-LICENSE.txt"; sourceTree = "<group>"; };
 		6776DC2D13E8CFEBDB135206 /* PackedHistoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackedHistoryTests.swift; sourceTree = "<group>"; };
+		6FE31F36657B650759A144CB /* SpectrumSelectionContrast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrumSelectionContrast.swift; sourceTree = "<group>"; };
 		7077D27B546EE40D7B52E094 /* SOUND-CREDITS.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "SOUND-CREDITS.txt"; sourceTree = "<group>"; };
 		7568B7A102C54AE3CF72E102 /* HorizonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HorizonView.swift; sourceTree = "<group>"; };
 		76176BFD681D3CDB853D8895 /* AccountSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountSettingsView.swift; sourceTree = "<group>"; };
@@ -229,6 +235,7 @@
 				64B96C3E5E45E53D4F146D96 /* Assets.xcassets */,
 				2577AF9D09659648D0FC781C /* github-app.json */,
 				2016481A22DAA1073A10FF0B /* LUCIDE-LICENSE.txt */,
+				664D976D61E670EDF1E2C47E /* MICROSOFT-UI-XAML-LICENSE.txt */,
 				D1E3E6C824C1295301317EF3 /* Images */,
 				70C89CB71E9711E9395CB4DD /* Sounds */,
 			);
@@ -256,6 +263,7 @@
 				FB669CDCE5053F64250FF7D6 /* Quota.swift */,
 				D345262589E545400138B5D4 /* RefreshSchedule.swift */,
 				66031B2D20D103F7DA4B5042 /* Settings.swift */,
+				6FE31F36657B650759A144CB /* SpectrumSelectionContrast.swift */,
 				3D30E984DB7C2ADE83A5210B /* UsageHistory.swift */,
 			);
 			path = Models;
@@ -320,6 +328,7 @@
 			children = (
 				1EFFB3B427B1675530260BA6 /* Format.swift */,
 				F5A5186F536026FDE9E8A856 /* ReferenceHelpTooltip.swift */,
+				39135C6BE784A1D2EF821CC5 /* SpectrumSelectionIndicator.swift */,
 				B36386F305B5106D36AA5C9A /* Theme.swift */,
 			);
 			path = Support;
@@ -507,6 +516,7 @@
 			files = (
 				790F1C6E372397CAA5E2AB71 /* Assets.xcassets in Resources */,
 				9F84FEE3B9B615FAA1F961CF /* LUCIDE-LICENSE.txt in Resources */,
+				FB3A852B0CA9103CFD501B34 /* MICROSOFT-UI-XAML-LICENSE.txt in Resources */,
 				69973979FB6675D22035CC82 /* SOUND-CREDITS.txt in Resources */,
 				FA787AF5C9A21EA1E50490FA /* alarm_off.svg in Resources */,
 				1005FCA7612EB48F234A93A0 /* alarm_on.svg in Resources */,
@@ -603,6 +613,8 @@
 				F96ED985983806CFBA6CBA82 /* SecretStore.swift in Sources */,
 				3493731F5A08F5675288E835 /* Settings.swift in Sources */,
 				73886FB87A1820CC955B8398 /* SettingsView.swift in Sources */,
+				D7753510825E316136C3F4BD /* SpectrumSelectionContrast.swift in Sources */,
+				5D3B0F50830F1C8484E8C15E /* SpectrumSelectionIndicator.swift in Sources */,
 				FAC7030211EE7009AC8D77FC /* SystemIntegration.swift in Sources */,
 				D62E139AF9F68B8411B2E9DE /* Theme.swift in Sources */,
 				BEAC60BD8C8CA45DC6ACB78B /* UsageBar.swift in Sources */,

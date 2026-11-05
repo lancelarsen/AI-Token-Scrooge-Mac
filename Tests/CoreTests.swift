@@ -2,6 +2,15 @@ import XCTest
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testSpectrumSelectionContrastsWithDisplayedHueAndSaturation() {
+        XCTAssertTrue(SpectrumSelectionContrast.usesLightStroke(hue: 0, saturation: 1))
+        XCTAssertFalse(SpectrumSelectionContrast.usesLightStroke(hue: 1 / 3, saturation: 1))
+        XCTAssertTrue(SpectrumSelectionContrast.usesLightStroke(hue: 2 / 3, saturation: 1))
+        XCTAssertFalse(SpectrumSelectionContrast.usesLightStroke(hue: 0, saturation: 0))
+        XCTAssertEqual(SpectrumSelectionContrast.usesLightStroke(hue: 0, saturation: 1),
+                       SpectrumSelectionContrast.usesLightStroke(hue: 1, saturation: 1))
+    }
+
     func testReferenceDateRequiresDemoAndValidTimestamp() {
         let stamp = "2026-11-04T16:11:00Z"
         let expected = ISO8601DateFormatter().date(from: stamp)!
