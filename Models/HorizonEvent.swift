@@ -49,16 +49,22 @@ struct HistoricalEventMarker: Identifiable {
         let visible = events.filter {
             let x = viewport.position(at: $0.date) - viewport.scrollOffset
             return $0.date <= now && x >= 10 && x <= viewport.viewportWidth - 10
-        }
+        }.sorted { $0.date < $1.date }
+        // Windows stably sorts visible series by time, then groups in first-seen
+        // order. Preserve account order in popup details and tied marker lanes.
         let groups = Dictionary(grouping: visible) { Key(date: $0.date, expiration: $0.expiration) }
-        let keys = groups.keys.sorted { $0.date == $1.date ? !$0.expiration && $1.expiration : $0.date < $1.date }
+        var seen: Set<Key> = []
+        let keys = visible.compactMap { event -> Key? in
+            let key = Key(date: event.date, expiration: event.expiration)
+            return seen.insert(key).inserted ? key : nil
+        }
         var laneEnds: [Double] = []
         return keys.map { key in
             let x = viewport.position(at: key.date)
             let lane = laneEnds.firstIndex { x - 11 >= $0 + 2 } ?? laneEnds.count
             if lane == laneEnds.count { laneEnds.append(0) }
             laneEnds[lane] = x + 11
-            return Self(events: groups[key]!.sorted { $0.id < $1.id }, x: x, lane: lane)
+            return Self(events: groups[key]!, x: x, lane: lane)
         }
     }
 }

@@ -1068,3 +1068,11 @@ Canonical build passed (`artifacts/history-axis-navigation-build.log`). In the f
 Reproduced a functional mismatch in the fixed-date `due` demo: after History was switched off, a grouped marker for four completed resets at Nov 4 10:10 AM remained in the timeline. Windows excludes all historical events from both historical marker layout and overview dots when historyEnabled is false. Mac now returns no historical events while History is off; both drawing paths consume this filtered list.
 
 Canonical build passed (`artifacts/history-off-markers-build.log`). Native demo verification confirmed the completed reset marker exists with History on, disappears with History off while the future earned-reset expiration stays visible, and returns after re-enabling History. Evidence: `artifacts/history-off-markers-check.json` and `artifacts/history-off-markers-fixed.jpg`. Left History enabled. No live provider settings were changed; full-image parity remains open.
+
+### Historical Group Ordering — 2026-11-05
+
+HistoricalEventMarker now stably sorts visible events by timestamp, preserves the first-seen order of timestamp/kind groups, and retains source account order inside each group. This matches Windows HistoryTimelineView's OrderBy followed by GroupBy. Previously Mac forced refresh before expiration for ties and sorted popup entries by opaque event IDs. Exact timestamps, visibility clipping, grouping keys and collision spacing remain unchanged.
+
+Updated the existing regression test to expect source ordering and added an expiration-first tie case. Canonical app build and build-for-testing passed (`artifacts/historical-group-order-build.log`, `artifacts/historical-group-order-test-build.log`). Standalone harness used the production HistoricalEventMarker declaration and HorizonViewport with a minimal event fixture; grouping, lanes, account order, future exclusion and timestamp assertions passed (`artifacts/historical-group-order-check.swift`). Hosted XCTest execution remains unverified due to the previously observed loader stall.
+
+Opened the four-event historical marker in the fixed-date due demo. Native popup AX confirmed OpenAI Personal, GitHub Copilot Work, OpenAI Work, Claude Personal order, matching the account selectors (`artifacts/historical-group-order-ax.txt`). Closed the popup afterward. Full-image parity remains open.
