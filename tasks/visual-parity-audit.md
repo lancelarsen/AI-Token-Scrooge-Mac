@@ -1406,3 +1406,9 @@ Windows SettingsPage uses TimeZoneInfo.GetSystemTimeZones, which orders by stand
 Focused hosted test verifies winter/summer order for Honolulu, Los Angeles, Phoenix, Kolkata and Kathmandu, including duplicate/invalid inputs; one test passes with zero failures. Canonical build passes. Logs: artifacts/time-zone-order-tests.log and artifacts/time-zone-order-build.log. No fresh rendered menu-order check in this pass. Reference: https://learn.microsoft.com/en-us/dotnet/api/system.timezoneinfo.getsystemtimezones .
 
 Also audited DetailsDialog call sites after the color-menu fix: remaining content is text-only, with action buttons outside the selectable-text subtree. No equivalent nested interactive menu found there.
+
+### Short Label and Heading Case — 2026-11-05
+
+The conversion guide explicitly requires Title Case for short labels/headings and says to follow that rule over older sentence-case screenshots. Updated dashboard Add Account/Exit Demo/Explore with Demo Data and Demo Data labels; Connect Account, billing-unit choices and alternate sign-in actions; Alert History, Available Resets, Usage Details Unavailable and Open Provider Usage titles/actions. Explanatory sentences remain sentence case. Updated the existing UI assertion for Exit Demo without claiming its execution.
+
+Canonical build passes (artifacts/short-label-case-build.log) and native compact accessibility confirms Exit Demo with the original addAccountButton identifier. Diff checks pass. UI runner still requires macOS automation authorization; no additional UI-test run was attempted. Windows origin/main remains3c863a5 after fetch.

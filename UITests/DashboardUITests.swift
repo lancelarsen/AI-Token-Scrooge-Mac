@@ -9,7 +9,7 @@ final class DashboardUITests: XCTestCase {
         defer { app.terminate() }
         let exit = app.buttons["addAccountButton"]
         XCTAssertTrue(exit.waitForExistence(timeout: 10))
-        XCTAssertEqual(exit.label, "Exit demo")
+        XCTAssertEqual(exit.label, "Exit Demo")
         let history = app.switches["historyToggle"]
         XCTAssertTrue(history.exists)
         history.click()

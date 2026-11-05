@@ -2,7 +2,7 @@
 
 Reference image integrity checked against Windows `origin/main` at `694dc85`. All 37 local image files are byte-identical to GitHub. The files have .png names but contain JPEG data. Dimensions below are decoded image sizes; the previous PNG-header interpretation was invalid.
 
-**No image is certified identical.** Every row remains partial or unverified. Builds verify compilation, not visual identity. Prior captures may predate shared-control changes and need final recapture.
+**No surface is fully signed off.** Every row remains partial or unverified. The Windows conversion guide requires comparison at equivalent logical content widths and classification as Match, Intentional Mac Adaptation, Fix Needed, or Not Yet Verified; native macOS chrome and rasterization are not defects by themselves. Builds verify compilation, not visual fidelity. Prior captures may predate shared-control changes and need final recapture.
 
 Repeatable captures: `--demo --compact` (789×694 points) and `--demo --reference-wide` (1463×866 points), both verified by native screenshots. `--demo --reference-date 2026-11-04T16:11:00Z` freezes data and presentation time for subsequent comparisons; native compact Today/date/countdown rendering checked.
 

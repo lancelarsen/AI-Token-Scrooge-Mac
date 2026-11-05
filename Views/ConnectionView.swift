@@ -35,7 +35,7 @@ struct ConnectionView: View {
     private var providerChooser: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Connect account").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
+                Text("Connect Account").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
                     .frame(minHeight: 32, alignment: .leading)
                 VStack(spacing: 10) {
                     ForEach([Provider.codex, .copilot, .claude]) { choice in
@@ -93,23 +93,23 @@ struct ConnectionView: View {
                 CodexConnectView(nickname: nickname, original: store.state.accounts.first { $0.id == store.reconnectAccountID })
             } else if provider == .copilot {
                 Menu {
-                    Button("AI credits") { unit = .credits }
-                    Button("Legacy premium requests") { unit = .requests }
+                    Button("AI Credits") { unit = .credits }
+                    Button("Legacy Premium Requests") { unit = .requests }
                 } label: {
                     HStack {
-                        Text(unit == .credits ? "AI credits" : "Legacy premium requests")
+                        Text(unit == .credits ? "AI Credits" : "Legacy Premium Requests")
                             .font(ReferenceTypography.nativeTextFont())
                         Spacer()
                         ReferenceDropdownChevron()
                     }.padding(.horizontal, 12).frame(height: 32)
                         .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
                 }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
-                    .accessibilityLabel("Billing Unit").accessibilityValue(unit == .credits ? "AI credits" : "Legacy premium requests")
+                    .accessibilityLabel("Billing Unit").accessibilityValue(unit == .credits ? "AI Credits" : "Legacy Premium Requests")
                     .disabled(store.reconnectAccountID != nil)
                 TextField("Fallback allowance (optional; detected automatically when available)", text: $allowance, prompt: Text("Fallback allowance (optional; detected automatically when available)").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle())
                 if !organizationReconnect {
                 Button { token = ""; error = nil; advanced.toggle() } label: {
-                    DialogActionLabel(title: advanced ? "Use browser sign-in instead" : "Use an access token instead")
+                    DialogActionLabel(title: advanced ? "Use Browser Sign-In Instead" : "Use an Access Token Instead")
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }.buttonStyle(ScroogeButtonStyle()).disabled(connecting)
                 }
@@ -130,7 +130,7 @@ struct ConnectionView: View {
                             token = ""; dismiss()
                         } catch { self.error = error.localizedDescription }
                     }
-                } label: { DialogActionLabel(title: connecting ? "Connecting…" : "Connect account").frame(maxWidth: .infinity, alignment: .leading) }
+                } label: { DialogActionLabel(title: connecting ? "Connecting…" : "Connect Account").frame(maxWidth: .infinity, alignment: .leading) }
                     .buttonStyle(ScroogeButtonStyle()).disabled(connecting || token.isEmpty || nickname.isEmpty)
                 }
             } else {

@@ -127,7 +127,7 @@ struct DashboardView: View {
                 }
             }.clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#45464D")))
             Button { if store.isDemo { store.exitDemo() } else { store.showConnection = true } } label: {
-                ActionLabel(title: store.isDemo ? "Exit demo" : "Add account", symbol: store.isDemo ? "arrow.up.right.square" : "plus")
+                ActionLabel(title: store.isDemo ? "Exit Demo" : "Add Account", symbol: store.isDemo ? "arrow.up.right.square" : "plus")
             }.buttonStyle(ScroogeButtonStyle()).accessibilityIdentifier("addAccountButton")
         }
     }
@@ -135,7 +135,7 @@ struct DashboardView: View {
         VStack(alignment: .leading, spacing: 15) {
             Text("Your AI capacity, in one quiet place.").font(.reference(size: 24, weight: .semibold)).frame(minHeight: 32, alignment: .leading)
             Text("Connect OpenAI Codex or GitHub Copilot to see usage, upcoming resets and earned-reset expirations.").font(.reference(size: 14)).foregroundStyle(Theme.secondary)
-            Button { store.enterDemo() } label: { ActionLabel(title: "Explore with demo data", symbol: "arrow.up.right.square").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).accessibilityIdentifier("exploreDemoButton")
+            Button { store.enterDemo() } label: { ActionLabel(title: "Explore with Demo Data", symbol: "arrow.up.right.square").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).accessibilityIdentifier("exploreDemoButton")
         }.padding(.horizontal, 24).padding(.vertical, 36).frame(maxWidth: .infinity, alignment: .leading)
     }
     private func icon(_ sort: AccountSort) -> String {
@@ -270,7 +270,7 @@ struct QuotaRow: View {
     }
     private var quotaNote: String {
         if !account.enabled { return "Monitoring Disabled" }
-        if snapshot.health == .demo { return "Demo data" }
+        if snapshot.health == .demo { return "Demo Data" }
         if snapshot.health != .healthy {
             let name = snapshot.health.rawValue
             let status = name.prefix(1).uppercased() + name.dropFirst()
@@ -344,7 +344,7 @@ struct QuotaDetailsView: View {
     let window: QuotaWindow
     let snapshot: QuotaSnapshot
     private var sourceNote: String {
-        if snapshot.health == .demo { return "Demo data" }
+        if snapshot.health == .demo { return "Demo Data" }
         if snapshot.health != .healthy {
             let status = snapshot.health.rawValue
             return "\(status.prefix(1).uppercased() + status.dropFirst()): \(snapshot.message ?? "")"

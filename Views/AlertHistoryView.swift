@@ -13,7 +13,7 @@ struct AlertHistoryView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Alert history").font(.reference(size: 26, weight: .semibold))
+                Text("Alert History").font(.reference(size: 26, weight: .semibold))
                 if store.state.alerts.isEmpty {
                     Text("No alerts yet. Low capacity and expiring resets will appear here.")
                         .font(.reference(size: 14)).foregroundStyle(Theme.secondary)
@@ -63,7 +63,7 @@ struct AccountUsageDialog: View {
     }
     var body: some View {
         DetailsDialog(width: usageURL == nil ? (windowID == nil ? 332 : 342) : 480,
-                      primaryTitle: usageURL == nil ? nil : "Open provider usage",
+                      primaryTitle: usageURL == nil ? nil : "Open Provider Usage",
                       primaryAction: usageURL.map { url in { openProvider(url) } }, close: close) {
             AccountUsageDetailsView(accountID: accountID, windowID: windowID)
         }
@@ -87,7 +87,7 @@ struct AccountUsageDetailsView: View {
            let snapshot = store.state.snapshots[account.id], snapshot.belongs(to: account) {
             if windowID == nil, let reserve = snapshot.reserve {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Available resets").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent).frame(minHeight: 32, alignment: .leading)
+                    Text("Available Resets").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent).frame(minHeight: 32, alignment: .leading)
                     DetailLine(label: "\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))", value: "\(reserve.availableCount.map(String.init) ?? "Unknown") reported available")
                     Text("Snapshot fetched \(Format.snapshotDate(snapshot.observedAt, zone: store.state.settings.zone)) · \(account.enabled ? snapshot.health.rawValue.capitalized : "Monitoring paused")").frame(minHeight: 19, alignment: .leading)
                     if reserve.hasPartialDetails { Text("Provider supplied only partial credit details.").frame(minHeight: 19, alignment: .leading) }
@@ -104,7 +104,7 @@ struct AccountUsageDetailsView: View {
     }
     private var unavailableDetails: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Usage details unavailable").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
+            Text("Usage Details Unavailable").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
             Text("This account or quota window is no longer available. Refresh the dashboard to check current connections.")
         }
     }
