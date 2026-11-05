@@ -813,3 +813,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Rechecked Windows `ConnectAccountPage` and GitHub connection screens 22–23. Windows disables billing-unit changes and makes organization scope read-only for reconnects. Mac previously left both editable despite preloading the original values.
 - Disabled those two fields only while `reconnectAccountID` is set. New-account inputs remain editable, and existing Keychain/identity checks remain in place.
 - Canonical build passed (`artifacts/reconnect-locked-fields-build.log`); source review confirmed both modifiers depend on reconnect state. No live reconnect or authentication was performed. Exact disabled appearance and final connection-screen comparisons remain open.
+
+### Shared image integrity audit
+
+- Compared all eight shared image assets (`openai.png`, `token_baron.png`, `github.svg`, `claude.svg`, `alarm_off.svg`, `alarm_on.svg`, `refresh.svg`, `settings.svg`) against Windows `origin/main` and the currently built Mac app resources. All eight are byte-identical in all three locations. SHA-256 evidence: `artifacts/shared-image-integrity.json`.
+- ProviderIcon loads the matching bundle PNG/SVG with aspect-fit rendering. No stale alternate GitHub/Claude PNG is present in the built bundle. This proves source and packaging identity only; rasterization, size, placement, and control glyphs still require rendered comparison.
+- Font resolution remains pending: asked whether to adopt shared redistributable fonts/icons in both apps or retain Windows unchanged and use licensed Segoe assets when available. No substitution or Windows edits made while awaiting that decision.
