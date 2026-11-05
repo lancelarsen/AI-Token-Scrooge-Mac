@@ -67,14 +67,14 @@ struct DashboardView: View {
                     Image(nsImage: mascot).resizable().scaledToFit().frame(width: 66, height: 66)
                 }
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("AI Token Scrooge").font(.system(size: 32, weight: .semibold)).frame(height: 40)
-                    Text("Never Waste a Token! Never Miss a Reset!").font(.system(size: 16)).foregroundStyle(Theme.accent).frame(height: 26)
+                    Text("AI Token Scrooge").font(.reference(size: 32, weight: .semibold)).frame(height: 40)
+                    Text("Never Waste a Token! Never Miss a Reset!").font(.reference(size: 16)).foregroundStyle(Theme.accent).frame(height: 26)
                 }
                 Spacer(minLength: 0)
             }
             HStack(spacing: 14) {
                 Text(freshness)
-                    .font(.system(size: 12)).foregroundStyle(Theme.secondary).frame(maxWidth: .infinity, alignment: .trailing)
+                    .font(.reference(size: 12)).foregroundStyle(Theme.secondary).frame(maxWidth: .infinity, alignment: .trailing)
                 Button {
                     refreshRequested = true
                     Task {
@@ -109,7 +109,7 @@ struct DashboardView: View {
             HStack(spacing: 0) {
                 ForEach(AccountSort.allCases, id: \.self) { sort in
                     Button { store.edit { AccountPolicy.selectSort(sort, state: &$0) } } label: {
-                        HStack(spacing: 9) { ActionIcon(symbol: icon(sort), size: 20); Text(sort.rawValue).font(.system(size: 13)) }.frame(maxWidth: .infinity, minHeight: 44)
+                        HStack(spacing: 9) { ActionIcon(symbol: icon(sort), size: 20); Text(sort.rawValue).font(.reference(size: 13)) }.frame(maxWidth: .infinity, minHeight: 44)
                     }.buttonStyle(ScroogeButtonStyle(selected: store.state.settings.accountSort == sort, segmented: true))
                         .overlay(alignment: .trailing) { if sort != AccountSort.allCases.last { Rectangle().fill(Color(hex: "#45464D")).frame(width: 1) } }
                 }
@@ -121,8 +121,8 @@ struct DashboardView: View {
     }
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: 15) {
-            Text("Your AI capacity, in one quiet place.").font(.system(size: 24, weight: .semibold)).frame(minHeight: 32, alignment: .leading)
-            Text("Connect OpenAI Codex or GitHub Copilot to see usage, upcoming resets and earned-reset expirations.").font(.system(size: 14)).foregroundStyle(Theme.secondary)
+            Text("Your AI capacity, in one quiet place.").font(.reference(size: 24, weight: .semibold)).frame(minHeight: 32, alignment: .leading)
+            Text("Connect OpenAI Codex or GitHub Copilot to see usage, upcoming resets and earned-reset expirations.").font(.reference(size: 14)).foregroundStyle(Theme.secondary)
             Button { store.enterDemo() } label: { ActionLabel(title: "Explore with demo data", symbol: "arrow.up.right.square").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).accessibilityIdentifier("exploreDemoButton")
         }.padding(.horizontal, 24).padding(.vertical, 36).frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -162,9 +162,9 @@ struct AccountCard: View {
             HStack(spacing: 16) {
                 ProviderIcon(provider: account.provider, size: 44)
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(account.provider.rawValue).font(.system(size: 20, weight: .semibold))
+                    Text(account.provider.rawValue).font(.reference(size: 20, weight: .semibold))
                     Text("\(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot?.planType))")
-                        .font(.system(size: 12)).foregroundStyle(Theme.accent).padding(.horizontal, 11).padding(.vertical, 3)
+                        .font(.reference(size: 12)).foregroundStyle(Theme.accent).padding(.horizontal, 11).padding(.vertical, 3)
                         .background(Color(hex: "#2C293E")).clipShape(Capsule()).overlay(Capsule().stroke(Color(hex: "#51476D")))
                 }
             }
@@ -230,9 +230,9 @@ struct QuotaRow: View {
     }
     private var quotaLabel: some View {
         VStack(alignment: .leading, spacing: 4) {
-                Text(window.name).font(.system(size: 14)).foregroundStyle(Color(hex: "#BEC1D2"))
+                Text(window.name).font(.reference(size: 14)).foregroundStyle(Color(hex: "#BEC1D2"))
                 if !quotaNote.isEmpty {
-                    Text(quotaNote).font(.system(size: 11)).foregroundStyle(Color(hex: "#A5A8BA"))
+                    Text(quotaNote).font(.reference(size: 11)).foregroundStyle(Color(hex: "#A5A8BA"))
                 }
             }.frame(width: wide ? 156 : nil, alignment: .leading)
     }
@@ -280,10 +280,10 @@ struct QuotaRow: View {
                         .padding(.top, 3)
                     VStack(alignment: .leading, spacing: 3) {
                         Text(Format.countdown(window.resetsAt, now: now))
-                            .font(.system(size: 20, weight: .semibold))
+                            .font(.reference(size: 20, weight: .semibold))
                             .foregroundStyle(Color(hex: "#BDA3F5"))
                         Text(Format.date(window.resetsAt, zone: store.state.settings.zone))
-                            .font(.system(size: 12))
+                            .font(.reference(size: 12))
                             .foregroundStyle(Color(hex: "#BEC1D2"))
                     }
                 }.frame(width: wide ? 200 : nil, alignment: .leading)

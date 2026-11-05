@@ -29,6 +29,7 @@
 		43944D356D6CFCE69269F7DA /* HorizonPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00DD87EC6F7F3FE070518237 /* HorizonPerformanceTests.swift */; };
 		4DFE91E5F5B40488B73E88FC /* GitHubAuthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6198B0FB13827BFE52953049 /* GitHubAuthTests.swift */; };
 		513980C8FBDA369D4B99397F /* settings.svg in Resources */ = {isa = PBXBuildFile; fileRef = BFCAA3A59EA4AEBAA683C2FD /* settings.svg */; };
+		546E1DFFCEFD0BEB1BC5BF33 /* ReferenceTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9114E87C76735510A121AC43 /* ReferenceTypography.swift */; };
 		566CB9325847F259F08617FC /* ProviderMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884825D5A4F3F3765C03169E /* ProviderMapping.swift */; };
 		56F0BBAB76FDF42526EB7C3E /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = A5E296A644421B5FD6A43424 /* libsqlite3.tbd */; };
 		5AB7648F6F0AA646BAE4A66C /* claude.svg in Resources */ = {isa = PBXBuildFile; fileRef = FE15488DDEE422AD1AE65657 /* claude.svg */; };
@@ -69,6 +70,7 @@
 		B8C91125DC0237F8F6F95081 /* Quota.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB669CDCE5053F64250FF7D6 /* Quota.swift */; };
 		BA3BF8E2B4CEA3557366EF73 /* DashboardUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A20C89A6F44FD7A0A83267 /* DashboardUITests.swift */; };
 		BEAC60BD8C8CA45DC6ACB78B /* UsageBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62A88643CC0477CD0CB1DA26 /* UsageBar.swift */; };
+		CA209A1227DC66EEAE612DFD /* SegoeUI.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 897EBC93EE1D68A23502ED59 /* SegoeUI.ttf */; };
 		CB6C6D05ADC1F4FFFF65658E /* LocalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC048AAA6E4767EF18709FD0 /* LocalStore.swift */; };
 		D2180C29BA6C8EC1BB99B32A /* classic-info.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1CE84E17CBE82C4DB3B77B2D /* classic-info.wav */; };
 		D62E139AF9F68B8411B2E9DE /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36386F305B5106D36AA5C9A /* Theme.swift */; };
@@ -169,6 +171,8 @@
 		83248181B8FD3D1C0981229F /* DemoData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoData.swift; sourceTree = "<group>"; };
 		884825D5A4F3F3765C03169E /* ProviderMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderMapping.swift; sourceTree = "<group>"; };
 		88DE1AE9332ACD9C98CE0F89 /* GitHubCredentialManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubCredentialManager.swift; sourceTree = "<group>"; };
+		897EBC93EE1D68A23502ED59 /* SegoeUI.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SegoeUI.ttf; sourceTree = "<group>"; };
+		9114E87C76735510A121AC43 /* ReferenceTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceTypography.swift; sourceTree = "<group>"; };
 		97D9C485C181A33B6B701DD9 /* ScroogeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScroogeApp.swift; sourceTree = "<group>"; };
 		9899342C79AC822060AA3775 /* MonitoringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringTests.swift; sourceTree = "<group>"; };
 		A1EFDF115E7709BB9A4B0763 /* duck-snooze.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "duck-snooze.wav"; sourceTree = "<group>"; };
@@ -240,6 +244,7 @@
 				2577AF9D09659648D0FC781C /* github-app.json */,
 				2016481A22DAA1073A10FF0B /* LUCIDE-LICENSE.txt */,
 				664D976D61E670EDF1E2C47E /* MICROSOFT-UI-XAML-LICENSE.txt */,
+				F06CA860BFE3A055FEE256D6 /* Fonts */,
 				D1E3E6C824C1295301317EF3 /* Images */,
 				70C89CB71E9711E9395CB4DD /* Sounds */,
 			);
@@ -334,6 +339,7 @@
 				464C6C599D303DAEF44E73B1 /* DemoReferenceWindowFrame.swift */,
 				1EFFB3B427B1675530260BA6 /* Format.swift */,
 				F5A5186F536026FDE9E8A856 /* ReferenceHelpTooltip.swift */,
+				9114E87C76735510A121AC43 /* ReferenceTypography.swift */,
 				39135C6BE784A1D2EF821CC5 /* SpectrumSelectionIndicator.swift */,
 				B36386F305B5106D36AA5C9A /* Theme.swift */,
 			);
@@ -381,6 +387,14 @@
 				0DECACAA0835F47C7485E9EC /* token_baron.png */,
 			);
 			path = Images;
+			sourceTree = "<group>";
+		};
+		F06CA860BFE3A055FEE256D6 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				897EBC93EE1D68A23502ED59 /* SegoeUI.ttf */,
+			);
+			path = Fonts;
 			sourceTree = "<group>";
 		};
 		F95ECBAA25EB7DA8C94DB6EB /* Frameworks */ = {
@@ -524,6 +538,7 @@
 				9F84FEE3B9B615FAA1F961CF /* LUCIDE-LICENSE.txt in Resources */,
 				FB3A852B0CA9103CFD501B34 /* MICROSOFT-UI-XAML-LICENSE.txt in Resources */,
 				69973979FB6675D22035CC82 /* SOUND-CREDITS.txt in Resources */,
+				CA209A1227DC66EEAE612DFD /* SegoeUI.ttf in Resources */,
 				FA787AF5C9A21EA1E50490FA /* alarm_off.svg in Resources */,
 				1005FCA7612EB48F234A93A0 /* alarm_on.svg in Resources */,
 				3871C893EC7CDC1282F9F7F2 /* classic-alert.wav in Resources */,
@@ -616,6 +631,7 @@
 				566CB9325847F259F08617FC /* ProviderMapping.swift in Sources */,
 				B8C91125DC0237F8F6F95081 /* Quota.swift in Sources */,
 				20BD14722A47969CCB32DC65 /* ReferenceHelpTooltip.swift in Sources */,
+				546E1DFFCEFD0BEB1BC5BF33 /* ReferenceTypography.swift in Sources */,
 				2C8684C261F07C12556DA2B5 /* RefreshSchedule.swift in Sources */,
 				E91992A6469EC4258D7EF341 /* ScroogeApp.swift in Sources */,
 				F96ED985983806CFBA6CBA82 /* SecretStore.swift in Sources */,

@@ -842,3 +842,11 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Matched Windows SettingsPage's `startup.IsEnabled = !demo`: Launch at Sign-In is disabled in the Mac demo. The store already avoids changing system login settings in demo mode; this fixes the visible interaction state as well.
 - Canonical build passed (`artifacts/demo-startup-state-build.log`). Native compact demo AX verification confirms `switch (disabled) Launch at Sign-In`, while Keep Monitoring remains enabled (`artifacts/demo-startup-state-ax.txt`). No system startup setting was changed.
 - User resolved the font decision: keep Windows unchanged and use licensed Segoe assets when available. Font availability remains a dependency, not a pending choice. Continue independent parity work without changing the Windows baseline.
+
+
+## Segoe UI regular typography — 2026-11-05
+
+- Located genuine Segoe UI Regular (`SegoeUI`) in the installed Microsoft Remote Desktop resources and bundled it in the Mac application. No Windows changes.
+- Added process-local CoreText registration and shared SwiftUI typography; converted explicit reference text sizes across dashboard, timeline, controls, settings, dialogs, and readouts. Monospaced GitHub device code remains monospaced. Tooltip measurements use the same family. Restored Windows 14-point dialog body size.
+- Verification: canonical build succeeded (`artifacts/segoe-font-build.log`); packaged font SHA-256 matches source asset; native demo dashboard launched and captured (`artifacts/segoe-dashboard.jpg`). No all-image identity claim.
+- Dedicated Semibold and Fluent Icons assets remain absent. Requested weights and all 37 comparison captures still need verification. Native screenshot is a wide launch, not a matching-size compact reference capture.

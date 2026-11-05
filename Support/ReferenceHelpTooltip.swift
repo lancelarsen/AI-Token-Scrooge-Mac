@@ -9,13 +9,13 @@ struct ReferenceHelpTooltip: View {
 
     static func width(for text: String, availableWidth: CGFloat) -> CGFloat {
         let longest = text.components(separatedBy: "\n").map {
-            ($0 as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 13)]).width
+            ($0 as NSString).size(withAttributes: [.font: ReferenceTypography.measuringFont(ofSize: 13)]).width
         }.max() ?? 0
         return max(0, min(320, availableWidth, ceil(longest + 30)))
     }
 
     var body: some View {
-        Text(text).font(.system(size: 13))
+        Text(text).font(.reference(size: 13))
             .foregroundStyle(Color(red: 242 / 255, green: 241 / 255, blue: 245 / 255))
             .padding(.horizontal, 14).padding(.vertical, 10).padding(1)
             .frame(width: width, alignment: .leading)

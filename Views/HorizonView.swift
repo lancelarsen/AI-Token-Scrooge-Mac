@@ -72,7 +72,7 @@ struct HorizonView: View {
                         .frame(height: 22)
                 } else { navigator.frame(height: 22) }
                 if let historyStatus {
-                    Text(historyStatus).font(.system(size: 13)).foregroundStyle(Theme.secondary)
+                    Text(historyStatus).font(.reference(size: 13)).foregroundStyle(Theme.secondary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("historyStatus")
                 }
             }.padding(.horizontal, 12).padding(.vertical, 18)
@@ -98,7 +98,7 @@ struct HorizonView: View {
                 if event.reportedAt == nil {
                     AccountUsageDetailsView(accountID: event.account.id, windowID: event.windowID)
                 } else {
-                    Label(event.title, systemImage: event.expiration ? "hourglass" : "arrow.clockwise").font(.system(size: 20, weight: .semibold)).foregroundStyle(event.expiration ? Theme.amber : Theme.accent)
+                    Label(event.title, systemImage: event.expiration ? "hourglass" : "arrow.clockwise").font(.reference(size: 20, weight: .semibold)).foregroundStyle(event.expiration ? Theme.amber : Theme.accent)
                     Text("\(event.account.provider.rawValue) · \(store.state.settings.privacy ? "Account" : event.account.nickname)")
                     Text(Format.date(event.date, zone: store.state.settings.zone))
                     if let reportedAt = event.reportedAt {
@@ -141,9 +141,9 @@ struct HorizonView: View {
                     rail.move(to: CGPoint(x: left, y: 56))
                     rail.addLine(to: CGPoint(x: size.width, y: 56))
                     context.stroke(rail, with: .color(Color(hex: "#8170B7")), lineWidth: 2)
-                    context.draw(Text("Today").font(.system(size: 14, weight: .semibold)).foregroundStyle(Color(hex: "#D1BEFF")), at: CGPoint(x: anchor, y: 7))
+                    context.draw(Text("Today").font(.reference(size: 14, weight: .semibold)).foregroundStyle(Color(hex: "#D1BEFF")), at: CGPoint(x: anchor, y: 7))
                     let date = now.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone))
-                    context.draw(Text(date).font(.system(size: 12)).foregroundStyle(Theme.dialogText), at: CGPoint(x: anchor, y: 31))
+                    context.draw(Text(date).font(.reference(size: 12)).foregroundStyle(Theme.dialogText), at: CGPoint(x: anchor, y: 31))
                     context.fill(Path(ellipseIn: CGRect(x: anchor - 8, y: 48, width: 16, height: 16)), with: .color(Color(hex: "#D1BEFF")))
                     if store.state.settings.historyEnabled {
                         var boundary = Path()
@@ -163,12 +163,12 @@ struct HorizonView: View {
             guard viewport.position(at: now) - viewport.scrollOffset > 2 else { return }
             for percent in stride(from: 0, through: 100, by: 25) {
                 let y = plotTop + (1 - Double(percent) / 100) * plotHeight
-                context.draw(Text("\(percent)%").font(.system(size: 11)).foregroundStyle(Theme.secondary),
+                context.draw(Text("\(percent)%").font(.reference(size: 11)).foregroundStyle(Theme.secondary),
                              at: CGPoint(x: 38, y: y), anchor: .trailing)
             }
             context.translateBy(x: 5, y: (plotTop + plotBottom) / 2)
             context.rotate(by: .degrees(-90))
-            context.draw(Text("% Used").font(.system(size: 10)).foregroundStyle(Theme.secondary), at: .zero)
+            context.draw(Text("% Used").font(.reference(size: 10)).foregroundStyle(Theme.secondary), at: .zero)
         }.accessibilityLabel("History axis: zero to one hundred percent used")
     }
     private var timelineHeight: Double {
@@ -178,7 +178,7 @@ struct HorizonView: View {
         let future = 56 + 21 + Double(max(1, groups.values.map(\.count).max() ?? 0)) * 76
         return max(selectors, future)
     }
-    private var heading: some View { HStack(spacing: 12) { ActionIcon(symbol: "clock.arrow.circlepath", size: 30); Text("Reset Horizon").font(.system(size: 26, weight: .semibold)) } }
+    private var heading: some View { HStack(spacing: 12) { ActionIcon(symbol: "clock.arrow.circlepath", size: 30); Text("Reset Horizon").font(.reference(size: 26, weight: .semibold)) } }
     private var historyStatus: String? {
         guard !store.state.accounts.isEmpty else { return nil }
         if !store.state.settings.historyEnabled { return events.isEmpty ? "No Upcoming Events Reported" : nil }
@@ -203,18 +203,18 @@ struct HorizonView: View {
         HStack(spacing: 20) {
             HStack(spacing: 7) { Circle().fill(Theme.actionAccent).frame(width: 10, height: 10); Text("Quota Refresh (\(events.filter { !$0.expiration }.count))") }
             HStack(spacing: 7) { Circle().fill(Theme.amber).frame(width: 10, height: 10); Text("Reset Expires (\(events.filter(\.expiration).count))") }
-        }.font(.system(size: 13)).foregroundStyle(Theme.dialogText)
+        }.font(.reference(size: 13)).foregroundStyle(Theme.dialogText)
     }
     private var historyHint: some View {
         Text(store.state.settings.historyEnabled ? "Scroll Left for History" : "Select Services to Filter Timeline")
-            .font(.system(size: 13)).foregroundStyle(Theme.dialogText)
+            .font(.reference(size: 13)).foregroundStyle(Theme.dialogText)
             .padding(.vertical, 8)
     }
     private var historyToggle: some View {
         HStack(spacing: 7) {
             Toggle("History", isOn: Binding(get: { store.state.settings.historyEnabled }, set: { store.setHistory($0) }))
                 .toggleStyle(ScroogeSwitchStyle(showsLabel: false, onColor: Color(hex: "#8670CC"), thumbColor: Color(hex: "#D1BEFF"))).frame(width: 40, height: 20).accessibilityLabel("History").accessibilityIdentifier("historyToggle")
-            Text("History").font(.system(size: 13))
+            Text("History").font(.reference(size: 13))
         }
     }
     private var settingsButton: some View { Button { showSettings = true } label: { ActionLabel(title: "", symbol: "gearshape") }.buttonStyle(ScroogeButtonStyle(horizontalPadding: 12)).modifier(ImmediateReferenceTooltip(text: "Earned Reset Alert Settings"))
@@ -238,7 +238,7 @@ struct HorizonView: View {
                                     selectorBadge(Format.plan(account.provider, store.state.snapshots[account.id]?.planType), size: 10, accent: accent, enabled: enabled)
                                     Spacer(minLength: 0)
                                     ZStack { if enabled { Image(systemName: "checkmark") } }
-                                        .font(.system(size: 12, weight: .bold)).foregroundStyle(.white)
+                                        .font(.reference(size: 12, weight: .bold)).foregroundStyle(.white)
                                         .frame(width: 19, height: 19)
                                         .background(enabled ? accent : Theme.control)
                                         .clipShape(RoundedRectangle(cornerRadius: 5))
@@ -254,7 +254,7 @@ struct HorizonView: View {
         }.scrollIndicators(.hidden)
     }
     private func selectorBadge(_ text: String, size: CGFloat, accent: Color, enabled: Bool) -> some View {
-        Text(text).font(.system(size: size)).lineLimit(1).foregroundStyle(enabled ? .white : Color(hex: "#919195"))
+        Text(text).font(.reference(size: size)).lineLimit(1).foregroundStyle(enabled ? .white : Color(hex: "#919195"))
             .padding(.horizontal, 5).padding(.vertical, 2).background(Theme.control)
             .clipShape(RoundedRectangle(cornerRadius: 7))
             .overlay(RoundedRectangle(cornerRadius: 7).stroke(accent.opacity(enabled ? 1 : 0.5), lineWidth: 1.5))
@@ -303,7 +303,7 @@ struct HorizonView: View {
                         Group {
                             if marker.events.count > 1 { Text(String(marker.events.count)) }
                             else { Image(systemName: marker.expiration ? "hourglass" : "arrow.clockwise") }
-                        }.font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.control)
+                        }.font(.reference(size: 14, weight: .semibold)).foregroundStyle(Theme.control)
                             .frame(width: 22, height: 22).background(marker.expiration ? Theme.amber : Color(hex: "#B99AF8")).clipShape(Circle())
                     }.buttonStyle(.plain)
                         .modifier(ImmediateReferenceTooltip(text: historicalTooltip(marker)))
@@ -313,9 +313,9 @@ struct HorizonView: View {
             ForEach(days, id: \.self) { date in
                 let dayEvents = events.filter { calendar.isDate($0.date, inSameDayAs: date) }
                 VStack(spacing: 7) {
-                    Text(dayName(date)).font(.system(size: 14, weight: .semibold))
+                    Text(dayName(date)).font(.reference(size: 14, weight: .semibold))
                         .foregroundStyle(isToday(date) ? Color(hex: "#D1BEFF") : Theme.actionAccent)
-                    Text(date.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone))).font(.system(size: 12)).foregroundStyle(Theme.dialogText)
+                    Text(date.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone))).font(.reference(size: 12)).foregroundStyle(Theme.dialogText)
                 }.frame(width: viewport.pixelsPerDay, height: 40, alignment: .top)
                     .position(x: viewport.dayAnchor(date), y: 20)
                 Circle()
@@ -341,13 +341,13 @@ struct HorizonView: View {
                             }.frame(width: 62, height: 49, alignment: .top)
                                 .overlay(alignment: .bottom) {
                                     Text(plan == "Plan unavailable" ? "?" : plan)
-                                        .font(.system(size: 10, weight: .semibold)).lineLimit(1)
+                                        .font(.reference(size: 10, weight: .semibold)).lineLimit(1)
                                         .padding(.horizontal, 5).padding(.vertical, 1)
                                         .background(Color(hex: "#1C1E24"))
                                         .clipShape(RoundedRectangle(cornerRadius: 6))
                                         .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(accent, lineWidth: 1))
                                 }
-                            Text(event.date.formatted(Date.FormatStyle(date: .omitted, time: .shortened).withTimeZone(store.state.settings.zone))).font(.system(size: 10))
+                            Text(event.date.formatted(Date.FormatStyle(date: .omitted, time: .shortened).withTimeZone(store.state.settings.zone))).font(.reference(size: 10))
                         }.foregroundStyle(accent).frame(width: 62, height: 74, alignment: .top)
                             .contentShape(Rectangle())
                     }.buttonStyle(.plain)
@@ -595,7 +595,7 @@ struct HorizonView: View {
             context.fill(Path(roundedRect: rect, cornerRadius: 6), with: .color(Theme.card))
             context.stroke(Path(roundedRect: rect, cornerRadius: 6), with: .color(color.opacity(0.7)), lineWidth: 1)
             let plan = Format.plan(series.account.provider, store.state.snapshots[series.account.id]?.planType)
-            context.draw(Text("\(plan) \(Format.percent(100 - point.remaining))").font(.system(size: 10)).foregroundColor(color), at: CGPoint(x: rect.midX, y: rect.midY))
+            context.draw(Text("\(plan) \(Format.percent(100 - point.remaining))").font(.reference(size: 10)).foregroundColor(color), at: CGPoint(x: rect.midX, y: rect.midY))
         }
     }
     private func prepareHistory() {
@@ -683,7 +683,7 @@ struct HistoryPointerTracking: NSViewRepresentable {
             guard visible.width > 0, visible.height > 0 else { hidePopup(); return }
             let lines = text.split(separator: "\n", maxSplits: 1).map(String.init)
             let lineWidths = text.components(separatedBy: "\n").enumerated().map { index, line in
-                (line as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: index == 0 && !plainText ? 14 : 13,
+                (line as NSString).size(withAttributes: [.font: ReferenceTypography.measuringFont(ofSize: index == 0 && !plainText ? 14 : 13,
                     weight: index == 0 && !plainText ? .semibold : .regular)]).width
             }
             let popupWidth = plainText ? ReferenceHelpTooltip.width(for: text, availableWidth: visible.width) :
@@ -696,9 +696,9 @@ struct HistoryPointerTracking: NSViewRepresentable {
                         VStack(alignment: .leading, spacing: 5) {
                             HStack(spacing: 8) {
                                 if let severity { ThresholdReadoutIcon(severity: severity) }
-                                Text(lines.first ?? "").font(.system(size: 14, weight: .semibold)).foregroundStyle(severity == nil ? Color(hex: "#F2F1F5") : .white)
+                                Text(lines.first ?? "").font(.reference(size: 14, weight: .semibold)).foregroundStyle(severity == nil ? Color(hex: "#F2F1F5") : .white)
                             }
-                            if lines.count > 1 { Text(lines[1]).font(.system(size: 13)).foregroundStyle(Theme.dialogText) }
+                            if lines.count > 1 { Text(lines[1]).font(.reference(size: 13)).foregroundStyle(Theme.dialogText) }
                         }.padding(.horizontal, 14).padding(.vertical, 10).frame(width: popupWidth, alignment: .leading)
                             .fixedSize(horizontal: false, vertical: true)
                             .background(Color(hex: "#222329"), in: RoundedRectangle(cornerRadius: 12))

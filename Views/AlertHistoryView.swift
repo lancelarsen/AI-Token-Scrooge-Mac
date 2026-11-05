@@ -13,10 +13,10 @@ struct AlertHistoryView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Alert history").font(.system(size: 26, weight: .semibold))
+                Text("Alert history").font(.reference(size: 26, weight: .semibold))
                 if store.state.alerts.isEmpty {
                     Text("No alerts yet. Low capacity and expiring resets will appear here.")
-                        .font(.system(size: 14)).foregroundStyle(Theme.secondary)
+                        .font(.reference(size: 14)).foregroundStyle(Theme.secondary)
                 } else {
                     LazyVStack(spacing: 16) {
                         ForEach(store.state.alerts.sorted { $0.createdAt > $1.createdAt }) { alert in
@@ -24,7 +24,7 @@ struct AlertHistoryView: View {
                                 HStack(spacing: 9) {
                                     ActionIcon(symbol: alert.isRefreshReminder ? "arrow.clockwise" : alert.reminderID != nil ? "folder" : alert.delivered ? "arrow.up.right.square" : "clock.arrow.circlepath")
                                     Text("\(Format.historyDate(alert.createdAt, zone: store.state.settings.zone)) · \(alert.title)\n\(store.state.settings.privacy ? "Account Details Hidden" : alert.detail)\n\(alert.delivered ? "Sent to macOS" : "Recorded in history")")
-                                        .font(.system(size: 14))
+                                        .font(.reference(size: 14))
                                         .multilineTextAlignment(.leading)
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                 }.padding(.vertical, 12).frame(minHeight: 80)
@@ -102,7 +102,7 @@ struct DetailsDialog<Content: View>: View {
                 content().fixedSize(horizontal: false, vertical: true)
                 ScrollView { content() }
             }
-            .font(.system(size: 14))
+            .font(.reference(size: 14))
             .foregroundStyle(Theme.dialogText)
             .textSelection(.enabled)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -188,9 +188,9 @@ struct DialogActionLabel: View {
             } else if ["desktopcomputer", "plus", "trash", "person", "folder", "arrow.up.right.square", "play"].contains(symbol) {
                 ActionIcon(symbol: symbol, size: 20)
             } else {
-                Image(systemName: symbol).font(.system(size: 20)).foregroundStyle(foreground)
+                Image(systemName: symbol).font(.reference(size: 20)).foregroundStyle(foreground)
             }
-            Text(title).font(.system(size: 14))
+            Text(title).font(.reference(size: 14))
         }
     }
 }

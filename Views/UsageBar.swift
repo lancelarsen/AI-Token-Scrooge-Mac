@@ -74,7 +74,7 @@ struct UsageBar: View {
                     Spacer()
                     Text(window.remainingPercent.map { "\(Format.percent($0)) left" } ?? "Left unavailable")
                 }
-                .font(.system(size: 16)).padding(.horizontal, 15)
+                .font(.reference(size: 16)).padding(.horizontal, 15)
                 .allowsHitTesting(false).accessibilityHidden(true)
             }.coordinateSpace(name: "usageBar").overlay(RoundedRectangle(cornerRadius: 11).stroke(Color(hex: "#515461")))
                 .background {

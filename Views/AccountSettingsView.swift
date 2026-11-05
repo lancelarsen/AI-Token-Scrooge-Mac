@@ -27,7 +27,7 @@ struct AccountSettingsView: View {
     }
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 10) { ActionIcon(symbol: "person", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text(accountTitle).font(.system(size: 26, weight: .semibold)).foregroundStyle(Theme.primaryText); Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction) }.padding(.horizontal, 20).padding(.vertical, 12)
+            HStack(spacing: 10) { ActionIcon(symbol: "person", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text(accountTitle).font(.reference(size: 26, weight: .semibold)).foregroundStyle(Theme.primaryText); Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction) }.padding(.horizontal, 20).padding(.vertical, 12)
             SettingsScrollView {
                 if let account {
                     VStack(spacing: 12) {
@@ -56,7 +56,7 @@ struct AccountSettingsView: View {
                                 Button {
                                     newColor = Color(hex: account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType))
                                     showColor = true
-                                } label: { Text("+").font(.system(size: 22)).foregroundStyle(Theme.actionAccent).frame(width: 32, height: 32).background(Theme.control).clipShape(RoundedRectangle(cornerRadius: 9)).overlay(RoundedRectangle(cornerRadius: 9).stroke(Color(hex: "#65577F"), lineWidth: 1)) }.buttonStyle(.plain).padding(.trailing, 8).padding(.bottom, 8)
+                                } label: { Text("+").font(.reference(size: 22)).foregroundStyle(Theme.actionAccent).frame(width: 32, height: 32).background(Theme.control).clipShape(RoundedRectangle(cornerRadius: 9)).overlay(RoundedRectangle(cornerRadius: 9).stroke(Color(hex: "#65577F"), lineWidth: 1)) }.buttonStyle(.plain).padding(.trailing, 8).padding(.bottom, 8)
                                     .modifier(ImmediateReferenceTooltip(text: "Add Custom Line Color"))
                                     .accessibilityLabel("Add Custom Line Color")
                                     .sheet(isPresented: $showColor) {
@@ -91,13 +91,13 @@ struct AccountSettingsView: View {
                         }
                         if let savedSnapshot = store.state.snapshots[accountID], savedSnapshot.belongs(to: account), let reserve = savedSnapshot.reserve {
                             SettingsCard(title: "Available Resets", symbol: "folder", help: "Earned resets reported by this provider and their expiration dates.") {
-                                Text("\(reserve.availableCount.map(String.init) ?? "Unknown") Available").font(.system(size: 20))
+                                Text("\(reserve.availableCount.map(String.init) ?? "Unknown") Available").font(.reference(size: 20))
                                 if let credits = reserve.credits {
                                     ForEach(credits) { credit in
                                         Text("Expires \(Format.date(credit.expiresAt, zone: store.state.settings.zone))").foregroundStyle(Theme.amber)
                                     }
                                 } else { Text("Credit Details Unavailable").foregroundStyle(Theme.secondary) }
-                                if reserve.hasPartialDetails { Text("Some reset details are not supplied by the provider.").font(.system(size: 12)).foregroundStyle(Theme.secondary) }
+                                if reserve.hasPartialDetails { Text("Some reset details are not supplied by the provider.").font(.reference(size: 12)).foregroundStyle(Theme.secondary) }
                             }
                         }
                         SettingsCard(title: "Other Alerts", symbol: "desktopcomputer", description: "Warning and critical levels are adjusted directly on the dashboard bars.") {
@@ -106,14 +106,14 @@ struct AccountSettingsView: View {
                             ruleToggle("Reset Expiry Reminders", path: \.expiry, help: "Remind you before available earned resets expire.")
                         }
                         SettingsCard(title: "Connection", symbol: "link", help: "Reconnect this account or remove its saved connection.") {
-                            Text("Sign in again only if this account needs a new connection. Your saved settings stay in place.").font(.system(size: 13)).foregroundStyle(Theme.secondary)
+                            Text("Sign in again only if this account needs a new connection. Your saved settings stay in place.").font(.reference(size: 13)).foregroundStyle(Theme.secondary)
                             Button { store.reconnectAccountID = accountID; dismiss(); store.showConnection = true } label: { DialogActionLabel(title: "Sign In Again", symbol: "person").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
                             Button(role: .destructive) { confirmRemove = true } label: { DialogActionLabel(title: "Remove Account", symbol: "trash").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
                         }
                     }.padding(.horizontal, 16).padding(.vertical, 12).frame(width: min(960, panelSize.width - 24)).frame(maxWidth: .infinity)
                 }
             }
-        }.font(.system(size: 14)).foregroundStyle(Theme.primaryText).frame(width: panelSize.width, height: panelSize.height).referencePanelSurface().preferredColorScheme(.dark).tint(Theme.accent)
+        }.font(.reference(size: 14)).foregroundStyle(Theme.primaryText).frame(width: panelSize.width, height: panelSize.height).referencePanelSurface().preferredColorScheme(.dark).tint(Theme.accent)
         .onAppear {
             nicknameDraft = account?.nickname ?? ""
 
@@ -152,7 +152,7 @@ struct AccountSettingsView: View {
         }
     }
     private func infoIcon(_ help: String) -> some View {
-        Image(systemName: "info.circle").font(.system(size: 16)).foregroundStyle(Color(hex: "#B5A0F4"))
+        Image(systemName: "info.circle").font(.reference(size: 16)).foregroundStyle(Color(hex: "#B5A0F4"))
             .frame(width: 20).modifier(ImmediateReferenceTooltip(text: help)).accessibilityLabel(help)
     }
 }
@@ -321,7 +321,7 @@ private struct InlineLineColorEditor: View {
                     HStack {
                         Text(mode)
                         Spacer()
-                        Image(systemName: "chevron.down").font(.system(size: 10))
+                        Image(systemName: "chevron.down").font(.reference(size: 10))
                     }.padding(.horizontal, 12).frame(width: 120, height: 32)
                         .background(Color(hex: "#303138"), in: RoundedRectangle(cornerRadius: 8))
                 }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
@@ -344,12 +344,12 @@ private struct InlineLineColorEditor: View {
                     HStack(spacing: 8) {
                         TextField(channelName(index), value: channel(index), format: .number)
                             .modifier(ColorEntryStyle()).frame(width: 120)
-                        Text(channelName(index)).font(.system(size: 12))
+                        Text(channelName(index)).font(.reference(size: 12))
                         Spacer()
                     }
                 }
             }
-        }.textFieldStyle(.plain).font(.system(size: 13))
+        }.textFieldStyle(.plain).font(.reference(size: 13))
             .padding(.vertical, 4)
             .onAppear { loadComponents(); hexDraft = color.hex }
     }

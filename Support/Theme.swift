@@ -53,10 +53,9 @@ struct DashboardWindowSizeReader: NSViewRepresentable {
 }
 
 enum Theme {
-    static let dialogTitleFont = Font.system(size: 22, weight: .semibold)
-    // The current system-font fallback is retained until the Segoe asset
-    // decision is resolved; Windows uses Segoe UI at 14 points.
-    static let dialogBodyFont = Font.system(size: 13)
+    static let dialogTitleFont = Font.reference(size: 22, weight: .semibold)
+    // Match the Windows dialog body size now that Segoe UI is available.
+    static let dialogBodyFont = Font.reference(size: 14)
     static let primaryText = Color(hex: "#F2F1F5")
     static let canvas = Color(hex: "#141519")
     static let background = LinearGradient(colors: [Color(hex: "#1B1C20"), Color(hex: "#141519")], startPoint: .topLeading, endPoint: .bottomTrailing)
@@ -137,7 +136,7 @@ struct ScroogeButtonStyle: ButtonStyle {
         private var highlighted: Bool { selected || interacting }
         var body: some View {
             configuration.label
-                .font(.system(size: 14))
+                .font(.reference(size: 14))
                 .foregroundStyle(interacting ? Color.white : Color(hex: "#F2F1F5"))
                 .environment(\.actionForeground, interacting ? .white : Theme.actionAccent)
                 .padding(.horizontal, segmented ? 0 : horizontalPadding)
@@ -250,7 +249,7 @@ struct ProviderIcon: View {
                 Image(nsImage: image).resizable().scaledToFit()
             } else if let image = ThemeImages.image(provider.imageName, extension: "svg") {
                 Image(nsImage: image).resizable().scaledToFit()
-            } else { Text(provider == .claude ? "✳" : provider == .copilot ? "◉" : "◎").font(.system(size: size)) }
+            } else { Text(provider == .claude ? "✳" : provider == .copilot ? "◉" : "◎").font(.reference(size: size)) }
         }.frame(width: size, height: size).accessibilityLabel(provider.rawValue)
     }
 }
@@ -427,7 +426,7 @@ struct ActionIcon: View {
                 }
             } else if let resource, let image = ThemeImages.image(resource, extension: "svg") {
                 Image(nsImage: image).renderingMode(.template).resizable().scaledToFit().foregroundStyle(foreground)
-            } else { Image(systemName: symbol).font(.system(size: size)).foregroundStyle(foreground) }
+            } else { Image(systemName: symbol).font(.reference(size: size)).foregroundStyle(foreground) }
         }.frame(width: size, height: size).accessibilityHidden(true)
     }
 }
@@ -516,7 +515,7 @@ struct ThresholdReadoutIcon: View {
     let severity: ReminderSeverity
     var body: some View {
         if severity == .info {
-            Image(systemName: "info.circle").font(.system(size: 18)).foregroundStyle(Color(hex: "#58A6FF")).frame(width: 18, height: 18)
+            Image(systemName: "info.circle").font(.reference(size: 18)).foregroundStyle(Color(hex: "#58A6FF")).frame(width: 18, height: 18)
         } else if let image = ThemeImages.image(severity == .warning ? "threshold_warning" : "threshold_critical", extension: "svg") {
             Image(nsImage: image).resizable().scaledToFit().frame(width: 18, height: 18)
         }

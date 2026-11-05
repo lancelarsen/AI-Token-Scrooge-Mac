@@ -22,11 +22,11 @@ struct AlertBannerView: View {
                     }
                     VStack(alignment: .leading, spacing: 3) {
                         Text(provider == .codex ? "OpenAI Codex" : provider?.rawValue ?? "Scrooge")
-                            .font(.system(size: 12)).foregroundStyle(Theme.accent)
-                        Text(alert.title).font(.system(size: 15, weight: .semibold)).foregroundStyle(severityColor)
+                            .font(.reference(size: 12)).foregroundStyle(Theme.accent)
+                        Text(alert.title).font(.reference(size: 15, weight: .semibold)).foregroundStyle(severityColor)
                     }
                 }
-                Text(store.state.settings.privacy ? "Account Details Hidden" : alert.detail).font(.system(size: 12)).foregroundStyle(Theme.secondary)
+                Text(store.state.settings.privacy ? "Account Details Hidden" : alert.detail).font(.reference(size: 12)).foregroundStyle(Theme.secondary)
                 HStack(spacing: 8) {
                     Button {
                         store.showAlertAccount(alert)

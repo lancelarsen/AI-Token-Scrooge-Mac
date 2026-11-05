@@ -16,21 +16,21 @@ struct SettingsView: View {
     }
     var body: some View {
         VStack(spacing: 0) {
-            HStack { HStack(spacing: 10) { ActionIcon(symbol: "gearshape", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text("Settings").font(.system(size: 26, weight: .semibold)) }; Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()) }.padding(.horizontal, 20).padding(.vertical, 12)
+            HStack { HStack(spacing: 10) { ActionIcon(symbol: "gearshape", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text("Settings").font(.reference(size: 26, weight: .semibold)) }; Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close", symbol: "xmark") }.buttonStyle(ScroogeButtonStyle()) }.padding(.horizontal, 20).padding(.vertical, 12)
             SettingsScrollView {
                 VStack(spacing: 12) {
-                    if store.isDemo { Text("Demo changes stay in this preview. Notification test uses macOS.").font(.system(size: 14)).foregroundStyle(Theme.actionAccent).frame(maxWidth: .infinity, alignment: .leading) }
+                    if store.isDemo { Text("Demo changes stay in this preview. Notification test uses macOS.").font(.reference(size: 14)).foregroundStyle(Theme.actionAccent).frame(maxWidth: .infinity, alignment: .leading) }
                     SettingsCard(title: "App Updates", symbol: "gearshape") {
-                        Text("Version \(AppUpdater.displayVersion)").font(.system(size: 16))
+                        Text("Version \(AppUpdater.displayVersion)").font(.reference(size: 16))
                         settingsSwitch("Check for Newer Versions", isOn: Binding(
                             get: { store.isDemo ? demoAutomaticChecks : updater.automaticChecks },
                             set: { if store.isDemo { demoAutomaticChecks = $0 } else { updater.automaticChecks = $0 } }
                         ))
                         Text(store.isDemo ? "Manual Update Checks Are Paused in Demo" : "Downloads and installation require your choice.")
-                            .font(.system(size: 13)).foregroundStyle(Color(hex: "#BEC1D2"))
+                            .font(.reference(size: 13)).foregroundStyle(Color(hex: "#BEC1D2"))
                         Text(updater.lastChecked.map { "Last Checked: \($0.formatted(date: .numeric, time: .shortened))" }
                              ?? "Checks for updates every 8 hours while Scrooge is running.")
-                            .font(.system(size: 12)).foregroundStyle(Color(hex: "#A5A8BA"))
+                            .font(.reference(size: 12)).foregroundStyle(Color(hex: "#A5A8BA"))
                         HStack(spacing: 8) {
                             Button { updater.checkNow() } label: {
                                 ActionLabel(title: "Check Now", symbol: "arrow.clockwise")
@@ -48,8 +48,8 @@ struct SettingsView: View {
                             HStack {
                                 Text(Format.timeZoneName(store.state.settings.zone))
                                 Spacer()
-                                Image(systemName: "chevron.down").font(.system(size: 10)).foregroundStyle(Theme.secondary)
-                            }.font(.system(size: 13)).padding(.horizontal, 12).frame(height: 32)
+                                Image(systemName: "chevron.down").font(.reference(size: 10)).foregroundStyle(Theme.secondary)
+                            }.font(.reference(size: 13)).padding(.horizontal, 12).frame(height: 32)
                                 .background(Theme.control, in: RoundedRectangle(cornerRadius: 8))
                                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.border))
                         }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
@@ -67,7 +67,7 @@ struct SettingsView: View {
                             HStack {
                                 Text("\(store.state.settings.historyRetentionDays) Days")
                                 Spacer()
-                                Image(systemName: "chevron.down").font(.system(size: 10)).foregroundStyle(Theme.secondary)
+                                Image(systemName: "chevron.down").font(.reference(size: 10)).foregroundStyle(Theme.secondary)
                             }.padding(.horizontal, 12).frame(height: 32)
                                 .background(Theme.control, in: RoundedRectangle(cornerRadius: 8))
                                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.border))
@@ -95,7 +95,7 @@ struct SettingsView: View {
                                 }.buttonStyle(ScroogeButtonStyle())
                             }
                         }
-                        Text(soundPreviewStatus ?? "").font(.system(size: 12)).foregroundStyle(Theme.amber)
+                        Text(soundPreviewStatus ?? "").font(.reference(size: 12)).foregroundStyle(Theme.amber)
                             .frame(minHeight: 16, alignment: .leading)
                             .accessibilityHidden(soundPreviewStatus == nil)
                     }
@@ -127,7 +127,7 @@ struct SettingsView: View {
                 }.padding(.horizontal, 16).padding(.vertical, 12).frame(width: min(960, panelSize.width - 24)).frame(maxWidth: .infinity)
             }
             if let error = store.errorMessage { Text(error).foregroundStyle(Theme.amber).padding() }
-        }.font(.system(size: 14)).foregroundStyle(Theme.primaryText).frame(width: panelSize.width, height: panelSize.height).referencePanelSurface().preferredColorScheme(.dark).tint(Theme.accent)
+        }.font(.reference(size: 14)).foregroundStyle(Theme.primaryText).frame(width: panelSize.width, height: panelSize.height).referencePanelSurface().preferredColorScheme(.dark).tint(Theme.accent)
         .onAppear {
             store.refreshLoginItemStatus()
             demoAutomaticChecks = updater.automaticChecks
@@ -149,13 +149,13 @@ struct SettingsView: View {
             HStack(spacing: 8) {
                 Circle().strokeBorder(selected ? Color(hex: "#A990ED") : Theme.secondary, lineWidth: selected ? 5 : 1)
                     .frame(width: 20, height: 20)
-                Text(title).font(.system(size: 14)).foregroundStyle(Theme.primaryText)
+                Text(title).font(.reference(size: 14)).foregroundStyle(Theme.primaryText)
             }.frame(minHeight: 32).contentShape(Rectangle())
         }.buttonStyle(.plain).accessibilityLabel(title).accessibilityAddTraits(selected ? .isSelected : [])
     }
     private func settingsSwitch(_ title: String, isOn: Binding<Bool>) -> some View {
         Toggle(title, isOn: isOn)
-            .font(.system(size: 14))
+            .font(.reference(size: 14))
             .toggleStyle(ScroogeSwitchStyle())
             .frame(minHeight: 36)
     }
@@ -179,7 +179,7 @@ struct SettingsCard<Content: View>: View {
                         if let text = help ?? SettingsHelpCopy.values[title] { SettingsInfoIcon(text: text) }
                         HStack(spacing: 10) {
                             ActionIcon(symbol: symbol, size: 21).frame(width: 24).environment(\.actionForeground, Theme.accent)
-                            Text(title).font(.system(size: 21, weight: .semibold))
+                            Text(title).font(.reference(size: 21, weight: .semibold))
                         }.foregroundStyle(Theme.accent)
                         if let headerToggle {
                             Spacer()
@@ -187,7 +187,7 @@ struct SettingsCard<Content: View>: View {
                         }
                     }
                     if let description {
-                        Text(description).font(.system(size: 13)).foregroundStyle(Color(hex: "#A5A8BA"))
+                        Text(description).font(.reference(size: 13)).foregroundStyle(Color(hex: "#A5A8BA"))
                     }
                 }
                 content
@@ -263,7 +263,7 @@ struct ReminderEditor: View {
                 }
             }
             if amountError {
-                Text("Enter a Positive Whole Number").font(.system(size: 12))
+                Text("Enter a Positive Whole Number").font(.reference(size: 12))
                     .foregroundStyle(Color(hex: "#F05B69"))
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -274,7 +274,7 @@ struct ReminderEditor: View {
         HStack {
             Text(title).foregroundStyle(color)
             Spacer()
-            Image(systemName: "chevron.down").font(.system(size: 10)).foregroundStyle(Theme.secondary)
+            Image(systemName: "chevron.down").font(.reference(size: 10)).foregroundStyle(Theme.secondary)
         }.padding(.horizontal, 12).frame(maxWidth: .infinity).frame(height: 44)
             .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
@@ -362,7 +362,7 @@ struct QuietHoursControl: View {
                     }.onEnded { _ in dragging = false })
                     ForEach(0..<5) { index in
                         Text(["12 PM", "6 PM", "12 AM", "6 AM", "12 PM"][index])
-                            .font(.system(size: 16)).foregroundStyle(Theme.accent)
+                            .font(.reference(size: 16)).foregroundStyle(Theme.accent)
                             .frame(width: 64, height: 24).position(x: 32 + span * Double(index) / 4, y: y + 34)
                     }
                     handle(value: $start, x: a, width: geometry.size.width, label: "Quiet Hours Start", labelY: 16)
@@ -371,14 +371,14 @@ struct QuietHoursControl: View {
             }
             .frame(height: closeLabels ? 116 : 94)
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { trackWidth = $0 }
-            Text(summary).font(.system(size: 16)).foregroundStyle(Theme.accent)
+            Text(summary).font(.reference(size: 16)).foregroundStyle(Theme.accent)
         }
         .onChange(of: isEnabled) { _, enabled in
             if !enabled { focusedBoundary = nil; dragging = false }
         }
     }
     private func handle(value: Binding<Int>, x: CGFloat, width: CGFloat, label: String, labelY: CGFloat) -> some View {
-        Text(hour(value.wrappedValue)).font(.system(size: 16)).foregroundStyle(Theme.primaryText)
+        Text(hour(value.wrappedValue)).font(.reference(size: 16)).foregroundStyle(Theme.primaryText)
         .frame(width: 106, height: 32)
         .focusable().focused($focusedBoundary, equals: label).focusEffectDisabled()
         .onTapGesture { focusedBoundary = label }
@@ -401,7 +401,7 @@ struct QuietHoursControl: View {
 private struct SettingsInfoIcon: View {
     let text: String
     var body: some View {
-        Image(systemName: "info.circle").font(.system(size: 16))
+        Image(systemName: "info.circle").font(.reference(size: 16))
             .foregroundStyle(Color(hex: "#B5A0F4")).frame(width: 20)
             .modifier(ImmediateReferenceTooltip(text: text)).accessibilityLabel(text)
     }

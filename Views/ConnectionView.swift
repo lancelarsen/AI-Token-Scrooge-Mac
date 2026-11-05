@@ -84,9 +84,9 @@ struct ConnectionView: View {
     private var connectionForm: some View {
         ScrollView {
         VStack(alignment: .leading, spacing: 18) {
-            Text("Connect \(provider == .codex ? "OpenAI Codex" : provider.rawValue)").font(.system(size: 26, weight: .semibold))
+            Text("Connect \(provider == .codex ? "OpenAI Codex" : provider.rawValue)").font(.reference(size: 26, weight: .semibold))
                 .frame(minHeight: 35, alignment: .topLeading)
-            Text(connectionDescription).font(.system(size: 14)).foregroundStyle(Theme.secondary)
+            Text(connectionDescription).font(.reference(size: 14)).foregroundStyle(Theme.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             TextField("Account nickname (Personal, Work…)", text: $nickname).modifier(ConnectionFieldStyle())
             if provider == .codex {
@@ -99,7 +99,7 @@ struct ConnectionView: View {
                     HStack {
                         Text(unit == .credits ? "AI credits" : "Legacy premium requests")
                         Spacer()
-                        Image(systemName: "chevron.down").font(.system(size: 10))
+                        Image(systemName: "chevron.down").font(.reference(size: 10))
                     }.padding(.horizontal, 12).frame(height: 32)
                         .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
                 }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
@@ -137,7 +137,7 @@ struct ConnectionView: View {
             }
             Button { dismiss() } label: { DialogActionLabel(title: "Cancel", symbol: "xmark").frame(maxWidth: .infinity, alignment: .leading) }
                 .buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction).disabled(connecting)
-        }.font(.system(size: 14)).frame(maxWidth: formContentWidth).padding(32).frame(maxWidth: .infinity, alignment: .top)
+        }.font(.reference(size: 14)).frame(maxWidth: formContentWidth).padding(32).frame(maxWidth: .infinity, alignment: .top)
         }.frame(width: panelSize.width, height: panelSize.height).referencePanelSurface().preferredColorScheme(.dark).tint(Theme.accent)
         .onDisappear { connectionTask?.cancel(); token = "" }
         .onAppear {
