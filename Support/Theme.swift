@@ -434,7 +434,7 @@ struct ActionIcon: View {
 /// Matches the reference switch geometry while retaining Toggle accessibility.
 struct ScroogeSwitchStyle: ToggleStyle {
     var showsLabel = true
-    var onColor = Color(hex: "#8973DB")
+    var onColor = Color(hex: "#8170CF")
     var thumbColor: Color? = nil
     func makeBody(configuration: Configuration) -> some View {
         HStack(spacing: 12) {

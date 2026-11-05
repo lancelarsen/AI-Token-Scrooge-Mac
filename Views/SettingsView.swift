@@ -99,7 +99,7 @@ struct SettingsView: View {
                             .frame(minHeight: 16, alignment: .leading)
                             .accessibilityHidden(soundPreviewStatus == nil)
                     }
-                    SettingsCard(title: "Quiet Hours", symbol: "moon", help: "Quiet notification delivery during this time range while monitoring continues.", headerToggle: binding(\.quietHours), description: "A little peace, right on schedule.") {
+                    SettingsCard(title: "Quiet Hours", symbol: "moon", headerToggle: binding(\.quietHours), description: "A little peace, right on schedule.") {
                         QuietHoursControl(start: binding(\.quietStartHour), end: binding(\.quietEndHour))
                             .disabled(!store.state.settings.quietHours)
                             .opacity(store.state.settings.quietHours ? 1 : 0.5)

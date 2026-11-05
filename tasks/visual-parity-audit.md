@@ -877,3 +877,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Replaced seven shortened Mac help messages with the Windows SettingsHelp text: Account, Monitor This Account, Available Resets, Capacity Exhausted, Capacity Restored, Reset Expiry Reminders, and Connection. This restores the row-alarm prerequisites, monitoring/connection semantics, and explicit expiration-versus-quota-refresh distinction.
 - An exact string comparison against Windows origin/main verified all seven messages; canonical build passed (`artifacts/account-help-parity-build.log`).
 - Prior to this update, native threshold keyboard input was rechecked after the popup changes (50 → 51 → 50), and the Segoe account dialog was visually inspected. Native app inventory did not expose floating panels, so it does not prove popup visibility/dismissal; that runtime gap remains open. The account sheet itself rendered without overlapping the inspected controls, but is not certified identical.
+
+## Global settings help and switch tint — 2026-11-05
+
+- Removed the shortened Quiet Hours override so the existing Windows-matching shared help includes one-hour arrow-key instructions.
+- Set ordinary global/account switch on-color to Windows SettingsPage's explicit #8170CF. The timeline's separate explicit styling is unchanged.
+- Canonical build passed (`artifacts/settings-switch-help-build.log`). Native settings AX exposed the complete Quiet Hours message; settings capture (`artifacts/settings-switch-help-native.jpg`) verified the control renders. Source tint matches; full pixel parity remains unproven.
