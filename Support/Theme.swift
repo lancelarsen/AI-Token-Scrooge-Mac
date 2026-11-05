@@ -136,7 +136,7 @@ struct ScroogeButtonStyle: ButtonStyle {
         private var highlighted: Bool { selected || interacting }
         var body: some View {
             configuration.label
-                .font(.reference(size: 14))
+                .font(ReferenceTypography.nativeTextFont())
                 .foregroundStyle(interacting ? Color.white : Color(hex: "#F2F1F5"))
                 .environment(\.actionForeground, interacting ? .white : Theme.actionAccent)
                 .padding(.horizontal, segmented ? 0 : horizontalPadding)

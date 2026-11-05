@@ -1288,3 +1288,9 @@ Bundled the official regular and Semibold static Text faces plus supplied EULA. 
 Canonical build passes (artifacts/variable-dialog-font-build.log). Both font files in the built app are byte-identical to source. Native matching-date popup capture artifacts/reset-details-variable-font.jpg confirms the entire Snapshot fetched 11/4/2026 10:16 AM · Demo line fits without wrapping; popup returns to 332×281 points, within roughly one point of reference35. This resolves the demonstrated wrap discrepancy. Full rasterization/title/line-position identity is not certified. Closed popup after capture. No new behavioral tests for this font-only change; prior 96-test result retained.
 
 Font SHA256: regular 4e79c52ac2123c0b1d8d62d5ccf1e4bb9599c9a17168e9272357e03fa80ac871; Semibold 9cbcaae3ab12ff94864dfe2f703ebd005d12f0f0579fd62369017d2d8e87577f.
+
+### Native Action Button Font Parity — 2026-11-05
+
+Windows ActionButton creates a native TextBlock without an explicit FontFamily; AccountSortControl sets its size to 13, while ordinary actions and alert-history row actions use 14. Applied the bundled Segoe UI Variable Text face to ScroogeButtonStyle, the explicit sort-label override, and alert-history row text. Preserved sizes, geometry, icons, and explicit classic Segoe labels elsewhere.
+
+Canonical build passes (artifacts/native-button-font-build.log), and git diff --check passes. No new behavioral tests for this font-only change; previous 96 hosted-test result remains the behavioral baseline. This update was checked against Windows source; a new native screenshot comparison and full pixel parity remain open.

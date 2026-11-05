@@ -116,7 +116,7 @@ struct DashboardView: View {
             HStack(spacing: 0) {
                 ForEach(AccountSort.allCases, id: \.self) { sort in
                     Button { store.edit { AccountPolicy.selectSort(sort, state: &$0) } } label: {
-                        HStack(spacing: 9) { ActionIcon(symbol: icon(sort), size: 20); Text(sort.rawValue).font(.reference(size: 13)) }.frame(maxWidth: .infinity, minHeight: 44)
+                        HStack(spacing: 9) { ActionIcon(symbol: icon(sort), size: 20); Text(sort.rawValue).font(ReferenceTypography.nativeTextFont(size: 13)) }.frame(maxWidth: .infinity, minHeight: 44)
                     }.buttonStyle(ScroogeButtonStyle(selected: store.state.settings.accountSort == sort, segmented: true))
                         .overlay(alignment: .trailing) { if sort != AccountSort.allCases.last { Rectangle().fill(Color(hex: "#45464D")).frame(width: 1) } }
                 }
