@@ -871,3 +871,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Tracking panels dismiss when their owning window loses key status and cannot reopen from a stale view update while the window is inactive. A weak shared owner hides the previous readout when another opens, matching Windows threshold popup ownership.
 - Window notification and event monitor subscriptions are removed when the view moves windows or is dismantled; callbacks capture the view weakly.
 - Canonical build passed (`artifacts/popup-dismissal-build.log`); diff checks passed. Runtime multi-panel/activation checks remain unverified; no screenshot identity claim.
+
+## Account help content parity — 2026-11-05
+
+- Replaced seven shortened Mac help messages with the Windows SettingsHelp text: Account, Monitor This Account, Available Resets, Capacity Exhausted, Capacity Restored, Reset Expiry Reminders, and Connection. This restores the row-alarm prerequisites, monitoring/connection semantics, and explicit expiration-versus-quota-refresh distinction.
+- An exact string comparison against Windows origin/main verified all seven messages; canonical build passed (`artifacts/account-help-parity-build.log`).
+- Prior to this update, native threshold keyboard input was rechecked after the popup changes (50 → 51 → 50), and the Segoe account dialog was visually inspected. Native app inventory did not expose floating panels, so it does not prove popup visibility/dismissal; that runtime gap remains open. The account sheet itself rendered without overlapping the inspected controls, but is not certified identical.

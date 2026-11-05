@@ -31,7 +31,7 @@ struct AccountSettingsView: View {
             SettingsScrollView {
                 if let account {
                     VStack(spacing: 12) {
-                        SettingsCard(title: "Account", symbol: "person", help: "Account name, history line color, polling interval and monitoring preferences.") {
+                        SettingsCard(title: "Account", symbol: "person", help: "Name and color identify this account. Polling controls how often usage is checked. Turning monitoring off pauses checks and alerts while keeping the saved connection.") {
                             HStack(spacing: 12) {
                                 Text("Account Name").frame(width: 190, alignment: .leading)
                                 TextField("Personal, Work", text: $nicknameDraft).textFieldStyle(.plain)
@@ -83,14 +83,14 @@ struct AccountSettingsView: View {
                                 MinuteSlider(value: Binding(get: { account.effectivePollingMinutes }, set: { value in update { $0.pollingMinutes = value } })).frame(height: 44)
                             }
                             HStack(spacing: 6) {
-                            infoIcon("Pause checks and alerts without removing this connection.")
+                            infoIcon("Pause automatic usage checks and alerts when off. Your saved connection stays in place.")
                             Toggle("Monitor This Account", isOn: Binding(get: { account.enabled }, set: { value in update { $0.enabled = value; $0.generation = UUID() } }))
                                 .toggleStyle(ScroogeSwitchStyle()).frame(minHeight: 36)
-                                .modifier(ImmediateReferenceTooltip(text: "Pause checks and alerts without removing this connection."))
+                                .modifier(ImmediateReferenceTooltip(text: "Pause automatic usage checks and alerts when off. Your saved connection stays in place."))
                             }
                         }
                         if let savedSnapshot = store.state.snapshots[accountID], savedSnapshot.belongs(to: account), let reserve = savedSnapshot.reserve {
-                            SettingsCard(title: "Available Resets", symbol: "folder", help: "Earned resets reported by this provider and their expiration dates.") {
+                            SettingsCard(title: "Available Resets", symbol: "folder", help: "Unused earned resets reported by this provider, with their expiration times when available") {
                                 Text("\(reserve.availableCount.map(String.init) ?? "Unknown") Available").font(.reference(size: 20))
                                 if let credits = reserve.credits {
                                     ForEach(credits) { credit in
@@ -101,11 +101,11 @@ struct AccountSettingsView: View {
                             }
                         }
                         SettingsCard(title: "Other Alerts", symbol: "desktopcomputer", description: "Warning and critical levels are adjusted directly on the dashboard bars.") {
-                            ruleToggle("Capacity Exhausted", path: \.exhausted, help: "Alert when a monitored allowance has no remaining capacity.")
-                            ruleToggle("Capacity Restored", path: \.restored, help: "Alert when an exhausted allowance has capacity again and the provider confirms usage is allowed.")
-                            ruleToggle("Reset Expiry Reminders", path: \.expiry, help: "Remind you before available earned resets expire.")
+                            ruleToggle("Capacity Exhausted", path: \.exhausted, help: "Alert when a usage limit reaches 0% remaining. Enable the alarm on that limit's dashboard row to receive this alert.")
+                            ruleToggle("Capacity Restored", path: \.restored, help: "Alert when a previously exhausted limit has capacity again and the provider confirms usage is allowed. Enable the alarm on that limit's dashboard row to receive this alert.")
+                            ruleToggle("Reset Expiry Reminders", path: \.expiry, help: "Remind you before an unused earned reset expires, using Earned Reset Expiration Alerts in global Settings. Expiration does not refresh your quota. At least one dashboard row alarm for this account must be on.")
                         }
-                        SettingsCard(title: "Connection", symbol: "link", help: "Reconnect this account or remove its saved connection.") {
+                        SettingsCard(title: "Connection", symbol: "link", help: "Sign in again to renew the connection while keeping settings. Removing the connection only removes it from Scrooge; your provider account is unaffected.") {
                             Text("Sign in again only if this account needs a new connection. Your saved settings stay in place.").font(.reference(size: 13)).foregroundStyle(Theme.secondary)
                             Button { store.reconnectAccountID = accountID; dismiss(); store.showConnection = true } label: { DialogActionLabel(title: "Sign In Again", symbol: "person").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
                             Button(role: .destructive) { confirmRemove = true } label: { DialogActionLabel(title: "Remove Account", symbol: "trash").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
