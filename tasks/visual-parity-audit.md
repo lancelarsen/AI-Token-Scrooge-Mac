@@ -2,7 +2,7 @@
 
 Current per-image status: [visual-parity-status.md](visual-parity-status.md). The original table below predates later fixes and is historical. No screenshot is certified identical.
 
-Reference: Windows commit `5a88731`, November 4 conversion-for-mac pack. Source snapshot is extracted under ignored artifacts/windows-reference/source-snapshot. All 37 original PNGs are available locally.
+Reference: Windows commit `5a88731`, November 4 conversion-for-mac pack. Source snapshot is extracted under ignored artifacts/windows-reference/source-snapshot. All 37 reference images are available locally (JPEG data with .png filenames).
 
 Acceptance requires individual inspection and equivalent Mac captures; a successful build alone is not visual proof. Native macOS chrome and system-font metrics follow the reference guide's permitted adaptations.
 
@@ -51,7 +51,7 @@ Acceptance requires individual inspection and equivalent Mac captures; a success
 - Account card breakpoint: 1050 logical units of card width, replacing the unrelated 1200 window-width threshold.
 - Compact timeline header: legends remain beside heading; History and contextual hint wrap beneath.
 
-The supplied capture manifest contains invalid dimensions; use PNG headers for actual pixel sizes.
+The original dimension interpretation was invalid because the .png-named references contain JPEG data. See the current status table for decoded image dimensions.
 
 ## Account Settings Pass
 
@@ -684,3 +684,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Added `--demo --reference-date <ISO-8601 timestamp>` for repeatable comparisons. Demo snapshot/history generation, timeline Today/date classification, historical marker/readout bounds, navigator current-time marker, credit expiration status, icon-alert presentation and dashboard countdowns use the same fixed instant. Parsing requires explicit --demo; ordinary/live launches retain the current time. No network, credential or persistence clocks were changed.
 - Canonical build passed (`artifacts/reference-demo-date-build.log`); `build-for-testing` compiled app and test targets (`artifacts/reference-demo-date-tests-build.log`). A standalone executable compiled actual Models/Format/LocalStore/PackedHistoryRun sources and passed demo-only parsing, missing/malformed arguments, fixed snapshot/history timestamps and all thirteen scenarios (`artifacts/reference-date-check.swift`). Hosted XCTest execution was not attempted because of the previously recorded host-launch issue.
 - Native compact demo at 2026-11-04T16:11:00Z shows Today Nov 4, future events on matching calendar dates, first Codex reset Wed Nov 4 12:25 PM and 2h 14m countdown. The current screenshot state still needs matching history-pan position and fonts; fixed time alone does not certify visual identity. README documents the option and fallback.
+
+### Capacity alarm segment geometry (references 27, 33)
+
+- Compared source CapacityAlertToggle: restored the missing one-point center separator, #45464D inset outline, ten-point outer corners and eighty-one-by-forty-eight outer size. Two thirty-nine-by-forty-six segments plus divider and one-point border insets replace the previous eighty-by-forty-six control. Shared on/off behavior and source raster alarm icons remain intact.
+- Canonical build passed (`artifacts/capacity-alert-segment-build.log`) and diff checks passed. Native compact fixed-date screenshot confirms aligned forty-eight-point alarm/bar heights and visible center divider. Turning off the first Codex alarm selected the right segment and removed its three threshold controls; turning it back on restored the left selection and 50/30/10 controls. Isolated demo state only.
+- Header remains fixed during normal vertical scrolling. An immediate capture following an accessibility scroll-value change had stale clipping; settled normal-wheel captures retain the header, so no header code change was made. Exact typography and final per-image pixels remain open.

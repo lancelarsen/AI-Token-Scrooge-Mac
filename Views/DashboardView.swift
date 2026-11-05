@@ -240,20 +240,23 @@ struct QuotaRow: View {
             HStack(spacing: 8) {
                 HStack(spacing: 0) {
                     ForEach([true, false], id: \.self) { enabled in
+                        if !enabled { Rectangle().fill(Color(hex: "#45464D")).frame(width: 1, height: 46) }
                         Button {
                             if store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) != enabled {
                                 store.toggleCapacity(account: account.id, window: window.id)
                             }
                         } label: {
                             ActionIcon(symbol: enabled ? "bell.badge" : "bell.slash", size: 22)
-                                .frame(width: 40, height: 46)
+                                .frame(width: 39, height: 46)
                         }.buttonStyle(ScroogeButtonStyle(selected: store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) == enabled, segmented: true))
                             .accessibilityAddTraits(store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) == enabled ? .isSelected : [])
                             .modifier(ImmediateReferenceTooltip(text: "Alarms \(enabled ? "On" : "Off") · Row Alerts · \(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType)) · \(window.name)"))
                             .accessibilityLabel("\(enabled ? "Enable" : "Disable") Alerts for \(window.name)")
                     }
-                }.clipShape(RoundedRectangle(cornerRadius: 9))
-                    .overlay(RoundedRectangle(cornerRadius: 9).stroke(Theme.border))
+                }.padding(1)
+                    .background(Theme.control)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color(hex: "#45464D")))
                 UsageBar(window: window, alertsEnabled: store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id), thresholds: store.state.settings.rule(accountID: account.id, windowID: window.id).thresholds ?? store.state.settings.thresholds,
                          changed: { store.setThresholds(account: account.id, window: window.id, thresholds: $0) }, details: { showDetails = true })
                     .frame(minWidth: 180)

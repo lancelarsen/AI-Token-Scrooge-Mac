@@ -36,13 +36,13 @@ Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluen
 | 24-compact-empty.png | 789 × 694 | Empty geometry revised; fresh compact equivalent capture needed. |
 | 25-connect-claude.png | 789 × 694 | Claude form captured with complete version requirement; exact metrics differ. |
 | 26-compact-dashboard.png | 789 × 694 | Compact dashboard captured; rail x/y alignment checked; full fresh comparison needed. |
-| 27-compact-account-rows.png | 789 × 694 | Compact rows captured; threshold inset and pointer movement checked; fonts differ. |
+| 27-compact-account-rows.png | 789 × 694 | Compact fixed-date rows captured; alarm divider/81×48 geometry and off/on threshold visibility checked; fonts differ. |
 | 28-compact-account-settings.png | 789 × 694 | Account panel captured after inset/swatch fixes; vertical metrics differ. |
 | 29-compact-tooltip-placement.png | 789 × 694 | Owner-window clamping implemented; floating tooltip capture missing. |
 | 30-polling-tooltip.png | 322 × 118 | Complete polling help shared; floating tooltip capture missing. |
 | 31-compact-global-settings.png | 789 × 694 | Global card inset/background revised; fresh compact capture needed after shared scrollbar change. |
 | 32-notification-banner.png | 789 × 694 | Test banner captured; approximate dimensions checked; text metrics differ. |
-| 33-quota-alerts-muted.png | 789 × 694 | Alert toggle tooltips revised; muted-state equivalent capture needed. |
+| 33-quota-alerts-muted.png | 789 × 694 | Compact muted first-row state captured; selection and threshold hide/restore checked; equivalent full-image comparison remains. |
 | 34-threshold-drag-feedback.png | 789 × 694 | Native threshold grab/drag and keyboard checked; floating readout capture missing. |
 | 35-earned-reset-details.png | 789 × 694 | Reset details source-reviewed; equivalent popup capture needs recheck. |
 | 36-timeline-event-tooltip.png | 789 × 694 | Event details and click action checked; floating tooltip capture missing. |
