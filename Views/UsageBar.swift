@@ -28,7 +28,8 @@ struct UsageBar: View {
                     Capsule().fill(color(level))
                         .overlay(Capsule().strokeBorder(Color(hex: "#30333E"), lineWidth: 3))
                         .frame(width: 10, height: 36)
-                        .frame(width: 18, height: 44).contentShape(Rectangle())
+                        // Match the Windows Thumb target; the painted marker stays 10 by 36.
+                        .frame(width: 32, height: 48).contentShape(Rectangle())
                         .overlay(RoundedRectangle(cornerRadius: 5).stroke(focusedThreshold == level ? Theme.accent : .clear, lineWidth: 2))
                         .focusable()
                         .focused($focusedThreshold, equals: level)

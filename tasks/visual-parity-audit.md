@@ -825,3 +825,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Compared reference 31 with native `compact-form-inset-settings.jpg`, converting the Mac Display ICC screenshot into sRGB first. The Windows JPEG reference has no embedded profile and is treated as sRGB.
 - The three dominant colors match exactly in both images: card fill RGB (29,30,35), panel canvas (20,21,25), and control fill (35,36,41). JPEG quantization explains the card fill's slight difference from the source #1C1E24; importantly both decoded images agree. Evidence: `artifacts/settings-surface-colors.json`.
 - Also checked source dashboard gradient endpoints and capacity gradient endpoints against Windows; the defined hex values match. This does not certify full gradient rendering or the whole screenshot. No palette changes were justified by this evidence. Font/glyph selection remains pending user input.
+
+### Threshold marker interaction bounds
+
+- Windows `ThresholdEditor` defines a 32×48 Thumb around the 10×36 painted marker. Mac's target was 18×44. Matched 32×48 without changing marker paint size, position mapping or threshold rules.
+- Canonical build passed (`artifacts/threshold-target-build.log`). Native compact demo: grabbed the Claude current-session info marker 12 points right of its center (outside the old 9-point half-width, inside the new 16-point half-width), dragged 50 points right, and verified the threshold changed from 50% to 39%. Evidence: `artifacts/threshold-expanded-target-drag.jpg` plus AX values. No live accounts changed. Exact focus/tooltip rendering remains open.
