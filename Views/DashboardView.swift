@@ -147,15 +147,23 @@ struct AccountCard: View {
                     .accessibilityLabel("Reorder \(store.state.settings.privacy ? "Account" : account.nickname)")
                 Rectangle().fill(Theme.border).frame(width: 1).padding(.vertical, 14)
             }
-            let layout = wide ? AnyLayout(HStackLayout(spacing: 12)) : AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
-            layout {
-                identity.frame(width: wide ? 220 : nil, alignment: .leading)
-                VStack(spacing: 4) {
-                    if account.enabled, let snapshot, snapshot.belongs(to: account), !snapshot.windows.isEmpty {
-                        ForEach(snapshot.windows) { window in QuotaRow(account: account, window: window, snapshot: snapshot, wide: wide) }
-                    } else { Text(!account.enabled ? "Monitoring Disabled" : snapshot?.message ?? "Waiting for Usage Data").foregroundStyle(Theme.secondary).frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 16) }
-                }
-            }.padding(.leading, 20).padding(.trailing, 16).padding(.vertical, 8)
+            if hasQuotaDetails {
+                let layout = wide ? AnyLayout(HStackLayout(spacing: 12)) : AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+                layout {
+                    identity.frame(width: wide ? 220 : nil, alignment: .leading)
+                    VStack(spacing: 4) {
+                        if let snapshot {
+                            ForEach(snapshot.windows) { window in QuotaRow(account: account, window: window, snapshot: snapshot, wide: wide) }
+                        }
+                    }
+                }.padding(.leading, 20).padding(.trailing, 16).padding(.vertical, 8)
+            } else {
+                Button { store.selectedAccount = account } label: {
+                    DialogActionLabel(title: accountStatus)
+                        .frame(maxWidth: .infinity, minHeight: 50)
+                        .padding(.vertical, 10)
+                }.buttonStyle(ScroogeButtonStyle())
+            }
             Button { store.selectedAccount = account } label: { ActionIcon(symbol: "gearshape", size: 20).frame(width: 44, height: 44) }.buttonStyle(ScroogeButtonStyle(segmented: true)).clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border)).modifier(ImmediateReferenceTooltip(text: "Manage \(store.state.settings.privacy ? "Account" : account.nickname)"))
                 .padding(.top, 14).padding(.trailing, 12).frame(maxHeight: .infinity, alignment: .top)
         }.background(Theme.card)
@@ -165,6 +173,12 @@ struct AccountCard: View {
                     AccountUsageDetailsView(accountID: account.id, windowID: snapshot?.windows.first?.id)
                 }
             }
+    }
+    private var accountStatus: String {
+        let name = store.state.settings.privacy ? "Account" : account.nickname
+        let status = !account.enabled ? "Monitoring disabled" :
+            (snapshot?.belongs(to: account) == true ? snapshot?.message : nil) ?? "Waiting for usage data"
+        return "\(account.provider.rawValue) / \(name) · \(status) · Manage account"
     }
     private var identity: some View {
         Button {
