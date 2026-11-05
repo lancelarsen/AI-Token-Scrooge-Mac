@@ -5,8 +5,12 @@ import SwiftUI
 /// Use the reference face for both rendering and tooltip measurements.
 enum ReferenceTypography {
     private static let registered: Bool = {
-        guard let url = Bundle.main.url(forResource: "SegoeUI", withExtension: "ttf") else { return false }
-        return CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
+        var loaded = true
+        for resource in ["SegoeUI", "SegoeUI-Semibold"] {
+            guard let url = Bundle.main.url(forResource: resource, withExtension: "ttf") else { loaded = false; continue }
+            loaded = CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil) && loaded
+        }
+        return loaded
     }()
 
     private static let iconsRegistered: Bool = {
@@ -21,18 +25,18 @@ enum ReferenceTypography {
 
     static func measuringFont(ofSize size: CGFloat, weight: NSFont.Weight = .regular) -> NSFont {
         _ = registered
-        if weight == .semibold, let font = NSFont(name: "SegoeUI-Semibold", size: size) { return font }
+        if weight == .semibold, let font = NSFont(name: "SegoeUI-SemiBold", size: size) { return font }
         guard let font = NSFont(name: "SegoeUI", size: size) else {
             return .systemFont(ofSize: size, weight: weight)
         }
-        // A dedicated Semibold face can replace this synthesized weight when available.
+        // Preserve a fallback if a packaged font is unavailable.
         return weight >= .semibold ? NSFontManager.shared.convert(font, toHaveTrait: .boldFontMask) : font
     }
 
     static func font(size: CGFloat, weight: Font.Weight) -> Font {
         _ = registered
-        if weight == .semibold, NSFont(name: "SegoeUI-Semibold", size: size) != nil {
-            return .custom("SegoeUI-Semibold", fixedSize: size)
+        if weight == .semibold, NSFont(name: "SegoeUI-SemiBold", size: size) != nil {
+            return .custom("SegoeUI-SemiBold", fixedSize: size)
         }
         guard NSFont(name: "SegoeUI", size: size) != nil else { return .system(size: size, weight: weight) }
         return .custom("SegoeUI", fixedSize: size).weight(weight)

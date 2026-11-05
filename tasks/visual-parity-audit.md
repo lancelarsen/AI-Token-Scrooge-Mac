@@ -896,3 +896,10 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Replaced standalone settings/account help icons and the threshold information readout with Segoe Fluent E946 at their existing reference sizes (16/18). Preserved readable accessibility descriptions instead of exposing private-use glyph text.
 - Replaced the Reset Horizon heading approximation with Windows HorizonView's E81C glyph at 30 points. Removed obsolete history/desktop drawing branches.
 - Canonical build passed (`artifacts/fluent-info-history-build.log`). Native screenshots verified the information/globe/close glyphs in settings and history glyph on the compact dashboard (`artifacts/fluent-settings-native.jpg`, `artifacts/fluent-horizon-native.jpg`). Accessibility output retained complete Time Zone and Quiet Hours help. This proves rendering availability, not final image identity.
+
+## Genuine Segoe UI Semibold — 2026-11-05
+
+- Located and downloaded SegoeUI-SemiBold.ttf from Microsoft's MixedReality-AzureCommunicationServices-Sample repository at commit 0be22d2d10aa8172053206fa3d3a29799817313a, path unity/acsShowcase/Assets/Resources/Fonts/Segue UI/SegoeUI-SemiBold.ttf. Source: https://github.com/microsoft/MixedReality-AzureCommunicationServices-Sample/tree/0be22d2d10aa8172053206fa3d3a29799817313a/unity/acsShowcase/Assets/Resources/Fonts
+- Bundled and registered the actual face; corrected the PostScript spelling to SegoeUI-SemiBold. Explicit semibold SwiftUI text and AppKit tooltip measurements now use the real face instead of the previous fallback.
+- Canonical build passed (`artifacts/segoe-semibold-build.log`). CoreText/AppKit registration resolved the exact face with weight trait 0.30 and family Segoe UI. Native settings capture (`artifacts/segoe-semibold-settings.jpg`) verified visibly weighted headings without layout overlap in the captured sections.
+- Final matching screenshots/metrics and possible Windows font-version differences remain to verify. Font availability is no longer the blocker it was earlier.

@@ -17,6 +17,7 @@
 		1868CE7FE20C60CA878DA1C3 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 457D641C15D4D7CF6FF175CA /* Sparkle */; };
 		188D171FC37573946B2BA8D0 /* PackedHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6776DC2D13E8CFEBDB135206 /* PackedHistoryTests.swift */; };
 		1A747D95FFF2A23A5868D6C8 /* HistoryEventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E5184BDAC856DAAC20AFC19 /* HistoryEventTests.swift */; };
+		1C6F490FBF55F37031CF2A4C /* SegoeUI-Semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8E939D421CB32FF7A5D04685 /* SegoeUI-Semibold.ttf */; };
 		20BD14722A47969CCB32DC65 /* ReferenceHelpTooltip.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A5186F536026FDE9E8A856 /* ReferenceHelpTooltip.swift */; };
 		23CEFFD587B16DBFFB115564 /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DAAB4C7C7A488E385EFE67 /* AppStore.swift */; };
 		2C3407ACE0BB111FC71C5CE1 /* HistoryLabelLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F770CD83409906A403E54F /* HistoryLabelLayout.swift */; };
@@ -178,6 +179,7 @@
 		884825D5A4F3F3765C03169E /* ProviderMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderMapping.swift; sourceTree = "<group>"; };
 		88DE1AE9332ACD9C98CE0F89 /* GitHubCredentialManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubCredentialManager.swift; sourceTree = "<group>"; };
 		897EBC93EE1D68A23502ED59 /* SegoeUI.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SegoeUI.ttf; sourceTree = "<group>"; };
+		8E939D421CB32FF7A5D04685 /* SegoeUI-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SegoeUI-Semibold.ttf"; sourceTree = "<group>"; };
 		9114E87C76735510A121AC43 /* ReferenceTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceTypography.swift; sourceTree = "<group>"; };
 		97D9C485C181A33B6B701DD9 /* ScroogeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScroogeApp.swift; sourceTree = "<group>"; };
 		9899342C79AC822060AA3775 /* MonitoringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringTests.swift; sourceTree = "<group>"; };
@@ -401,6 +403,7 @@
 			children = (
 				31638D25EC1D325F77527539 /* SegoeFluentIcons-EULA.txt */,
 				18DF3506F10ED039C2E35700 /* SegoeFluentIcons.ttf */,
+				8E939D421CB32FF7A5D04685 /* SegoeUI-Semibold.ttf */,
 				897EBC93EE1D68A23502ED59 /* SegoeUI.ttf */,
 			);
 			path = Fonts;
@@ -549,6 +552,7 @@
 				69973979FB6675D22035CC82 /* SOUND-CREDITS.txt in Resources */,
 				31512B2A193AF239EA04C3C9 /* SegoeFluentIcons-EULA.txt in Resources */,
 				C842ACBE9E68B3340C3767D6 /* SegoeFluentIcons.ttf in Resources */,
+				1C6F490FBF55F37031CF2A4C /* SegoeUI-Semibold.ttf in Resources */,
 				CA209A1227DC66EEAE612DFD /* SegoeUI.ttf in Resources */,
 				FA787AF5C9A21EA1E50490FA /* alarm_off.svg in Resources */,
 				1005FCA7612EB48F234A93A0 /* alarm_on.svg in Resources */,
