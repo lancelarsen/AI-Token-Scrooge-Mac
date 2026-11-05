@@ -39,6 +39,23 @@ final class HorizonPerformanceTests: XCTestCase {
         motion.enqueue(.infinity)
         XCTAssertEqual(motion.remaining, 0)
     }
+    func testBoundedHistorySearchPreservesInclusiveTiesWithoutFullScan() {
+        let points = (0..<50_000).map { index in
+            HistoryPoint(at: Date(timeIntervalSince1970: Double(index / 2)), remaining: 50,
+                         windowID: "weekly", startsSegment: false, estimated: false, replenishedFrom: nil)
+        }
+        var projections = 0
+        let selected = UsageHistory.pointsWithin(points, left: 12_000, right: 12_002) {
+            projections += 1
+            return $0.timeIntervalSince1970
+        }
+        XCTAssertEqual(Array(selected), Array(points[24_000..<24_006]))
+        XCTAssertLessThan(projections, 40)
+        XCTAssertTrue(UsageHistory.pointsWithin(points, left: -2, right: -1, project: { $0.timeIntervalSince1970 }).isEmpty)
+        XCTAssertTrue(UsageHistory.pointsWithin(points, left: 2, right: 1, project: { $0.timeIntervalSince1970 }).isEmpty)
+        XCTAssertEqual(UsageHistory.pointsWithin(points, left: 24_999, right: 30_000, project: { $0.timeIntervalSince1970 }).count, 2)
+    }
+
     func testShortHistorySurvivesDisabledViewportAndBoundsNavigation() {
         let now = Date(timeIntervalSince1970: 1793732400)
         let demo = DemoData.make(now: now)

@@ -15,9 +15,33 @@ struct UsageHistorySeries: Sendable {
     var status: String?
 }
 enum UsageHistory {
+    /// Inclusive projected interval in timestamp-sorted observations. Binary bounds
+    /// avoid scanning the full retained history on every hover or redraw.
+    static func pointsWithin(_ points: [HistoryPoint], left: Double, right: Double,
+                             project: (Date) -> Double) -> ArraySlice<HistoryPoint> {
+        guard left <= right else { return points[0..<0] }
+        var low = 0, high = points.count
+        while low < high {
+            let middle = low + (high - low) / 2
+            if project(points[middle].at) < left { low = middle + 1 } else { high = middle }
+        }
+        let start = low
+        high = points.count
+        while low < high {
+            let middle = low + (high - low) / 2
+            if project(points[middle].at) <= right { low = middle + 1 } else { high = middle }
+        }
+        return points[start..<low]
+    }
+
     static func estimatedPoint(points: [HistoryPoint], x: Double, y: Double, viewport: HorizonViewport, plotTop: Double = 95, plotHeight: Double = 200) -> HistoryPoint? {
-        guard let index = points.firstIndex(where: { viewport.position(at: $0.at) >= x }), index > 0 else { return nil }
-        let after = points[index], before = points[index - 1]
+        var low = 0, high = points.count
+        while low < high {
+            let middle = low + (high - low) / 2
+            if viewport.position(at: points[middle].at) < x { low = middle + 1 } else { high = middle }
+        }
+        guard low > 0, low < points.count else { return nil }
+        let after = points[low], before = points[low - 1]
         guard after.estimated, !after.startsSegment else { return nil }
         let startX = viewport.position(at: before.at), endX = viewport.position(at: after.at)
         guard endX > startX, x >= startX else { return nil }

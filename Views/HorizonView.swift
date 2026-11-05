@@ -402,8 +402,8 @@ struct HorizonView: View {
         guard store.state.settings.historyEnabled else { return }
         var samples: [(ProviderAccount, HistoryPoint)] = []
         for series in historySeries {
-            for point in series.points where point.at >= viewport.visibleStart &&
-                viewport.position(at: point.at) <= viewport.scrollOffset + viewport.viewportWidth {
+            for point in UsageHistory.pointsWithin(series.points, left: viewport.scrollOffset,
+                                                   right: viewport.scrollOffset + viewport.viewportWidth, project: historyX) {
                 samples.append((series.account, point))
             }
         }
@@ -430,7 +430,7 @@ struct HorizonView: View {
             let y = plotTop + NSDecimalNumber(decimal: point.remaining).doubleValue / 100 * plotHeight
             return abs(x - location.x) + abs(y - location.y) * 0.45
         }
-        let nearest = historySeries.flatMap { series in series.points.filter { abs(historyX($0.at) - location.x) <= 18 }.map { (series.account, $0) } }
+        let nearest = historySeries.flatMap { series in UsageHistory.pointsWithin(series.points, left: location.x - 18, right: location.x + 18, project: historyX).map { (series.account, $0) } }
             .min { distance($0.1) < distance($1.1) }
         let estimate = nearest == nil ? historySeries.compactMap { series in
             UsageHistory.estimatedPoint(points: series.points, x: location.x, y: location.y, viewport: viewport, plotTop: plotTop, plotHeight: plotHeight).map { (series.account, $0) }
@@ -595,7 +595,7 @@ struct HorizonView: View {
             context.stroke(currentTime, with: .color(Theme.actionAccent), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
         }
         let latest = historySeries.compactMap { series -> (UsageHistorySeries, HistoryPoint)? in
-            guard let point = series.points.last(where: { historyX($0.at) >= viewport.scrollOffset && historyX($0.at) <= viewport.scrollOffset + viewport.viewportWidth }) else { return nil }
+            guard let point = UsageHistory.pointsWithin(series.points, left: viewport.scrollOffset, right: viewport.scrollOffset + viewport.viewportWidth, project: historyX).last else { return nil }
             return (series, point)
         }.sorted { $0.1.remaining < $1.1.remaining }
         let desired = latest.map { plotTop + NSDecimalNumber(decimal: $0.1.remaining).doubleValue / 100 * chartHeight - 10 }
