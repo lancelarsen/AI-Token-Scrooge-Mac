@@ -304,23 +304,6 @@ struct HorizonView: View {
             .onKeyPress(.space) { inspectSample(direction: 0); return .handled }
             .onKeyPress(.escape) { clearHistorySample(); return .handled }
 
-            Group {
-                ForEach(HistoricalEventMarker.layout(events: historicalEvents, viewport: viewport, now: now)) { marker in
-                    Button { selectedHistoricalMarker = marker } label: {
-                        Group {
-                            if marker.events.count > 1 {
-                                Text(String(marker.events.count)).font(.reference(size: 14, weight: .semibold))
-                            } else {
-                                Text(marker.expiration ? "\u{E823}" : "\u{E72C}")
-                                    .font(ReferenceTypography.iconFont(size: 14))
-                            }
-                        }.foregroundStyle(Theme.control)
-                            .frame(width: 22, height: 22).background(marker.expiration ? Theme.amber : Color(hex: "#B99AF8")).clipShape(Circle())
-                    }.buttonStyle(.plain)
-                        .modifier(ImmediateReferenceTooltip(text: historicalTooltip(marker)))
-                        .position(x: marker.x, y: Double(56 + marker.lane * 24))
-                }
-            }
             ForEach(days.filter { $0 <= calendar.startOfDay(for: viewport.lastEventAt) }, id: \.self) { date in
                 let dayEvents = events.filter { calendar.isDate($0.date, inSameDayAs: date) }
                 VStack(spacing: 7) {
@@ -367,6 +350,24 @@ struct HorizonView: View {
                     }.buttonStyle(.plain)
                         .modifier(ImmediateReferenceTooltip(text: eventTooltip(event)))
                         .position(x: viewport.dayAnchor(date), y: CGFloat(114 + index * 76))
+                }
+            }
+            // Match Windows: historical markers paint over the day dots and rail.
+            Group {
+                ForEach(HistoricalEventMarker.layout(events: historicalEvents, viewport: viewport, now: now)) { marker in
+                    Button { selectedHistoricalMarker = marker } label: {
+                        Group {
+                            if marker.events.count > 1 {
+                                Text(String(marker.events.count)).font(.reference(size: 14, weight: .semibold))
+                            } else {
+                                Text(marker.expiration ? "\u{E823}" : "\u{E72C}")
+                                    .font(ReferenceTypography.iconFont(size: 14))
+                            }
+                        }.foregroundStyle(Theme.control)
+                            .frame(width: 22, height: 22).background(marker.expiration ? Theme.amber : Color(hex: "#B99AF8")).clipShape(Circle())
+                    }.buttonStyle(.plain)
+                        .modifier(ImmediateReferenceTooltip(text: historicalTooltip(marker)))
+                        .position(x: marker.x, y: Double(56 + marker.lane * 24))
                 }
             }
         }.contentShape(Rectangle())

@@ -1038,3 +1038,9 @@ Canonical build passed (`artifacts/timeline-final-date-build.log`). Relaunched t
 Matched Windows HistoryTimelineView's single historical marker glyphs: Segoe Fluent U+E823 for expiration and U+E72C for refresh, both 14 points. Replaced the SF hourglass/refresh symbols. Multi-event counts remain Segoe UI Semibold 14; existing 22-point circle dimensions and foreground/background colors already match the source.
 
 Canonical build passed (`artifacts/historical-marker-glyphs-build.log`). Relaunched demo and moved the navigator back five days through its native accessibility action. Capture `artifacts/historical-marker-glyphs.jpg` visibly shows the amber clock and lavender refresh glyphs. The capture also exposes hollow day dots painting over some historical markers; Windows paints historical markers after day dots, so draw-order parity needs a follow-up. No full-image identity claim.
+
+### Historical Marker Layer Order — 2026-11-05
+
+Moved the historical marker views after the day-heading/dot/future-event loop in the timeline ZStack, matching Windows' historical-marker-over-day-dot paint order. Previously the hollow day dot could cover part of a nearby historical refresh icon.
+
+Canonical build passed (`artifacts/historical-marker-layer-build.log`). Relaunched the fixed-date wide demo and moved the navigator five days back. Capture `artifacts/historical-marker-layer-fixed.jpg` shows Oct 30, Nov 1 and Nov 2 refresh glyphs unobscured, unlike the prior capture at the same viewport. Clicking the Nov 1 marker opened the correct History Event sheet for Claude / Personal · Pro, Quota Refresh Sun Nov 1 10:11 AM; closed it afterward. Remaining full-image and other interaction gaps are unchanged.
