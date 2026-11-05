@@ -8,6 +8,7 @@ struct UsageBar: View {
     let details: () -> Void
     @State private var editing: AlertThresholds?
     @State private var editingSeverity: ReminderSeverity?
+    @State private var dragStartPosition: Double?
     @State private var hoveredSeverity: ReminderSeverity?
     private var readoutSeverity: ReminderSeverity? { alertsEnabled ? editingSeverity ?? hoveredSeverity ?? focusedThreshold : nil }
     @FocusState private var focusedThreshold: ReminderSeverity?
@@ -39,17 +40,24 @@ struct UsageBar: View {
                             return .handled
                         }
                         .onKeyPress(.escape) {
-                            editing = nil; editingSeverity = nil; hoveredSeverity = nil; focusedThreshold = nil
+                            editing = nil; editingSeverity = nil; dragStartPosition = nil; hoveredSeverity = nil; focusedThreshold = nil
                             return .handled
                         }
                         .position(x: 8 + (1 - NSDecimalNumber(decimal: value).doubleValue / 100) * markerSpan, y: 24)
                         .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .named("usageBar")).onChanged { drag in
                             guard markerSpan > 0 else { return }
+                            if dragStartPosition == nil {
+                                dragStartPosition = (1 - NSDecimalNumber(decimal: self.value(level, thresholds)).doubleValue / 100) * markerSpan
+                            }
                             var next = editing ?? thresholds
-                            next.move(level, to: Decimal(min(100, max(0, (1 - (drag.location.x - 8) / markerSpan) * 100))))
+                            let position = (dragStartPosition ?? 0) + drag.translation.width
+                            next.move(level, to: Decimal(min(100, max(0, (1 - position / markerSpan) * 100))))
                             editingSeverity = level
                             editing = next
-                        }.onEnded { _ in if let editing { changed(editing) }; editing = nil; editingSeverity = nil })
+                        }.onEnded { _ in
+                            if let editing, editing != thresholds { changed(editing) }
+                            editing = nil; editingSeverity = nil; dragStartPosition = nil
+                        })
                         .onHover { hoveredSeverity = $0 ? level : (hoveredSeverity == level ? nil : hoveredSeverity) }
                         .accessibilityLabel("\(level.rawValue) Alert Threshold")
                         .accessibilityValue(Format.percent(value))
@@ -79,7 +87,7 @@ struct UsageBar: View {
                     if editing == nil { hoveredSeverity = nil; focusedThreshold = nil }
                 }
                 .onChange(of: alertsEnabled) { _, enabled in
-                    if !enabled { editing = nil; editingSeverity = nil; hoveredSeverity = nil; focusedThreshold = nil }
+                    if !enabled { editing = nil; editingSeverity = nil; dragStartPosition = nil; hoveredSeverity = nil; focusedThreshold = nil }
                 }
         }.frame(height: 48)
     }

@@ -513,3 +513,8 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 
 - Compared QuotaRowView, AccountQuotaView, UsageBar and Windows ThresholdEditor. Row spacing and nominal text sizes match source; threshold positions did not. Applied Windows eight-point endpoint inset and width-minus-sixteen span consistently to marker placement, drag-to-percent conversion and readout anchors.
 - Canonical build passed (`artifacts/threshold-inset-build.log`) and diff checks passed. Native compact account screenshot confirms markers remain aligned within both bars, with labels and controls intact. Pointer endpoint dragging is not yet verified; font shapes/widths and card positioning still differ from reference 27.
+
+### Threshold drag grab-offset behavior
+
+- Windows starts each drag from the marker position and accumulates pointer movement. Mac previously mapped absolute pointer position directly, which could jump when grabbing off center. Updated Mac to preserve the initial marker position and apply gesture translation; readout and inset geometry remain shared. Unchanged clicks no longer persist a threshold update.
+- Canonical build passed (`artifacts/threshold-grab-offset-build.log`), diff checks passed. Native compact demo pointer check: clicking near the Info marker edge retained 50%; dragging 47 Retina pixels right changed it to 45%, consistent with a 23.5-point movement over the 472-point span. No usage dialog opened. Full screenshot parity remains incomplete.
