@@ -597,3 +597,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Native advanced GitHub capture confirms token and organization fields, browser-mode action, Connect and Cancel controls. Native Claude capture confirms complete two-line description including the 2.1.310 requirement, nickname, sign-in and Cancel. Compared Claude reference 25 and ConnectClaudePage; description and nominal spacing match, font metrics and panel chrome still differ. No sign-in was performed.
 - Matched Windows ConfigureGitHubForm organization reconnect condition: an organization billing reconnect stays in token mode and omits the browser-mode switch. Description and width use token mode immediately rather than waiting for onAppear.
 - Canonical build passed (`artifacts/organization-reconnect-layout-build.log`) and diff checks passed. Organization reconnect branch is source-verified; no real organization connection was used to render it. Full screenshot parity remains incomplete.
+
+### Quota details field and status parity
+
+- Compared Windows OpenDetailsAsync/QuotaRow.SourceNote and reference 13. Removed extra Mac-only numeric Used/Allowance rows from nonpercent quota popups. Missing values now use Usage unavailable / Left unavailable, matching dashboard and Windows.
+- Popup source note now follows Windows rules: Demo data, health plus provider message, provider-paused state, reported message, or manual-allowance note. Previously several of these states were omitted. Privacy masking remains in place.
+- Canonical build passed (`artifacts/quota-details-content-build.log`) and diff checks passed. Native isolated unknown demo popup confirmed the exact unavailable labels alongside reset/account/fetch/source details. Other status branches and nonpercent popup appearance are source-verified pending runtime captures.

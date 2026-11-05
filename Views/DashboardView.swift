@@ -295,13 +295,20 @@ struct QuotaDetailsView: View {
     let account: ProviderAccount
     let window: QuotaWindow
     let snapshot: QuotaSnapshot
+    private var sourceNote: String {
+        if snapshot.health == .demo { return "Demo data" }
+        if snapshot.health != .healthy {
+            let status = snapshot.health.rawValue
+            return "\(status.prefix(1).uppercased() + status.dropFirst()): \(snapshot.message ?? "")"
+        }
+        if snapshot.usageAllowed == false { return "Provider reports usage is paused" }
+        return snapshot.message ?? (window.allowanceSource == .manual ? "User-entered allowance · Billing data may lag" : "")
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))").font(.system(size: 21, weight: .semibold)).foregroundStyle(Theme.accent).frame(minHeight: 32, alignment: .leading)
             Text(window.name).frame(minHeight: 19, alignment: .leading)
-            Text("\(Format.percent(window.usedPercent)) used · \(Format.percent(window.remainingPercent)) left").frame(minHeight: 19, alignment: .leading)
-            if let used = window.used, window.unit != .percent { DetailLine(label: "Used", value: "\(NSDecimalNumber(decimal: used).stringValue) \(window.unit.rawValue)") }
-            if let limit = window.limit, window.unit != .percent { DetailLine(label: "Allowance", value: "\(NSDecimalNumber(decimal: limit).stringValue) · \(window.allowanceSource.rawValue.capitalized)") }
+            Text("\(window.usedPercent.map { "\(Format.percent($0)) used" } ?? "Usage unavailable") · \(window.remainingPercent.map { "\(Format.percent($0)) left" } ?? "Left unavailable")").frame(minHeight: 19, alignment: .leading)
             DetailLine(label: "Resets", value: Format.detailDate(window.resetsAt, zone: store.state.settings.zone))
             Color.clear.frame(height: 6)
             if !store.state.settings.privacy {
@@ -311,12 +318,9 @@ struct QuotaDetailsView: View {
             DetailLine(label: "Last successful fetch", value: Format.detailDate(snapshot.observedAt, zone: store.state.settings.zone))
                 .lineLimit(1).minimumScaleFactor(0.9)
             DetailLine(label: "Provider data as of", value: Format.detailDate(snapshot.providerDataAt, zone: store.state.settings.zone))
-            if snapshot.health == .demo {
+            if !sourceNote.isEmpty {
                 Color.clear.frame(height: 6)
-                Text("Demo data").frame(minHeight: 19, alignment: .leading)
-            } else if let message = snapshot.message, !message.isEmpty {
-                Color.clear.frame(height: 6)
-                Text(message).foregroundStyle(Theme.dialogText)
+                Text(sourceNote).foregroundStyle(Theme.dialogText).frame(minHeight: 19, alignment: .leading)
             }
             if !store.isDemo, let url = account.usageURL {
                 Text("Provider pages use your browser’s sign-in. Check its account and workspace before comparing.").font(.caption).foregroundStyle(Theme.dialogText)
