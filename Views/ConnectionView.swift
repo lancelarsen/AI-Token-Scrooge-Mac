@@ -88,7 +88,7 @@ struct ConnectionView: View {
                 .frame(minHeight: 35, alignment: .topLeading)
             Text(connectionDescription).font(.reference(size: 14)).foregroundStyle(Theme.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            TextField("Account nickname (Personal, Work…)", text: $nickname).modifier(ConnectionFieldStyle())
+            TextField("Account nickname (Personal, Work…)", text: $nickname, prompt: Text("Account nickname (Personal, Work…)").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle())
             if provider == .codex {
                 CodexConnectView(nickname: nickname, original: store.state.accounts.first { $0.id == store.reconnectAccountID })
             } else if provider == .copilot {
@@ -106,7 +106,7 @@ struct ConnectionView: View {
                 }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
                     .accessibilityLabel("Billing Unit").accessibilityValue(unit == .credits ? "AI credits" : "Legacy premium requests")
                     .disabled(store.reconnectAccountID != nil)
-                TextField("Fallback allowance (optional; detected automatically when available)", text: $allowance).modifier(ConnectionFieldStyle())
+                TextField("Fallback allowance (optional; detected automatically when available)", text: $allowance, prompt: Text("Fallback allowance (optional; detected automatically when available)").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle())
                 if !organizationReconnect {
                 Button { token = ""; error = nil; advanced.toggle() } label: {
                     DialogActionLabel(title: advanced ? "Use browser sign-in instead" : "Use an access token instead")
@@ -114,8 +114,8 @@ struct ConnectionView: View {
                 }.buttonStyle(ScroogeButtonStyle()).disabled(connecting)
                 }
                 if !advanced && !organizationReconnect { GitHubConnectView(nickname: nickname, unit: $unit, allowance: $allowance) } else {
-                SecureField("Fine-grained personal access token", text: $token).modifier(ConnectionFieldStyle())
-                TextField("Organization billing owner (optional)", text: $organization).modifier(ConnectionFieldStyle())
+                SecureField("Fine-grained personal access token", text: $token, prompt: Text("Fine-grained personal access token").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle())
+                TextField("Organization billing owner (optional)", text: $organization, prompt: Text("Organization billing owner (optional)").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle())
                     .disabled(store.reconnectAccountID != nil)
                 ConnectionStatusLine(text: error ?? "")
                 Button {

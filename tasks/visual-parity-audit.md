@@ -1342,3 +1342,9 @@ Canonical build passes (artifacts/settings-native-font-build.log), as does diff 
 Used downloaded Preview272 (45b2364) in its isolated demo. Opened Personal OpenAI Account Settings → Add Custom Line Color. Entered #123456 by keyboard in Hex Color and pressed Tab: selected-color value becomes #123456 and RGB fields become18/52/86. Add Color inserts the swatch; reopening the editor initializes with #123456. Replaced the draft with #FFFFFF and pressed Escape: no white swatch was added, and reopening still initializes #123456. Closed both panels. No live account or underlying non-demo settings were changed.
 
 This verifies keyboard hex input, RGB synchronization, accepted selection and cancellation preservation in the published binary. Named-color tooltips, full keyboard traversal and exact spectrum pixels remain open; no source change or new build was needed.
+
+### Connection Placeholder Contrast — 2026-11-05
+
+Windows App.xaml explicitly sets Entry.PlaceholderColor to #B6B8C8. Mac TextField/SecureField prompts previously inherited the system placeholder color. Added explicit reference-colored prompts for nickname, fallback allowance, personal token and organization fields, retaining their labels, secure input, bindings, native text face and dimensions.
+
+Canonical build and diff checks pass (artifacts/connection-placeholder-color-build.log). This pass verifies source color and compilation; a fresh rendered color comparison remains open. No behavioral tests were added for this presentation-only change. Relaunched the Debug demo.
