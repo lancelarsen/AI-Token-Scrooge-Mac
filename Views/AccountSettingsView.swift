@@ -240,7 +240,7 @@ private struct InlineLineColorEditor: View {
     @State private var brightnessPressed = false
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 0) {
             HStack(spacing: 12) {
                 GeometryReader { geometry in
                     ZStack {
@@ -279,7 +279,7 @@ private struct InlineLineColorEditor: View {
                 }.frame(height: 256)
                 RoundedRectangle(cornerRadius: 8).fill(color).frame(width: 44, height: 256)
                     .accessibilityLabel("Selected Color").accessibilityValue(color.hex)
-            }
+            }.padding(.bottom, 16)
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     Capsule().fill(LinearGradient(colors: [.black, Color(hue: hue, saturation: saturation, brightness: 1)], startPoint: .leading, endPoint: .trailing)).frame(height: 12)
@@ -313,7 +313,7 @@ private struct InlineLineColorEditor: View {
                         brightness = min(1, max(0, brightness + (direction == .increment ? 0.01 : -0.01)))
                         publish()
                     }
-            }.frame(height: 32)
+            }.frame(height: 32).padding(.bottom, 6)
             HStack {
                 Menu {
                     Picker("Color Model", selection: $mode) { Text("RGB").tag("RGB"); Text("HSV").tag("HSV") }.pickerStyle(.inline)
@@ -338,16 +338,19 @@ private struct InlineLineColorEditor: View {
                             color = nextColor; loadComponents(nextColor)
                         }
                     }.modifier(ColorEntryStyle()).frame(width: 132)
-            }
-            ForEach(0..<3) { index in
-                HStack(spacing: 8) {
-                    TextField(channelName(index), value: channel(index), format: .number)
-                        .modifier(ColorEntryStyle()).frame(width: 120)
-                    Text(channelName(index)).font(.system(size: 12))
-                    Spacer()
+            }.padding(.bottom, 12)
+            VStack(spacing: 12) {
+                ForEach(0..<3) { index in
+                    HStack(spacing: 8) {
+                        TextField(channelName(index), value: channel(index), format: .number)
+                            .modifier(ColorEntryStyle()).frame(width: 120)
+                        Text(channelName(index)).font(.system(size: 12))
+                        Spacer()
+                    }
                 }
             }
         }.textFieldStyle(.plain).font(.system(size: 13))
+            .padding(.vertical, 4)
             .onAppear { loadComponents(); hexDraft = color.hex }
     }
     private func channelName(_ index: Int) -> String {

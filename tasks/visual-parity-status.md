@@ -24,7 +24,7 @@ Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluen
 | 12-demo-all-capacity-levels.png | 1463 × 866 | Scenario fixtures available; equivalent capacity-level capture needed. |
 | 13-usage-details.png | 1463 × 866 | Standard weekly popup recaptured with 22-point title and complete timestamps; unknown checked earlier; nonpercent comparison and exact body metrics remain open. |
 | 14-account-settings.png | 1463 × 866 | Wide and compact panel frames captured; shared lavender scrollbar and bottom connection actions checked; vertical text metrics still differ. |
-| 15-custom-color-chooser.png | 1463 × 866 | Picker captured; footer and synchronization checked; contrast-aware 16-point ring, keyboard-only focus ring and pointer/keyboard updates verified; ordinary brightness arrows/clamping and spectrum boundary wrapping checked; exact spectrum pixels, named-color keyboard/tooltip and fonts remain open. |
+| 15-custom-color-chooser.png | 1463 × 866 | Picker captured; footer and synchronization checked; contrast-aware 16-point ring, keyboard-only focus ring and pointer/keyboard updates verified; template spacing corrected; ordinary brightness arrows/clamping and spectrum boundary wrapping checked; exact spectrum pixels, named-color keyboard/tooltip and fonts remain open. |
 | 16-custom-color-added.png | 1463 × 866 | Orange custom swatch added and retained after reopening; exact comparison pending. |
 | 17-polling-snapped.png | 1463 × 866 | Wide off-center grab, snapped drag, keyboard, both endpoints and localized focus checked; exact rendered comparison remains. |
 | 18-account-connection-actions.png | 1463 × 866 | Connection section source-reviewed; matching capture needed. |
