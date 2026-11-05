@@ -50,8 +50,8 @@ struct SettingsView: View {
                                 Spacer()
                                 Image(systemName: "chevron.down").accessibilityHidden(true).font(.reference(size: 10)).foregroundStyle(Theme.secondary)
                             }.font(.reference(size: 13)).padding(.horizontal, 12).frame(height: 32)
-                                .background(Theme.control, in: RoundedRectangle(cornerRadius: 8))
-                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.border))
+                                .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
+                                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
                         }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
                             .accessibilityLabel("Time Zone").accessibilityValue(Format.timeZoneName(store.state.settings.zone))
                     }
@@ -69,8 +69,8 @@ struct SettingsView: View {
                                 Spacer()
                                 Image(systemName: "chevron.down").accessibilityHidden(true).font(.reference(size: 10)).foregroundStyle(Theme.secondary)
                             }.padding(.horizontal, 12).frame(height: 32)
-                                .background(Theme.control, in: RoundedRectangle(cornerRadius: 8))
-                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.border))
+                                .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
+                                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
                         }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
                             .accessibilityLabel("Keep History and Alerts").accessibilityValue("\(store.state.settings.historyRetentionDays) Days")
                     }

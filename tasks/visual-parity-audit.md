@@ -1366,3 +1366,9 @@ Opened the extracted app with --demo --compact and a fresh isolated data directo
 Inspected the previously unrecaptured native-control font changes in downloaded Preview276 at27834c8. In the compact741×630-point Settings sheet, Duck Sounds and Classic Chimes fit fully; severity names Info/Warning/Critical, reminder amounts including12, and Days/Hours fit their controls without text clipping. Scrolled both earned-reset and quota-refresh lists through their lower rows and Add Reminder buttons. Closed with Escape without editing values or playing audio.
 
 Captures: artifacts/preview-276-sound-fonts.jpg, preview-276-reminder-fonts.jpg, preview-276-refresh-reminder-fonts.jpg. Compared the reminder structure against reference05; this establishes current rendered text fit, not exact border, glyph or pixel parity with the wide Windows reference. No application changes or additional build required; published archive validation from the preceding check still applies.
+
+### Settings Picker Corner Parity — 2026-11-05
+
+Windows Platforms/Windows/App.xaml explicitly sets ControlCornerRadius to10. Reminder controls already used10; the Time Zone and history-retention picker backgrounds/outlines still used8. Corrected both to10 without changing dimensions, text or behavior.
+
+Canonical Debug build succeeds (artifacts/settings-picker-radius-build.log); native compact Settings shows complete Central Time and90 Days selections with the updated outlines (artifacts/settings-picker-radius-current.jpg). Closed with Escape without changing settings. Diff checks pass; no behavioral tests added for this shape-only change. Preview276 predates this correction; repeat final archive verification after application changes settle.
