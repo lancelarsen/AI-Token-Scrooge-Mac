@@ -79,8 +79,8 @@ struct ConnectionView: View {
         VStack(alignment: .leading, spacing: 18) {
             Text("Connect \(provider == .codex ? "OpenAI Codex" : provider.rawValue)").font(.system(size: 26, weight: .semibold))
                 .frame(minHeight: 35, alignment: .topLeading)
-            Text(connectionDescription).font(.system(size: 13.5)).foregroundStyle(Theme.secondary)
-                .lineSpacing(3).fixedSize(horizontal: false, vertical: true).padding(.vertical, 1)
+            Text(connectionDescription).font(.system(size: 14)).foregroundStyle(Theme.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             TextField("Account nickname (Personal, Work…)", text: $nickname).modifier(ConnectionFieldStyle())
             if provider == .codex {
                 CodexConnectView(nickname: nickname, original: store.state.accounts.first { $0.id == store.reconnectAccountID })
