@@ -185,9 +185,11 @@ struct QuotaRow: View {
                 HStack(spacing: 12) { quotaDetailsButton; usageControls; resetDetailsButton.frame(width: 200, alignment: .leading) }
             } else {
                 VStack(alignment: .leading, spacing: 8) {
-                    HStack(alignment: .top, spacing: 12) {
+                    HStack(alignment: .center, spacing: 12) {
                         quotaDetailsButton.frame(maxWidth: .infinity, alignment: .leading)
-                        resetDetailsButton.frame(maxWidth: .infinity, alignment: .leading)
+                        if window.resetsAt != nil {
+                            resetDetailsButton.frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
                     usageControls
                 }
