@@ -16,6 +16,8 @@ enum DemoData {
         case healthy, noReset = "no-reset"
         case alertHistory = "alert-history"
         case countUsage = "count-usage"
+        case missingPlan = "missing-plan"
+        case emptyWindows = "empty-windows"
     }
 
     static func make(now: Date, scenario: Scenario = .standard) -> (PersistedState, [HistoryRun]) {
@@ -50,6 +52,10 @@ enum DemoData {
             var snapshot = QuotaSnapshot(accountID: account.id, subject: account.subject, scope: account.scope, observedAt: now, windows: windows, reserve: reserve, health: .demo, planType: config.2)
             switch scenario {
             case .standard, .alertHistory: break
+            case .missingPlan: snapshot.planType = nil
+            case .emptyWindows:
+                snapshot.windows = []
+                snapshot.message = index == 0 ? "Usage is not available yet. Open account settings to review the connection and try refreshing again." : nil
             case .countUsage:
                 snapshot.windows = snapshot.windows.enumerated().map { offset, original in
                     var window = original

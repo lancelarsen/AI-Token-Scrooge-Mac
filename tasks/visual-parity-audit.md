@@ -1190,3 +1190,9 @@ Canonical build and diff checks passed (`artifacts/reference-checkmarks-build.lo
 Windows HistoryTimelineView substitutes the history period when PlanLabel is Plan unavailable. Added Format.historyPlanBadge and applied it only to selector badges: missing or unknown plans show Monthly for Copilot and Weekly for OpenAI/Claude. Known plans still display their provider-specific labels. Tooltip/account plan text continues to report Plan unavailable rather than implying a subscription tier.
 
 Canonical build passed (`artifacts/history-plan-badge-build.log`). Added regression assertions for nil, unknown and known plan values; all 89 hosted tests passed (`artifacts/history-plan-badge-tests.log`). Native missing-plan screenshot remains open; the normal demo supplies known plans, so its existing captures do not establish this edge-state layout.
+
+### Missing Plans and Empty Windows: Native Edge-State Verification — 2026-11-05
+
+Added opt-in demo scenarios missing-plan and empty-windows, documented in README. The latter includes one long status message and three nil-message waiting states. These fixtures are only applied inside demo construction and never edit saved provider connections.
+
+Canonical build passed (`artifacts/edge-demo-fixtures-build.log`); all 89 hosted tests passed (`artifacts/edge-demo-fixtures-tests.log`). Native compact missing-plan capture shows Weekly on both OpenAI selectors and Claude, Monthly on Copilot, with no badge clipping (`artifacts/missing-plan-selectors.jpg`). Plan unavailable remains in account/tooltip metadata. Native compact empty-windows capture shows all four short status cards and the longer first message wrapping onto two lines without clipping (`artifacts/empty-window-status-cards.jpg`). This closes the previously unobserved missing-plan badge and empty-window/long-status rendering checks at compact size. It does not certify pixel identity with Windows or live-provider behavior.
