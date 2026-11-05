@@ -6,7 +6,7 @@ Reference image integrity checked against Windows `origin/main` at `694dc85`. Al
 
 Repeatable captures: `--demo --compact` (789×694 points) and `--demo --reference-wide` (1463×866 points), both verified by native screenshots. `--demo --reference-date 2026-11-04T16:11:00Z` freezes data and presentation time for subsequent comparisons; native compact Today/date/countdown rendering checked.
 
-Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluent glyph shapes; final captures at matching window dimensions; popup captures and positioning; final per-image comparisons after shared changes. User requested the same open-license assets. Latest Windows main has no bundled font files and explicitly names Segoe fonts; a follow-up asking for the font name/asset path is pending. Lucide assets are already reused. The exact reference target remains unchanged.
+Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluent glyph shapes; final captures at matching window dimensions; popup captures and positioning; final per-image comparisons after shared changes. User requested the same open-license assets. Latest Windows main has no bundled font files and explicitly names Segoe fonts; user confirms the project is the only asset source; Segoe is also absent from this Mac. Lucide assets are already reused. The exact reference target remains unchanged.
 
 | Reference | Image pixels | Current evidence / next check |
 | --- | --- | --- |
@@ -37,10 +37,10 @@ Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluen
 | 25-connect-claude.png | 789 × 694 | Claude form captured with complete version requirement; exact metrics differ. |
 | 26-compact-dashboard.png | 789 × 694 | Compact dashboard captured; rail x/y alignment checked; full fresh comparison needed. |
 | 27-compact-account-rows.png | 789 × 694 | Compact fixed-date rows captured; alarm divider/81×48 geometry and off/on threshold visibility checked; fonts differ. |
-| 28-compact-account-settings.png | 789 × 694 | Fresh compact account panel captured at 741×630 with shared border; internal text metrics still differ. |
+| 28-compact-account-settings.png | 789 × 694 | Fresh compact account panel captured at 741×630 with shared border and corrected 16-point form inset/709-point card width; internal text metrics still differ. |
 | 29-compact-tooltip-placement.png | 789 × 694 | Owner-window clamping implemented; floating tooltip capture missing. |
 | 30-polling-tooltip.png | 322 × 118 | Exact production help component rendered at 320-point cap; short/narrow wrapping checked; Segoe metrics and actual floating hover placement remain open. |
-| 31-compact-global-settings.png | 789 × 694 | Fresh compact Settings captured at 741×630; scrollbar and outer surface checked; shared 960-point form cap/16-point padding corrected; internal typography/vertical spacing still differ, and fresh compact width verification is pending. |
+| 31-compact-global-settings.png | 789 × 694 | Fresh compact Settings captured at 741×630; scrollbar and outer surface checked; shared 960-point form cap/16-point padding corrected; internal typography/vertical spacing still differ, compact form width now verified after the capture-sizing fix. |
 | 32-notification-banner.png | 789 × 694 | Test banner captured; approximate dimensions checked; text metrics differ. |
 | 33-quota-alerts-muted.png | 789 × 694 | Compact muted first-row state captured; selection and threshold hide/restore checked; equivalent full-image comparison remains. |
 | 34-threshold-drag-feedback.png | 789 × 694 | Native threshold grab/drag and keyboard checked; floating readout capture missing. |

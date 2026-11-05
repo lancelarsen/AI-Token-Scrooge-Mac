@@ -18,6 +18,9 @@ import Network
     var body: some Scene {
         Window("AI Token Scrooge", id: "dashboard") {
             DashboardView().environment(store)
+                .background {
+                    if let demoReferenceSize { DemoReferenceWindowFrame(size: demoReferenceSize) }
+                }
                 .onAppear { delegate.store = store }
         }
         .defaultSize(width: demoReferenceSize?.width ?? 1460, height: demoReferenceSize?.height ?? 900)
@@ -75,18 +78,7 @@ struct MenuBarContent: View {
               let store, !store.isLoading, !store.isDemo else { return }
         Task { await store.refresh() }
     }
-    private var appliedReferenceDemoSize = false
     func applicationDidBecomeActive(_ notification: Notification) {
-        // defaultSize is only a proposal; a saved frame can still win at launch.
-        // Apply a requested reference frame once, only for explicit demo captures.
-        if !appliedReferenceDemoSize, let size = DemoReferenceWindow.size,
-           let window = NSApp.windows.first(where: { $0.title == "AI Token Scrooge" && $0.canBecomeMain }) {
-            appliedReferenceDemoSize = true
-            var frame = window.frame
-            frame.origin.y += frame.height - size.height
-            frame.size = size
-            window.setFrame(frame, display: true)
-        }
         refreshAfterResume()
     }
     func applicationWillTerminate(_ notification: Notification) {

@@ -767,3 +767,14 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 
 - User requested reusing the original open-license assets. Fetched Windows main again: still 694dc85. The committed tree contains no font files or font-license package. App.xaml explicitly names Segoe UI for labels; SettingsPage and controls explicitly reference Segoe UI Semibold and Segoe Fluent Icons. MauiProgram registers no bundled font. Lucide's license is present and those assets already exist in the Mac resources.
 - Asked for the branch/path or font name of the open-license font assets the user means; no asset substitution or Windows font change was made. Microsoft font FAQ and Segoe Fluent Icons documentation were rechecked; ordinary Windows font use does not establish Mac redistribution rights. Keep exact font parity open until the actual assets and permission can be verified.
+
+### Reference capture sizing after window attachment
+
+- Reproduced an explicit --compact launch retaining a large host frame. App activation is not a reliable point at which to find the SwiftUI dashboard window. Replaced the app-activation search with a tiny, noninteractive NSView bridge attached only when an explicit demo reference size is requested. It sizes its own attached window once on the next main-loop turn, preserves the top edge, captures window/self weakly, and does not reapply on ordinary focus changes. Ordinary launches retain automatic window restoration.
+- Regenerated Xcode project; canonical build passed (artifacts/reference-window-attachment-build.log). Fresh native compact capture decodes to 1578×1388 Retina pixels (789×694 points), and wide relaunch decodes to 2926×1732 (1463×866). Compact global/account panels decode to 1482×1260 (741×630); both show the corrected sixteen-point side inset/709-point card width. Captures: artifacts/reference-window-attachment-{compact,wide}.jpg and artifacts/{settings,account}-content-width-compact-verified.jpg. The earlier incorrectly sized compact file remains historical, not evidence.
+- This resolves the compact verification gap recorded immediately above. It does not certify full screenshot parity. No live provider or credential state was touched.
+
+### Project-only font conclusion
+
+- User confirmed there is no other font branch/location and requested using the project. Rechecked committed font extensions/paths: none. NSFontManager.availableFontFamilies reports no installed Segoe family on this Mac. Lucide remains reused with its existing license. Do not keep asking the user for another asset location or pretend the named Windows system fonts are bundled open-license assets.
+- Exact Segoe font rendering remains a known unresolved dependency. Other parity work continues; no font substitution or font-file redistribution was performed in this update.
