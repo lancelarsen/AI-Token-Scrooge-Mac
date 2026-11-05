@@ -929,3 +929,10 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Info edits use midpoint-to-even rounding like decimal.Round; pointer positions first use whole-percent midpoint-away rounding like RemainingAt. Added finite/positive geometry guards.
 - Added CoreTests regression cases for fractional neighbors, info midpoint rounding, pointer midpoint rounding, invalid geometry, and valid resulting order.
 - Canonical build and build-for-testing passed (`artifacts/threshold-boundaries-build.log`, `artifacts/threshold-boundaries-test-build.log`). A standalone run of the exact production model declarations passed the regression scenarios (`artifacts/threshold-boundaries-check.swift`, `.log`). Hosted XCTest execution was not run; prior host-launch issue remains unresolved.
+
+## Hosted XCTest launch retry — 2026-11-05
+
+- Retried only CoreTests/testFractionalThresholdBoundariesMatchWindows with xcodebuild test-without-building against the successful test build. The host remained alive but never reached an assertion. A process sample showed dyld waiting in __open while loading dependent libraries (`artifacts/threshold-test-host-sample.txt`). The run was explicitly interrupted and its host terminated.
+- Tested an isolated fresh derived-data build with ENABLE_DEBUG_DYLIB=NO to rule out split debug-library loading. Build completed, but its host stalled in the same dyld __open stack (`artifacts/threshold-monolithic-host-sample.txt`). Interrupted that run and terminated its host too. No production build settings changed.
+- Evidence: `artifacts/threshold-hosted-retry.log`, `artifacts/threshold-monolithic.log`, and corresponding xcresult bundles. This is a launch/environment problem, not a failed threshold assertion. Hosted test execution remains unverified; prior standalone production-model checks remain the available execution evidence.
+- Next diagnostic should identify the specific blocked library/file-open operation rather than rerunning an unchanged test command. No claim that the broader test suite passed.
