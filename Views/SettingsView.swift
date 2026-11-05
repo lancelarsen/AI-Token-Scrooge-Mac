@@ -118,6 +118,7 @@ struct SettingsView: View {
                     SettingsCard(title: "App Behavior", symbol: "gearshape") {
                         settingsSwitch("Keep Monitoring When Window Closes", isOn: binding(\.closeToMenuBar))
                         settingsSwitch("Launch at Sign-In", isOn: Binding(get: { store.state.settings.launchAtSignIn }, set: { store.setLaunchAtSignIn($0) }))
+                            .disabled(store.isDemo)
                         if let message = store.loginItemMessage { Text(message).font(.caption).foregroundStyle(Theme.secondary) }
                         if store.loginItemNeedsApproval { Button("Open Login Items") { LoginItemService.openSettings() }.buttonStyle(ScroogeButtonStyle()) }
                         Button { store.showAlertHistory = true } label: { DialogActionLabel(title: "Alert History", symbol: "clock.arrow.circlepath").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle())

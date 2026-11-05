@@ -6,7 +6,7 @@ Reference image integrity checked against Windows `origin/main` at `694dc85`. Al
 
 Repeatable captures: `--demo --compact` (789×694 points) and `--demo --reference-wide` (1463×866 points), both verified by native screenshots. `--demo --reference-date 2026-11-04T16:11:00Z` freezes data and presentation time for subsequent comparisons; native compact Today/date/countdown rendering checked.
 
-Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluent glyph shapes; final captures at matching window dimensions; popup captures and positioning; final per-image comparisons after shared changes. User requested the same open-license assets. Latest Windows main has no bundled font files and explicitly names Segoe fonts; user confirms the project is the only asset source; Segoe is also absent from this Mac. Lucide assets are already reused. The exact reference target remains unchanged.
+Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluent glyph shapes; final captures at matching window dimensions; popup captures and positioning; final per-image comparisons after shared changes. User requested the same open-license assets. Latest Windows main has no bundled font files and explicitly names Segoe fonts; user confirms the project is the only asset source; Segoe is also absent from this Mac. Lucide assets are already reused. User decided to keep Windows unchanged and use appropriately licensed Segoe assets when available; no shared-font substitution is authorized. The exact reference target remains unchanged.
 
 | Reference | Image pixels | Current evidence / next check |
 | --- | --- | --- |

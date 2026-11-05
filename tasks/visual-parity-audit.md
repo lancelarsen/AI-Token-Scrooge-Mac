@@ -836,3 +836,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Windows `ThresholdEditor.CreateMarker` uses #FF5D68 specifically for the critical marker, distinct from the #F05B69 general critical-alert palette. Corrected only `UsageBar`'s marker fill; capacity gradients and reminder colors retain their source values.
 - Added the Windows drag/arrow-key guidance as the marker accessibility hint. Source comparison also confirmed left/up increases remaining threshold and right/down decreases it, matching current Mac behavior.
 - Canonical build and diff check passed (`artifacts/critical-marker-color-build.log`). This turn verifies the declared color and accessibility metadata through source/build, not final screenshot identity or live-provider behavior.
+
+### Demo startup control state
+
+- Matched Windows SettingsPage's `startup.IsEnabled = !demo`: Launch at Sign-In is disabled in the Mac demo. The store already avoids changing system login settings in demo mode; this fixes the visible interaction state as well.
+- Canonical build passed (`artifacts/demo-startup-state-build.log`). Native compact demo AX verification confirms `switch (disabled) Launch at Sign-In`, while Keep Monitoring remains enabled (`artifacts/demo-startup-state-ax.txt`). No system startup setting was changed.
+- User resolved the font decision: keep Windows unchanged and use licensed Segoe assets when available. Font availability remains a dependency, not a pending choice. Continue independent parity work without changing the Windows baseline.
