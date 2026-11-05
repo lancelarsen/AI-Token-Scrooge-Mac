@@ -20,7 +20,7 @@ Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluen
 | 08-alert-history.png | 11010048 × 4292542531 | Populated demo captured; 80-point rows and 16-point gaps checked; matching-width capture needed. |
 | 09-demo-history-on.png | 11010048 × 4292542531 | Timeline geometry revised; fresh wide equivalent capture needed. |
 | 10-demo-history-off.png | 11010048 × 4292542531 | Wide History-off captured at matching size; date/font and switch-hover differences remain. |
-| 11-demo-filter-off-tooltip.png | 11010048 × 4292542531 | Wide filter-off captured; counts checked and selector fading corrected; fresh color/tooltip capture needed. |
+| 11-demo-filter-off-tooltip.png | 11010048 × 4292542531 | Wide filter-off captured; event counts and corrected per-element selector colors checked; floating tooltip capture needed. |
 | 12-demo-all-capacity-levels.png | 11010048 × 4292542531 | Scenario fixtures available; equivalent capacity-level capture needed. |
 | 13-usage-details.png | 11010048 × 4292542531 | Unknown-usage popup checked; standard and nonpercent captures need recheck. |
 | 14-account-settings.png | 11010048 × 4292542531 | Compact account panel captured; matching wide panel needed. |

@@ -641,3 +641,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Captured 1463×866 History-off dashboard: usage grid/axis hidden, service rail and future events retained, navigator visible. Native account filter check changed refresh count 7→5 and expiration count 2→0 and removed that account's events. Date-dependent positions differ from the November 4 reference.
 - Capture exposed whole-selector fading. Matched Windows BuildSelectors: only the provider container fades to half opacity; badge text uses #919195, badge strokes half-opacity, while the unchecked checkbox retains full accent border and control background. Removed global opacity that incorrectly dimmed that checkbox.
 - Canonical build passed (`artifacts/filtered-selector-style-build.log`) and diff checks passed. Filtering behavior and pre-change rendering are verified; post-change per-element color rendering needs recapture. Exact switch hover appearance, fonts and floating tooltip remain open.
+
+### Filtered selector post-change rendering verification
+
+- Relaunched the current build at 1463×866, disabled History and filtered OpenAI Personal. Inspected a settled capture after both state updates. The provider container is dimmed, badge text/strokes muted, and unchecked box border remains clearly full accent; this closes the post-change per-element color capture gap from 664ec4a.
+- Account quota rows retain their established wide columns after filtering. An earlier immediate capture appeared transiently misaligned; the settled capture does not reproduce it, so no speculative layout change was made.
+- Updated per-image status for reference 11. Date-dependent event positions, exact fonts/glyphs and floating tooltip capture remain open. This verification-only change needs no rebuild; it used the already built current source.
