@@ -25,7 +25,7 @@ Cross-cutting open requirements: exact Semibold font metrics and Segoe Fluent gl
 | 13-usage-details.png | 1463 × 866 | Standard weekly popup recaptured with 22-point title and complete timestamps; unknown checked earlier; nonpercent comparison and exact body metrics remain open. |
 | 14-account-settings.png | 1463 × 866 | Wide and compact panel frames captured; shared lavender scrollbar and bottom connection actions checked; shared 960-point form cap/16-point padding corrected in a native wide capture; vertical text metrics still differ. |
 | 15-custom-color-chooser.png | 1463 × 866 | Picker captured; footer and synchronization checked; contrast-aware 16-point ring, keyboard-only focus ring and pointer/keyboard updates verified; template spacing corrected; ordinary brightness arrows/clamping and spectrum boundary wrapping checked; exact spectrum pixels, named-color keyboard/tooltip and fonts remain open. |
-| 16-custom-color-added.png | 1463 × 866 | Orange custom swatch added and retained after reopening; exact comparison pending. |
+| 16-custom-color-added.png | 1463 × 866 | Published Preview272 keyboard hex #123456 produces RGB18/52/86, adds and retains the swatch; cancelling a #FFFFFF draft preserves #123456. Earlier orange-swatch check also passed. Exact comparison pending. |
 | 17-polling-snapped.png | 1463 × 866 | Wide off-center grab, snapped drag, keyboard, both endpoints and localized focus checked; exact rendered comparison remains. |
 | 18-account-connection-actions.png | 1463 × 866 | Connection section source-reviewed; matching capture needed. |
 | 19-first-launch.png | 1463 × 866 | Isolated empty dashboard captured; horizontal coordinates checked; matching width needed. |
