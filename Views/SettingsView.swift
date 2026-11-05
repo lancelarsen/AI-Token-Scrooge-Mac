@@ -294,10 +294,13 @@ struct ReminderEditor: View {
     }
 }
 struct QuietHoursControl: View {
+    @Environment(\.isEnabled) private var isEnabled
     @FocusState private var focusedBoundary: String?
     @Binding var start: Int
     @Binding var end: Int
     @State private var trackWidth: CGFloat = 800
+    @State private var movingStart = false
+    @State private var dragging = false
     private func position(_ hour: Int, isEnd: Bool = false) -> Double {
         isEnd && hour == 12 ? 1 : Double((hour + 12) % 24) / 24
     }
@@ -325,43 +328,65 @@ struct QuietHoursControl: View {
                             if a < b { line(a, b, Color(hex: "#A990ED")) }
                             else { line(a, size.width - 32, Color(hex: "#A990ED")); line(32, b, Color(hex: "#A990ED")) }
                         }
+                        for x in [a, b] {
+                            let circle = Path(ellipseIn: CGRect(x: x - 12, y: y - 12, width: 24, height: 24))
+                            context.fill(circle, with: .color(Theme.accent))
+                            context.stroke(circle, with: .color(Color(hex: "#7160B4")), lineWidth: 3)
+                        }
+                        if let focusedBoundary {
+                            let x = focusedBoundary == "Quiet Hours Start" ? a : b
+                            context.stroke(Path(ellipseIn: CGRect(x: x - 16, y: y - 16, width: 32, height: 32)),
+                                           with: .color(.white), lineWidth: 2)
+                        }
                     }
+                    .contentShape(Rectangle())
+                    .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .named("quietHours")).onChanged { event in
+                        guard isEnabled, span > 0 else { return }
+                        if !dragging {
+                            let fromStart = abs(event.startLocation.x - a)
+                            let fromEnd = abs(event.startLocation.x - b)
+                            movingStart = fromStart == fromEnd ? !movingStart : fromStart < fromEnd
+                            dragging = true
+                            focusedBoundary = movingStart ? "Quiet Hours Start" : "Quiet Hours End"
+                        }
+                        let fraction = min(1, max(0, (event.location.x - 32) / span))
+                        let hour = (Int((fraction * 24).rounded(.toNearestOrEven)) + 12) % 24
+                        if movingStart { start = hour } else { end = hour }
+                    }.onEnded { _ in dragging = false })
                     ForEach(0..<5) { index in
                         Text(["12 PM", "6 PM", "12 AM", "6 AM", "12 PM"][index])
                             .font(.system(size: 16)).foregroundStyle(Theme.accent)
                             .frame(width: 64, height: 24).position(x: 32 + span * Double(index) / 4, y: y + 34)
                     }
-                    handle(value: $start, x: a, y: y, width: geometry.size.width, label: "Quiet Hours Start", labelY: 16)
-                    handle(value: $end, x: b, y: y, width: geometry.size.width, label: "Quiet Hours End", labelY: closeLabels ? 38 : 16)
+                    handle(value: $start, x: a, width: geometry.size.width, label: "Quiet Hours Start", labelY: 16)
+                    handle(value: $end, x: b, width: geometry.size.width, label: "Quiet Hours End", labelY: closeLabels ? 38 : 16)
                 }.coordinateSpace(name: "quietHours")
             }
             .frame(height: closeLabels ? 116 : 94)
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { trackWidth = $0 }
             Text(summary).font(.system(size: 16)).foregroundStyle(Theme.accent)
         }
-    }
-    private func handle(value: Binding<Int>, x: CGFloat, y: CGFloat, width: CGFloat, label: String, labelY: CGFloat) -> some View {
-        ZStack(alignment: .topLeading) {
-            Text(hour(value.wrappedValue)).font(.system(size: 16)).foregroundStyle(.white)
-                .frame(width: 106, height: 32).position(x: min(max(x, 53), width - 53), y: labelY)
-            Circle().fill(Theme.accent).overlay(Circle().stroke(Color(hex: "#7160B4"), lineWidth: 3))
-                .frame(width: 24, height: 24)
-                .overlay(Circle().stroke(.white, lineWidth: focusedBoundary == label ? 2 : 0).padding(-4))
-                .position(x: x, y: y)
-                .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .named("quietHours")).onChanged { event in
-                    focusedBoundary = label
-                    let fraction = min(1, max(0, (event.location.x - 32) / max(1, width - 64)))
-                    value.wrappedValue = (Int((fraction * 24).rounded()) + 12) % 24
-                })
+        .onChange(of: isEnabled) { _, enabled in
+            if !enabled { focusedBoundary = nil; dragging = false }
         }
+    }
+    private func handle(value: Binding<Int>, x: CGFloat, width: CGFloat, label: String, labelY: CGFloat) -> some View {
+        Text(hour(value.wrappedValue)).font(.system(size: 16)).foregroundStyle(Theme.primaryText)
+        .frame(width: 106, height: 32)
         .focusable().focused($focusedBoundary, equals: label).focusEffectDisabled()
+        .onTapGesture { focusedBoundary = label }
         .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { press in
+            guard isEnabled else { return .ignored }
             let change = press.key == .leftArrow || press.key == .downArrow ? -1 : 1
             value.wrappedValue = (value.wrappedValue + change + 24) % 24
             return .handled
         }
         .accessibilityElement(children: .ignore).accessibilityLabel(label).accessibilityValue(hour(value.wrappedValue))
-        .accessibilityAdjustableAction { direction in value.wrappedValue = (value.wrappedValue + (direction == .increment ? 1 : 23)) % 24 }
+        .accessibilityAdjustableAction { direction in
+            guard isEnabled else { return }
+            value.wrappedValue = (value.wrappedValue + (direction == .increment ? 1 : 23)) % 24
+        }
+        .position(x: min(max(x, 53), width - 53), y: labelY)
     }
     private func hour(_ value: Int) -> String { "\(value % 12 == 0 ? 12 : value % 12) \(value < 12 ? "AM" : "PM")" }
 }

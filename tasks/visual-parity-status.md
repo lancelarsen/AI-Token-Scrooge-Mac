@@ -12,7 +12,7 @@ Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluen
 | --- | --- | --- |
 | 01-live-dashboard.png | 1463 × 866 | Live-provider equivalent capture missing. |
 | 02-settings-updates-time-retention.png | 1463 × 866 | Wide demo top sections captured; inherited palette corrected; live update-available and final pixel checks needed; persistent lavender scrollbar verified. |
-| 03-settings-sounds-quiet-hours.png | 1463 × 866 | Wide sounds/quiet-hours captured; radio selection, keyboard/equal-time summaries, close labels and end-handle drag checked; playback, overnight/disabled states and exact pixels remain open. |
+| 03-settings-sounds-quiet-hours.png | 1463 × 866 | Wide sounds/quiet-hours captured; radio selection, full-track clicks/drags, keyboard, overnight/equal-time summaries, overlap alternation and disabled input/focus checked; audio playback and exact pixels remain open. |
 | 04-settings-thresholds.png | 1463 × 866 | Threshold controls revised; matching global-settings capture needed. |
 | 05-settings-reset-reminders.png | 1463 × 866 | Validation and ordering checked; matching reminder-list capture needed. |
 | 06-settings-refresh-reminders.png | 1463 × 866 | Validation and ordering checked; matching reminder-list capture needed. |
