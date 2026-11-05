@@ -185,9 +185,7 @@ struct AccountCard: View {
         }.background(Theme.card)
             .clipShape(RoundedRectangle(cornerRadius: 13)).overlay(RoundedRectangle(cornerRadius: 13).stroke(Theme.border))
             .sheet(isPresented: $showIdentityDetails) {
-                DetailsDialog(width: 342, close: { showIdentityDetails = false }) {
-                    AccountUsageDetailsView(accountID: account.id, windowID: snapshot?.windows.first?.id)
-                }
+                AccountUsageDialog(accountID: account.id, windowID: snapshot?.windows.first?.id, close: { showIdentityDetails = false })
             }
     }
     private var reorderDescription: String {
@@ -246,9 +244,7 @@ struct QuotaRow: View {
         }
         .frame(minHeight: 56)
         .sheet(isPresented: $showDetails) {
-            DetailsDialog(width: 342, close: { showDetails = false }) {
-                QuotaDetailsView(account: account, window: window, snapshot: snapshot)
-            }
+            AccountUsageDialog(accountID: account.id, windowID: window.id, close: { showDetails = false })
         }
     }
     private var quotaDetailsButton: some View {
@@ -339,7 +335,6 @@ struct QuotaRow: View {
 
 struct QuotaDetailsView: View {
     @Environment(AppStore.self) private var store
-    @Environment(\.openURL) private var openURL
     let account: ProviderAccount
     let window: QuotaWindow
     let snapshot: QuotaSnapshot
@@ -370,13 +365,10 @@ struct QuotaDetailsView: View {
                 Color.clear.frame(height: 6)
                 Text(sourceNote).foregroundStyle(Theme.dialogText).frame(minHeight: 19, alignment: .leading)
             }
-            if !store.isDemo, let url = account.usageURL {
-                Text("Provider pages use your browser’s sign-in. Check its account and workspace before comparing.").font(Theme.dialogBodyFont).foregroundStyle(Theme.dialogText)
-                Button("Open Provider Usage") {
-                    openURL(url) { accepted in
-                        if !accepted { store.errorMessage = "Provider page unavailable. Open your provider’s usage page in your browser and check its connection status." }
-                    }
-                }.buttonStyle(ScroogeButtonStyle())
+            if !store.isDemo, account.usageURL != nil {
+                Color.clear.frame(height: 6)
+                Text("Provider pages use your browser's sign-in. Check its account and workspace before comparing.")
+                    .font(Theme.dialogBodyFont).foregroundStyle(Theme.dialogText)
             }
         }.font(Theme.dialogBodyFont).foregroundStyle(Theme.dialogText).textSelection(.enabled).frame(maxWidth: 440, alignment: .leading).preferredColorScheme(.dark)
     }

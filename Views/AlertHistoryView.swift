@@ -45,8 +45,34 @@ struct AlertHistoryView: View {
         .frame(width: panelSize.width, height: panelSize.height)
         .referencePanelSurface().preferredColorScheme(.dark)
         .sheet(item: $selectedAlert) { alert in
-            DetailsDialog(width: alert.windowID == nil ? 332 : 342, close: { selectedAlert = nil }) {
-                AccountUsageDetailsView(accountID: alert.accountID, windowID: alert.windowID)
+            AccountUsageDialog(accountID: alert.accountID, windowID: alert.windowID, close: { selectedAlert = nil })
+        }
+    }
+}
+
+/// Route every current-account detail entry point through the same footer actions.
+struct AccountUsageDialog: View {
+    @Environment(AppStore.self) private var store
+    @Environment(\.openURL) private var openURL
+    let accountID: String
+    let windowID: String?
+    let close: () -> Void
+
+    private var usageURL: URL? {
+        AccountPolicy.detailUsageURL(accountID: accountID, windowID: windowID, state: store.state, isDemo: store.isDemo)
+    }
+    var body: some View {
+        DetailsDialog(width: usageURL == nil ? (windowID == nil ? 332 : 342) : 480,
+                      primaryTitle: usageURL == nil ? nil : "Open provider usage",
+                      primaryAction: usageURL.map { url in { openProvider(url) } }, close: close) {
+            AccountUsageDetailsView(accountID: accountID, windowID: windowID)
+        }
+    }
+    private func openProvider(_ url: URL) {
+        close()
+        openURL(url) { accepted in
+            if !accepted {
+                store.errorMessage = "Provider page unavailable. Open your provider's usage page in your browser, and check its connection status."
             }
         }
     }

@@ -2,7 +2,7 @@
 
 This is a verification checklist for the original native Mac parity objective, not a reduced definition of completion. The pinned Windows baseline and detailed evidence remain in README.md and tasks/parity.md.
 
-Current local evidence: 95 hosted unit tests pass in artifacts/native-account-drag-tests.log; canonical Debug build passes in artifacts/native-account-drag-build.log. The XCTest UI target compiles, but its runner has not been executed; selected flows have native computer-use evidence. These results do not prove live authentication, OS event delivery, or full visual parity.
+Current local evidence: 96 hosted unit tests pass in artifacts/details-footer-tests.log; canonical Debug build passes in artifacts/details-footer-build.log. The XCTest UI target compiles, but its runner has not been executed; selected flows have native computer-use evidence. These results do not prove live authentication, OS event delivery, or full visual parity.
 
 | Requirement | Evidence required to close it | Current gap |
 | --- | --- | --- |

@@ -2,6 +2,24 @@ import XCTest
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testProviderFooterOnlyAppearsForCurrentLiveQuotaDetails() {
+        var state = PersistedState()
+        let account = ProviderAccount(id: "a", provider: .codex, nickname: "A", subject: "s", scope: "scope")
+        state.accounts = [account]
+        state.snapshots[account.id] = QuotaSnapshot(accountID: account.id, subject: "s", scope: "scope", observedAt: .now,
+            windows: [QuotaWindow(id: "weekly", name: "Weekly", unit: .percent)])
+        XCTAssertEqual(AccountPolicy.detailUsageURL(accountID: "a", windowID: "weekly", state: state, isDemo: false), account.usageURL)
+        XCTAssertNotNil(AccountPolicy.detailUsageURL(accountID: "a", windowID: nil, state: state, isDemo: false))
+        XCTAssertNil(AccountPolicy.detailUsageURL(accountID: "a", windowID: "weekly", state: state, isDemo: true))
+        XCTAssertNil(AccountPolicy.detailUsageURL(accountID: "a", windowID: "removed", state: state, isDemo: false))
+        XCTAssertNil(AccountPolicy.detailUsageURL(accountID: "removed", windowID: nil, state: state, isDemo: false))
+        state.snapshots["a"]!.reserve = ResetReserve(availableCount: 1)
+        XCTAssertNil(AccountPolicy.detailUsageURL(accountID: "a", windowID: nil, state: state, isDemo: false))
+        XCTAssertNotNil(AccountPolicy.detailUsageURL(accountID: "a", windowID: "weekly", state: state, isDemo: false))
+        state.accounts[0].subject = "changed"
+        XCTAssertNil(AccountPolicy.detailUsageURL(accountID: "a", windowID: "weekly", state: state, isDemo: false))
+    }
+
     func testSimultaneousTimelineEventsFollowWindowsOrdering() {
         let now = Date(timeIntervalSince1970: 1800000000)
         let tied = now.addingTimeInterval(3600)

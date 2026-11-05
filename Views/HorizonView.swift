@@ -102,20 +102,20 @@ struct HorizonView: View {
         .onChange(of: store.state.settings.timeZoneID) { _, _ in prepareHistory() }
         .sheet(isPresented: $showSettings) { SettingsView().environment(store) }
         .sheet(item: $selectedEvent) { event in
-            DetailsDialog(width: event.windowID == nil && event.reportedAt == nil ? 332 : 342, close: { selectedEvent = nil }) {
-              VStack(alignment: .leading, spacing: 8) {
-                if event.reportedAt == nil {
-                    AccountUsageDetailsView(accountID: event.account.id, windowID: event.windowID)
-                } else {
-                    Label(event.title, systemImage: event.expiration ? "hourglass" : "arrow.clockwise").font(.reference(size: 20, weight: .semibold)).foregroundStyle(event.expiration ? Theme.amber : Theme.accent)
-                    Text("\(event.account.provider.rawValue) · \(store.state.settings.privacy ? "Account" : event.account.nickname)")
-                    Text(Format.date(event.date, zone: store.state.settings.zone))
-                    if let reportedAt = event.reportedAt {
-                        Text("Reported \(Format.date(reportedAt, zone: store.state.settings.zone))").foregroundStyle(Theme.secondary)
-                        Text("This is a reported schedule, not confirmation that capacity reset or a credit was redeemed.").font(.callout)
-                    } else { Text(Format.countdown(event.date)).foregroundStyle(Theme.secondary) }
+            if event.reportedAt == nil {
+                AccountUsageDialog(accountID: event.account.id, windowID: event.windowID, close: { selectedEvent = nil })
+            } else {
+                DetailsDialog(width: 342, close: { selectedEvent = nil }) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label(event.title, systemImage: event.expiration ? "hourglass" : "arrow.clockwise").font(.reference(size: 20, weight: .semibold)).foregroundStyle(event.expiration ? Theme.amber : Theme.accent)
+                        Text("\(event.account.provider.rawValue) · \(store.state.settings.privacy ? "Account" : event.account.nickname)")
+                        Text(Format.date(event.date, zone: store.state.settings.zone))
+                        if let reportedAt = event.reportedAt {
+                            Text("Reported \(Format.date(reportedAt, zone: store.state.settings.zone))").foregroundStyle(Theme.secondary)
+                            Text("This is a reported schedule, not confirmation that capacity reset or a credit was redeemed.").font(.reference(size: 14))
+                        }
+                    }
                 }
-              }
             }
         }
         .sheet(item: $selectedHistoricalMarker) { marker in historicalDetails(marker) }

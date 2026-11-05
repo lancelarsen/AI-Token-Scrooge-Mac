@@ -122,6 +122,14 @@ struct QuotaSnapshot: Codable, Equatable, Sendable {
 }
 
 enum AccountPolicy {
+    static func detailUsageURL(accountID: String, windowID: String?, state: PersistedState, isDemo: Bool) -> URL? {
+        guard !isDemo, let account = state.accounts.first(where: { $0.id == accountID }),
+              let snapshot = state.snapshots[accountID], snapshot.belongs(to: account),
+              !(windowID == nil && snapshot.reserve != nil),
+              snapshot.windows.contains(where: { windowID == nil || $0.id == windowID }) else { return nil }
+        return account.usageURL
+    }
+
     static func selectSort(_ mode: AccountSort, state: inout PersistedState) {
         guard mode != state.settings.accountSort else { return }
         if mode == .custom, !state.settings.accountOrder.contains(where: { id in state.accounts.contains { $0.id == id } }) {
