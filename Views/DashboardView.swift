@@ -136,6 +136,10 @@ struct AccountCard: View {
     let account: ProviderAccount
     let wide: Bool
     private var snapshot: QuotaSnapshot? { store.state.snapshots[account.id] }
+    @State private var showIdentityDetails = false
+    private var hasQuotaDetails: Bool {
+        account.enabled && snapshot?.belongs(to: account) == true && snapshot?.windows.isEmpty == false
+    }
     var body: some View {
         HStack(spacing: 0) {
             if store.state.settings.accountSort == .custom {
@@ -156,9 +160,17 @@ struct AccountCard: View {
                 .padding(.top, 14).padding(.trailing, 12).frame(maxHeight: .infinity, alignment: .top)
         }.background(Theme.card)
             .clipShape(RoundedRectangle(cornerRadius: 13)).overlay(RoundedRectangle(cornerRadius: 13).stroke(Theme.border))
+            .sheet(isPresented: $showIdentityDetails) {
+                DetailsDialog(width: 342, close: { showIdentityDetails = false }) {
+                    AccountUsageDetailsView(accountID: account.id, windowID: snapshot?.windows.first?.id)
+                }
+            }
     }
     private var identity: some View {
-        Button { store.selectedAccount = account } label: {
+        Button {
+            if hasQuotaDetails { showIdentityDetails = true }
+            else { store.selectedAccount = account }
+        } label: {
             HStack(spacing: 16) {
                 ProviderIcon(provider: account.provider, size: 44)
                 VStack(alignment: .leading, spacing: 5) {
