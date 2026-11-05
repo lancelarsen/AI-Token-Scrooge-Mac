@@ -32,6 +32,7 @@ struct UsageBar: View {
                         .overlay(RoundedRectangle(cornerRadius: 5).stroke(focusedThreshold == level ? Theme.accent : .clear, lineWidth: 2))
                         .focusable()
                         .focused($focusedThreshold, equals: level)
+                        .focusEffectDisabled()
                         .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { press in
                             let increase = press.key == .leftArrow || press.key == .upArrow
                             var next = thresholds
