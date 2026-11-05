@@ -17,6 +17,7 @@
 		1868CE7FE20C60CA878DA1C3 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 457D641C15D4D7CF6FF175CA /* Sparkle */; };
 		188D171FC37573946B2BA8D0 /* PackedHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6776DC2D13E8CFEBDB135206 /* PackedHistoryTests.swift */; };
 		1A747D95FFF2A23A5868D6C8 /* HistoryEventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E5184BDAC856DAAC20AFC19 /* HistoryEventTests.swift */; };
+		20BD14722A47969CCB32DC65 /* ReferenceHelpTooltip.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A5186F536026FDE9E8A856 /* ReferenceHelpTooltip.swift */; };
 		23CEFFD587B16DBFFB115564 /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DAAB4C7C7A488E385EFE67 /* AppStore.swift */; };
 		2C3407ACE0BB111FC71C5CE1 /* HistoryLabelLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F770CD83409906A403E54F /* HistoryLabelLayout.swift */; };
 		2C8684C261F07C12556DA2B5 /* RefreshSchedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = D345262589E545400138B5D4 /* RefreshSchedule.swift */; };
@@ -181,6 +182,7 @@
 		EC048AAA6E4767EF18709FD0 /* LocalStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStore.swift; sourceTree = "<group>"; };
 		EDEF58C3513F89FF61BBFE6F /* HistoryCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryCacheTests.swift; sourceTree = "<group>"; };
 		F3FECAF4E9864E84728EB3B7 /* alarm_on.svg */ = {isa = PBXFileReference; path = alarm_on.svg; sourceTree = "<group>"; };
+		F5A5186F536026FDE9E8A856 /* ReferenceHelpTooltip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceHelpTooltip.swift; sourceTree = "<group>"; };
 		F92CCF6802797876E5CC3C30 /* ScroogeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScroogeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F9659CF592B00DF27AA16127 /* alarm_off.svg */ = {isa = PBXFileReference; path = alarm_off.svg; sourceTree = "<group>"; };
 		F9E9691FF186EB48B04A900A /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
@@ -317,6 +319,7 @@
 			isa = PBXGroup;
 			children = (
 				1EFFB3B427B1675530260BA6 /* Format.swift */,
+				F5A5186F536026FDE9E8A856 /* ReferenceHelpTooltip.swift */,
 				B36386F305B5106D36AA5C9A /* Theme.swift */,
 			);
 			path = Support;
@@ -594,6 +597,7 @@
 				B4CE3444D8B705C7201BB7E0 /* PackedHistoryRun.swift in Sources */,
 				566CB9325847F259F08617FC /* ProviderMapping.swift in Sources */,
 				B8C91125DC0237F8F6F95081 /* Quota.swift in Sources */,
+				20BD14722A47969CCB32DC65 /* ReferenceHelpTooltip.swift in Sources */,
 				2C8684C261F07C12556DA2B5 /* RefreshSchedule.swift in Sources */,
 				E91992A6469EC4258D7EF341 /* ScroogeApp.swift in Sources */,
 				F96ED985983806CFBA6CBA82 /* SecretStore.swift in Sources */,

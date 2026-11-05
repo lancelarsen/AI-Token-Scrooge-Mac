@@ -686,22 +686,25 @@ struct HistoryPointerTracking: NSViewRepresentable {
                 (line as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: index == 0 && !plainText ? 14 : 13,
                     weight: index == 0 && !plainText ? .semibold : .regular)]).width
             }
-            let popupWidth = min(420, visible.width, ceil((lineWidths.max() ?? 0) + 28 + (severity == nil ? 0 : 26)))
+            let popupWidth = plainText ? ReferenceHelpTooltip.width(for: text, availableWidth: visible.width) :
+                min(420, visible.width, ceil((lineWidths.max() ?? 0) + 28 + (severity == nil ? 0 : 26)))
             let content = NSHostingView(rootView:
-                VStack(alignment: .leading, spacing: 5) {
+                Group {
                     if plainText {
-                        Text(text).font(.system(size: 13)).foregroundStyle(Color(hex: "#F2F1F5"))
+                        ReferenceHelpTooltip(text: text, width: popupWidth)
                     } else {
-                    HStack(spacing: 8) {
-                        if let severity { ThresholdReadoutIcon(severity: severity) }
-                        Text(lines[0]).font(.system(size: 14, weight: .semibold)).foregroundStyle(severity == nil ? Color(hex: "#F2F1F5") : .white)
+                        VStack(alignment: .leading, spacing: 5) {
+                            HStack(spacing: 8) {
+                                if let severity { ThresholdReadoutIcon(severity: severity) }
+                                Text(lines.first ?? "").font(.system(size: 14, weight: .semibold)).foregroundStyle(severity == nil ? Color(hex: "#F2F1F5") : .white)
+                            }
+                            if lines.count > 1 { Text(lines[1]).font(.system(size: 13)).foregroundStyle(Theme.dialogText) }
+                        }.padding(.horizontal, 14).padding(.vertical, 10).frame(width: popupWidth, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .background(Color(hex: "#222329"), in: RoundedRectangle(cornerRadius: 12))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: "#65577F")))
                     }
-                    if lines.count > 1 { Text(lines[1]).font(.system(size: 13)).foregroundStyle(Theme.dialogText) }
-                    }
-                }.padding(.horizontal, 14).padding(.vertical, 10).frame(width: popupWidth, alignment: .leading)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .background(Color(hex: "#222329"), in: RoundedRectangle(cornerRadius: 12))
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: "#65577F"))))
+                })
             let size = content.fittingSize
             let anchor = window.convertPoint(toScreen: convert(pointer, to: nil))
             let x = min(max(visible.minX, anchor.x - size.width / 2), visible.maxX - size.width)
