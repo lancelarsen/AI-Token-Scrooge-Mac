@@ -1,6 +1,15 @@
 import Foundation
 
 enum Format {
+    /// Match ThemedDialogs.ShowAsync: label prefixes are short, non-time text.
+    static func dialogLine(_ line: String) -> (label: String?, value: String) {
+        guard let colon = line.firstIndex(of: ":") else { return (nil, line) }
+        let prefix = line[..<colon]
+        guard (1..<45).contains(prefix.utf16.count),
+              prefix.unicodeScalars.last?.properties.generalCategory != .decimalNumber else { return (nil, line) }
+        return (String(prefix), String(line[line.index(after: colon)...]).replacingOccurrences(of: "^\\s+", with: "", options: .regularExpression))
+    }
+
     private static let titleWordStart = try! NSRegularExpression(pattern: "\\b[a-z]")
 
     static func windowTitle(_ value: String) -> String {

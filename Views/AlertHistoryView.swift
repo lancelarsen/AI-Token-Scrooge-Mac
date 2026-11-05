@@ -143,9 +143,31 @@ struct DetailLine: View {
     let label: String
     let value: String
     var body: some View {
-        (Text(label + ": ").fontWeight(.semibold).foregroundColor(Color(hex: "#F2F1F5"))
+        (Text(label + ": ").font(.reference(size: 14, weight: .semibold)).foregroundColor(Color(hex: "#F2F1F5"))
          + Text(value).foregroundColor(Theme.dialogText))
             .frame(minHeight: 19, alignment: .leading)
+    }
+}
+
+/// Line spacing and label emphasis shared with Windows ThemedDialogs.ShowAsync.
+struct DialogMessage: View {
+    let message: String
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(Array(message.replacingOccurrences(of: "\r", with: "").components(separatedBy: "\n").enumerated()), id: \.offset) { _, line in
+                if line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Color.clear.frame(height: 6)
+                } else {
+                    let parsed = Format.dialogLine(line)
+                    if let label = parsed.label {
+                        DetailLine(label: label, value: parsed.value)
+                    } else {
+                        Text(parsed.value).frame(minHeight: 19, alignment: .leading)
+                    }
+                }
+            }
+        }.font(Theme.dialogBodyFont).foregroundStyle(Theme.dialogText)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -170,7 +192,7 @@ struct ConfirmationDetailsDialog: View {
         DetailsDialog(closeTitle: "Cancel", primaryTitle: actionTitle, primaryAction: confirm, close: cancel) {
             VStack(alignment: .leading, spacing: 16) {
                 Text(title).font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
-                Text(message)
+                DialogMessage(message: message)
             }
         }
     }

@@ -131,7 +131,7 @@ struct HorizonView: View {
         DetailsDialog(close: { selectedHistoricalMarker = nil }) {
             VStack(alignment: .leading, spacing: 16) {
                 Text("History Event").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
-                Text(historicalTooltip(marker)).frame(maxWidth: .infinity, alignment: .leading)
+                DialogMessage(message: historicalTooltip(marker))
             }
         }
     }
