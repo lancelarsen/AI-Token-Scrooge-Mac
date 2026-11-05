@@ -307,15 +307,7 @@ struct ActionIcon: View {
                     }
                 }.frame(width: 20, height: 22)
             } else if symbol == "account.reorder" {
-                Canvas { context, _ in
-                    for row in 0..<3 {
-                        for column in 0..<2 {
-                            let bounds = CGRect(x: 3 + Double(column) * 5,
-                                                y: 2 + Double(row) * 5, width: 3, height: 3)
-                            context.fill(Path(ellipseIn: bounds), with: .color(foreground))
-                        }
-                    }
-                }.frame(width: 14, height: 17)
+                Text("⠿").font(ReferenceTypography.symbolFont(size: size)).foregroundStyle(foreground)
             } else if symbol == "battery.100percent" || symbol == "battery.25percent" {
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 3).strokeBorder(foreground, lineWidth: 1.5).frame(height: 14)

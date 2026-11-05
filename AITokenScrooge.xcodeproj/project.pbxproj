@@ -39,6 +39,7 @@
 		5D3B0F50830F1C8484E8C15E /* SpectrumSelectionIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39135C6BE784A1D2EF821CC5 /* SpectrumSelectionIndicator.swift */; };
 		63350E07339E6D24A0D054B6 /* SettingsMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 554E13291A3E3292163BDE97 /* SettingsMigrationTests.swift */; };
 		65D67BC02FB4B2FB7EFC3C2A /* Format.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFFB3B427B1675530260BA6 /* Format.swift */; };
+		693481EDEAAC3101C3585412 /* SegoeUISymbol.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 32EF134E344E9C2463AA0D44 /* SegoeUISymbol.ttf */; };
 		69973979FB6675D22035CC82 /* SOUND-CREDITS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7077D27B546EE40D7B52E094 /* SOUND-CREDITS.txt */; };
 		6B98AA527732988492887E0A /* DemoData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83248181B8FD3D1C0981229F /* DemoData.swift */; };
 		6FB306641BDBBCC59926733B /* HorizonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7568B7A102C54AE3CF72E102 /* HorizonView.swift */; };
@@ -139,6 +140,7 @@
 		2E5184BDAC856DAAC20AFC19 /* HistoryEventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryEventTests.swift; sourceTree = "<group>"; };
 		2EE9018BC3C01984795AFA21 /* PackedHistoryRun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackedHistoryRun.swift; sourceTree = "<group>"; };
 		31638D25EC1D325F77527539 /* SegoeFluentIcons-EULA.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "SegoeFluentIcons-EULA.txt"; sourceTree = "<group>"; };
+		32EF134E344E9C2463AA0D44 /* SegoeUISymbol.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SegoeUISymbol.ttf; sourceTree = "<group>"; };
 		39135C6BE784A1D2EF821CC5 /* SpectrumSelectionIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrumSelectionIndicator.swift; sourceTree = "<group>"; };
 		3941BE91BC638E8DA8089568 /* classic-dismiss.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "classic-dismiss.wav"; sourceTree = "<group>"; };
 		3A2FF94CD691A6FD9D3EEB04 /* LoginItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemService.swift; sourceTree = "<group>"; };
@@ -405,6 +407,7 @@
 				18DF3506F10ED039C2E35700 /* SegoeFluentIcons.ttf */,
 				8E939D421CB32FF7A5D04685 /* SegoeUI-Semibold.ttf */,
 				897EBC93EE1D68A23502ED59 /* SegoeUI.ttf */,
+				32EF134E344E9C2463AA0D44 /* SegoeUISymbol.ttf */,
 			);
 			path = Fonts;
 			sourceTree = "<group>";
@@ -554,6 +557,7 @@
 				C842ACBE9E68B3340C3767D6 /* SegoeFluentIcons.ttf in Resources */,
 				1C6F490FBF55F37031CF2A4C /* SegoeUI-Semibold.ttf in Resources */,
 				CA209A1227DC66EEAE612DFD /* SegoeUI.ttf in Resources */,
+				693481EDEAAC3101C3585412 /* SegoeUISymbol.ttf in Resources */,
 				FA787AF5C9A21EA1E50490FA /* alarm_off.svg in Resources */,
 				1005FCA7612EB48F234A93A0 /* alarm_on.svg in Resources */,
 				3871C893EC7CDC1282F9F7F2 /* classic-alert.wav in Resources */,

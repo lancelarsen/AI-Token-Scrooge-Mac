@@ -18,6 +18,16 @@ enum ReferenceTypography {
         return CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
     }()
 
+    private static let symbolsRegistered: Bool = {
+        guard let url = Bundle.main.url(forResource: "SegoeUISymbol", withExtension: "ttf") else { return false }
+        return CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
+    }()
+
+    static func symbolFont(size: CGFloat) -> Font {
+        _ = symbolsRegistered
+        return .custom("SegoeUISymbol", fixedSize: size)
+    }
+
     static func iconFont(size: CGFloat) -> Font {
         _ = iconsRegistered
         return .custom("SegoeFluentIcons", fixedSize: size)
