@@ -67,7 +67,7 @@ struct AccountUsageDetailsView: View {
                     if reserve.hasPartialDetails { Text("Provider supplied only partial credit details.").frame(minHeight: 19, alignment: .leading) }
                     if let credits = reserve.credits {
                         ForEach(credits) { credit in
-                            Text("• \(Format.date(credit.expiresAt, zone: store.state.settings.zone)) · \(credit.expiresAt.map { $0 <= Date() } == true ? "Expired locally — checking provider" : credit.status)").frame(minHeight: 19, alignment: .leading)
+                            Text("• \(Format.date(credit.expiresAt, zone: store.state.settings.zone)) · \(credit.expiresAt.map { $0 <= store.presentationDate } == true ? "Expired locally — checking provider" : credit.status)").frame(minHeight: 19, alignment: .leading)
                         }
                     } else { Text("Credit details unavailable").frame(minHeight: 19, alignment: .leading) }
                 }.font(.system(size: 13)).frame(maxWidth: .infinity, alignment: .leading)

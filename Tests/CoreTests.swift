@@ -2,6 +2,19 @@ import XCTest
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testReferenceDateRequiresDemoAndValidTimestamp() {
+        let stamp = "2026-11-04T16:11:00Z"
+        let expected = ISO8601DateFormatter().date(from: stamp)!
+        XCTAssertEqual(DemoData.referenceDate(arguments: ["app", "--demo", "--reference-date", stamp]), expected)
+        XCTAssertNil(DemoData.referenceDate(arguments: ["app", "--reference-date", stamp]))
+        XCTAssertNil(DemoData.referenceDate(arguments: ["app", "--demo", "--reference-date"]))
+        XCTAssertNil(DemoData.referenceDate(arguments: ["app", "--demo", "--reference-date", "invalid"]))
+        XCTAssertNil(DemoData.referenceDate(arguments: ["app", "--demo"]))
+        let (state, history) = DemoData.make(now: expected)
+        XCTAssertTrue(state.snapshots.values.allSatisfy { $0.observedAt == expected })
+        XCTAssertTrue(history.allSatisfy { $0.lastObservedAt <= expected && $0.snapshot.observedAt <= expected })
+    }
+
     func testDemoScenariosPreserveStandardValuesAndRepresentMissingData() {
         let now = Date(timeIntervalSince1970: 1793808000)
         let standard = DemoData.make(now: now).0

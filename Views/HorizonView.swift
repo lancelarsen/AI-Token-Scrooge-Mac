@@ -14,7 +14,8 @@ struct HorizonView: View {
     @State private var navigatorDragOffset: Double?
     @State private var hoverText: String?
     @State private var hoveredSample: (account: ProviderAccount, point: HistoryPoint)?
-    private var events: [HorizonEvent] { HorizonEvent.events(state: store.state, now: .now) }
+    private var now: Date { store.presentationDate }
+    private var events: [HorizonEvent] { HorizonEvent.events(state: store.state, now: now) }
     private var timelineAccounts: [ProviderAccount] { AccountPolicy.ordered(store.state, mode: .custom).filter(\.enabled) }
     var body: some View {
         ScroogeCard(inset: 0) {
@@ -141,7 +142,7 @@ struct HorizonView: View {
                     rail.addLine(to: CGPoint(x: size.width, y: 56))
                     context.stroke(rail, with: .color(Color(hex: "#8170B7")), lineWidth: 2)
                     context.draw(Text("Today").font(.system(size: 14, weight: .semibold)).foregroundStyle(Color(hex: "#D1BEFF")), at: CGPoint(x: anchor, y: 7))
-                    let date = Date.now.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone))
+                    let date = now.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone))
                     context.draw(Text(date).font(.system(size: 12)).foregroundStyle(Theme.dialogText), at: CGPoint(x: anchor, y: 31))
                     context.fill(Path(ellipseIn: CGRect(x: anchor - 8, y: 48, width: 16, height: 16)), with: .color(Color(hex: "#D1BEFF")))
                     if store.state.settings.historyEnabled {
@@ -159,7 +160,7 @@ struct HorizonView: View {
     private var plotHeight: Double { max(1, plotBottom - plotTop) }
     private var historyAxis: some View {
         Canvas { context, _ in
-            guard viewport.position(at: .now) - viewport.scrollOffset > 2 else { return }
+            guard viewport.position(at: now) - viewport.scrollOffset > 2 else { return }
             for percent in stride(from: 0, through: 100, by: 25) {
                 let y = plotTop + (1 - Double(percent) / 100) * plotHeight
                 context.draw(Text("\(percent)%").font(.system(size: 11)).foregroundStyle(Theme.secondary),
@@ -181,7 +182,7 @@ struct HorizonView: View {
     private var historyStatus: String? {
         guard !store.state.accounts.isEmpty else { return nil }
         if !store.state.settings.historyEnabled { return events.isEmpty ? "No Upcoming Events Reported" : nil }
-        guard viewport.visibleStart < .now else { return nil }
+        guard viewport.visibleStart < now else { return nil }
         let visible = historySeries
         if let error = store.historyError { return error }
         if store.historyLoading && visible.allSatisfy({ $0.points.isEmpty }) { return "Loading History" }
@@ -297,7 +298,7 @@ struct HorizonView: View {
             .onKeyPress(.escape) { clearHistorySample(); return .handled }
 
             Group {
-                ForEach(HistoricalEventMarker.layout(events: historicalEvents, viewport: viewport, now: .now)) { marker in
+                ForEach(HistoricalEventMarker.layout(events: historicalEvents, viewport: viewport, now: now)) { marker in
                     Button { selectedHistoricalMarker = marker } label: {
                         Group {
                             if marker.events.count > 1 { Text(String(marker.events.count)) }
@@ -413,7 +414,7 @@ struct HorizonView: View {
         let estimate = nearest == nil ? historySeries.compactMap { series in
             UsageHistory.estimatedPoint(points: series.points, x: location.x, y: location.y, viewport: viewport, plotTop: plotTop, plotHeight: plotHeight).map { (series.account, $0) }
         }.first : nil
-        if store.state.settings.historyEnabled, date <= .now, (plotTop...plotBottom).contains(location.y), let (account, point) = nearest ?? estimate {
+        if store.state.settings.historyEnabled, date <= now, (plotTop...plotBottom).contains(location.y), let (account, point) = nearest ?? estimate {
             showHistorySample(account: account, point: point)
         } else { hoverText = nil; hoveredSample = nil }
     }
@@ -471,7 +472,7 @@ struct HorizonView: View {
                     let dot = Path(ellipseIn: CGRect(x: x - 2.5, y: y - 2.5, width: 5, height: 5))
                     context.fill(dot, with: .color(Color(hex: event.expiration ? "#EAAA51" : "#B5A0F4")))
                 }
-                let nowX = 1 + viewport.position(at: .now) / viewport.contentWidth * trackWidth
+                let nowX = 1 + viewport.position(at: now) / viewport.contentWidth * trackWidth
                 var nowLine = Path()
                 nowLine.move(to: CGPoint(x: nowX, y: 3)); nowLine.addLine(to: CGPoint(x: nowX, y: 19))
                 context.stroke(nowLine, with: .color(Color(hex: "#E5DCF9")), lineWidth: 1)
@@ -507,7 +508,7 @@ struct HorizonView: View {
         }
     }
     private func drawHistory(context: inout GraphicsContext, size: CGSize) {
-        let nowX = viewport.position(at: .now)
+        let nowX = viewport.position(at: now)
         let chartHeight = plotHeight
         for percent in stride(from: 0, through: 100, by: 25) {
             let y = plotTop + (1 - Double(percent) / 100) * chartHeight
@@ -598,7 +599,7 @@ struct HorizonView: View {
         }
     }
     private func prepareHistory() {
-        presentation = HorizonPresentation(accounts: timelineAccounts, runs: store.history, viewport: viewport, now: .now)
+        presentation = HorizonPresentation(accounts: timelineAccounts, runs: store.history, viewport: viewport, now: now)
     }
     private func historyX(_ date: Date) -> Double { presentation.positions[date] ?? viewport.position(at: date) }
     private var historicalEvents: [HorizonEvent] {
@@ -618,10 +619,10 @@ struct HorizonView: View {
         if isToday(date) { return "Today" }
         let formatter = DateFormatter(); formatter.timeZone = store.state.settings.zone; formatter.dateFormat = "EEE"; return formatter.string(from: date)
     }
-    private func isToday(_ date: Date) -> Bool { calendar.isDate(date, inSameDayAs: .now) }
+    private func isToday(_ date: Date) -> Bool { calendar.isDate(date, inSameDayAs: now) }
     private func update(width: Double) {
         hoverText = nil; hoveredSample = nil
-        viewport.update(now: .now, furthestFuture: events.map(\.date).max(), zone: store.state.settings.zone, width: width, historyEnabled: store.state.settings.historyEnabled)
+        viewport.update(now: now, furthestFuture: events.map(\.date).max(), zone: store.state.settings.zone, width: width, historyEnabled: store.state.settings.historyEnabled)
         position.scrollTo(x: viewport.scrollOffset)
     }
 }

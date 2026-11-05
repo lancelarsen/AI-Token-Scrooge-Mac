@@ -1,6 +1,14 @@
 import Foundation
 
 enum DemoData {
+    /// A fixed clock is opt-in and restricted to explicit demo launches.
+    static func referenceDate(arguments: [String]) -> Date? {
+        guard arguments.contains("--demo"),
+              let index = arguments.firstIndex(of: "--reference-date"),
+              arguments.indices.contains(index + 1) else { return nil }
+        return ISO8601DateFormatter().date(from: arguments[index + 1])
+    }
+
     enum Scenario: String, CaseIterable {
         case standard, offline, auth, permission, unknown, exhausted, due, partial
         case historyLong = "history-long"

@@ -12,6 +12,8 @@ import AppKit
     private var historyRequest = UUID()
     private var historyCache: [String: HistoryRunCache] = [:]
     private(set) var isDemo = false
+    @ObservationIgnored private let referenceDemoDate = DemoData.referenceDate(arguments: ProcessInfo.processInfo.arguments)
+    var presentationDate: Date { isDemo ? referenceDemoDate ?? .now : .now }
     private(set) var isLoading = true
     private(set) var isRefreshing = false
     private var pendingRefreshEpoch: UUID?
@@ -39,7 +41,7 @@ import AppKit
     var loginItemNeedsApproval = false
     var activeAlert: AlertEvent?
     @ObservationIgnored var openDashboard: (() -> Void)?
-    var iconAlert: AlertEvent? { IconAlertPolicy.evaluate(state: state, now: .now) }
+    var iconAlert: AlertEvent? { IconAlertPolicy.evaluate(state: state, now: presentationDate) }
     var monitorAvailability: MonitorAvailability { MonitorAvailability.evaluate(state) }
     var iconUnavailable: Bool { state.settings.alertOnIcon && monitorAvailability.needsAttention }
     var attentionCount: Int { iconAlert != nil || iconUnavailable ? 1 : 0 }
@@ -136,7 +138,7 @@ import AppKit
             let scenario = arguments.firstIndex(of: "--scenario").flatMap { index in
                 arguments.indices.contains(index + 1) ? DemoData.Scenario(rawValue: arguments[index + 1]) : nil
             } ?? .standard
-            let demo = DemoData.make(now: .now, scenario: scenario)
+            let demo = DemoData.make(now: referenceDemoDate ?? .now, scenario: scenario)
             historyRequest = UUID(); historyLoading = false; historyError = nil
             state = demo.0; history = demo.1; isDemo = true
         }

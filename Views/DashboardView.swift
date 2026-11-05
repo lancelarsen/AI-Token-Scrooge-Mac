@@ -262,8 +262,9 @@ struct QuotaRow: View {
     @ViewBuilder private var resetCountdown: some View {
         if window.resetsAt != nil {
             TimelineView(.periodic(from: .now, by: 30)) { context in
+                let now = store.isDemo ? store.presentationDate : context.date
                 let enabled = store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id)
-                let severity = enabled ? window.resetsAt.flatMap { TimedReminder.due(store.state.settings.quotaRefreshReminders, at: $0, now: context.date)?.severity } : nil
+                let severity = enabled ? window.resetsAt.flatMap { TimedReminder.due(store.state.settings.quotaRefreshReminders, at: $0, now: now)?.severity } : nil
                 let clockColor: Color = switch severity {
                 case .critical: Color(hex: "#F05B69")
                 case .warning: Color(hex: "#F2C94C")
@@ -275,7 +276,7 @@ struct QuotaRow: View {
                         .environment(\.actionForeground, clockColor)
                         .padding(.top, 3)
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(Format.countdown(window.resetsAt, now: context.date))
+                        Text(Format.countdown(window.resetsAt, now: now))
                             .font(.system(size: 20, weight: .semibold))
                             .foregroundStyle(Color(hex: "#BDA3F5"))
                         Text(Format.date(window.resetsAt, zone: store.state.settings.zone))
