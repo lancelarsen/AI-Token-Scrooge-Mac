@@ -10,7 +10,8 @@ struct HorizonEvent: Identifiable, Sendable {
     var reportedAt: Date? = nil
     var windowID: String? = nil
     static func events(state: PersistedState, now: Date) -> [Self] {
-        state.accounts.filter { $0.enabled && !state.settings.hiddenHistoryAccounts.contains($0.id) }.flatMap { account -> [Self] in
+        let accountOrder = Dictionary(uniqueKeysWithValues: AccountPolicy.ordered(state).enumerated().map { ($0.element.id, $0.offset) })
+        return state.accounts.filter { $0.enabled && !state.settings.hiddenHistoryAccounts.contains($0.id) }.flatMap { account -> [Self] in
             guard let snapshot = state.snapshots[account.id], snapshot.belongs(to: account) else { return [] }
             var events = snapshot.windows.compactMap { window -> Self? in
                 guard let date = window.resetsAt, date > now else { return nil }
@@ -23,7 +24,16 @@ struct HorizonEvent: Identifiable, Sendable {
                 }
             }
             return events
-        }.sorted { $0.date < $1.date }
+        }.sorted { left, right in
+            if left.date != right.date { return left.date < right.date }
+            // Windows concatenates ordered quota rows before earned resets, then
+            // stably sorts by timestamp. Preserve that order for tied events.
+            if left.expiration != right.expiration { return !left.expiration }
+            if !left.expiration {
+                return accountOrder[left.account.id, default: Int.max] < accountOrder[right.account.id, default: Int.max]
+            }
+            return false
+        }
     }
 }
 
