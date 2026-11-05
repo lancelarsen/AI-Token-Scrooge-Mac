@@ -229,12 +229,12 @@ struct HorizonView: View {
                             RoundedRectangle(cornerRadius: 13).fill(Color(hex: "#272331"))
                                 .overlay(RoundedRectangle(cornerRadius: 13).stroke(accent, lineWidth: 2))
                                 .overlay(ProviderIcon(provider: account.provider, size: 30))
-                                .padding(.horizontal, 4).padding(.vertical, 10)
+                                .padding(.horizontal, 4).padding(.vertical, 10).opacity(enabled ? 1 : 0.5)
                             VStack {
-                                selectorBadge(store.state.settings.privacy ? "Account" : account.nickname, size: 11, accent: accent)
+                                selectorBadge(store.state.settings.privacy ? "Account" : account.nickname, size: 11, accent: accent, enabled: enabled)
                                 Spacer(minLength: 0)
                                 HStack(alignment: .bottom, spacing: 0) {
-                                    selectorBadge(Format.plan(account.provider, store.state.snapshots[account.id]?.planType), size: 10, accent: accent)
+                                    selectorBadge(Format.plan(account.provider, store.state.snapshots[account.id]?.planType), size: 10, accent: accent, enabled: enabled)
                                     Spacer(minLength: 0)
                                     ZStack { if enabled { Image(systemName: "checkmark") } }
                                         .font(.system(size: 12, weight: .bold)).foregroundStyle(.white)
@@ -244,7 +244,7 @@ struct HorizonView: View {
                                         .overlay(RoundedRectangle(cornerRadius: 5).stroke(accent, lineWidth: 1.5))
                                 }
                             }
-                        }.frame(width: 82, height: 66).opacity(enabled ? 1 : 0.5)
+                        }.frame(width: 82, height: 66)
                     }.buttonStyle(.plain).accessibilityLabel("Show \(account.provider.rawValue) \(store.state.settings.privacy ? "Account" : account.nickname) on Timeline")
                         .modifier(ImmediateReferenceTooltip(text: historyHelp(account)))
                 }
@@ -252,11 +252,11 @@ struct HorizonView: View {
                 .frame(maxWidth: .infinity)
         }.scrollIndicators(.hidden)
     }
-    private func selectorBadge(_ text: String, size: CGFloat, accent: Color) -> some View {
-        Text(text).font(.system(size: size)).lineLimit(1).foregroundStyle(.white)
+    private func selectorBadge(_ text: String, size: CGFloat, accent: Color, enabled: Bool) -> some View {
+        Text(text).font(.system(size: size)).lineLimit(1).foregroundStyle(enabled ? .white : Color(hex: "#919195"))
             .padding(.horizontal, 5).padding(.vertical, 2).background(Theme.control)
             .clipShape(RoundedRectangle(cornerRadius: 7))
-            .overlay(RoundedRectangle(cornerRadius: 7).stroke(accent, lineWidth: 1.5))
+            .overlay(RoundedRectangle(cornerRadius: 7).stroke(accent.opacity(enabled ? 1 : 0.5), lineWidth: 1.5))
     }
     private func eventTooltip(_ event: HorizonEvent) -> String {
         let account = "\(event.account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : event.account.nickname) · \(Format.plan(event.account.provider, event.plan))"

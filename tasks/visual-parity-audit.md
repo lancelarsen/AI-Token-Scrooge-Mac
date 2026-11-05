@@ -635,3 +635,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Added --demo --reference-wide to apply the 1463×866 reference frame once on activation, using the same narrowly scoped window bridge as --compact. Shared size resolution keeps compact precedence and disables restoration only for explicitly requested demo captures. Normal launches retain automatic restoration. README documents the flag.
 - Canonical build passed (`artifacts/wide-reference-window-build.log`) and diff checks passed. Native screenshot measured 2926×1732 Retina pixels, proving the 1463×866-point frame. This removes the prior 1496-point-width mismatch for subsequent wide demo comparisons.
 - Window dimensions now match; demo date/data, typography, native title bar and individual reference state still require alignment. No image is certified identical by this change.
+
+### Wide History-off and filtered selector comparison (references 10–11)
+
+- Captured 1463×866 History-off dashboard: usage grid/axis hidden, service rail and future events retained, navigator visible. Native account filter check changed refresh count 7→5 and expiration count 2→0 and removed that account's events. Date-dependent positions differ from the November 4 reference.
+- Capture exposed whole-selector fading. Matched Windows BuildSelectors: only the provider container fades to half opacity; badge text uses #919195, badge strokes half-opacity, while the unchecked checkbox retains full accent border and control background. Removed global opacity that incorrectly dimmed that checkbox.
+- Canonical build passed (`artifacts/filtered-selector-style-build.log`) and diff checks passed. Filtering behavior and pre-change rendering are verified; post-change per-element color rendering needs recapture. Exact switch hover appearance, fonts and floating tooltip remain open.
