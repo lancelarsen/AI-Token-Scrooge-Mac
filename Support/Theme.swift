@@ -259,6 +259,25 @@ struct ActionIcon: View {
     @Environment(\.actionForeground) private var foreground
     let symbol: String
     var size: CGFloat = 19
+    private var referenceGlyph: String? {
+        switch symbol {
+        case "clock": "\u{E823}"
+        case "person": "\u{E77B}"
+        case "play": "\u{E768}"
+        case "folder": "\u{E8B7}"
+        case "desktopcomputer": "\u{E7F4}"
+        case "plus": "\u{E710}"
+        case "trash": "\u{E74D}"
+        case "xmark": "\u{E711}"
+        case "moon": "\u{E708}"
+        case "speaker.wave.2": "\u{E767}"
+        case "globe": "\u{E909}"
+        case "slider.horizontal.3": "\u{E9E9}"
+        case "link": "\u{E71B}"
+        case "info.circle": "\u{E946}"
+        default: nil
+        }
+    }
     private var resource: String? {
         switch symbol {
         case "gearshape": "settings"
@@ -270,7 +289,10 @@ struct ActionIcon: View {
     }
     var body: some View {
         Group {
-            if symbol == "circle.grid.3x3.fill" {
+            if let referenceGlyph {
+                Text(referenceGlyph).font(ReferenceTypography.iconFont(size: size))
+                    .foregroundStyle(foreground)
+            } else if symbol == "circle.grid.3x3.fill" {
                 Canvas { context, _ in
                     for row in 0..<3 {
                         for column in 0..<2 {
@@ -281,17 +303,6 @@ struct ActionIcon: View {
                         }
                     }
                 }.frame(width: 20, height: 22)
-            } else if symbol == "clock" {
-                Canvas { context, _ in
-                    context.scaleBy(x: size / 20, y: size / 20)
-                    context.stroke(Path(ellipseIn: CGRect(x: 1, y: 1, width: 18, height: 18)),
-                                   with: .color(foreground), lineWidth: 1)
-                    var hands = Path()
-                    hands.move(to: CGPoint(x: 10, y: 5))
-                    hands.addLine(to: CGPoint(x: 10, y: 10))
-                    hands.addLine(to: CGPoint(x: 6, y: 10))
-                    context.stroke(hands, with: .color(foreground), lineWidth: 1)
-                }
             } else if symbol == "clock.arrow.circlepath" {
                 Canvas { context, _ in
                     context.scaleBy(x: size / 30, y: size / 30)
@@ -324,61 +335,6 @@ struct ActionIcon: View {
                         .frame(width: symbol == "battery.25percent" ? 14 : 4, height: 7)
                         .padding(.leading, 4)
                 }.frame(width: 22, height: 20)
-            } else if symbol == "plus" || symbol == "trash" {
-                Canvas { context, _ in
-                    context.scaleBy(x: size / 20, y: size / 20)
-                    var path = Path()
-                    if symbol == "plus" {
-                        path.move(to: CGPoint(x: 2, y: 10))
-                        path.addLine(to: CGPoint(x: 18, y: 10))
-                        path.move(to: CGPoint(x: 10, y: 2))
-                        path.addLine(to: CGPoint(x: 10, y: 18))
-                    } else {
-                        path.move(to: CGPoint(x: 3, y: 4))
-                        path.addLine(to: CGPoint(x: 17, y: 4))
-                        path.move(to: CGPoint(x: 7, y: 4))
-                        path.addLine(to: CGPoint(x: 7, y: 1))
-                        path.addLine(to: CGPoint(x: 13, y: 1))
-                        path.addLine(to: CGPoint(x: 13, y: 4))
-                        path.move(to: CGPoint(x: 4, y: 4))
-                        path.addLine(to: CGPoint(x: 5, y: 19))
-                        path.addLine(to: CGPoint(x: 15, y: 19))
-                        path.addLine(to: CGPoint(x: 16, y: 4))
-                        for x in [8.0, 12.0] {
-                            path.move(to: CGPoint(x: x, y: 7))
-                            path.addLine(to: CGPoint(x: x, y: 16))
-                        }
-                    }
-                    context.stroke(path, with: .color(foreground), lineWidth: 1)
-                }
-            } else if symbol == "person" {
-                Canvas { context, _ in
-                    context.scaleBy(x: size / 20, y: size / 20)
-                    context.stroke(Path(ellipseIn: CGRect(x: 6, y: 0.5, width: 8, height: 8)),
-                                   with: .color(foreground), lineWidth: 1)
-                    // The reference uses a shallow rounded shoulder panel, not a semicircle.
-                    var shoulders = Path()
-                    shoulders.move(to: CGPoint(x: 5, y: 11))
-                    shoulders.addLine(to: CGPoint(x: 15, y: 11))
-                    shoulders.addQuadCurve(to: CGPoint(x: 18, y: 14), control: CGPoint(x: 18, y: 11))
-                    shoulders.addLine(to: CGPoint(x: 18, y: 16))
-                    shoulders.addQuadCurve(to: CGPoint(x: 10, y: 19.5), control: CGPoint(x: 18, y: 19.5))
-                    shoulders.addQuadCurve(to: CGPoint(x: 2, y: 16), control: CGPoint(x: 2, y: 19.5))
-                    shoulders.addLine(to: CGPoint(x: 2, y: 14))
-                    shoulders.addQuadCurve(to: CGPoint(x: 5, y: 11), control: CGPoint(x: 2, y: 11))
-                    context.stroke(shoulders, with: .color(foreground), lineWidth: 1)
-                }
-            } else if symbol == "play" {
-                Canvas { context, _ in
-                    context.scaleBy(x: size / 20, y: size / 20)
-                    var triangle = Path()
-                    triangle.move(to: CGPoint(x: 3, y: 2))
-                    triangle.addLine(to: CGPoint(x: 18, y: 10))
-                    triangle.addLine(to: CGPoint(x: 3, y: 18))
-                    triangle.closeSubpath()
-                    context.stroke(triangle, with: .color(foreground),
-                                   style: StrokeStyle(lineWidth: 1, lineJoin: .round))
-                }
             } else if symbol == "folder" || symbol == "arrow.up.right.square" {
                 Canvas { context, _ in
                     context.scaleBy(x: size / 20, y: size / 20)

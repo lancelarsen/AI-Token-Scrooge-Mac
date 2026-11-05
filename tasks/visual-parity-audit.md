@@ -883,3 +883,10 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Removed the shortened Quiet Hours override so the existing Windows-matching shared help includes one-hour arrow-key instructions.
 - Set ordinary global/account switch on-color to Windows SettingsPage's explicit #8170CF. The timeline's separate explicit styling is unchanged.
 - Canonical build passed (`artifacts/settings-switch-help-build.log`). Native settings AX exposed the complete Quiet Hours message; settings capture (`artifacts/settings-switch-help-native.jpg`) verified the control renders. Source tint matches; full pixel parity remains unproven.
+
+## Segoe Fluent action glyphs — 2026-11-05
+
+- Downloaded Microsoft's Segoe Fluent Icons 1.56 package from https://www.microsoft.com/en-us/download/details.aspx?id=108863 (official download URL: https://download.microsoft.com/download/e67899fc-9e91-433c-91c6-876b3b98d787/Segoe-Fluent-Icons.zip). Bundled the font and its accompanying EULA.
+- ActionIcon now uses the reference glyphs for clock, person, play, folder, desktop, plus, trash, close, moon, speaker, globe, sliders, link, and info. Removed superseded hand-drawn clock/person/play/plus/trash approximations. Dedicated custom sorting/reordering drawings and existing resource images remain.
+- Canonical build passed (`artifacts/fluent-icons-build.log`); CoreText registration succeeded and all 14 mapped code points resolved to nonzero glyphs. Native visual alignment still needs checking; standalone info images and remaining fallback symbols are not yet migrated.
+- Reviewed Windows ActionButton disabled template: it deliberately retains normal color styling, so no disabled-opacity change was made.

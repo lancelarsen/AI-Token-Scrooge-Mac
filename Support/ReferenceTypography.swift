@@ -9,6 +9,16 @@ enum ReferenceTypography {
         return CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
     }()
 
+    private static let iconsRegistered: Bool = {
+        guard let url = Bundle.main.url(forResource: "SegoeFluentIcons", withExtension: "ttf") else { return false }
+        return CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
+    }()
+
+    static func iconFont(size: CGFloat) -> Font {
+        _ = iconsRegistered
+        return .custom("SegoeFluentIcons", fixedSize: size)
+    }
+
     static func measuringFont(ofSize size: CGFloat, weight: NSFont.Weight = .regular) -> NSFont {
         _ = registered
         if weight == .semibold, let font = NSFont(name: "SegoeUI-Semibold", size: size) { return font }
