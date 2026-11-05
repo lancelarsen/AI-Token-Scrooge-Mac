@@ -204,7 +204,7 @@ struct HorizonView: View {
         let series = presentation.series.first { $0.account.id == account.id }
         let name = store.state.settings.privacy ? "Account" : account.nickname
         var text = "\(account.provider.rawValue) / \(name) · \(Format.plan(account.provider, store.state.snapshots[account.id]?.planType))\nShow or Hide History, Resets and Refreshes"
-        if let first = series?.points.first, first.at > viewport.firstDate { text += "\nHistory Begins \(Format.date(first.at, zone: store.state.settings.zone))" }
+        if let first = series?.points.first, viewport.position(at: first.at) > 0 { text += "\nHistory Begins \(Format.date(first.at, zone: store.state.settings.zone))" }
         if let status = series?.status { text += "\n\(status)" }
         return text
     }
@@ -418,8 +418,13 @@ struct HorizonView: View {
         historyPinned = true
     }
     private func updateHistoryHover(_ location: CGPoint?) {
-        guard let location else { hoverText = nil; hoveredSample = nil; return }
-        let date = viewport.date(at: location.x)
+        guard let location,
+              store.state.settings.historyEnabled,
+              location.x >= viewport.scrollOffset,
+              location.x <= min(viewport.scrollOffset + viewport.viewportWidth, viewport.position(at: now)),
+              (plotTop...plotBottom).contains(location.y) else {
+            hoverText = nil; hoveredSample = nil; return
+        }
         func distance(_ point: HistoryPoint) -> Double {
             let x = historyX(point.at)
             let y = plotTop + NSDecimalNumber(decimal: point.remaining).doubleValue / 100 * plotHeight
@@ -430,7 +435,7 @@ struct HorizonView: View {
         let estimate = nearest == nil ? historySeries.compactMap { series in
             UsageHistory.estimatedPoint(points: series.points, x: location.x, y: location.y, viewport: viewport, plotTop: plotTop, plotHeight: plotHeight).map { (series.account, $0) }
         }.first : nil
-        if store.state.settings.historyEnabled, date <= now, (plotTop...plotBottom).contains(location.y), let (account, point) = nearest ?? estimate {
+        if let (account, point) = nearest ?? estimate {
             showHistorySample(account: account, point: point)
         } else { hoverText = nil; hoveredSample = nil }
     }
@@ -441,7 +446,7 @@ struct HorizonView: View {
         var details = "\(account.provider.rawValue) / \(name) · \(Format.plan(account.provider, store.state.snapshots[account.id]?.planType))"
         details += "\n\(period) · \(Format.percent(100 - point.remaining, fractionDigits: 1)) Used\n\(Format.date(point.at, zone: store.state.settings.zone))"
         if let first = presentation.series.first(where: { $0.account.id == account.id })?.points.first,
-           first.at > viewport.firstDate {
+           viewport.position(at: first.at) > 0 {
             details += "\nHistory Begins \(Format.date(first.at, zone: store.state.settings.zone))"
         }
         if point.estimated { details += "\nEstimated Linear Connection From Previous Observation" }
