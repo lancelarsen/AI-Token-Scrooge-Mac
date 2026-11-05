@@ -231,3 +231,9 @@ Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 - User explicitly approved Enable and test notifications. In System Settings > Notifications > AI Token Scrooge, switched Allow notifications from off to on and verified the on state. Existing Desktop/Notification Center/Lock Screen selections and Temporary alert style were preserved. Evidence: artifacts/notification-permission-enabled.png.
 - Using running downloaded Preview38 in demo mode, clicked Send Test Notification exactly once. In-app test banner appeared; Alert History reports Scrooge Notification Test at November3 11:44AM with Sent to macOS. Evidence: artifacts/notification-test-sent-macos.png. No permission-denied error appeared.
 - This proves native submission accepted by macOS, not visible OS presentation or notification action callbacks. Computer-use access to Notification Center exposed its calendar widget rather than the notification list; visibility remains unverified. No application code changed.
+
+### Supported Claude CLI Installed — 2026-11-05
+
+Homebrew refreshed package metadata and advertised Claude Code2.1.311 from downloads.claude.ai, with2.1.308 installed. Upgraded the existing claude-code cask successfully; log artifacts/claude-upgrade.log, package metadata artifacts/claude-current-package-info.json. Repeated Scrooge’s executable preference order and selected /opt/homebrew/bin/claude. Running only --version with a fresh temporary CLAUDE_CONFIG_DIR and an environment limited to HOME/PATH/TMPDIR/LANG reports2.1.311 (Claude Code); evidence artifacts/claude-upgraded-version.txt. This meets the app’s >=2.1.310 guard. No login, quota command or inference was invoked, and no provider credentials were read.
+
+The previous unsupported-version blocker is resolved. Live Claude authentication, quota correctness and logout remain unverified. This is an environment-only update; no application source or build changed.
