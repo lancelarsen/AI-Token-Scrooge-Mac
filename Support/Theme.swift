@@ -534,7 +534,7 @@ struct ImmediateReferenceTooltip: ViewModifier {
             .background {
                 GeometryReader { geometry in
                     HistoryPointerTracking(plainText: true, text: visible ? text : nil, pinned: true,
-                                           anchor: CGPoint(x: geometry.size.width / 2, y: 0), onMove: { _ in })
+                                           anchor: CGPoint(x: geometry.size.width / 2, y: 0), onMove: { point in if point == nil { visible = false } })
                 }
             }
             .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { _ in visible = false }

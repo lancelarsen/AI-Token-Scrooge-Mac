@@ -655,12 +655,15 @@ struct HistoryPointerTracking: NSViewRepresentable {
         view.popupText = text
         view.showPopup(text)
     }
-    static func dismantleNSView(_ view: TrackingView, coordinator: ()) { view.hidePopup() }
+    static func dismantleNSView(_ view: TrackingView, coordinator: ()) { view.stopObserving(); view.hidePopup() }
 
     final class TrackingView: NSView {
         var onMove: ((CGPoint?) -> Void)?
         private var area: NSTrackingArea?
         private var popup: NSPanel?
+        private static weak var popupOwner: TrackingView?
+        private var dismissalObserver: NSObjectProtocol?
+        private var pressMonitor: Any?
         var pointer = NSPoint.zero
         var pinned = false
         var severity: ReminderSeverity?
@@ -669,7 +672,9 @@ struct HistoryPointerTracking: NSViewRepresentable {
         private var thresholdPlacement = ThresholdPopupPlacement()
         func hidePopup() { popup?.orderOut(nil); thresholdPlacement.reset() }
         func showPopup(_ text: String?) {
-            guard let text, let window, let screen = window.screen else { hidePopup(); return }
+            guard let text, let window, window.isKeyWindow, let screen = window.screen else { hidePopup(); return }
+            if let previous = Self.popupOwner, previous !== self { previous.hidePopup() }
+            Self.popupOwner = self
             let panel = popup ?? NSPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
             if popup == nil {
                 panel.isOpaque = false; panel.backgroundColor = .clear
@@ -723,9 +728,31 @@ struct HistoryPointerTracking: NSViewRepresentable {
 
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
+            stopObserving()
+            if let window {
+                dismissalObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResignKeyNotification, object: window, queue: .main) { [weak self] _ in
+                    MainActor.assumeIsolated {
+                        self?.hidePopup()
+                        self?.onMove?(nil)
+                    }
+                }
+                pressMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]) { [weak self] event in
+                    guard let self, self.plainText, event.window === self.window else { return event }
+                    self.hidePopup()
+                    self.onMove?(nil)
+                    return event
+                }
+            }
             // Tracking areas need the hosting window to deliver ordinary pointer movement.
             window?.acceptsMouseMovedEvents = true
             if window == nil { hidePopup() } else { showPopup(popupText) }
+        }
+
+        func stopObserving() {
+            if let dismissalObserver { NotificationCenter.default.removeObserver(dismissalObserver) }
+            dismissalObserver = nil
+            if let pressMonitor { NSEvent.removeMonitor(pressMonitor) }
+            pressMonitor = nil
         }
 
         override func updateTrackingAreas() {

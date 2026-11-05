@@ -864,3 +864,10 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Removed the threshold panel's extra macOS shadow. Accounted for the one-point border outside the 14/10 content padding, and drew the border inside the rounded rectangle.
 - Canonical build passed (`artifacts/threshold-popup-placement-build.log`). A standalone harness compiled the production `ThresholdPopupPlacement` source and passed initial spacing, fixed top with changing anchor/size, left/right/top edge clamps, and reset/reopen checks (`artifacts/threshold-placement-check.swift`, `.log`).
 - Floating-panel screenshot comparison remains outstanding; these checks verify placement calculations, not final font metrics or screenshot identity.
+
+## Popup dismissal and ownership — 2026-11-05
+
+- Immediate help now dismisses on mouse-down (matching Windows ImmediateToolTip PointerPressed), instead of waiting for a completed tap. The event is returned unchanged so controls retain normal input.
+- Tracking panels dismiss when their owning window loses key status and cannot reopen from a stale view update while the window is inactive. A weak shared owner hides the previous readout when another opens, matching Windows threshold popup ownership.
+- Window notification and event monitor subscriptions are removed when the view moves windows or is dismantled; callbacks capture the view weakly.
+- Canonical build passed (`artifacts/popup-dismissal-build.log`); diff checks passed. Runtime multi-panel/activation checks remain unverified; no screenshot identity claim.
