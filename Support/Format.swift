@@ -52,9 +52,9 @@ enum Format {
         }
         return value.flatMap { labels[$0] } ?? "Plan unavailable"
     }
-    static func percent(_ value: Decimal?) -> String {
+    static func percent(_ value: Decimal?, fractionDigits: Int = 0) -> String {
         guard var number = value else { return "Unknown" }
-        var rounded = Decimal(); NSDecimalRound(&rounded, &number, 0, .plain)
+        var rounded = Decimal(); NSDecimalRound(&rounded, &number, fractionDigits, .plain)
         return "\(NSDecimalNumber(decimal: rounded).stringValue)%"
     }
     static func countdown(_ date: Date?, now: Date = .now) -> String {

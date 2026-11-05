@@ -423,14 +423,14 @@ struct HorizonView: View {
         let name = store.state.settings.privacy ? "Account" : account.nickname
         let period = account.provider == .copilot ? "Monthly" : "Weekly"
         var details = "\(account.provider.rawValue) / \(name) · \(Format.plan(account.provider, store.state.snapshots[account.id]?.planType))"
-        details += "\n\(period) · \(Format.percent(100 - point.remaining)) Used\n\(Format.date(point.at, zone: store.state.settings.zone))"
+        details += "\n\(period) · \(Format.percent(100 - point.remaining, fractionDigits: 1)) Used\n\(Format.date(point.at, zone: store.state.settings.zone))"
         if let first = presentation.series.first(where: { $0.account.id == account.id })?.points.first,
            first.at > viewport.firstDate {
             details += "\nHistory Begins \(Format.date(first.at, zone: store.state.settings.zone))"
         }
         if point.estimated { details += "\nEstimated Linear Connection From Previous Observation" }
         if let previous = point.replenishedFrom {
-            details += "\nCapacity Rose From \(Format.percent(previous)) to \(Format.percent(point.remaining))\nObserved Between Polls"
+            details += "\nCapacity Rose From \(Format.percent(previous, fractionDigits: 1)) to \(Format.percent(point.remaining, fractionDigits: 1))\nObserved Between Polls"
             if let prior = point.previousObservedAt {
                 details += "\n\(Format.date(prior, zone: store.state.settings.zone)) – \(Format.date(point.at, zone: store.state.settings.zone))"
             }

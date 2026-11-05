@@ -72,7 +72,7 @@ struct UsageBar: View {
                         })
                         .onHover { hoveredSeverity = $0 ? level : (hoveredSeverity == level ? nil : hoveredSeverity) }
                         .accessibilityLabel("\(level.rawValue) Alert Threshold")
-                        .accessibilityValue(Format.percent(value))
+                        .accessibilityValue(Format.percent(value, fractionDigits: 1))
                         .accessibilityHint("Drag Horizontally or Use Arrow Keys to Adjust")
                         .accessibilityAdjustableAction { direction in
                             var next = thresholds; next.move(level, to: value + (direction == .increment ? 1 : -1)); changed(next)
@@ -90,7 +90,7 @@ struct UsageBar: View {
                 .background {
                     if let level = readoutSeverity {
                         HistoryPointerTracking(severity: level,
-                            text: "\(level.rawValue) Alert @ \(Format.percent(value(level, current))) Left",
+                            text: "\(level.rawValue) Alert @ \(Format.percent(value(level, current), fractionDigits: 1)) Left",
                             pinned: true,
                             anchor: CGPoint(x: 8 + (1 - NSDecimalNumber(decimal: value(level, current)).doubleValue / 100) * markerSpan, y: 0),
                             onMove: { _ in })

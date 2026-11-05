@@ -916,3 +916,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Removed DialogActionLabel's separate hand-drawn Close, Info, and Snooze icons and routed all dialog symbols through ActionIcon. The previous Fluent migration did not cover those bypasses.
 - Mapped Settings and Refresh to reference E713/E72C. Windows MainPage, HorizonView, and account-settings buttons use ActionButton glyphs, so their former SVG selection was mismatched. Alarm SVGs remain in use where appropriate.
 - Canonical build passed (`artifacts/shared-dialog-glyphs-build.log`). Native settings capture (`artifacts/shared-dialog-glyphs-native.jpg`) verified Close, Settings, and Check Now glyph rendering. Final comparison with reference screenshot remains open.
+
+## History/threshold readout precision — 2026-11-05
+
+- Windows HistoryTimelineView details use 0.# for used percentage and observed replenishment amounts; ThresholdEditor uses it for threshold readouts. Mac previously rounded all of these to whole percentages.
+- Added an opt-in fractionDigits parameter to Format.percent and requested one digit in history details and threshold popup/accessibility values. Dashboard whole-number labels and compact chart labels retain their existing formatting.
+- Production Format.swift passed a standalone harness for fractional values, midpoint rounding, integer trailing-zero trimming, nil values, and unchanged whole-number defaults (`artifacts/readout-precision-check.swift`, `.log`). Canonical build passed (`artifacts/readout-precision-build.log`). Floating detail rendering still requires final comparison.
