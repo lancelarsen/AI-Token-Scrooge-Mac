@@ -231,7 +231,7 @@ private struct InlineLineColorEditor: View {
                             saturation = 1 - min(1, max(0, value.location.y / geometry.size.height))
                             publish()
                         })
-                        .focusable().focused($spectrumFocused)
+                        .focusable().focused($spectrumFocused).focusEffectDisabled()
                         .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { press in
                             switch press.key {
                             case .leftArrow: hue = max(0, hue - 1 / 360)

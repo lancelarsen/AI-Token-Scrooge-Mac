@@ -609,3 +609,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Replaced delayed native help on account reorder/manage controls, row alert toggles, account rule/monitor toggles, timeline settings and reminder removal with the shared immediate styled tooltip. Existing accessibility labels remain; timeline settings now explicitly names the Windows Earned Reset Alert Settings action.
 - Matched Windows reminder-removal help wording: Remove This Reminder from the Schedule. Source CapacityAlertToggle confirms immediate help for alarms.
 - Canonical build passed (`artifacts/dashboard-tooltip-consistency-build.log`) and diff checks passed. No .help calls remain in DashboardView, HorizonView, AccountSettingsView or SettingsView. This proves consistent use of the shared implementation, not exact popup rendering; floating-panel placement and hover captures remain open.
+
+### Color picker footer and spectrum focus (reference 15)
+
+- Shared detail dialogs with a primary action now give both footer buttons equal flexible widths with an explicit eight-point gap. Single-action dialogs retain their right-aligned Close button. Reference 15 uses two equally sized footer buttons.
+- Native color-picker capture confirmed both footer buttons span the available row equally, with spectrum, preview, brightness, RGB/hex and channel inputs intact. The capture exposed a native blue spectrum focus outline; disabled that extra system effect while keeping focus and keyboard handlers.
+- Final canonical build passed (`artifacts/dialog-action-width-build.log`) and diff checks passed. Footer geometry is visually checked; spectrum focus suppression is build/source-verified pending post-change capture. Exact gradient interpolation, marker outline and font metrics remain open.

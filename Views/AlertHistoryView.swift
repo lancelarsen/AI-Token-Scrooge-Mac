@@ -95,6 +95,7 @@ struct DetailsDialog<Content: View>: View {
     let close: () -> Void
     @ViewBuilder let content: () -> Content
 
+    private var hasPrimaryAction: Bool { primaryTitle != nil && primaryAction != nil }
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ViewThatFits(in: .vertical) {
@@ -107,15 +108,17 @@ struct DetailsDialog<Content: View>: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(24)
             Rectangle().fill(Color(hex: "#3B3D47")).frame(height: 1)
-            HStack {
-                Spacer()
+            HStack(spacing: 8) {
+                if !hasPrimaryAction { Spacer() }
                 if let primaryTitle, let primaryAction {
                     Button(action: primaryAction) {
                         DialogActionLabel(title: primaryTitle, symbol: primarySymbol)
+                            .frame(maxWidth: .infinity)
                     }.buttonStyle(ScroogeButtonStyle())
                 }
                 Button(action: close) {
-                    DialogActionLabel(title: closeTitle, symbol: "xmark").frame(minWidth: 104)
+                    DialogActionLabel(title: closeTitle, symbol: "xmark")
+                        .frame(minWidth: hasPrimaryAction ? 0 : 104, maxWidth: hasPrimaryAction ? .infinity : nil)
                 }
                 .buttonStyle(ScroogeButtonStyle())
                 .keyboardShortcut(.cancelAction)
