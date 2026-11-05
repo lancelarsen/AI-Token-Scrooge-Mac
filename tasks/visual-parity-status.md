@@ -4,6 +4,8 @@ Reference image integrity checked against Windows `origin/main` at `694dc85`. Al
 
 **No image is certified identical.** Every row remains partial or unverified. Builds verify compilation, not visual identity. Prior captures may predate shared-control changes and need final recapture.
 
+Repeatable captures: `--demo --compact` (789×694 points) and `--demo --reference-wide` (1463×866 points), both verified by native screenshots.
+
 Cross-cutting open requirements: Segoe UI font assets/metrics; exact Segoe Fluent glyph shapes; matching window dimensions; popup captures and positioning; final per-image comparisons after shared changes. User question about an app-licensed Segoe UI bundle is pending.
 
 | Reference | PNG pixels | Current evidence / next check |

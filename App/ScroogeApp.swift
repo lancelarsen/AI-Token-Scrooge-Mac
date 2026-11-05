@@ -6,7 +6,7 @@ import Network
 @main struct ScroogeApp: App {
     @NSApplicationDelegateAdaptor(ScroogeAppDelegate.self) private var delegate
     @State private var store = AppStore()
-    private let compactDemo = ProcessInfo.processInfo.arguments.contains("--demo") && ProcessInfo.processInfo.arguments.contains("--compact")
+    private let demoReferenceSize = DemoReferenceWindow.size
     private var statusSymbol: String {
         switch store.iconAlert?.severity {
         case .critical: "exclamationmark.octagon.fill"
@@ -20,8 +20,8 @@ import Network
             DashboardView().environment(store)
                 .onAppear { delegate.store = store }
         }
-        .defaultSize(width: compactDemo ? 789 : 1460, height: compactDemo ? 694 : 900)
-        .restorationBehavior(compactDemo ? .disabled : .automatic)
+        .defaultSize(width: demoReferenceSize?.width ?? 1460, height: demoReferenceSize?.height ?? 900)
+        .restorationBehavior(demoReferenceSize != nil ? .disabled : .automatic)
         .commands {
             CommandGroup(after: .appInfo) {
                 Button("Check for Updates…") { AppUpdater.shared.checkNow() }
@@ -75,18 +75,16 @@ struct MenuBarContent: View {
               let store, !store.isLoading, !store.isDemo else { return }
         Task { await store.refresh() }
     }
-    private var appliedCompactDemoSize = false
+    private var appliedReferenceDemoSize = false
     func applicationDidBecomeActive(_ notification: Notification) {
         // defaultSize is only a proposal; a saved frame can still win at launch.
-        // Apply the reference capture size once, only for explicitly compact demos.
-        if !appliedCompactDemoSize,
-           ProcessInfo.processInfo.arguments.contains("--demo"),
-           ProcessInfo.processInfo.arguments.contains("--compact"),
+        // Apply a requested reference frame once, only for explicit demo captures.
+        if !appliedReferenceDemoSize, let size = DemoReferenceWindow.size,
            let window = NSApp.windows.first(where: { $0.title == "AI Token Scrooge" && $0.canBecomeMain }) {
-            appliedCompactDemoSize = true
+            appliedReferenceDemoSize = true
             var frame = window.frame
-            frame.origin.y += frame.height - 694
-            frame.size = NSSize(width: 789, height: 694)
+            frame.origin.y += frame.height - size.height
+            frame.size = size
             window.setFrame(frame, display: true)
         }
         refreshAfterResume()
@@ -153,5 +151,15 @@ struct MenuBarContent: View {
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         !(store?.state.settings.closeToMenuBar ?? true)
+    }
+}
+
+private enum DemoReferenceWindow {
+    static var size: NSSize? {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard arguments.contains("--demo") else { return nil }
+        if arguments.contains("--compact") { return NSSize(width: 789, height: 694) }
+        if arguments.contains("--reference-wide") { return NSSize(width: 1463, height: 866) }
+        return nil
     }
 }

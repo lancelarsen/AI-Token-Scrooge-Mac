@@ -629,3 +629,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 - Replaced the six-stop generic hue gradient plus white overlay with a cached 512×512 sRGB hue/saturation image. Each pixel derives from the same normalized HSV coordinates used by selection, avoiding color-space interpolation between a small number of hue stops. The immutable image is generated once per process.
 - Canonical build passed (`artifacts/color-spectrum-rendering-build.log`) and diff checks passed. Native picker capture confirms the hue/saturation surface, current selection, preview, brightness, channel inputs and footer remain visible and unclipped.
 - This is a rendering-model correction; no per-pixel comparison proves identity to WinUI ColorSpectrum. Exact spectrum/marker appearance and typography remain open.
+
+### Repeatable wide reference frame
+
+- Added --demo --reference-wide to apply the 1463×866 reference frame once on activation, using the same narrowly scoped window bridge as --compact. Shared size resolution keeps compact precedence and disables restoration only for explicitly requested demo captures. Normal launches retain automatic restoration. README documents the flag.
+- Canonical build passed (`artifacts/wide-reference-window-build.log`) and diff checks passed. Native screenshot measured 2926×1732 Retina pixels, proving the 1463×866-point frame. This removes the prior 1496-point-width mismatch for subsequent wide demo comparisons.
+- Window dimensions now match; demo date/data, typography, native title bar and individual reference state still require alignment. No image is certified identical by this change.
