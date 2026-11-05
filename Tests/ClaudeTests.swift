@@ -17,6 +17,30 @@ final class ClaudeTests: XCTestCase {
         }
         XCTAssertFalse(process.isRunning)
     }
+    func testInstalledClaudeStartsWithIsolatedSignedOutProfile() async throws {
+        guard let executable = try? ClaudeClient.executable() else {
+            throw XCTSkip("Claude CLI is not installed on this test host.")
+        }
+        let id = UUID().uuidString
+        let profile = try OwnedProfileDirectory.directory(provider: .claude, id: id)
+        defer { try? OwnedProfileDirectory.remove(provider: .claude, id: id) }
+        var environment = CLIEnvironment.sanitized(ProcessInfo.processInfo.environment)
+        environment["CLAUDE_CONFIG_DIR"] = profile.path
+        // Only inspect authentication. Never invoke login, usage or inference here.
+        do {
+            let output = try await BoundedProcess().run(executable: executable,
+                arguments: ["auth", "status"], directory: profile, environment: environment)
+            let identity = try JSONDecoder().decode(JSONValue.self, from: output)
+            XCTAssertEqual(identity["loggedIn"].bool, false,
+                           "A fresh profile must not inherit the user's normal Claude login.")
+            XCTAssertTrue(identity["email"].string == nil, "A fresh profile must not expose an account identity.")
+        } catch let failure as ProviderFailure {
+            // Claude may use a nonzero status for a signed-out profile. The same
+            // transport used by production must surface that as authentication required.
+            XCTAssertEqual(failure.health, .authenticationRequired)
+        }
+    }
+
     private func date(_ text: String) -> Date { ISO8601DateFormatter().date(from: text)! }
     func testSupportedVersionGate() {
         XCTAssertFalse(ClaudeClient.supportsUsage("2.1.309 (Claude Code)"))
