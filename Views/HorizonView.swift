@@ -354,7 +354,7 @@ struct HorizonView: View {
                                 .overlay(alignment: .bottom) {
                                     // Windows badges disambiguate enabled accounts from the same provider.
                                     if store.state.accounts.filter({ $0.enabled && $0.provider == event.account.provider }).count > 1 {
-                                        Text(plan == "Plan unavailable" ? "?" : plan)
+                                        Text(plan == "Plan Unavailable" ? "?" : plan)
                                             .font(.reference(size: 10, weight: .semibold)).lineLimit(1)
                                             .padding(.horizontal, 5).padding(.vertical, 1)
                                             .background(Color(hex: "#1C1E24"))

@@ -115,17 +115,17 @@ enum Format {
         case .copilot:
             labels = ["individual": "Pro", "individual_pro": "Pro+", "individual_max": "Max", "individual_edu": "Education", "business": "Business", "enterprise": "Enterprise"]
         }
-        return value.flatMap { labels[$0] } ?? "Plan unavailable"
+        return value.flatMap { labels[$0] } ?? "Plan Unavailable"
     }
     static func historyPlanBadge(_ provider: Provider, _ value: String?) -> String {
         let label = plan(provider, value)
-        return label == "Plan unavailable" ? (provider == .copilot ? "Monthly" : "Weekly") : label
+        return label == "Plan Unavailable" ? (provider == .copilot ? "Monthly" : "Weekly") : label
     }
 
     static func usageText(_ window: QuotaWindow, provider: Provider, locale: Locale = .current) -> (used: String, left: String) {
         if window.unit == .percent || provider == .copilot {
-            return (window.usedPercent.map { "\(percent($0)) used" } ?? "Usage unavailable",
-                    window.remainingPercent.map { "\(percent($0)) left" } ?? "Left unavailable")
+            return (window.usedPercent.map { "\(percent($0)) Used" } ?? "Usage Unavailable",
+                    window.remainingPercent.map { "\(percent($0)) Left" } ?? "Left Unavailable")
         }
         let formatter = NumberFormatter()
         formatter.locale = locale
@@ -136,8 +136,8 @@ enum Format {
         func count(_ value: Decimal) -> String {
             formatter.string(from: NSDecimalNumber(decimal: value)) ?? NSDecimalNumber(decimal: value).stringValue
         }
-        return (window.used.map { "\(count($0)) used" } ?? "Usage unavailable",
-                window.remaining.map { $0 < 0 ? "\(count(-$0)) over" : "\(count($0)) left" } ?? "Limit unavailable")
+        return (window.used.map { "\(count($0)) Used" } ?? "Usage Unavailable",
+                window.remaining.map { $0 < 0 ? "\(count(-$0)) Over" : "\(count($0)) Left" } ?? "Limit Unavailable")
     }
 
     static func percent(_ value: Decimal?, fractionDigits: Int = 0) -> String {

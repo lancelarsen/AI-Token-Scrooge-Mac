@@ -1412,3 +1412,9 @@ Also audited DetailsDialog call sites after the color-menu fix: remaining conten
 The conversion guide explicitly requires Title Case for short labels/headings and says to follow that rule over older sentence-case screenshots. Updated dashboard Add Account/Exit Demo/Explore with Demo Data and Demo Data labels; Connect Account, billing-unit choices and alternate sign-in actions; Alert History, Available Resets, Usage Details Unavailable and Open Provider Usage titles/actions. Explanatory sentences remain sentence case. Updated the existing UI assertion for Exit Demo without claiming its execution.
 
 Canonical build passes (artifacts/short-label-case-build.log) and native compact accessibility confirms Exit Demo with the original addAccountButton identifier. Diff checks pass. UI runner still requires macOS automation authorization; no additional UI-test run was attempted. Windows origin/main remains3c863a5 after fetch.
+
+### Quota Label Case — 2026-11-05
+
+Applied the conversion guide’s short-label Title Case rule to shared Used, Left, Over and unavailable-state labels, including Plan Unavailable. Updated dependent history badge fallback checks so unknown plans still render a question mark or period label. Numeric formatting, rounding and quota calculations are unchanged. Existing count/overage/Copilot/unknown-plan expectations updated.
+
+Canonical build passes (artifacts/quota-label-case-build.log). Native compact dashboard confirms Codex38% Used/62% Left, weekly74% Used/26% Left and Copilot82% Used/18% Left. The CoreTests attempt and focused formatter retry did not start a test host; both stalled in Xcode launch coordination before assertions and were explicitly stopped. Logs quota-label-case-tests.log and quota-label-case-focused.log retain the failures; do not count the changed expectations as passing tests. Hosted CI remains the next test verification path.

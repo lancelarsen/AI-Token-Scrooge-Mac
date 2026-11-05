@@ -58,14 +58,14 @@ final class CoreTests: XCTestCase {
     func testCountAllowanceLabelsAndCopilotPercentException() {
         let window = QuotaWindow(id: "requests", name: "Requests", unit: .requests, used: 1250, limit: 1000)
         let labels = Format.usageText(window, provider: .claude, locale: Locale(identifier: "en_US"))
-        XCTAssertEqual(labels.used, "1,250 used")
-        XCTAssertEqual(labels.left, "250 over")
+        XCTAssertEqual(labels.used, "1,250 Used")
+        XCTAssertEqual(labels.left, "250 Over")
         let copilot = Format.usageText(window, provider: .copilot)
-        XCTAssertEqual(copilot.used, "125% used")
-        XCTAssertEqual(copilot.left, "0% left")
+        XCTAssertEqual(copilot.used, "125% Used")
+        XCTAssertEqual(copilot.left, "0% Left")
         let unknown = QuotaWindow(id: "requests", name: "Requests", unit: .requests)
-        XCTAssertEqual(Format.usageText(unknown, provider: .claude).used, "Usage unavailable")
-        XCTAssertEqual(Format.usageText(unknown, provider: .claude).left, "Limit unavailable")
+        XCTAssertEqual(Format.usageText(unknown, provider: .claude).used, "Usage Unavailable")
+        XCTAssertEqual(Format.usageText(unknown, provider: .claude).left, "Limit Unavailable")
     }
 
     func testFractionalThresholdBoundariesMatchWindows() {
@@ -190,8 +190,8 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(Format.plan(.codex, "prolite"), "Pro Lite")
         XCTAssertEqual(Format.plan(.codex, "promax"), "Pro Max")
         XCTAssertEqual(Format.plan(.claude, "team"), "Team")
-        XCTAssertEqual(Format.plan(.claude, "individual_max"), "Plan unavailable")
-        XCTAssertEqual(Format.plan(.codex, nil), "Plan unavailable")
+        XCTAssertEqual(Format.plan(.claude, "individual_max"), "Plan Unavailable")
+        XCTAssertEqual(Format.plan(.codex, nil), "Plan Unavailable")
         XCTAssertEqual(Format.historyPlanBadge(.codex, nil), "Weekly")
         XCTAssertEqual(Format.historyPlanBadge(.claude, "unrecognized"), "Weekly")
         XCTAssertEqual(Format.historyPlanBadge(.copilot, nil), "Monthly")
