@@ -17,7 +17,12 @@ struct AccountSettingsView: View {
     private var account: ProviderAccount? { store.state.accounts.first { $0.id == accountID } }
     private var lineColors: [String] {
         var seen = Set<String>()
-        return (Theme.palette + store.state.settings.customColors).filter { seen.insert($0.uppercased()).inserted }
+        let selected = account.map { $0.resolvedLineColor(plan: store.state.snapshots[$0.id]?.planType) }
+        return (Theme.palette + store.state.settings.customColors + [selected].compactMap { $0 })
+            .map { $0.uppercased() }
+            .filter { hex in
+                hex.count == 7 && hex.first == "#" && hex.dropFirst().allSatisfy(\.isHexDigit) && seen.insert(hex).inserted
+            }
     }
     var body: some View {
         VStack(spacing: 0) {
@@ -44,13 +49,15 @@ struct AccountSettingsView: View {
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 32, maximum: 32), spacing: 8)], alignment: .leading, spacing: 8) {
                                 ForEach(lineColors, id: \.self) { hex in
                                     Button { update { $0.lineColor = hex } } label: {
-                                        ZStack { RoundedRectangle(cornerRadius: 8).fill(Color(hex: hex)); if account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType).caseInsensitiveCompare(hex) == .orderedSame { RoundedRectangle(cornerRadius: 8).stroke(.white, lineWidth: 2); Image(systemName: "checkmark").foregroundStyle(.black) } }.frame(width: 32, height: 32)
+                                        ZStack { RoundedRectangle(cornerRadius: 9).fill(Color(hex: hex)); if account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType).caseInsensitiveCompare(hex) == .orderedSame { RoundedRectangle(cornerRadius: 9).stroke(.white, lineWidth: 2); Image(systemName: "checkmark").foregroundStyle(.black) } }.frame(width: 32, height: 32)
                                     }.buttonStyle(.plain).accessibilityLabel("Line Color \(hex)")
                                 }
                                 Button {
                                     newColor = Color(hex: account.resolvedLineColor(plan: store.state.snapshots[account.id]?.planType))
                                     showColor = true
-                                } label: { ActionIcon(symbol: "plus", size: 20).frame(width: 32, height: 32).background(Theme.control).clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.accent, lineWidth: 1)) }.buttonStyle(.plain).help("Add Custom Color")
+                                } label: { ActionIcon(symbol: "plus", size: 20).frame(width: 32, height: 32).background(Theme.control).clipShape(RoundedRectangle(cornerRadius: 9)).overlay(RoundedRectangle(cornerRadius: 9).stroke(Color(hex: "#65577F"), lineWidth: 1)) }.buttonStyle(.plain)
+                                    .modifier(ImmediateReferenceTooltip(text: "Add Custom Line Color"))
+                                    .accessibilityLabel("Add Custom Line Color")
                                     .sheet(isPresented: $showColor) {
                                         DetailsDialog(width: 360, maximumHeight: 640, closeTitle: "Cancel", primaryTitle: "Add Color", primarySymbol: "plus", primaryAction: {
                                             let hex = newColor.hex; store.edit { state in

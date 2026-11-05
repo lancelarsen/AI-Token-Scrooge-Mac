@@ -556,3 +556,9 @@ Verified revised desktop cards at runtime. Compared usage popup with image 13: u
 
 - Replaced heavier SF folder/outgoing-arrow symbols with shared one-point vector outlines based on the visible reference 08 silhouettes. Dialog action labels route those symbols through the same shared renderer. Windows source selects Segoe Fluent E8B7/E8A7; these vectors are visual approximations, not extracted font outlines, so exact glyph parity remains unproven.
 - Canonical build passed (`artifacts/history-action-icons-build.log`) and diff checks passed. Native populated-history screenshot confirms thin, unclipped folder/outgoing-arrow outlines and unchanged row geometry.
+
+### Account line-color palette completeness
+
+- Refreshed Windows remote; origin/main remains 694dc85. Compared reference 28 and SettingsPage palette construction. Mac now appends the account's selected color, validates six-digit hex values, normalizes case and deduplicates, matching Windows. This preserves a selected swatch even when the account color is absent from saved custom colors.
+- Swatches now use nine-point corners. Add-color border uses #65577F and immediate Add Custom Line Color help/accessibility name. Color-picker internals were left at their existing radii.
+- Canonical build passed (`artifacts/account-color-palette-build.log`) and diff checks passed. Palette inclusion is source-verified; selected custom-color rendering and exact compact account-settings parity require a new runtime capture.
