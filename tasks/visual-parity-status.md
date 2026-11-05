@@ -35,7 +35,7 @@ Cross-cutting open requirements: exact Semibold font metrics and Segoe Fluent gl
 | 23-connect-github-advanced.png | 1463 × 866 | Advanced form captured; dummy token mode reset checked; exact metrics differ. |
 | 24-compact-empty.png | 789 × 694 | Empty geometry revised; fresh compact equivalent capture needed. |
 | 25-connect-claude.png | 789 × 694 | Claude form captured with complete version requirement; exact metrics differ. |
-| 26-compact-dashboard.png | 789 × 694 | Compact dashboard captured; rail x/y alignment checked; full fresh comparison needed. |
+| 26-compact-dashboard.png | 789 × 694 | Fresh Segoe-font compact capture `artifacts/compact-fonts-current.jpg` compared with reference 26; native title-bar height and header legend/hint placement differ. Mac fixed-row header versus Windows wrapping FlexLayout needs reconciliation; full pixel parity remains open. |
 | 27-compact-account-rows.png | 789 × 694 | Compact fixed-date rows captured; alarm divider/81×48 geometry and off/on threshold visibility checked; fonts differ. |
 | 28-compact-account-settings.png | 789 × 694 | Fresh compact account panel captured at 741×630 with shared border and corrected responsive form inset/685-point card width; internal text metrics still differ. |
 | 29-compact-tooltip-placement.png | 789 × 694 | Owner-window clamping implemented; floating tooltip capture missing. |
