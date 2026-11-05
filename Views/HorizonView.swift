@@ -23,8 +23,8 @@ struct HorizonView: View {
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: 24) { heading; legend; historyToggle; historyHint; Spacer(); settingsButton }
                     VStack(alignment: .leading, spacing: 16) {
-                        HStack(spacing: 22) { heading; legend; Spacer(minLength: 0); settingsButton }
-                        HStack(spacing: 18) {
+                        HStack(spacing: 44) { heading; legend; Spacer(minLength: 0); settingsButton }
+                        HStack(spacing: 36) {
                             historyToggle
                             historyHint
                             Spacer(minLength: 0)
@@ -200,7 +200,7 @@ struct HorizonView: View {
         return text
     }
     private var legend: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: 40) {
             HStack(spacing: 7) { Circle().fill(Theme.actionAccent).frame(width: 10, height: 10); Text("Quota Refresh (\(events.filter { !$0.expiration }.count))") }
             HStack(spacing: 7) { Circle().fill(Theme.amber).frame(width: 10, height: 10); Text("Reset Expires (\(events.filter(\.expiration).count))") }
         }.font(.reference(size: 13)).foregroundStyle(Theme.dialogText)
