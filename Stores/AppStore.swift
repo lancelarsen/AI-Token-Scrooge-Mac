@@ -503,17 +503,20 @@ import AppKit
         await reloadHistory()
     }
     func connectDevin(nickname: String, workspace: String) async throws {
-        guard let host = DevinUsage.workspace(workspace)?.host else {
+        let original = state.accounts.first { $0.id == reconnectAccountID }
+        let input = (original?.scope ?? workspace).trimmingCharacters(in: .whitespacesAndNewlines)
+        let host = DevinUsage.workspace(input)?.host
+        guard host != nil || (input.isEmpty && original == nil) else {
             throw ProviderFailure(message: "Enter your company’s Devin Enterprise workspace URL.")
         }
-        let original = state.accounts.first { $0.id == reconnectAccountID }
         var account = ProviderAccount(provider: .devin, nickname: nickname.trimmingCharacters(in: .whitespacesAndNewlines),
-                                      subject: original?.subject ?? "", scope: host, unit: .acus, pollingMinutes: 10)
+                                      subject: original?.subject ?? "", scope: host ?? "", unit: .acus, pollingMinutes: 10)
         if let original { account.id = original.id }
         try await stageCredential(provider: .devin, id: account.credentialID)
         defer { endCredentialAttempt(account.credentialID) }
         let snapshot = try await DevinClient.read(account: account, secrets: secrets, interactive: true)
         account.subject = snapshot.subject
+        account.scope = snapshot.scope
         if let original { account = try AccountPolicy.reconnect(original: original, replacement: account) }
         try Task.checkCancellation()
         try await acceptConnection(account, snapshot: snapshot, replacing: original)

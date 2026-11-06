@@ -37,13 +37,12 @@ import WebKit
     }
 
     func observe(account: ProviderAccount, session: Data?, interactive: Bool) async throws -> (snapshot: QuotaSnapshot, session: Data) {
-        guard let origin = DevinUsage.workspace(account.scope) else { throw Self.unsupported }
         defer { web.stopLoading(); window?.close() }
         if interactive {
             let panel = NSWindow(contentRect: web.bounds, styleMask: [.titled, .closable, .resizable],
                                  backing: .buffered, defer: false)
             panel.isReleasedWhenClosed = false
-            panel.title = "Sign In with Devin — " + account.scope
+            panel.title = "Sign In with Devin"
             panel.contentView = web
             panel.delegate = self
             panel.center()
@@ -52,6 +51,14 @@ import WebKit
         }
         if let session { try await restore(session, host: account.scope) }
         let deadline = ContinuousClock.now.advanced(by: .seconds(interactive ? 600 : 45))
+        let origin: URL
+        if interactive && account.scope.isEmpty && account.subject.isEmpty && session == nil {
+            origin = try await discoverWorkspace(deadline: deadline)
+        } else {
+            guard let workspace = DevinUsage.workspace(account.scope) else { throw Self.unsupported }
+            origin = workspace
+        }
+        guard let host = origin.host else { throw Self.unsupported }
         let preferences = origin.appendingPathComponent("settings/preferences")
         let identity = #"document.querySelector('#profile-user-id p')?.innerText?.trim().slice(0, 161) || null"#
         func subject(allowLogin: Bool) async throws -> String {
@@ -67,11 +74,27 @@ import WebKit
         guard try await subject(allowLogin: false) == before else { throw AccountError.differentIdentity }
         let now = Date.now
         let usage = try DevinUsage.window(fields, observed: now)
-        let updatedSession = try await capture(host: account.scope)
+        let updatedSession = try await capture(host: host)
         try Task.checkCancellation()
-        let snapshot = QuotaSnapshot(accountID: account.id, subject: before, scope: account.scope, observedAt: now,
+        let snapshot = QuotaSnapshot(accountID: account.id, subject: before, scope: host, observedAt: now,
                              windows: [usage], planType: "enterprise")
         return (snapshot, updatedSession)
+    }
+
+    private func discoverWorkspace(deadline: ContinuousClock.Instant) async throws -> URL {
+        load(web, URLRequest(url: URL(string: "https://app.devin.ai/login")!))
+        while ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(250))
+            if closed { throw CancellationError() }
+            if let failure { throw failure }
+            // Only consider the browser's top-level destination. SSO pages, links,
+            // and redirect parameters are never used as the workspace.
+            guard finished, !web.isLoading, let page = web.url,
+                  page.scheme == "https", let workspace = DevinUsage.workspace(page.absoluteString),
+                  !page.path.hasPrefix("/auth/"), page.path != "/login" else { continue }
+            return workspace
+        }
+        throw ProviderFailure(message: "Devin did not open an Enterprise workspace. Enter your company workspace URL and try again.", health: .authenticationRequired)
     }
 
     // The WebKit export covers localStorage. HTTP-only cookies must go through the cookie store.

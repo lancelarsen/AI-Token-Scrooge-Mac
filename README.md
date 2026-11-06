@@ -8,7 +8,7 @@ The Windows reference baseline is commit `3d0330bc528196e583160d587465ea8b9bc5e9
 
 ## Devin Enterprise
 
-Choose **Add Account → Devin**, enter your company’s Devin Enterprise workspace URL, and complete company sign-in. Scrooge verifies the signed-in user and reads personal monthly Agent Compute Units (ACUs) from **Settings → My Analytics**. Refreshes run every ten minutes by default. Percentages need a reported allowance. The reset countdown needs an unambiguous reset time in the browser’s time zone.
+Choose **Add Account → Devin**, then select **Sign In with Devin** and enter your work email on Devin’s page. If Devin redirects to your Enterprise workspace, Scrooge detects its address. You can also enter the workspace URL directly. Scrooge verifies the signed-in user and reads personal monthly Agent Compute Units (ACUs) from **Settings → My Analytics**. Refreshes run every ten minutes by default. Percentages need a reported allowance. The reset countdown needs an unambiguous reset time in the browser’s time zone.
 
 Each connection uses its own temporary WebKit browser and keeps its saved session in macOS Keychain. Removing the account queues its session for deletion. Browser fixtures exercise sign-in state, refresh, and identity changes. Live company SSO and tenant access still need verification.
 

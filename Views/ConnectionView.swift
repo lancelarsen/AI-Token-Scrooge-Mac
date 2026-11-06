@@ -74,7 +74,7 @@ struct ConnectionView: View {
     private var connectionDescription: String {
         switch provider {
         case .codex: "Sign in through OpenAI in your browser. Scrooge keeps this account in its own protected Codex profile and only reads usage limits."
-        case .devin: "Paste your Devin Enterprise workspace URL and sign in. Scrooge reads your personal monthly ACUs and reset time from My Analytics."
+        case .devin: "Sign in to Devin with your work email. If Devin opens your Enterprise workspace, Scrooge will detect it and read your monthly ACUs. If it stays on the public site, close the sign-in window and enter your workspace URL below."
         case .claude: "Sign in through Claude in your browser. Scrooge uses a separate Claude Code profile to read your session and weekly limits. Requires Claude Code 2.1.310 or later."
         case .copilot: (advanced || organizationReconnect) ? "Advanced connection: use a fine-grained token with Plan read permission for personal billing. Organization billing requires authorized administration access. Your token stays protected in macOS Keychain." : "Sign in through GitHub in your browser. Scrooge reads your personal Copilot usage and protects this account’s sign-in in macOS Keychain."
         }
@@ -142,14 +142,14 @@ struct ConnectionView: View {
                     .buttonStyle(ScroogeButtonStyle()).disabled(connecting || token.isEmpty || nickname.isEmpty)
                 }
             } else if provider == .devin {
-                Text("Company Devin workspace URL (required)").font(.reference(size: 14))
+                Text(store.reconnectAccountID == nil ? "Company workspace URL (optional)" : "Company workspace URL").font(.reference(size: 14))
                 TextField("https://your-company.devinenterprise.com", text: $workspace)
                     .focused($devinFocus, equals: .workspace)
                     .accessibilityLabel("Company Devin Workspace URL")
                     .modifier(ConnectionFieldStyle()).disabled(store.reconnectAccountID != nil || connecting)
                 ConnectionStatusLine(text: error ?? "")
                 Button {
-                    guard DevinUsage.workspace(workspace) != nil else {
+                    guard workspace.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || DevinUsage.workspace(workspace) != nil else {
                         error = "Enter your company’s Devin workspace URL, such as https://your-company.devinenterprise.com."
                         devinFocus = .workspace
                         return
@@ -160,7 +160,7 @@ struct ConnectionView: View {
                         return
                     }
                     connecting = true
-                    error = "Opening your workspace for sign-in…"
+                    error = "Complete sign-in in the Devin window."
                     connectionTask = Task {
                         defer { connecting = false }
                         do {

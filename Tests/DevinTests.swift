@@ -49,6 +49,36 @@ final class DevinTests: XCTestCase {
         XCTAssertNil(DevinClient.responseFailure(200))
     }
 
+    @MainActor func testEmailFirstSignInBindsVerifiedTenant() async throws {
+        var requests: [URL] = []
+        let tenant = "fixture.devinenterprise.com"
+        let client = DevinClient { view, request in
+            let url = request.url!
+            requests.append(url)
+            let destination: URL
+            let html: String
+            if url.host == "app.devin.ai" {
+                // Simulate the browser landing on the tenant after company login.
+                destination = URL(string: "https://" + tenant + "/org/fixture")!
+                html = "<p>Workspace</p>"
+            } else {
+                destination = url
+                html = url.path == "/settings/preferences" ? "<div id='profile-user-id'><p>fixture-user</p></div>" :
+                    "<main id='main-content'>Monthly ACU limit usage 25 / 100<br>Resets 1/16 at 2:00 AM</main>"
+            }
+            let response = HTTPURLResponse(url: destination, statusCode: 200, httpVersion: "HTTP/1.1",
+                                           headerFields: ["Content-Type": "text/html"])!
+            view.loadSimulatedRequest(URLRequest(url: destination), response: response, responseData: Data(html.utf8))
+        }
+        let pending = ProviderAccount(provider: .devin, nickname: "Work", subject: "", scope: "")
+        let result = try await client.observe(account: pending, session: nil, interactive: true)
+        XCTAssertEqual(requests.first?.absoluteString, "https://app.devin.ai/login")
+        XCTAssertEqual(requests.dropFirst().map(\.host), [tenant, tenant, tenant])
+        XCTAssertEqual(result.snapshot.scope, tenant)
+        XCTAssertEqual(result.snapshot.subject, "fixture-user")
+        XCTAssertEqual(result.snapshot.windows.first?.usedPercent, 25)
+    }
+
     // Real WebKit navigations with simulated HTTPS responses. The second browser must
     // recover both cookie and localStorage from the same payload used by Keychain.
     @MainActor func testIsolatedBrowserSessionRefreshAndIdentityChange() async throws {
