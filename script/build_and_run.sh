@@ -13,7 +13,7 @@ xcodebuild -project AITokenScrooge.xcodeproj -scheme AITokenScrooge -configurati
 case "$MODE" in
   --build) exit 0;;
   --debug) exec lldb -- "$APP_BUNDLE/Contents/MacOS/$APP_NAME";;
-  *) /usr/bin/open -n "$APP_BUNDLE";;
+  *) /usr/bin/open "$APP_BUNDLE";;
 esac
 case "$MODE" in
   --verify) sleep 1; pgrep -x "$APP_NAME" >/dev/null;;

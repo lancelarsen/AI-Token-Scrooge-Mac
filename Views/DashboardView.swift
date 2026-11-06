@@ -104,13 +104,9 @@ struct DashboardView: View {
         }.padding(.horizontal, 32).padding(.vertical, 18)
     }
     private var freshness: String {
-        var text = store.isDemo ? "DEMO DATA · Live monitoring paused" : store.state.snapshots.values.map(\.observedAt).max().map {
+        store.isDemo ? "DEMO DATA · Live monitoring paused" : store.state.snapshots.values.map(\.observedAt).max().map {
             Format.updated($0, zone: store.state.settings.zone)
         } ?? "Connect an account to start monitoring"
-        if !store.isDemo && (!store.state.retiredAccounts.isEmpty || !store.state.retiredCredentialIDs.isEmpty) {
-            text += " · Previous Sign-in Cleanup Pending"
-        }
-        return text
     }
     private var toolbar: some View {
         HStack(spacing: 12) {
