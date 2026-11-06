@@ -81,6 +81,7 @@ struct DashboardView: View {
             }
             HStack(spacing: 14) {
                 Text(freshness)
+                    .multilineTextAlignment(.trailing)
                     .font(.reference(size: 12)).foregroundStyle(Theme.secondary).frame(maxWidth: .infinity, alignment: .trailing)
                 Button {
                     refreshRequested = true

@@ -530,6 +530,9 @@ import AppKit
             if force { pendingRefreshEpoch = monitoringEpoch }
             return
         }
+        // The monitor ticks every second, but only due requests should publish
+        // refresh activity or reload history. Respect backoff and throttling here.
+        guard state.accounts.contains(where: { $0.enabled && schedule.shouldRefresh($0.id, now: .now, force: force) }) else { return }
         let epoch = monitoringEpoch
         isRefreshing = true
         defer {

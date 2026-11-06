@@ -1,4 +1,5 @@
 import XCTest
+import Observation
 import AppKit
 import UserNotifications
 import SQLite3
@@ -10,6 +11,23 @@ private final class TooltipTestWindow: NSWindow {
 }
 
 final class MonitoringTests: XCTestCase {
+    @MainActor
+    func testIdleMonitorDoesNotPublishRefreshActivityOrReloadHistory() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("idle.db"))
+        let store = AppStore(database: database)
+        await store.load()
+        let revision = store.historyRevision
+        let activity = expectation(description: "Idle tick must not announce refresh activity")
+        activity.isInverted = true
+        withObservationTracking { _ = store.isRefreshing } onChange: { activity.fulfill() }
+        await store.refresh(force: false)
+        await store.refresh(force: true)
+        XCTAssertEqual(store.historyRevision, revision)
+        await fulfillment(of: [activity], timeout: 0.05)
+    }
+
     func testProviderProcessesDoNotInheritOtherCredentialsOrRuntimeInjection() {
         let dangerous = ["OPENAI_API_KEY", "CODEX_HOME", "ANTHROPIC_API_KEY", "CLAUDE_CONFIG_DIR", "GH_TOKEN", "GITHUB_TOKEN", "AZURE_OPENAI_ENDPOINT", "GEMINI_API_KEY", "GOOGLE_APPLICATION_CREDENTIALS", "AWS_PROFILE", "NODE_OPTIONS", "NODE_PATH", "BUN_OPTIONS", "DYLD_INSERT_LIBRARIES", "LD_PRELOAD", "github_token"]
         var environment = Dictionary(uniqueKeysWithValues: dangerous.map { ($0, "fixture") })
