@@ -11,6 +11,8 @@ struct ConnectionView: View {
         return CGSize(width: min(1000, max(640, hostSize.width - 48)),
                       height: min(800, max(400, hostSize.height - 64)))
     }
+    private enum DevinField { case nickname, workspace }
+    @FocusState private var devinFocus: DevinField?
     @State private var workspace = ""
     @State private var nickname = ""
     @State private var token = ""
@@ -94,6 +96,7 @@ struct ConnectionView: View {
             Text(connectionDescription).font(.reference(size: 14)).foregroundStyle(Theme.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             TextField("Account nickname (Personal, Work…)", text: $nickname, prompt: Text("Account nickname (Personal, Work…)").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle())
+                .focused($devinFocus, equals: .nickname)
             if provider == .codex {
                 CodexConnectView(nickname: nickname, original: store.state.accounts.first { $0.id == store.reconnectAccountID })
             } else if provider == .copilot {
@@ -139,12 +142,25 @@ struct ConnectionView: View {
                     .buttonStyle(ScroogeButtonStyle()).disabled(connecting || token.isEmpty || nickname.isEmpty)
                 }
             } else if provider == .devin {
-                TextField("Company Devin Workspace URL", text: $workspace)
+                Text("Company Devin workspace URL (required)").font(.reference(size: 14))
+                TextField("https://your-company.devinenterprise.com", text: $workspace)
+                    .focused($devinFocus, equals: .workspace)
+                    .accessibilityLabel("Company Devin Workspace URL")
                     .modifier(ConnectionFieldStyle()).disabled(store.reconnectAccountID != nil || connecting)
                 ConnectionStatusLine(text: error ?? "")
                 Button {
+                    guard DevinUsage.workspace(workspace) != nil else {
+                        error = "Enter your company’s Devin workspace URL, such as https://your-company.devinenterprise.com."
+                        devinFocus = .workspace
+                        return
+                    }
+                    guard !nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                        error = "Enter an account nickname."
+                        devinFocus = .nickname
+                        return
+                    }
                     connecting = true
-                    error = "Complete company sign-in in the Devin window."
+                    error = "Opening your workspace for sign-in…"
                     connectionTask = Task {
                         defer { connecting = false }
                         do {
@@ -153,8 +169,8 @@ struct ConnectionView: View {
                         } catch is CancellationError { self.error = "Sign-in canceled." }
                         catch { self.error = (error as? ProviderFailure)?.message ?? (error is AccountError ? error.localizedDescription : "Devin sign-in could not be saved. Try again.") }
                     }
-                } label: { DialogActionLabel(title: "Sign In with Devin").frame(maxWidth: .infinity, alignment: .leading) }
-                    .buttonStyle(ScroogeButtonStyle()).disabled(connecting || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || workspace.isEmpty)
+                } label: { DialogActionLabel(title: connecting ? "Signing In with Devin…" : "Sign In with Devin").frame(maxWidth: .infinity, alignment: .leading) }
+                    .buttonStyle(ScroogeButtonStyle()).disabled(connecting)
             } else {
                 ClaudeConnectView(nickname: nickname, original: store.state.accounts.first { $0.id == store.reconnectAccountID })
             }
