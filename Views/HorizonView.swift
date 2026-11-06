@@ -54,7 +54,13 @@ struct HorizonView: View {
                         GeometryReader { geometry in
                             ScrollView(.horizontal) {
                                 timeline.frame(width: viewport.contentWidth, height: timelineHeight)
-                                    .background(HistoryPointerTracking(text: hoverText, pinned: historyPinned, anchor: historyPinned ? sampleAnchor : nil, onMove: { if !historyPinned { updateHistoryHover($0) } }))
+                                    .background(HistoryPointerTracking(text: hoverText, pinned: historyPinned, anchor: historyPinned ? sampleAnchor : nil) { point in
+                                        if let point {
+                                            if !historyPinned { updateHistoryHover(point) }
+                                        } else {
+                                            clearHistorySample()
+                                        }
+                                    })
                             }
                             .scrollIndicators(.hidden).scrollPosition($position)
                             .onScrollGeometryChange(for: Double.self) { $0.contentOffset.x } action: { _, value in if position.isPositionedByUser { viewport.scroll(to: value) } }
@@ -88,6 +94,7 @@ struct HorizonView: View {
         .background {
             GeometryReader { geometry in
                 HorizonWheelRouting { delta in
+                    if historyPinned || hoverText != nil { clearHistorySample() }
                     viewport.scroll(to: viewport.scrollOffset + delta)
                     position.scrollTo(x: viewport.scrollOffset)
                 }.frame(width: geometry.size.width, height: geometry.size.height)
@@ -404,11 +411,11 @@ struct HorizonView: View {
                 }
             }
         }.contentShape(Rectangle())
-        .onChange(of: viewport.scrollOffset) { _, _ in if !historyPinned { hoverText = nil; hoveredSample = nil } }
-        .onChange(of: store.state.settings.historyEnabled) { _, _ in hoverText = nil; hoveredSample = nil; historyPinned = false }
-        .onChange(of: store.state.settings.privacy) { _, _ in hoverText = nil; hoveredSample = nil; historyPinned = false }
-        .onChange(of: store.state.settings.hiddenHistoryAccounts) { _, _ in hoverText = nil; hoveredSample = nil; historyPinned = false }
-        .onChange(of: timelineAccounts.map(\.id)) { _, _ in hoverText = nil; hoveredSample = nil; historyPinned = false }
+        .onChange(of: viewport.scrollOffset) { _, _ in clearHistorySample() }
+        .onChange(of: store.state.settings.historyEnabled) { _, _ in clearHistorySample() }
+        .onChange(of: store.state.settings.privacy) { _, _ in clearHistorySample() }
+        .onChange(of: store.state.settings.hiddenHistoryAccounts) { _, _ in clearHistorySample() }
+        .onChange(of: timelineAccounts.map(\.id)) { _, _ in clearHistorySample() }
     }
     private var sampleAnchor: CGPoint? {
         guard let sample = hoveredSample else { return nil }
@@ -674,7 +681,7 @@ struct HorizonView: View {
     }
     private func isToday(_ date: Date) -> Bool { calendar.isDate(date, inSameDayAs: now) }
     private func update(width: Double) {
-        hoverText = nil; hoveredSample = nil
+        clearHistorySample()
         viewport.update(now: now, furthestFuture: events.map(\.date).max(), zone: store.state.settings.zone, width: width, historyEnabled: store.state.settings.historyEnabled, earliestHistory: earliestRecordedHistory ?? now)
         position.scrollTo(x: viewport.scrollOffset)
     }

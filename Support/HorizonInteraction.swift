@@ -156,7 +156,7 @@ struct HistoryPointerTracking: NSViewRepresentable {
 
         override func mouseEntered(with event: NSEvent) { mouseMoved(with: event) }
         override func mouseMoved(with event: NSEvent) {
-            guard !pinned else { return }
+            guard !pinned, window?.isKeyWindow == true else { return }
             pointer = convert(event.locationInWindow, from: nil)
             onMove?(pointer)
         }
