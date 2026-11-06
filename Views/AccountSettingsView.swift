@@ -227,6 +227,7 @@ struct MinuteSlider: View {
 /// Inline opaque-color editor matching the Windows color dialog's control arrangement.
 private struct InlineLineColorEditor: View {
     @Binding var color: Color
+    @Environment(\.appearsActive) private var appearsActive
     @State private var hue = 0.0
     @State private var saturation = 0.0
     @State private var brightness = 1.0
@@ -240,6 +241,17 @@ private struct InlineLineColorEditor: View {
     @State private var brightnessKeyboardFocus = false
     @State private var brightnessPressed = false
 
+    private var spectrumX: Double { min(hue * 360 / 359, 1) }
+    private var colorName: String? { WindowsColorNames.name(hex: color.hex) }
+    private var valueLabel: String { "Value \(Int((brightness * 100).rounded()))" }
+    private var brightnessDescription: String {
+        colorName.map { "\(valueLabel) (\($0))" } ?? valueLabel
+    }
+    private var spectrumDescription: String {
+        [colorName, "Hue \(Int((hue * 360).rounded()))", "Saturation \(Int((saturation * 100).rounded()))", valueLabel]
+            .compactMap { $0 }.joined(separator: ", ")
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
@@ -251,11 +263,15 @@ private struct InlineLineColorEditor: View {
                         SpectrumSelectionIndicator(light: SpectrumSelectionContrast.usesLightStroke(hue: hue, saturation: saturation),
                                                    hovered: spectrumHovered, pressed: spectrumPressed,
                                                    keyboardFocused: spectrumFocused && spectrumKeyboardFocus)
-                            .position(x: hue * geometry.size.width, y: (1 - saturation) * geometry.size.height)
+                            .anchorPreference(key: ColorFocusTip.self, value: .bounds) { anchor in
+                                guard spectrumFocused, let colorName else { return nil }
+                                return ColorFocusTip.Target(anchor: anchor, text: colorName)
+                            }
+                            .position(x: spectrumX * geometry.size.width, y: (1 - saturation) * geometry.size.height)
                     }.clipShape(RoundedRectangle(cornerRadius: 10)).contentShape(Rectangle())
                         .gesture(DragGesture(minimumDistance: 0).onChanged { value in
                             spectrumPressed = true; spectrumKeyboardFocus = false; spectrumFocused = true
-                            hue = min(1, max(0, value.location.x / geometry.size.width))
+                            hue = min(1, max(0, value.location.x / geometry.size.width)) * 359 / 360
                             saturation = 1 - min(1, max(0, value.location.y / geometry.size.height))
                             publish()
                         }.onEnded { _ in spectrumPressed = false })
@@ -267,16 +283,14 @@ private struct InlineLineColorEditor: View {
                         }
                         .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { press in
                             spectrumKeyboardFocus = true
-                            switch press.key {
-                            case .leftArrow: hue = ColorPickerChannel.stepped(hue * 360, maximum: 360, increasing: false, wraps: true) / 360
-                            case .rightArrow: hue = ColorPickerChannel.stepped(hue * 360, maximum: 360, increasing: true, wraps: true) / 360
-                            case .upArrow: saturation = ColorPickerChannel.stepped(saturation * 100, maximum: 100, increasing: true, wraps: true) / 100
-                            default: saturation = ColorPickerChannel.stepped(saturation * 100, maximum: 100, increasing: false, wraps: true) / 100
-                            }
+                            let horizontal = press.key == .leftArrow || press.key == .rightArrow
+                            let increasing = press.key == .rightArrow || press.key == .upArrow
+                            adjust(horizontal ? .hue : .saturation, increasing: increasing,
+                                   byName: press.modifiers.contains(.control))
                             publish(); return .handled
                         }
                         .accessibilityLabel("Color Spectrum")
-                        .accessibilityValue("Hue \(Int(hue * 360)), saturation \(Int(saturation * 100)) percent")
+                        .accessibilityValue(spectrumDescription)
                 }.frame(height: 256)
                 RoundedRectangle(cornerRadius: 10).fill(color).frame(width: 44, height: 256)
                     .accessibilityLabel("Selected Color").accessibilityValue(color.hex)
@@ -290,6 +304,9 @@ private struct InlineLineColorEditor: View {
                             if brightnessFocused && brightnessKeyboardFocus {
                                 Circle().stroke(Theme.accent, lineWidth: 2).frame(width: 22, height: 22)
                             }
+                        }
+                        .anchorPreference(key: ColorFocusTip.self, value: .bounds) { anchor in
+                            brightnessFocused ? ColorFocusTip.Target(anchor: anchor, text: brightnessDescription) : nil
                         }
                         .offset(x: brightness * max(0, geometry.size.width - 14))
                 }.frame(height: 32).contentShape(Rectangle())
@@ -306,10 +323,10 @@ private struct InlineLineColorEditor: View {
                     .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { press in
                         brightnessKeyboardFocus = true
                         let increasing = press.key == .rightArrow || press.key == .upArrow
-                        brightness = ColorPickerChannel.stepped(brightness * 100, maximum: 100, increasing: increasing, wraps: false) / 100
+                        adjust(.value, increasing: increasing, byName: press.modifiers.contains(.control))
                         publish(); return .handled
                     }
-                    .accessibilityLabel("Brightness").accessibilityValue("\(Int(brightness * 100)) percent")
+                    .accessibilityLabel("Brightness").accessibilityValue(brightnessDescription)
                     .accessibilityAdjustableAction { direction in
                         brightness = min(1, max(0, brightness + (direction == .increment ? 0.01 : -0.01)))
                         publish()
@@ -353,7 +370,59 @@ private struct InlineLineColorEditor: View {
         }.textFieldStyle(.plain).font(ReferenceTypography.nativeTextFont()).foregroundStyle(Theme.primaryText)
             .textSelection(.disabled)
             .padding(.vertical, 4)
+            .overlayPreferenceValue(ColorFocusTip.self) { target in
+                if let target, appearsActive {
+                    GeometryReader { geometry in
+                        let frame = geometry[target.anchor]
+                        let bounds = CGRect(origin: .zero, size: geometry.size)
+                        let visible = geometry.bounds(of: .scrollView).map { bounds.intersection($0) } ?? bounds
+                        if visible.intersects(frame) {
+                            ReferenceHelpTooltip(text: target.text, width: ReferenceHelpTooltip.width(for: target.text, availableWidth: visible.width))
+                                .alignmentGuide(.leading) { size in
+                                    -min(max(visible.minX, frame.midX - size.width / 2), visible.maxX - size.width)
+                                }
+                                .alignmentGuide(.top) { size in
+                                    let above = frame.minY - 20 - size.height
+                                    return -(above >= visible.minY ? above : min(frame.maxY + 20, visible.maxY - size.height))
+                                }
+                                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        }
+                    }.allowsHitTesting(false).accessibilityHidden(true)
+                }
+            }
             .onAppear { loadComponents(); hexDraft = color.hex }
+    }
+    private enum HSVChannel { case hue, saturation, value }
+    private func adjust(_ channel: HSVChannel, increasing: Bool, byName: Bool) {
+        let isHue = channel == .hue
+        let scale = isHue ? 360.0 : 100.0
+        let maximum = isHue ? 359.0 : 100.0
+        let fraction: Double
+        switch channel {
+        case .hue: fraction = hue
+        case .saturation: fraction = saturation
+        case .value: fraction = brightness
+        }
+        let next: Double
+        if byName {
+            let nameScale = isHue ? scale : 1.0
+            next = ColorPickerChannel.nextNamed(fraction * nameScale, maximum: isHue ? maximum : 1, step: isHue ? 1 : 0.01,
+                                                increasing: increasing, wraps: channel != .value, wrapPeriod: nameScale) { value in
+                let component = value / nameScale
+                let candidate = Color(hue: isHue ? component : hue,
+                                      saturation: channel == .saturation ? component : saturation,
+                                      brightness: channel == .value ? component : brightness)
+                return WindowsColorNames.name(hex: candidate.hex)
+            } / nameScale
+        } else {
+            next = ColorPickerChannel.stepped(fraction * scale, maximum: maximum, increasing: increasing,
+                                              wraps: channel != .value) / scale
+        }
+        switch channel {
+        case .hue: hue = next
+        case .saturation: saturation = next
+        case .value: brightness = next
+        }
     }
     private func channelName(_ index: Int) -> String {
         (mode == "RGB" ? ["Red", "Green", "Blue"] : ["Hue", "Saturation", "Value"])[index]
@@ -365,7 +434,7 @@ private struct InlineLineColorEditor: View {
             return Int(([rgb.redComponent, rgb.greenComponent, rgb.blueComponent][index] * 255).rounded())
         }, set: { value in
             if mode == "HSV" {
-                let fraction = Double(max(0, min(index == 0 ? 360 : 100, value))) / (index == 0 ? 360 : 100)
+                let fraction = Double(max(0, min(index == 0 ? 359 : 100, value))) / (index == 0 ? 360 : 100)
                 if index == 0 { hue = fraction } else if index == 1 { saturation = fraction } else { brightness = fraction }
                 publish()
             } else {
@@ -385,7 +454,28 @@ private struct InlineLineColorEditor: View {
     }
     private func loadComponents(_ updatedColor: Color? = nil) {
         guard let rgb = NSColor(updatedColor ?? color).usingColorSpace(.sRGB) else { return }
-        hue = rgb.hueComponent; saturation = rgb.saturationComponent; brightness = rgb.brightnessComponent
+        // AppKit can return a hue just below one for pure sRGB red after
+        // converting color spaces. Use the editor's exact byte values so red
+        // starts at zero degrees, the same end of the spectrum as WinUI.
+        let r = (rgb.redComponent * 255).rounded()
+        let g = (rgb.greenComponent * 255).rounded()
+        let b = (rgb.blueComponent * 255).rounded()
+        hue = r >= g && g == b ? 0 : rgb.hueComponent
+        saturation = rgb.saturationComponent
+        brightness = rgb.brightnessComponent
+    }
+}
+
+/// Resolve the indicator's anchor at the editor so the tip tracks scrolling
+/// without stealing focus or being clipped by the spectrum's rounded corners.
+private enum ColorFocusTip: PreferenceKey {
+    struct Target {
+        let anchor: Anchor<CGRect>
+        let text: String
+    }
+    static var defaultValue: Target? { nil }
+    static func reduce(value: inout Target?, nextValue: () -> Target?) {
+        if let target = nextValue() { value = target }
     }
 }
 
@@ -405,7 +495,7 @@ private enum LineColorSpectrum {
         for y in 0..<side {
             let saturation = 1 - Double(y) / Double(side - 1)
             for x in 0..<side {
-                let sector = Double(x) / Double(side - 1) * 6
+                let sector = Double(x) / Double(side - 1) * (359.0 / 60)
                 let fraction = sector - floor(sector)
                 let full: [Double]
                 switch Int(sector) % 6 {

@@ -31,7 +31,9 @@
 		38C9B17D702E34EBC4DAC6C0 /* HorizonViewport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00030CAB4618F55476480A2 /* HorizonViewport.swift */; };
 		411E709C67583AE4D25720F7 /* AccountSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76176BFD681D3CDB853D8895 /* AccountSettingsView.swift */; };
 		43944D356D6CFCE69269F7DA /* HorizonPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00DD87EC6F7F3FE070518237 /* HorizonPerformanceTests.swift */; };
+		4CA1FD40497EDB0FE1D1951B /* BundledColorNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = E72561E2E530FB3712D65E03 /* BundledColorNames.swift */; };
 		4DFE91E5F5B40488B73E88FC /* GitHubAuthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6198B0FB13827BFE52953049 /* GitHubAuthTests.swift */; };
+		4E1C7ED8B1E6025B186C8526 /* WindowsColorNamesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 289608F5773DF27B92507E03 /* WindowsColorNamesTests.swift */; };
 		513980C8FBDA369D4B99397F /* settings.svg in Resources */ = {isa = PBXBuildFile; fileRef = BFCAA3A59EA4AEBAA683C2FD /* settings.svg */; };
 		546E1DFFCEFD0BEB1BC5BF33 /* ReferenceTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9114E87C76735510A121AC43 /* ReferenceTypography.swift */; };
 		566CB9325847F259F08617FC /* ProviderMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884825D5A4F3F3765C03169E /* ProviderMapping.swift */; };
@@ -75,6 +77,7 @@
 		B3A733DC0AB1D601BEDCAE47 /* refresh.svg in Resources */ = {isa = PBXBuildFile; fileRef = 0FAC75F8238148E4F884E9FA /* refresh.svg */; };
 		B3E08521D8AD562FC9D46478 /* classic-snooze.wav in Resources */ = {isa = PBXBuildFile; fileRef = 592A387CC2D554830FF3A7F7 /* classic-snooze.wav */; };
 		B4CE3444D8B705C7201BB7E0 /* PackedHistoryRun.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EE9018BC3C01984795AFA21 /* PackedHistoryRun.swift */; };
+		B7C71C4142D89F20EE310199 /* WindowsColorNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C463B5BEBBC88684B0BE0AE /* WindowsColorNames.swift */; };
 		B8B06B576DCFEE399B36AAA7 /* ThresholdPopupPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62066558B39E57A66F469EC7 /* ThresholdPopupPlacement.swift */; };
 		B8C91125DC0237F8F6F95081 /* Quota.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB669CDCE5053F64250FF7D6 /* Quota.swift */; };
 		BA3BF8E2B4CEA3557366EF73 /* DashboardUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A20C89A6F44FD7A0A83267 /* DashboardUITests.swift */; };
@@ -95,6 +98,7 @@
 		DBE7F5FA7D194FA5F4C1EFC1 /* HorizonPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762A319808F8C17BAC31D1B3 /* HorizonPresentation.swift */; };
 		E2C6F1BDBC77605A265DDF1E /* duck-snooze.wav in Resources */ = {isa = PBXBuildFile; fileRef = A1EFDF115E7709BB9A4B0763 /* duck-snooze.wav */; };
 		E6D9E03A7530598B3293E4E1 /* github.svg in Resources */ = {isa = PBXBuildFile; fileRef = 3CECC381968D27063EFC9A5B /* github.svg */; };
+		E73A905117632D09D44207AC /* WindowsColorNames.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5513D217EE207A1E94C8ABBA /* WindowsColorNames.plist */; };
 		E832C910247EFF595387C409 /* GitHubDeviceFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53A7886BB2D625115CF3E3A1 /* GitHubDeviceFlow.swift */; };
 		E91992A6469EC4258D7EF341 /* ScroogeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97D9C485C181A33B6B701DD9 /* ScroogeApp.swift */; };
 		EA56430C6D5C3F90836BB9FA /* threshold_critical.svg in Resources */ = {isa = PBXBuildFile; fileRef = 00C80F94C32F70480731176C /* threshold_critical.svg */; };
@@ -147,6 +151,7 @@
 		2016481A22DAA1073A10FF0B /* LUCIDE-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "LUCIDE-LICENSE.txt"; sourceTree = "<group>"; };
 		24581CFA900CBB96F831DCDC /* SegoeUIVariable-EULA.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "SegoeUIVariable-EULA.txt"; sourceTree = "<group>"; };
 		2577AF9D09659648D0FC781C /* github-app.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "github-app.json"; sourceTree = "<group>"; };
+		289608F5773DF27B92507E03 /* WindowsColorNamesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsColorNamesTests.swift; sourceTree = "<group>"; };
 		2CA0AA2D41ED3D3978E313E3 /* SystemIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemIntegration.swift; sourceTree = "<group>"; };
 		2E5184BDAC856DAAC20AFC19 /* HistoryEventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryEventTests.swift; sourceTree = "<group>"; };
 		2EE9018BC3C01984795AFA21 /* PackedHistoryRun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackedHistoryRun.swift; sourceTree = "<group>"; };
@@ -168,6 +173,7 @@
 		4ECAF71346136C3AF5ACE5F4 /* duck-dismiss.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "duck-dismiss.wav"; sourceTree = "<group>"; };
 		53A7886BB2D625115CF3E3A1 /* GitHubDeviceFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubDeviceFlow.swift; sourceTree = "<group>"; };
 		54F770CD83409906A403E54F /* HistoryLabelLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryLabelLayout.swift; sourceTree = "<group>"; };
+		5513D217EE207A1E94C8ABBA /* WindowsColorNames.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = WindowsColorNames.plist; sourceTree = "<group>"; };
 		554E13291A3E3292163BDE97 /* SettingsMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsMigrationTests.swift; sourceTree = "<group>"; };
 		56DAAB4C7C7A488E385EFE67 /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStore.swift; sourceTree = "<group>"; };
 		592A387CC2D554830FF3A7F7 /* classic-snooze.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "classic-snooze.wav"; sourceTree = "<group>"; };
@@ -199,6 +205,7 @@
 		9114E87C76735510A121AC43 /* ReferenceTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceTypography.swift; sourceTree = "<group>"; };
 		97D9C485C181A33B6B701DD9 /* ScroogeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScroogeApp.swift; sourceTree = "<group>"; };
 		9899342C79AC822060AA3775 /* MonitoringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringTests.swift; sourceTree = "<group>"; };
+		9C463B5BEBBC88684B0BE0AE /* WindowsColorNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsColorNames.swift; sourceTree = "<group>"; };
 		9DF88B6C3666C808D2A8FD6E /* SegoeUIVariable-Text-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SegoeUIVariable-Text-Semibold.ttf"; sourceTree = "<group>"; };
 		A1EFDF115E7709BB9A4B0763 /* duck-snooze.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "duck-snooze.wav"; sourceTree = "<group>"; };
 		A5E296A644421B5FD6A43424 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
@@ -220,6 +227,7 @@
 		E02114ECC4D16CF3A54239D6 /* HistoryLabelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryLabelTests.swift; sourceTree = "<group>"; };
 		E307AA3FFA64A347BDA807AF /* duck-alert.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "duck-alert.wav"; sourceTree = "<group>"; };
 		E6502C89BBD005778525E926 /* GitHubClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubClient.swift; sourceTree = "<group>"; };
+		E72561E2E530FB3712D65E03 /* BundledColorNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundledColorNames.swift; sourceTree = "<group>"; };
 		E88C65C2848C9E889518050D /* SegoeUIVariable-Text.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SegoeUIVariable-Text.ttf"; sourceTree = "<group>"; };
 		EBB11BD3744DF6917A2FD40D /* DevinTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevinTests.swift; sourceTree = "<group>"; };
 		EC048AAA6E4767EF18709FD0 /* LocalStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStore.swift; sourceTree = "<group>"; };
@@ -265,6 +273,7 @@
 				554E13291A3E3292163BDE97 /* SettingsMigrationTests.swift */,
 				C435A510E4A4F0CA787C4163 /* UpdaterConfigurationTests.swift */,
 				FC9185B0FD2D6963E1451509 /* UsageHistoryTests.swift */,
+				289608F5773DF27B92507E03 /* WindowsColorNamesTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -276,6 +285,7 @@
 				2577AF9D09659648D0FC781C /* github-app.json */,
 				2016481A22DAA1073A10FF0B /* LUCIDE-LICENSE.txt */,
 				664D976D61E670EDF1E2C47E /* MICROSOFT-UI-XAML-LICENSE.txt */,
+				5513D217EE207A1E94C8ABBA /* WindowsColorNames.plist */,
 				F06CA860BFE3A055FEE256D6 /* Fonts */,
 				D1E3E6C824C1295301317EF3 /* Images */,
 				70C89CB71E9711E9395CB4DD /* Sounds */,
@@ -309,6 +319,7 @@
 				66031B2D20D103F7DA4B5042 /* Settings.swift */,
 				6FE31F36657B650759A144CB /* SpectrumSelectionContrast.swift */,
 				3D30E984DB7C2ADE83A5210B /* UsageHistory.swift */,
+				9C463B5BEBBC88684B0BE0AE /* WindowsColorNames.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -371,6 +382,7 @@
 			isa = PBXGroup;
 			children = (
 				3AF8E40D8F6BD8EDFFDAD604 /* AccountDragging.swift */,
+				E72561E2E530FB3712D65E03 /* BundledColorNames.swift */,
 				464C6C599D303DAEF44E73B1 /* DemoReferenceWindowFrame.swift */,
 				1EFFB3B427B1675530260BA6 /* Format.swift */,
 				F5A5186F536026FDE9E8A856 /* ReferenceHelpTooltip.swift */,
@@ -591,6 +603,7 @@
 				CB8C70F7AFCBA83C135105F9 /* SegoeUIVariable-EULA.txt in Resources */,
 				D756B5878DC2FC86C4C91539 /* SegoeUIVariable-Text-Semibold.ttf in Resources */,
 				A79B5850A75FD68799374F55 /* SegoeUIVariable-Text.ttf in Resources */,
+				E73A905117632D09D44207AC /* WindowsColorNames.plist in Resources */,
 				FA787AF5C9A21EA1E50490FA /* alarm_off.svg in Resources */,
 				1005FCA7612EB48F234A93A0 /* alarm_on.svg in Resources */,
 				3871C893EC7CDC1282F9F7F2 /* classic-alert.wav in Resources */,
@@ -636,6 +649,7 @@
 				63350E07339E6D24A0D054B6 /* SettingsMigrationTests.swift in Sources */,
 				0ADF6DA366E575D858EA927A /* UpdaterConfigurationTests.swift in Sources */,
 				94EDBF6C4A699F44C9F07244 /* UsageHistoryTests.swift in Sources */,
+				4E1C7ED8B1E6025B186C8526 /* WindowsColorNamesTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -660,6 +674,7 @@
 				23CEFFD587B16DBFFB115564 /* AppStore.swift in Sources */,
 				8436E68C2056115DE57E3ADE /* AppUpdater.swift in Sources */,
 				D6C61E39205A96F285B56E50 /* BoundedProcess.swift in Sources */,
+				4CA1FD40497EDB0FE1D1951B /* BundledColorNames.swift in Sources */,
 				818D844886D30D72AE015458 /* ClaudeClient.swift in Sources */,
 				862174AFE837C897E419E4D3 /* ClaudeConnectView.swift in Sources */,
 				70FB6FB30ECD69AF14D467FE /* ClaudeUsageParser.swift in Sources */,
@@ -703,6 +718,7 @@
 				B8B06B576DCFEE399B36AAA7 /* ThresholdPopupPlacement.swift in Sources */,
 				BEAC60BD8C8CA45DC6ACB78B /* UsageBar.swift in Sources */,
 				75A85C7DE0148D447CF550A5 /* UsageHistory.swift in Sources */,
+				B7C71C4142D89F20EE310199 /* WindowsColorNames.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

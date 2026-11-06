@@ -1,4 +1,5 @@
 import XCTest
+import struct SwiftUI.Color
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
@@ -124,6 +125,31 @@ final class CoreTests: XCTestCase {
         XCTAssertTrue(thresholds.isValid)
     }
 
+    func testColorPickerNamedHueStepsMatchWinUIKeyboardFixtures() {
+        // Microsoft's ColorPickerTests.Spectrum keyboard sequence starts at fully saturated red.
+        var hue = 0.0
+        func hex(_ degrees: Double) -> String {
+            Color(hue: degrees / 360, saturation: 1, brightness: 1).hex
+        }
+        for (increase, expected) in [(true, "#FF7700"), (false, "#FF000D"), (false, "#FF00AA"), (true, "#FF000D")] {
+            hue = ColorPickerChannel.nextNamed(hue, maximum: 359, step: 1, increasing: increase,
+                                               wraps: true, wrapPeriod: 360) { WindowsColorNames.name(hex: hex($0)) }
+            XCTAssertEqual(hex(hue), expected)
+        }
+    }
+    func testColorPickerNamedStepsSelectNextBandAndRespectEndpoints() {
+        let band: (Double) -> String? = { $0 < 3 ? "A" : $0 < 8 ? "B" : "C" }
+        XCTAssertEqual(ColorPickerChannel.nextNamed(1, maximum: 10, step: 1, increasing: true,
+                                                   wraps: true, name: band), 5)
+        XCTAssertEqual(ColorPickerChannel.nextNamed(9, maximum: 10, step: 1, increasing: false,
+                                                   wraps: true, name: band), 4)
+        XCTAssertEqual(ColorPickerChannel.nextNamed(9, maximum: 10, step: 1, increasing: true,
+                                                   wraps: true, name: band), 1)
+        XCTAssertEqual(ColorPickerChannel.nextNamed(9, maximum: 10, step: 1, increasing: true,
+                                                   wraps: false, name: band), 10)
+        XCTAssertEqual(ColorPickerChannel.nextNamed(0.5, maximum: 1, step: 0.01, increasing: true,
+                                                   wraps: true) { _ in "Black" }, 0.5)
+    }
     func testColorPickerChannelStopsAtBoundaryBeforeWrapping() {
         XCTAssertEqual(ColorPickerChannel.stepped(0.4, maximum: 100, increasing: false, wraps: true), 0)
         XCTAssertEqual(ColorPickerChannel.stepped(0, maximum: 100, increasing: false, wraps: true), 100)

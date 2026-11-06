@@ -34,12 +34,12 @@ reject_devin_profiles "$APP_BUNDLE"
 /usr/bin/plutil -lint "$APP_BUNDLE/Contents/Info.plist"
 ARCHS_FOUND="$(/usr/bin/lipo -archs "$APP_BUNDLE/Contents/MacOS/$APP_NAME")"
 [[ "$ARCHS_FOUND" == "arm64" ]] || { echo "Expected Apple silicon-only app; got $ARCHS_FOUND" >&2; exit 1; }
-for resource in token_baron.png openai.png github.svg claude.svg devin.svg github-app.json duck-alert.wav classic-alert.wav Assets.car; do
+for resource in token_baron.png openai.png github.svg claude.svg devin.svg github-app.json duck-alert.wav classic-alert.wav WindowsColorNames.plist Assets.car; do
   [[ -f "$APP_BUNDLE/Contents/Resources/$resource" ]] || { echo "Missing bundle resource: $resource" >&2; exit 1; }
 done
 # Typography, provider marks and alert sounds are part of UI parity. Verify the
 # packaged bytes, not just the presence of a subset of historical resources.
-for source in Resources/Fonts/*.ttf Resources/Images/* Resources/Sounds/*.wav; do
+for source in Resources/Fonts/*.ttf Resources/Images/* Resources/Sounds/*.wav Resources/WindowsColorNames.plist; do
   [[ -f "$source" ]] || continue
   resource="$(basename "$source")"
   /usr/bin/cmp -s "$source" "$APP_BUNDLE/Contents/Resources/$resource" || {
