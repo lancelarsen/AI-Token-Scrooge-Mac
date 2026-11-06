@@ -107,8 +107,7 @@ struct DashboardView: View {
                     .multilineTextAlignment(.trailing)
                     .font(.reference(size: 12)).foregroundStyle(Theme.secondary).frame(maxWidth: .infinity, alignment: .trailing)
                 Button {
-                    SoundPlayer.shared.play(settings: store.state.settings, cue: "refresh")
-                    Task { await store.refresh() }
+                    Task { await store.refreshByUser() }
                 } label: {
                     HStack(spacing: 10) {
                         if refreshing {

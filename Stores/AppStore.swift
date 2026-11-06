@@ -584,6 +584,12 @@ import AppKit
         catch { try? await secrets.remove(account.credentialID); throw error }
     }
 
+    func refreshByUser() async {
+        guard !isRefreshing || canRequestRefresh else { return }
+        SoundPlayer.shared.play(settings: state.settings, cue: "refresh")
+        await refresh()
+    }
+
     func refresh(force: Bool = true) async {
         let tasks = startRefreshes(force: force)
         for task in tasks { await task.value }
