@@ -1430,6 +1430,13 @@ To verify2984c91 without the stalled Xcode test launcher, compiled the productio
 
 Native current-font chooser capture provider-chooser-current-fonts.jpg is 640×674 Retina pixels, corresponding to the Windows reference20 panel's 320×337 logical size. The three 44-point provider buttons, 10-point row gaps, inset footer and Cancel placement match the reference layout; current Title Case follows the guide rather than the older screenshot. Cancel returns to the isolated empty dashboard without adding an account. This is layout evidence, not exact text rasterization signoff.
 
-The empty-wide-current.jpg capture is 2506×1750 Retina pixels (1253×875 points); the current display constrains the requested reference window, so it cannot establish equivalent-wide-layout parity. No clipping observed.
+The empty-wide-current.jpg capture is 2506×1750 Retina pixels (1253×875 points); reference sizing was not enabled because the launch omitted --demo, so it cannot establish equivalent-wide-layout parity. No clipping observed.
 
 Publication recovered: remote main reached6077a91. Hosted run42129128258 at that revision completed successfully, including the changed quota-label expectations:99 tests, two installed-CLI skips, zero failures. Preview build, archive validation and publication also passed. Full log:artifacts/current-6077a91-ci.log. This supersedes the prior publication-failure note; local Xcode launch and UI-automation limitations remain distinct from these passing hosted unit tests. No application code changed in this verification pass.
+
+
+### Compact Empty Capture and Exact Color-Name Requirement — 2026-11-05
+
+Corrected the previous wide-capture diagnosis: DemoReferenceWindow.size explicitly requires --demo; the earlier non-demo launch did not request a reference size at all. A --demo --compact launch followed by Exit Demo and setting the dashboard scrollbar to its top produced compact-empty-current-fonts.jpg at1578×1388 Retina pixels, matching reference24's789×694 logical window. The current empty rail reaches about745 points versus730 in the reference, and the card bottom is about631 versus635; inspect source geometry before changing these. Title-bar heights differ by platform, so absolute vertical offsets alone are not defects.
+
+The user explicitly requires Windows-exact color names. Native macOS color names are not an accepted substitute. The selected-color focus tooltip remains missing until Windows ColorHelper_ToDisplayNameId naming behavior can be reproduced and verified.
