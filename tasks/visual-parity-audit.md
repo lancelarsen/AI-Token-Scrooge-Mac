@@ -1440,3 +1440,8 @@ Publication recovered: remote main reached6077a91. Hosted run42129128258 at that
 Corrected the previous wide-capture diagnosis: DemoReferenceWindow.size explicitly requires --demo; the earlier non-demo launch did not request a reference size at all. A --demo --compact launch followed by Exit Demo and setting the dashboard scrollbar to its top produced compact-empty-current-fonts.jpg at1578×1388 Retina pixels, matching reference24's789×694 logical window. The current empty rail reaches about745 points versus730 in the reference, and the card bottom is about631 versus635; inspect source geometry before changing these. Title-bar heights differ by platform, so absolute vertical offsets alone are not defects.
 
 The user explicitly requires Windows-exact color names. Native macOS color names are not an accepted substitute. The selected-color focus tooltip remains missing until Windows ColorHelper_ToDisplayNameId naming behavior can be reproduced and verified.
+
+
+### Empty Timeline Right Inset — 2026-11-06
+
+Windows HistoryTimelineView defines PlotRight=12 and Span=chart.Width-AxisLeft-PlotRight; its rail ends at AxisLeft+Span. The Mac emptyTimeline Canvas omitted that inset and drew through size.width. Added the same12-point right reservation, clamped at the left endpoint. The populated scrolling timeline is unchanged. Canonical build passes in artifacts/empty-rail-inset-build.log. Post-build native verification was interrupted by a Sparkle update reminder and then CUA timeout; fresh rendered confirmation remains open. The reminder displayed available2026.11.3 versus installed2026.11.6 and requires a separate update-version investigation; no update was installed.

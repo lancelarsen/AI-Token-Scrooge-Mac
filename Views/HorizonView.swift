@@ -149,7 +149,8 @@ struct HorizonView: View {
                     let anchor = left + (compact ? 38 : 88)
                     var rail = Path()
                     rail.move(to: CGPoint(x: left, y: 56))
-                    rail.addLine(to: CGPoint(x: size.width, y: 56))
+                    // Windows HistoryTimelineView reserves PlotRight = 12 beyond the rail.
+                    rail.addLine(to: CGPoint(x: max(left, size.width - 12), y: 56))
                     context.stroke(rail, with: .color(Color(hex: "#8170B7")), lineWidth: 2)
                     context.draw(Text("Today").font(.reference(size: 14, weight: .semibold)).foregroundStyle(Color(hex: "#D1BEFF")), at: CGPoint(x: anchor, y: 7))
                     let date = now.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone))
