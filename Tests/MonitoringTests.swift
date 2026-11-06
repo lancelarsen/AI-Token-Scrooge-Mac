@@ -20,6 +20,7 @@ final class MonitoringTests: XCTestCase {
         let fast = ProviderAccount(provider: .codex, nickname: "Fast", subject: "fast", scope: "work")
         var initial = PersistedState()
         initial.accounts = [slow, fast]
+        initial.settings.sound = false
         try await database.save(initial)
         let reader = SuspendedRefreshFixture(holding: slow.id)
         defer { reader.release() }
@@ -30,7 +31,7 @@ final class MonitoringTests: XCTestCase {
         withObservationTracking { _ = store.state.snapshots[fast.id] } onChange: { published.fulfill() }
         let historyUpdated = expectation(description: "Fast account appeared in the timeline")
         withObservationTracking { _ = store.history } onChange: { historyUpdated.fulfill() }
-        let refresh = Task { await store.refresh() }
+        let refresh = Task { await store.refreshByUser() }
         await fulfillment(of: [reader.started, published, historyUpdated], timeout: 3)
         XCTAssertTrue(store.isRefreshing)
         XCTAssertEqual(store.state.snapshots[fast.id]?.health, .healthy)
@@ -51,7 +52,7 @@ final class MonitoringTests: XCTestCase {
         for count in 2...3 {
             let updated = expectation(description: "Fast account published reading \(count)")
             withObservationTracking { _ = store.state.snapshots[fast.id] } onChange: { updated.fulfill() }
-            retries.append(Task { await store.refresh() })
+            retries.append(Task { await store.refreshByUser() })
             await fulfillment(of: [updated], timeout: 3)
             XCTAssertEqual(store.state.snapshots[fast.id]?.windows.first?.used, Decimal(count))
         }
