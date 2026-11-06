@@ -12,3 +12,5 @@ xcuserdata/
 *.mobileprovision
 .env
 .reference/
+DevinProfiles/
+DevinTrials/

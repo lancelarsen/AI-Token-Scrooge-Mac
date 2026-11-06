@@ -11,6 +11,7 @@ struct ConnectionView: View {
         return CGSize(width: min(1000, max(640, hostSize.width - 48)),
                       height: min(800, max(400, hostSize.height - 64)))
     }
+    @State private var workspace = ""
     @State private var nickname = ""
     @State private var token = ""
     @State private var organization = ""
@@ -38,14 +39,17 @@ struct ConnectionView: View {
                 Text("Connect Account").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
                     .frame(minHeight: 32, alignment: .leading)
                 VStack(spacing: 10) {
-                    ForEach([Provider.codex, .copilot, .claude]) { choice in
+                    ForEach(Provider.allCases) { choice in
                         Button {
                             provider = choice
-                            nickname = "Personal"
+                            nickname = choice == .devin ? "Work" : "Personal"
                             providerChosen = true
                         } label: {
-                            DialogActionLabel(title: choice == .codex ? "OpenAI Codex" : choice.rawValue)
-                                .frame(maxWidth: .infinity)
+                            HStack(spacing: 16) {
+                                ProviderIcon(provider: choice, size: 28).accessibilityHidden(true)
+                                Text(choice == .codex ? "OpenAI Codex" : choice.rawValue)
+                                    .font(.reference(size: 16))
+                            }.frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
                         }.buttonStyle(ScroogeButtonStyle())
                     }
                 }
@@ -68,6 +72,7 @@ struct ConnectionView: View {
     private var connectionDescription: String {
         switch provider {
         case .codex: "Sign in through OpenAI in your browser. Scrooge keeps this account in its own protected Codex profile and only reads usage limits."
+        case .devin: "Paste your Devin Enterprise workspace URL and sign in. Scrooge reads your personal monthly ACUs and reset time from My Analytics."
         case .claude: "Sign in through Claude in your browser. Scrooge uses a separate Claude Code profile to read your session and weekly limits. Requires Claude Code 2.1.310 or later."
         case .copilot: (advanced || organizationReconnect) ? "Advanced connection: use a fine-grained token with Plan read permission for personal billing. Organization billing requires authorized administration access. Your token stays protected in macOS Keychain." : "Sign in through GitHub in your browser. Scrooge reads your personal Copilot usage and protects this account’s sign-in in macOS Keychain."
         }
@@ -78,7 +83,7 @@ struct ConnectionView: View {
         switch provider {
         case .codex: 550
         case .copilot: (advanced || organizationReconnect) ? 534 : 544
-        case .claude: 576
+        case .claude, .devin: 576
         }
     }
     private var connectionForm: some View {
@@ -133,6 +138,23 @@ struct ConnectionView: View {
                 } label: { DialogActionLabel(title: connecting ? "Connecting…" : "Connect Account").frame(maxWidth: .infinity, alignment: .leading) }
                     .buttonStyle(ScroogeButtonStyle()).disabled(connecting || token.isEmpty || nickname.isEmpty)
                 }
+            } else if provider == .devin {
+                TextField("Company Devin Workspace URL", text: $workspace)
+                    .modifier(ConnectionFieldStyle()).disabled(store.reconnectAccountID != nil || connecting)
+                ConnectionStatusLine(text: error ?? "")
+                Button {
+                    connecting = true
+                    error = "Complete company sign-in in the Devin window."
+                    connectionTask = Task {
+                        defer { connecting = false }
+                        do {
+                            try await store.connectDevin(nickname: nickname, workspace: workspace)
+                            dismiss()
+                        } catch is CancellationError { self.error = "Sign-in canceled." }
+                        catch { self.error = (error as? ProviderFailure)?.message ?? (error is AccountError ? error.localizedDescription : "Devin sign-in could not be saved. Try again.") }
+                    }
+                } label: { DialogActionLabel(title: "Sign In with Devin").frame(maxWidth: .infinity, alignment: .leading) }
+                    .buttonStyle(ScroogeButtonStyle()).disabled(connecting || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || workspace.isEmpty)
             } else {
                 ClaudeConnectView(nickname: nickname, original: store.state.accounts.first { $0.id == store.reconnectAccountID })
             }
@@ -143,7 +165,7 @@ struct ConnectionView: View {
         .onDisappear { connectionTask?.cancel(); token = "" }
         .onAppear {
             if let original = store.state.accounts.first(where: { $0.id == store.reconnectAccountID }) {
-                provider = original.provider; nickname = original.nickname; unit = original.unit
+                provider = original.provider; workspace = original.scope; nickname = original.nickname; unit = original.unit
                 if original.scope.hasPrefix("organization:") { advanced = true; organization = String(original.scope.dropFirst(13)) }
                 allowance = original.allowance.map { NSDecimalNumber(decimal: $0).stringValue } ?? ""
             }

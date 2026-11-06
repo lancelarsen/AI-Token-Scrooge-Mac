@@ -1,12 +1,13 @@
 import Foundation
 
 enum Provider: String, Codable, CaseIterable, Identifiable, Sendable {
-    case codex = "OpenAI", copilot = "GitHub Copilot", claude = "Claude"
+    case codex = "OpenAI", copilot = "GitHub Copilot", claude = "Claude", devin = "Devin"
     var id: String { rawValue }
-    var imageName: String { switch self { case .codex: "openai"; case .copilot: "github"; case .claude: "claude" } }
+    var hasMonthlyHistory: Bool { self == .copilot || self == .devin }
+    var imageName: String { switch self { case .codex: "openai"; case .copilot: "github"; case .claude: "claude"; case .devin: "devin" } }
 }
 
-enum UsageUnit: String, Codable, Sendable { case percent, credits, requests }
+enum UsageUnit: String, Codable, Sendable { case percent, credits, requests, acus }
 enum SourceHealth: String, Codable, Sendable {
     case healthy, loading, stale, offline, authenticationRequired, permissionRequired, unsupported, demo
 }
@@ -30,6 +31,7 @@ struct ProviderAccount: Codable, Identifiable, Equatable, Sendable {
     var effectivePollingMinutes: Int { min(30, max(1, pollingMinutes)) }
     var usageURL: URL? {
         switch provider {
+        case .devin: return DevinUsage.workspace(scope)?.appendingPathComponent("settings/my-analytics")
         case .codex: return URL(string: "https://chatgpt.com/settings/usage?tab=overview")
         case .claude: return URL(string: "https://claude.ai/new#settings/usage")
         case .copilot:
@@ -46,6 +48,7 @@ struct ProviderAccount: Codable, Identifiable, Equatable, Sendable {
         if let lineColor, lineColor.count == 7, lineColor.first == "#",
            lineColor.dropFirst().allSatisfy({ $0.isASCII && $0.isHexDigit }) { return lineColor }
         switch provider {
+        case .devin: return DevinUsage.historyColor(id)
         case .claude: return "#58A6FF"
         case .copilot: return "#CDEB82"
         case .codex: return plan?.localizedCaseInsensitiveContains("Plus") == true ? "#D587A5" : "#B99AF8"

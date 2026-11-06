@@ -131,7 +131,7 @@ struct DashboardView: View {
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: 15) {
             Text("Your AI capacity, in one quiet place.").font(.reference(size: 24, weight: .semibold)).frame(minHeight: 32, alignment: .leading)
-            Text("Connect OpenAI Codex or GitHub Copilot to see usage, upcoming resets and earned-reset expirations.").font(.reference(size: 14)).foregroundStyle(Theme.secondary)
+            Text("Connect an account to see its usage and upcoming resets.").font(.reference(size: 14)).foregroundStyle(Theme.secondary)
             Button { store.enterDemo() } label: { ActionLabel(title: "Explore with Demo Data", symbol: "arrow.up.right.square").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).accessibilityIdentifier("exploreDemoButton")
         }.padding(.horizontal, 24).padding(.vertical, 36).frame(maxWidth: .infinity, alignment: .leading)
     }

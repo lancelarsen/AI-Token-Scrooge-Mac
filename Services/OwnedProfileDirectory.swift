@@ -4,7 +4,7 @@ import Foundation
 /// opening or removing one; keep failed cleanup queued for a later safe retry.
 enum OwnedProfileDirectory {
     static func directory(provider: Provider, id: String, base: URL? = nil) throws -> URL {
-        guard let uuid = UUID(uuidString: id), provider != .copilot else { throw SecretStoreError.invalidID }
+        guard let uuid = UUID(uuidString: id), (provider == .codex || provider == .claude) else { throw SecretStoreError.invalidID }
         let support = base ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         let root = support.appendingPathComponent("AI Token Scrooge", isDirectory: true)
         let parent = root.appendingPathComponent(provider == .codex ? "Profiles" : "ClaudeProfiles", isDirectory: true)

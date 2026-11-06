@@ -175,6 +175,7 @@ import AppKit
             guard !activeCredentialIDs.contains(account.credentialID), !state.accounts.contains(where: { $0.credentialID == account.credentialID }) else { continue }
             do {
                 switch account.provider {
+                case .devin: try await secrets.remove(account.credentialID)
                 case .copilot: try await githubCredentials.remove(account.credentialID)
                 case .codex:
                     let connection = try await CodexConnection.start(credentialID: account.credentialID)
@@ -183,7 +184,7 @@ import AppKit
                     await connection.close()
                 case .claude: try await ClaudeClient().disconnect(account.credentialID)
                 }
-                if account.provider != .copilot {
+                if account.provider == .codex || account.provider == .claude {
                     try OwnedProfileDirectory.remove(provider: account.provider, id: account.credentialID)
                 }
                 edit { state in state.retiredAccounts.removeAll { $0.credentialID == account.credentialID } }
@@ -501,6 +502,23 @@ import AppKit
         try await commit.value
         await reloadHistory()
     }
+    func connectDevin(nickname: String, workspace: String) async throws {
+        guard let host = DevinUsage.workspace(workspace)?.host else {
+            throw ProviderFailure(message: "Enter your company’s Devin Enterprise workspace URL.")
+        }
+        let original = state.accounts.first { $0.id == reconnectAccountID }
+        var account = ProviderAccount(provider: .devin, nickname: nickname.trimmingCharacters(in: .whitespacesAndNewlines),
+                                      subject: original?.subject ?? "", scope: host, unit: .acus, pollingMinutes: 10)
+        if let original { account.id = original.id }
+        try await stageCredential(provider: .devin, id: account.credentialID)
+        defer { endCredentialAttempt(account.credentialID) }
+        let snapshot = try await DevinClient.read(account: account, secrets: secrets, interactive: true)
+        account.subject = snapshot.subject
+        if let original { account = try AccountPolicy.reconnect(original: original, replacement: account) }
+        try Task.checkCancellation()
+        try await acceptConnection(account, snapshot: snapshot, replacing: original)
+    }
+
     func connectGitHub(nickname: String, token: String, allowance: Decimal?, unit: UsageUnit, organization: String, appTokens: GitHubAppTokens? = nil) async throws {
         let original = state.accounts.first { $0.id == reconnectAccountID }
         let identity = try await github.identify(token: token)
@@ -563,6 +581,8 @@ import AppKit
                 case .copilot:
                     let token = try await githubCredentials.accessToken(for: account)
                     snapshot = try await github.read(account: account, token: token)
+                case .devin:
+                    snapshot = try await DevinClient.read(account: account, secrets: secrets, interactive: false)
                 case .claude:
                     snapshot = try await ClaudeClient().refresh(account)
                 }

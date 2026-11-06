@@ -47,6 +47,7 @@
 		6FB306641BDBBCC59926733B /* HorizonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7568B7A102C54AE3CF72E102 /* HorizonView.swift */; };
 		70FB6FB30ECD69AF14D467FE /* ClaudeUsageParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE0BBF977675AA0040C4DA02 /* ClaudeUsageParser.swift */; };
 		72B311F98195221414771AAB /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9E9691FF186EB48B04A900A /* DashboardView.swift */; };
+		72C655BC2813F677E868DB7D /* DevinClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CEA6CCA3F76AF02A34D11A /* DevinClient.swift */; };
 		73886FB87A1820CC955B8398 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0897F38BE76FD2821EE66746 /* SettingsView.swift */; };
 		73BAB22F3915C8BB955B3CD9 /* OwnedProfileDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0172773013752FE479588ABD /* OwnedProfileDirectory.swift */; };
 		75A85C7DE0148D447CF550A5 /* UsageHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D30E984DB7C2ADE83A5210B /* UsageHistory.swift */; };
@@ -83,12 +84,14 @@
 		CB6C6D05ADC1F4FFFF65658E /* LocalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC048AAA6E4767EF18709FD0 /* LocalStore.swift */; };
 		CB8C70F7AFCBA83C135105F9 /* SegoeUIVariable-EULA.txt in Resources */ = {isa = PBXBuildFile; fileRef = 24581CFA900CBB96F831DCDC /* SegoeUIVariable-EULA.txt */; };
 		D2180C29BA6C8EC1BB99B32A /* classic-info.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1CE84E17CBE82C4DB3B77B2D /* classic-info.wav */; };
+		D287C435D2D9D3E6D6954906 /* devin.svg in Resources */ = {isa = PBXBuildFile; fileRef = 38C6082F2EA80A8484F2B2AC /* devin.svg */; };
 		D62E139AF9F68B8411B2E9DE /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36386F305B5106D36AA5C9A /* Theme.swift */; };
 		D6B091FD1FEA4C4B3E02F5C3 /* duck-info.wav in Resources */ = {isa = PBXBuildFile; fileRef = 5B5FE9D875BCE334EAC07010 /* duck-info.wav */; };
 		D6C61E39205A96F285B56E50 /* BoundedProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59FA3788DAC32DB6AA240532 /* BoundedProcess.swift */; };
 		D756B5878DC2FC86C4C91539 /* SegoeUIVariable-Text-Semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9DF88B6C3666C808D2A8FD6E /* SegoeUIVariable-Text-Semibold.ttf */; };
 		D7753510825E316136C3F4BD /* SpectrumSelectionContrast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FE31F36657B650759A144CB /* SpectrumSelectionContrast.swift */; };
 		D9683D715A441351B9636FAF /* ColorPickerChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12A2883DD3F8B576BA9D3D77 /* ColorPickerChannel.swift */; };
+		D9E7A3A2841BE55E71BE5546 /* DevinUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9278B78AB3FEE48A6B3182D /* DevinUsage.swift */; };
 		DBE7F5FA7D194FA5F4C1EFC1 /* HorizonPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762A319808F8C17BAC31D1B3 /* HorizonPresentation.swift */; };
 		E2C6F1BDBC77605A265DDF1E /* duck-snooze.wav in Resources */ = {isa = PBXBuildFile; fileRef = A1EFDF115E7709BB9A4B0763 /* duck-snooze.wav */; };
 		E6D9E03A7530598B3293E4E1 /* github.svg in Resources */ = {isa = PBXBuildFile; fileRef = 3CECC381968D27063EFC9A5B /* github.svg */; };
@@ -96,6 +99,7 @@
 		E91992A6469EC4258D7EF341 /* ScroogeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97D9C485C181A33B6B701DD9 /* ScroogeApp.swift */; };
 		EA56430C6D5C3F90836BB9FA /* threshold_critical.svg in Resources */ = {isa = PBXBuildFile; fileRef = 00C80F94C32F70480731176C /* threshold_critical.svg */; };
 		ECB9045D8E69EF709DEFD8CA /* AlertHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AFBE29531DCEBFA5A7D9A2C /* AlertHistoryView.swift */; };
+		F556A9A65085FEFB873E9F46 /* DevinTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBB11BD3744DF6917A2FD40D /* DevinTests.swift */; };
 		F66E8FB7004C9407A041D054 /* HorizonEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 417578CF1EEB75FB014934AB /* HorizonEvent.swift */; };
 		F96ED985983806CFBA6CBA82 /* SecretStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C69B60006F7E2D89ACCAE6B /* SecretStore.swift */; };
 		FA46A7A6C5AEDE55E202D6F3 /* openai.png in Resources */ = {isa = PBXBuildFile; fileRef = D9675643B3606BF310D43E78 /* openai.png */; };
@@ -148,6 +152,7 @@
 		2EE9018BC3C01984795AFA21 /* PackedHistoryRun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackedHistoryRun.swift; sourceTree = "<group>"; };
 		31638D25EC1D325F77527539 /* SegoeFluentIcons-EULA.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "SegoeFluentIcons-EULA.txt"; sourceTree = "<group>"; };
 		32EF134E344E9C2463AA0D44 /* SegoeUISymbol.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SegoeUISymbol.ttf; sourceTree = "<group>"; };
+		38C6082F2EA80A8484F2B2AC /* devin.svg */ = {isa = PBXFileReference; path = devin.svg; sourceTree = "<group>"; };
 		39135C6BE784A1D2EF821CC5 /* SpectrumSelectionIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrumSelectionIndicator.swift; sourceTree = "<group>"; };
 		3941BE91BC638E8DA8089568 /* classic-dismiss.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "classic-dismiss.wav"; sourceTree = "<group>"; };
 		3A2FF94CD691A6FD9D3EEB04 /* LoginItemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemService.swift; sourceTree = "<group>"; };
@@ -198,6 +203,7 @@
 		A1EFDF115E7709BB9A4B0763 /* duck-snooze.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "duck-snooze.wav"; sourceTree = "<group>"; };
 		A5E296A644421B5FD6A43424 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		A9401B94B0F50306880D7295 /* HistoryRunCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRunCache.swift; sourceTree = "<group>"; };
+		B1CEA6CCA3F76AF02A34D11A /* DevinClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevinClient.swift; sourceTree = "<group>"; };
 		B36386F305B5106D36AA5C9A /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		BAA75995C9ABF567F73A8D69 /* radar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = radar.png; sourceTree = "<group>"; };
 		BAFBBCF5F86944851B8AE79A /* AlertEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertEvent.swift; sourceTree = "<group>"; };
@@ -207,6 +213,7 @@
 		D00030CAB4618F55476480A2 /* HorizonViewport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HorizonViewport.swift; sourceTree = "<group>"; };
 		D345262589E545400138B5D4 /* RefreshSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RefreshSchedule.swift; sourceTree = "<group>"; };
 		D3D7FB1672F7CCAA26AEA17D /* ConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionView.swift; sourceTree = "<group>"; };
+		D9278B78AB3FEE48A6B3182D /* DevinUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevinUsage.swift; sourceTree = "<group>"; };
 		D9675643B3606BF310D43E78 /* openai.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = openai.png; sourceTree = "<group>"; };
 		DE0BBF977675AA0040C4DA02 /* ClaudeUsageParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeUsageParser.swift; sourceTree = "<group>"; };
 		DEBEAC2441D10EEB12366B40 /* CoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreTests.swift; sourceTree = "<group>"; };
@@ -214,6 +221,7 @@
 		E307AA3FFA64A347BDA807AF /* duck-alert.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "duck-alert.wav"; sourceTree = "<group>"; };
 		E6502C89BBD005778525E926 /* GitHubClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubClient.swift; sourceTree = "<group>"; };
 		E88C65C2848C9E889518050D /* SegoeUIVariable-Text.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SegoeUIVariable-Text.ttf"; sourceTree = "<group>"; };
+		EBB11BD3744DF6917A2FD40D /* DevinTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevinTests.swift; sourceTree = "<group>"; };
 		EC048AAA6E4767EF18709FD0 /* LocalStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStore.swift; sourceTree = "<group>"; };
 		EDEF58C3513F89FF61BBFE6F /* HistoryCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryCacheTests.swift; sourceTree = "<group>"; };
 		F3FECAF4E9864E84728EB3B7 /* alarm_on.svg */ = {isa = PBXFileReference; path = alarm_on.svg; sourceTree = "<group>"; };
@@ -246,6 +254,7 @@
 				FFD532470D17D4EE513C651D /* AccountDragLayoutTests.swift */,
 				1331C3981213DAA78844E7CF /* ClaudeTests.swift */,
 				DEBEAC2441D10EEB12366B40 /* CoreTests.swift */,
+				EBB11BD3744DF6917A2FD40D /* DevinTests.swift */,
 				6198B0FB13827BFE52953049 /* GitHubAuthTests.swift */,
 				EDEF58C3513F89FF61BBFE6F /* HistoryCacheTests.swift */,
 				2E5184BDAC856DAAC20AFC19 /* HistoryEventTests.swift */,
@@ -289,6 +298,7 @@
 				BAFBBCF5F86944851B8AE79A /* AlertEvent.swift */,
 				12A2883DD3F8B576BA9D3D77 /* ColorPickerChannel.swift */,
 				83248181B8FD3D1C0981229F /* DemoData.swift */,
+				D9278B78AB3FEE48A6B3182D /* DevinUsage.swift */,
 				54F770CD83409906A403E54F /* HistoryLabelLayout.swift */,
 				A9401B94B0F50306880D7295 /* HistoryRunCache.swift */,
 				417578CF1EEB75FB014934AB /* HorizonEvent.swift */,
@@ -403,6 +413,7 @@
 				F9659CF592B00DF27AA16127 /* alarm_off.svg */,
 				F3FECAF4E9864E84728EB3B7 /* alarm_on.svg */,
 				FE15488DDEE422AD1AE65657 /* claude.svg */,
+				38C6082F2EA80A8484F2B2AC /* devin.svg */,
 				3CECC381968D27063EFC9A5B /* github.svg */,
 				D9675643B3606BF310D43E78 /* openai.png */,
 				BAA75995C9ABF567F73A8D69 /* radar.png */,
@@ -446,6 +457,7 @@
 				7E12588F45FA6D8E195FFC06 /* ClaudeClient.swift */,
 				DE0BBF977675AA0040C4DA02 /* ClaudeUsageParser.swift */,
 				4CBEDF88CCB32C5CAD6FF91E /* CodexConnection.swift */,
+				B1CEA6CCA3F76AF02A34D11A /* DevinClient.swift */,
 				E6502C89BBD005778525E926 /* GitHubClient.swift */,
 				88DE1AE9332ACD9C98CE0F89 /* GitHubCredentialManager.swift */,
 				53A7886BB2D625115CF3E3A1 /* GitHubDeviceFlow.swift */,
@@ -586,6 +598,7 @@
 				D2180C29BA6C8EC1BB99B32A /* classic-info.wav in Resources */,
 				B3E08521D8AD562FC9D46478 /* classic-snooze.wav in Resources */,
 				5AB7648F6F0AA646BAE4A66C /* claude.svg in Resources */,
+				D287C435D2D9D3E6D6954906 /* devin.svg in Resources */,
 				965738FC73BE7C94650DF070 /* duck-alert.wav in Resources */,
 				04C55EF85EA7BA2842F5F032 /* duck-dismiss.wav in Resources */,
 				D6B091FD1FEA4C4B3E02F5C3 /* duck-info.wav in Resources */,
@@ -612,6 +625,7 @@
 				B02AE482156892BA8529548A /* AccountDragLayoutTests.swift in Sources */,
 				FBE19C0BB9C8EA7C0EE48D5A /* ClaudeTests.swift in Sources */,
 				14BD82C05C34322DC20750BB /* CoreTests.swift in Sources */,
+				F556A9A65085FEFB873E9F46 /* DevinTests.swift in Sources */,
 				4DFE91E5F5B40488B73E88FC /* GitHubAuthTests.swift in Sources */,
 				98E5054E339A39BF500A514A /* HistoryCacheTests.swift in Sources */,
 				1A747D95FFF2A23A5868D6C8 /* HistoryEventTests.swift in Sources */,
@@ -656,6 +670,8 @@
 				72B311F98195221414771AAB /* DashboardView.swift in Sources */,
 				6B98AA527732988492887E0A /* DemoData.swift in Sources */,
 				AAE0FE8097F16A41805AE096 /* DemoReferenceWindowFrame.swift in Sources */,
+				72C655BC2813F677E868DB7D /* DevinClient.swift in Sources */,
+				D9E7A3A2841BE55E71BE5546 /* DevinUsage.swift in Sources */,
 				65D67BC02FB4B2FB7EFC3C2A /* Format.swift in Sources */,
 				A20D12738A47984775832AB6 /* GitHubClient.swift in Sources */,
 				8BAEAC80F2EAF312BE8ADD9A /* GitHubConnectView.swift in Sources */,

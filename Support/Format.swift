@@ -25,7 +25,7 @@ enum Format {
         if value.contains("help") { return "\u{E897}" }
         if value.contains("quick view") || value.contains("dashboard") { return "\u{E80F}" }
         if value.contains("token") { return "\u{E8D7}" }
-        if value.contains("sign in") || value.contains("connect") || ["openai codex", "github copilot", "claude"].contains(value) { return "\u{E77B}" }
+        if value.contains("sign in") || value.contains("connect") || ["openai codex", "github copilot", "claude", "devin"].contains(value) { return "\u{E77B}" }
         if value.contains("add") { return "\u{E710}" }
         if value.contains("reset") { return "\u{E8B7}" }
         if value.contains("usage") { return "\u{E9D9}" }
@@ -110,6 +110,7 @@ enum Format {
         switch provider {
         case .codex:
             labels = ["free": "Free", "go": "Go", "plus": "Plus", "pro": "Pro", "prolite": "Pro Lite", "promax": "Pro Max", "team": "Team", "business": "Business", "enterprise": "Enterprise", "edu": "Edu"]
+        case .devin: labels = ["enterprise": "Enterprise"]
         case .claude:
             labels = ["pro": "Pro", "max": "Max", "team": "Team", "enterprise": "Enterprise"]
         case .copilot:
@@ -119,11 +120,11 @@ enum Format {
     }
     static func historyPlanBadge(_ provider: Provider, _ value: String?) -> String {
         let label = plan(provider, value)
-        return label == "Plan Unavailable" ? (provider == .copilot ? "Monthly" : "Weekly") : label
+        return label == "Plan Unavailable" ? (provider.hasMonthlyHistory ? "Monthly" : "Weekly") : label
     }
 
     static func usageText(_ window: QuotaWindow, provider: Provider, locale: Locale = .current) -> (used: String, left: String) {
-        if window.unit == .percent || provider == .copilot {
+        if window.unit == .percent || provider == .copilot || provider == .devin {
             return (window.usedPercent.map { "\(percent($0)) Used" } ?? "Usage Unavailable",
                     window.remainingPercent.map { "\(percent($0)) Left" } ?? "Left Unavailable")
         }

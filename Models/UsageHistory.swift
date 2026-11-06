@@ -56,6 +56,7 @@ enum UsageHistory {
             switch provider {
             case .codex: return window.durationMinutes == 10080
             case .claude: return window.durationMinutes == 10080 || (window.id == "weekly" && window.durationMinutes == nil)
+            case .devin: return window.id == "devin/monthly"
             case .copilot: return window.id == "copilot/monthly"
             }
         }
@@ -69,7 +70,7 @@ enum UsageHistory {
         var previousSnapshot: QuotaSnapshot?
         var missed = false
         var status: String?
-        let period = account.provider == .copilot ? "Monthly" : "Weekly"
+        let period = account.provider.hasMonthlyHistory ? "Monthly" : "Weekly"
         let ordered = runs.filter { $0.snapshot.accountID == account.id && $0.firstObservedAt <= through }.sorted { $0.firstObservedAt < $1.firstObservedAt }
         let anchor = ordered.last { $0.lastObservedAt < from }?.id
         for run in ordered where run.lastObservedAt >= from || run.id == anchor {
@@ -110,7 +111,7 @@ enum UsageHistory {
             if let window = selectWindow(provider: account.provider, windows: snapshot.windows).window, let at = window.resetsAt {
                 if let prior = pending[window.id], prior.date != at, snapshot.observedAt >= prior.date { events[prior.id] = prior }
                 pending[window.id] = HorizonEvent(id: "history/\(account.id)/refresh/\(window.id)/\(at.timeIntervalSince1970)", account: account, date: at,
-                    expiration: false, title: "Scheduled \(account.provider == .copilot ? "Monthly" : "Weekly") Quota Refresh", plan: snapshot.planType, reportedAt: snapshot.observedAt)
+                    expiration: false, title: "Scheduled \(account.provider.hasMonthlyHistory ? "Monthly" : "Weekly") Quota Refresh", plan: snapshot.planType, reportedAt: snapshot.observedAt)
             }
             for credit in snapshot.reserve?.credits ?? [] {
                 if credit.status == "available", let expiry = credit.expiresAt {

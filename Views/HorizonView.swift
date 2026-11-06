@@ -461,7 +461,7 @@ struct HorizonView: View {
     private func showHistorySample(account: ProviderAccount, point: HistoryPoint) {
         hoveredSample = (account, point)
         let name = store.state.settings.privacy ? "Account" : account.nickname
-        let period = account.provider == .copilot ? "Monthly" : "Weekly"
+        let period = account.provider.hasMonthlyHistory ? "Monthly" : "Weekly"
         var details = "\(account.provider.rawValue) / \(name) · \(Format.plan(account.provider, store.state.snapshots[account.id]?.planType))"
         details += "\n\(period) · \(Format.percent(100 - point.remaining, fractionDigits: 1)) Used\n\(Format.date(point.at, zone: store.state.settings.zone))"
         if let first = presentation.series.first(where: { $0.account.id == account.id })?.points.first,

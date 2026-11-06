@@ -6,6 +6,13 @@ OUTPUT_DIR="$ROOT_DIR/artifacts/package"
 BUILD_DIR="$ROOT_DIR/build/package"
 APP_NAME="AI Token Scrooge"
 APP_BUNDLE="$BUILD_DIR/Build/Products/Release/$APP_NAME.app"
+# Browser sign-in trials and profiles are local credentials, never distributable resources.
+reject_devin_profiles() {
+  local match
+  match="$(find "$1" \( -iname DevinProfiles -o -iname DevinTrials \) -print -quit)"
+  [[ -z "$match" ]] || { echo 'Package contains a Devin sign-in directory.' >&2; exit 1; }
+}
+reject_devin_profiles Resources
 mkdir -p "$OUTPUT_DIR"
 RELEASE_DAY="$(TZ=America/Chicago date +%Y.%-m.%-d)"
 RELEASE_REVISION="${SCROOGE_RELEASE_REVISION:-0}"
@@ -19,10 +26,11 @@ if [[ -n "${SCROOGE_SIGNING_IDENTITY:-}" ]]; then HARDENED_RUNTIME=YES; fi
 xcodebuild -project AITokenScrooge.xcodeproj -scheme AITokenScrooge \
   -configuration Release -destination 'platform=macOS,arch=arm64' \
   -derivedDataPath "$BUILD_DIR" ENABLE_HARDENED_RUNTIME="$HARDENED_RUNTIME" MARKETING_VERSION="$RELEASE_DAY" CURRENT_PROJECT_VERSION="$BUILD_NUMBER" SCROOGE_DISPLAY_VERSION="$DISPLAY_VERSION" build > "$OUTPUT_DIR/build.log" 2>&1
+reject_devin_profiles "$APP_BUNDLE"
 /usr/bin/plutil -lint "$APP_BUNDLE/Contents/Info.plist"
 ARCHS_FOUND="$(/usr/bin/lipo -archs "$APP_BUNDLE/Contents/MacOS/$APP_NAME")"
 [[ "$ARCHS_FOUND" == "arm64" ]] || { echo "Expected Apple silicon-only app; got $ARCHS_FOUND" >&2; exit 1; }
-for resource in token_baron.png openai.png github.svg claude.svg github-app.json duck-alert.wav classic-alert.wav Assets.car; do
+for resource in token_baron.png openai.png github.svg claude.svg devin.svg github-app.json duck-alert.wav classic-alert.wav Assets.car; do
   [[ -f "$APP_BUNDLE/Contents/Resources/$resource" ]] || { echo "Missing bundle resource: $resource" >&2; exit 1; }
 done
 # Typography, provider marks and alert sounds are part of UI parity. Verify the

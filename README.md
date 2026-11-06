@@ -4,7 +4,13 @@ Native SwiftUI port of [AI Token Scrooge](https://github.com/lancelarsen/AI-Toke
 
 **Status: in development; feature parity is not complete.** The dashboard, demo, settings, timeline, local history store, and GitHub advanced token connection are implemented. Codex browser authentication is implemented but not live-account verified. Claude authentication and quota reading are implemented with fixture tests. This development Mac has Claude Code 2.1.308 installed; quota reading requires 2.1.310 or later, and live verification remains open. GitHub device flow and credential renewal are implemented but still need end-to-end verification. Scheduled monitoring and alert delivery are implemented with policy tests; native end-to-end validation and full visual parity are still in progress. Do not rely on this development build for quota alerts.
 
-The Windows reference baseline is commit `3d0330bc528196e583160d587465ea8b9bc5e979`. Its source is authoritative for behavior and defaults. Later Windows changes have been reviewed through `3c863a5` (timeline countdown tooltips); detailed port evidence and remaining gaps are recorded in `tasks/visual-parity-audit.md`. macOS uses native window controls, dialogs, Keychain, notifications, login items, and a menu bar companion.
+The Windows reference baseline is commit `3d0330bc528196e583160d587465ea8b9bc5e979`. Its source is authoritative for behavior and defaults. Later Windows changes have been reviewed through `c80de39` (Devin Enterprise and provider icons); detailed port evidence and remaining gaps are recorded in `tasks/visual-parity-audit.md`. macOS uses native window controls, dialogs, Keychain, notifications, login items, and a menu bar companion.
+
+## Devin Enterprise
+
+Choose **Add Account → Devin**, enter your company’s Devin Enterprise workspace URL, and complete company sign-in. Scrooge verifies the signed-in user and reads personal monthly Agent Compute Units (ACUs) from **Settings → My Analytics**. Refreshes run every ten minutes by default. Percentages need a reported allowance. The reset countdown needs an unambiguous reset time in the browser’s time zone.
+
+Each connection uses its own temporary WebKit browser and keeps its saved session in macOS Keychain. Removing the account queues its session for deletion. Browser fixtures exercise sign-in state, refresh, and identity changes. Live company SSO and tenant access still need verification.
 
 ## Build
 
