@@ -299,9 +299,13 @@ final class MonitoringTests: XCTestCase {
             location: CGPoint(x: 75, y: 320), modifierFlags: [], timestamp: 0,
             windowNumber: window.windowNumber, context: nil, eventNumber: 0, clickCount: 0, pressure: 0))
         tracker.mouseMoved(with: event)
+        XCTAssertTrue(locations.isEmpty, "Inactive windows ignore pointer movement")
+        window.testIsKey = true
+        tracker.mouseMoved(with: event)
         XCTAssertEqual(locations.count, 1)
-        XCTAssertEqual(locations[0], CGPoint(x: 35, y: 30), "History uses top-left coordinates within the full timeline, not window coordinates")
+        XCTAssertEqual(try XCTUnwrap(locations.first), CGPoint(x: 35, y: 30), "History uses top-left coordinates within the full timeline, not window coordinates")
         let popupText = "OpenAI / Work · Pro\nWeekly History\n57% Used"
+        window.testIsKey = false
         tracker.showPopup(popupText)
         XCTAssertFalse(NSApp.windows.contains { $0.title == "Usage History Details" && $0.isVisible })
         window.testIsKey = true
