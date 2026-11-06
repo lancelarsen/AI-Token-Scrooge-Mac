@@ -4,7 +4,6 @@ struct DashboardView: View {
     @Environment(AppStore.self) private var store
     @State private var dragging = AccountDragging()
     @State private var showSettings = false
-    @State private var refreshRequested = false
     @State private var hostSize = CGSize(width: 1000, height: 800)
     @Environment(\.openWindow) private var openWindow
     var body: some View {
@@ -68,6 +67,8 @@ struct DashboardView: View {
     }
     private func header(wide: Bool) -> some View {
         let layout = wide ? AnyLayout(HStackLayout(spacing: 24)) : AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+        let refreshing = store.isRefreshing
+        let refreshDisabled = refreshing && !store.canRequestRefresh
         return layout {
             HStack(spacing: 14) {
                 if let url = Bundle.main.url(forResource: "token_baron", withExtension: "png"), let mascot = NSImage(contentsOf: url) {
@@ -84,21 +85,17 @@ struct DashboardView: View {
                     .multilineTextAlignment(.trailing)
                     .font(.reference(size: 12)).foregroundStyle(Theme.secondary).frame(maxWidth: .infinity, alignment: .trailing)
                 Button {
-                    refreshRequested = true
-                    Task {
-                        defer { refreshRequested = false }
-                        await store.refresh()
-                    }
+                    Task { await store.refresh() }
                 } label: {
                     HStack(spacing: 10) {
-                        if refreshRequested || store.isRefreshing {
+                        if refreshing {
                             ProgressView().controlSize(.small).tint(.white).frame(width: 19, height: 19)
                         } else { ActionIcon(symbol: "arrow.clockwise", size: 19) }
-                        Text(refreshRequested || store.isRefreshing ? "Refreshing…" : "Refresh")
+                        Text(refreshDisabled ? "Refreshing…" : "Refresh")
                     }
                 }
-                .buttonStyle(ScroogeButtonStyle(processing: refreshRequested || store.isRefreshing))
-                .disabled(refreshRequested || store.isRefreshing).accessibilityIdentifier("refreshButton")
+                .buttonStyle(ScroogeButtonStyle(processing: refreshing))
+                .disabled(refreshDisabled).accessibilityIdentifier("refreshButton")
                 Button { showSettings = true } label: { ActionLabel(title: "Settings", symbol: "gearshape") }.accessibilityIdentifier("settingsButton")
             }.frame(maxWidth: wide ? 500 : .infinity).buttonStyle(ScroogeButtonStyle())
         }.padding(.horizontal, 32).padding(.vertical, 18)

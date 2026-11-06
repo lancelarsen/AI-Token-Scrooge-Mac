@@ -57,7 +57,8 @@ struct MenuBarContent: View {
             NSApp.activate(ignoringOtherApps: true)
         }
         Text(store.iconDescription)
-        Button("Refresh All") { Task { await store.refresh() } }.disabled(store.isRefreshing)
+        Button("Refresh All") { Task { await store.refresh() } }
+            .disabled(store.isRefreshing && !store.canRequestRefresh)
         SettingsLink()
         Toggle("Privacy Mode", isOn: Binding(
             get: { store.state.settings.privacy },

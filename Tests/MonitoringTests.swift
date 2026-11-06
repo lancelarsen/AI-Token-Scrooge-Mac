@@ -12,6 +12,100 @@ private final class TooltipTestWindow: NSWindow {
 
 final class MonitoringTests: XCTestCase {
     @MainActor
+    func testManualRefreshPublishesAndPersistsFastAccountWhileFirstAccountIsPending() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("refresh.db"))
+        let slow = ProviderAccount(provider: .codex, nickname: "Slow", subject: "slow", scope: "work")
+        let fast = ProviderAccount(provider: .codex, nickname: "Fast", subject: "fast", scope: "work")
+        var initial = PersistedState()
+        initial.accounts = [slow, fast]
+        try await database.save(initial)
+        let reader = SuspendedRefreshFixture(holding: slow.id)
+        defer { reader.release() }
+        let store = AppStore(database: database, refreshAccount: { await reader.read($0) })
+        await store.load()
+
+        let published = expectation(description: "Fast account published while the slow account is suspended")
+        withObservationTracking { _ = store.state.snapshots[fast.id] } onChange: { published.fulfill() }
+        let historyUpdated = expectation(description: "Fast account appeared in the timeline")
+        withObservationTracking { _ = store.history } onChange: { historyUpdated.fulfill() }
+        let refresh = Task { await store.refresh() }
+        await fulfillment(of: [reader.started, published, historyUpdated], timeout: 3)
+        XCTAssertTrue(store.isRefreshing)
+        XCTAssertEqual(store.state.snapshots[fast.id]?.health, .healthy)
+        XCTAssertEqual(store.history.map(\.snapshot.accountID), [fast.id])
+        if !store.canRequestRefresh {
+            let available = expectation(description: "Manual refresh became available again")
+            withObservationTracking { _ = store.canRequestRefresh } onChange: { available.fulfill() }
+            await fulfillment(of: [available], timeout: 3)
+        }
+        XCTAssertTrue(store.canRequestRefresh)
+        let during = try await database.load()
+        XCTAssertEqual(during.snapshots[fast.id], store.state.snapshots[fast.id])
+        XCTAssertNil(during.snapshots[slow.id])
+
+        // Each manual retry can update the free account. Both clicks should queue
+        // only one follow-up for the account still doing its first read.
+        var retries: [Task<Void, Never>] = []
+        for count in 2...3 {
+            let updated = expectation(description: "Fast account published reading \(count)")
+            withObservationTracking { _ = store.state.snapshots[fast.id] } onChange: { updated.fulfill() }
+            retries.append(Task { await store.refresh() })
+            await fulfillment(of: [updated], timeout: 3)
+            XCTAssertEqual(store.state.snapshots[fast.id]?.windows.first?.used, Decimal(count))
+        }
+        XCTAssertEqual(reader.calls[slow.id], 1)
+        reader.release()
+        await refresh.value
+        for retry in retries { await retry.value }
+        await fulfillment(of: [reader.followUpStarted], timeout: 3)
+        await store.waitForPendingMutations()
+        XCTAssertFalse(store.isRefreshing)
+        XCTAssertEqual(reader.calls, [slow.id: 2, fast.id: 3])
+        XCTAssertEqual(store.state.snapshots[slow.id]?.windows.first?.used, 2)
+        let after = try await database.load()
+        XCTAssertEqual(after.snapshots, store.state.snapshots)
+    }
+
+    @MainActor
+    func testNextPollStartsNewlyEnabledAccountAndDiscardsRemovedAccountsPendingResult() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("poll.db"))
+        let slow = ProviderAccount(provider: .claude, nickname: "Slow", subject: "slow", scope: "work")
+        let later = ProviderAccount(provider: .copilot, nickname: "Later", subject: "later", scope: "personal", enabled: false)
+        var initial = PersistedState()
+        initial.accounts = [slow, later]
+        try await database.save(initial)
+        let reader = SuspendedRefreshFixture(holding: slow.id)
+        defer { reader.release() }
+        let store = AppStore(database: database, refreshAccount: { await reader.read($0) })
+        await store.load()
+
+        let first = Task { await store.refresh(force: false) }
+        await fulfillment(of: [reader.started], timeout: 3)
+        store.edit { $0.accounts[1].enabled = true }
+        await store.waitForPendingMutations()
+        let published = expectation(description: "Next poll published the newly enabled account")
+        withObservationTracking { _ = store.state.snapshots[later.id] } onChange: { published.fulfill() }
+        let next = Task { await store.refresh(force: false) }
+        await fulfillment(of: [published], timeout: 3)
+        XCTAssertEqual(store.state.snapshots[later.id]?.health, .healthy)
+
+        await store.removeAccount(slow.id)
+        reader.release()
+        await first.value
+        await next.value
+        XCTAssertEqual(reader.calls, [slow.id: 1, later.id: 1])
+        XCTAssertNil(store.state.snapshots[slow.id])
+        let after = try await database.load()
+        XCTAssertEqual(after.snapshots, store.state.snapshots)
+        let history = try await database.history(accountID: slow.id, since: .distantPast)
+        XCTAssertTrue(history.isEmpty)
+    }
+
+    @MainActor
     func testIdleMonitorDoesNotPublishRefreshActivityOrReloadHistory() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -507,6 +601,36 @@ final class MonitoringTests: XCTestCase {
         XCTAssertEqual(settings.rule(accountID: "b", windowID: "session").thresholds, settings.thresholds)
     }
 
+}
+
+@MainActor
+private final class SuspendedRefreshFixture {
+    let started = XCTestExpectation(description: "Slow account refresh started")
+    let followUpStarted = XCTestExpectation(description: "Coalesced follow-up refresh started")
+    private let accountID: String
+    private var held = true
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+    private(set) var calls: [String: Int] = [:]
+
+    init(holding accountID: String) { self.accountID = accountID }
+
+    func read(_ account: ProviderAccount) async -> QuotaSnapshot {
+        calls[account.id, default: 0] += 1
+        let count = calls[account.id, default: 0]
+        if account.id == accountID {
+            if count == 1 { started.fulfill() }
+            if count == 2 { followUpStarted.fulfill() }
+            if held { await withCheckedContinuation { waiters.append($0) } }
+        }
+        return QuotaSnapshot(accountID: account.id, subject: account.subject, scope: account.scope,
+                             observedAt: .now, windows: [QuotaWindow(id: "weekly", name: "Weekly", unit: .percent, used: Decimal(count))])
+    }
+
+    func release() {
+        held = false
+        for waiter in waiters { waiter.resume() }
+        waiters.removeAll()
+    }
 }
 
 private actor NotificationDeliveryFixture: NotificationDelivering {

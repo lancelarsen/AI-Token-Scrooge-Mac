@@ -15,8 +15,14 @@ import AppKit
     @ObservationIgnored private let referenceDemoDate = DemoData.referenceDate(arguments: ProcessInfo.processInfo.arguments)
     var presentationDate: Date { isDemo ? referenceDemoDate ?? .now : .now }
     private(set) var isLoading = true
-    private(set) var isRefreshing = false
-    private var pendingRefreshEpoch: UUID?
+    private var refreshingCredentials: Set<String> = []
+    @ObservationIgnored private var pendingRefreshes: [String: (account: ProviderAccount, epoch: UUID)] = [:]
+    var isRefreshing: Bool { !isDemo && !refreshingCredentials.isEmpty }
+    var canRequestRefresh: Bool {
+        !isDemo && state.accounts.contains {
+            $0.enabled && !refreshingCredentials.contains($0.credentialID) && schedule.shouldRefresh($0.id, now: .now, force: true)
+        }
+    }
     var errorMessage: String?
     var selectedAccount: ProviderAccount?
     var highlightedAccountID: String?
@@ -36,6 +42,7 @@ import AppKit
     @ObservationIgnored private lazy var githubCredentials = GitHubCredentialManager(secrets: secrets, usage: github)
     private var schedule = RefreshSchedule()
     private var monitorTask: Task<Void, Never>?
+    @ObservationIgnored private var maintenanceTask: Task<Void, Never>?
     private var monitoringEpoch = UUID()
     var loginItemMessage: String?
     var loginItemNeedsApproval = false
@@ -64,6 +71,7 @@ import AppKit
     var showAlertHistory = false
     let database: LocalStore?
     private let notifications: any NotificationDelivering
+    private let refreshAccount: (@Sendable (ProviderAccount) async throws -> QuotaSnapshot)?
     private var realState = PersistedState()
     // Serialize state edits through one queue so awaited writes cannot lose intervening changes.
     private var mutationTail: Task<Void, Never>?
@@ -71,13 +79,16 @@ import AppKit
     private var localStateReady = false
     var accounts: [ProviderAccount] { AccountPolicy.ordered(state) }
     private var isTestLaunch: Bool { ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] == "1" }
-    init(database: LocalStore, notifications: any NotificationDelivering = NotificationService.shared) {
+    init(database: LocalStore, notifications: any NotificationDelivering = NotificationService.shared,
+         refreshAccount: (@Sendable (ProviderAccount) async throws -> QuotaSnapshot)? = nil) {
         self.database = database
         self.notifications = notifications
+        self.refreshAccount = refreshAccount
     }
     func waitForPendingMutations() async { await mutationTail?.value }
     init() {
         notifications = NotificationService.shared
+        refreshAccount = nil
         let args = ProcessInfo.processInfo.arguments
         let override = args.firstIndex(of: "--data-dir").flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil }
         let defaultBase = ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] == "1"
@@ -159,20 +170,30 @@ import AppKit
             while !Task.isCancelled {
                 guard let self else { return }
                 await mutationTail?.value
-                await refresh(force: false)
-                await pruneHistoryIfNeeded()
-                await cleanupRetiredCredentials()
+                startRefreshes(force: false)
+                if maintenanceTask == nil {
+                    maintenanceTask = Task {
+                        await pruneHistoryIfNeeded()
+                        await cleanupRetiredCredentials()
+                        maintenanceTask = nil
+                    }
+                }
                 updateBadge()
                 do { try await Task.sleep(for: .seconds(1)) } catch { return }
             }
         }
     }
     private func cleanupRetiredCredentials() async {
-        guard !isDemo, !isRefreshing, Date.now.timeIntervalSince(lastCredentialCleanup) >= 300 else { return }
+        guard !isDemo, Date.now.timeIntervalSince(lastCredentialCleanup) >= 300 else { return }
         lastCredentialCleanup = .now
-        let retired = state.retiredAccounts
-        for account in retired {
-            guard !activeCredentialIDs.contains(account.credentialID), !state.accounts.contains(where: { $0.credentialID == account.credentialID }) else { continue }
+        let epoch = monitoringEpoch
+        func canRetire(_ id: String) -> Bool {
+            monitoringEpoch == epoch && !isDemo && !refreshingCredentials.contains(id) &&
+                !activeCredentialIDs.contains(id) && !state.accounts.contains { $0.credentialID == id }
+        }
+        for account in state.retiredAccounts {
+            let id = account.credentialID
+            guard canRetire(id), state.retiredAccounts.contains(where: { $0.credentialID == id }) else { continue }
             do {
                 switch account.provider {
                 case .devin: try await secrets.remove(account.credentialID)
@@ -184,17 +205,24 @@ import AppKit
                     await connection.close()
                 case .claude: try await ClaudeClient().disconnect(account.credentialID)
                 }
+                guard canRetire(id) else { continue }
                 if account.provider == .codex || account.provider == .claude {
-                    try OwnedProfileDirectory.remove(provider: account.provider, id: account.credentialID)
+                    try OwnedProfileDirectory.remove(provider: account.provider, id: id)
                 }
-                edit { state in state.retiredAccounts.removeAll { $0.credentialID == account.credentialID } }
+                edit { candidate in
+                    guard self.monitoringEpoch == epoch else { return }
+                    candidate.retiredAccounts.removeAll { $0.credentialID == id }
+                }
                 await mutationTail?.value
             } catch { /* Retain the cleanup record and retry; never retire the active credential. */ }
         }
-        for id in state.retiredCredentialIDs where !state.accounts.contains(where: { $0.credentialID == id }) {
+        for id in state.retiredCredentialIDs where canRetire(id) && state.retiredCredentialIDs.contains(id) {
             do {
                 try await githubCredentials.remove(id)
-                edit { $0.retiredCredentialIDs.removeAll { $0 == id } }
+                edit { candidate in
+                    guard self.monitoringEpoch == epoch else { return }
+                    candidate.retiredCredentialIDs.removeAll { $0 == id }
+                }
                 await mutationTail?.value
             } catch { }
         }
@@ -326,6 +354,7 @@ import AppKit
                 var cache = caches[account.id] ?? HistoryRunCache()
                 if !cache.covers(since: since) { cache = HistoryRunCache() }
                 let delta = try await database.historyChanges(accountID: account.id, since: since, afterRevision: cache.revision)
+                guard historyRequest == request else { return }
                 cache.merge(delta.runs, revision: delta.revision, since: since)
                 caches[account.id] = cache; result += cache.runs
             }
@@ -546,85 +575,119 @@ import AppKit
     }
 
     func refresh(force: Bool = true) async {
-        guard !isDemo else { return }
-        if isRefreshing {
-            if force { pendingRefreshEpoch = monitoringEpoch }
-            return
-        }
-        // The monitor ticks every second, but only due requests should publish
-        // refresh activity or reload history. Respect backoff and throttling here.
-        guard state.accounts.contains(where: { $0.enabled && schedule.shouldRefresh($0.id, now: .now, force: force) }) else { return }
+        let tasks = startRefreshes(force: force)
+        for task in tasks { await task.value }
+    }
+
+    // Claim all eligible connections before yielding. The monitor can then tick
+    // again while provider I/O is pending, without starting duplicate reads.
+    @discardableResult
+    private func startRefreshes(force: Bool) -> [Task<Void, Never>] {
+        guard !isDemo, localStateReady else { return [] }
         let epoch = monitoringEpoch
-        isRefreshing = true
-        defer {
-            isRefreshing = false
-            let requestedEpoch = pendingRefreshEpoch
-            pendingRefreshEpoch = nil
-            if requestedEpoch == monitoringEpoch {
-                Task { [weak self] in
-                    guard let self, !isDemo, monitoringEpoch == requestedEpoch else { return }
-                    await refresh()
-                }
+        let now = Date.now
+        var tasks: [Task<Void, Never>] = []
+        for account in state.accounts where account.enabled && schedule.shouldRefresh(account.id, now: now, force: force) {
+            let credential = account.credentialID
+            if refreshingCredentials.contains(credential) {
+                if force { pendingRefreshes[credential] = (account, epoch) }
+                continue
             }
-        }
-        for account in state.accounts where account.enabled {
-            guard !isDemo, monitoringEpoch == epoch else { break }
-            if !schedule.shouldRefresh(account.id, now: .now, force: force) { continue }
-            var freshAlerts: [AlertEvent] = []
-            var snapshot: QuotaSnapshot
-            var requestSucceeded = false
-            var retryAt: Date?
-            do {
-                switch account.provider {
-                case .codex:
-                    let connection = try await CodexConnection.start(credentialID: account.credentialID)
-                    do { snapshot = try await connection.snapshot(account: account) }
-                    catch { await connection.close(); throw error }
-                    await connection.close()
-                case .copilot:
-                    let token = try await githubCredentials.accessToken(for: account)
-                    snapshot = try await github.read(account: account, token: token)
-                case .devin:
-                    snapshot = try await DevinClient.read(account: account, secrets: secrets, interactive: false)
-                case .claude:
-                    snapshot = try await ClaudeClient().refresh(account)
+            refreshingCredentials.insert(credential)
+            tasks.append(Task {
+                defer { refreshingCredentials.remove(credential) }
+                await refresh(account, epoch: epoch)
+                while let queued = pendingRefreshes.removeValue(forKey: credential),
+                      let current = currentAccount(queued.account, epoch: queued.epoch),
+                      schedule.shouldRefresh(current.id, now: .now, force: true) {
+                    await refresh(current, epoch: queued.epoch)
                 }
-                guard snapshot.belongs(to: account) else { throw AccountError.differentIdentity }
-                requestSucceeded = true
-            } catch {
+            })
+        }
+        return tasks
+    }
+
+    private func currentAccount(_ account: ProviderAccount, epoch: UUID) -> ProviderAccount? {
+        guard !isDemo, monitoringEpoch == epoch else { return nil }
+        return state.accounts.first {
+            $0.enabled && $0.id == account.id && $0.generation == account.generation && $0.credentialID == account.credentialID
+        }
+    }
+
+    private func readQuota(_ account: ProviderAccount) async throws -> QuotaSnapshot {
+        if let refreshAccount { return try await refreshAccount(account) }
+        switch account.provider {
+        case .codex:
+            let connection = try await CodexConnection.start(credentialID: account.credentialID)
+            do {
+                let snapshot = try await connection.snapshot(account: account)
+                await connection.close()
+                return snapshot
+            } catch { await connection.close(); throw error }
+        case .copilot:
+            let token = try await githubCredentials.accessToken(for: account)
+            return try await github.read(account: account, token: token)
+        case .devin:
+            return try await DevinClient.read(account: account, secrets: secrets, interactive: false)
+        case .claude:
+            return try await ClaudeClient().refresh(account)
+        }
+    }
+
+    private func refresh(_ account: ProviderAccount, epoch: UUID) async {
+        guard currentAccount(account, epoch: epoch) != nil else { return }
+        let response: Result<QuotaSnapshot, Error>
+        do {
+            let snapshot = try await readQuota(account)
+            guard snapshot.belongs(to: account) else { throw AccountError.differentIdentity }
+            response = .success(snapshot)
+        } catch { response = .failure(error) }
+
+        let previous = mutationTail
+        var historyChanged = false
+        let acceptance = Task {
+            await previous?.value
+            guard let current = currentAccount(account, epoch: epoch) else { return }
+            var candidate = state
+            let prior = candidate.snapshots[current.id]
+            var snapshot: QuotaSnapshot
+            // Honor provider throttles even when saving locally fails.
+            switch response {
+            case .success(let result):
+                snapshot = result
+                schedule.succeeded(snapshot, account: current, now: .now)
+            case .failure(let error):
                 let failure = error as? ProviderFailure
-                retryAt = failure?.retryAt
-                snapshot = state.snapshots[account.id] ?? QuotaSnapshot(accountID: account.id, subject: account.subject, scope: account.scope, observedAt: .now, windows: [])
+                schedule.failed(current.id, now: .now, retryAt: failure?.retryAt)
+                snapshot = prior ?? QuotaSnapshot(accountID: current.id, subject: current.subject, scope: current.scope, observedAt: .now, windows: [])
                 snapshot.health = failure?.health ?? (error is AccountError ? .authenticationRequired : .offline)
                 snapshot.message = failure?.message ?? "Refresh failed. Last known values are retained."
             }
-            let result = snapshot
-            let succeeded = requestSucceeded
-            let retryDeadline = retryAt
-            let previous = mutationTail
-            let acceptance = Task { [weak self] in
-                await previous?.value
-                guard let self, !isDemo, monitoringEpoch == epoch, state.accounts.contains(where: { $0.id == account.id && $0.generation == account.generation && $0.enabled }) else { return }
-                // Only the current connection may change scheduling. Preserve provider
-                // throttles even when the subsequent local persistence fails.
-                if succeeded { schedule.succeeded(result, account: account, now: .now) }
-                else { schedule.failed(account.id, now: .now, retryAt: retryDeadline) }
-                var candidate = state
-                let alerts = AlertEvaluator.evaluate(account: account, previous: candidate.snapshots[account.id], current: result, settings: candidate.settings, now: .now)
-                candidate.snapshots[account.id] = result
-                for alert in alerts where !candidate.alerts.contains(where: { $0.id == alert.id }) { candidate.alerts.append(alert); freshAlerts.append(alert) }
-                do {
-                    guard let database else { throw StoreError.operation }
-                    if result.health == .healthy { try await database.accept(result, account: account, state: candidate) }
-                    else { try await database.save(candidate) }
-                    state = candidate
-                } catch { errorMessage = error.localizedDescription }
+
+            let alerts = AlertEvaluator.evaluate(account: current, previous: prior, current: snapshot, settings: candidate.settings, now: .now)
+            var freshAlerts: [AlertEvent] = []
+            for alert in alerts where !candidate.alerts.contains(where: { $0.id == alert.id }) {
+                candidate.alerts.append(alert)
+                freshAlerts.append(alert)
             }
-            mutationTail = acceptance
-            await acceptance.value
-            for alert in freshAlerts where state.alerts.contains(where: { $0.id == alert.id }) { await deliver(alert, account: account, epoch: epoch) }
+            candidate.snapshots[current.id] = snapshot
+            do {
+                guard let database else { throw StoreError.operation }
+                if snapshot.health == .healthy {
+                    try await database.accept(snapshot, account: current, state: candidate)
+                    historyChanged = true
+                } else { try await database.save(candidate) }
+                state = candidate
+                if !freshAlerts.isEmpty {
+                    Task {
+                        for alert in freshAlerts { await deliver(alert, account: current, epoch: epoch) }
+                    }
+                }
+            } catch { errorMessage = error.localizedDescription }
         }
-        await reloadHistory()
+        mutationTail = acceptance
+        await acceptance.value
+        if historyChanged { await reloadHistory() }
     }
 
 }
