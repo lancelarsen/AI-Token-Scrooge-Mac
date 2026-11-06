@@ -25,3 +25,9 @@ November 3 verification: the published v2026.11.3.001 feed and archive passed si
 Debug builds never start Sparkle or allow manual release updates. Settings explain that local builds must be rebuilt. The build/run script also assigns the commit-based build number used by packaging instead of the project's placeholder 100.
 
 November 6 incident: a local Debug bundle was replaced by signed channel build 1117 (November 3). Feed and archive signature checks passed, but the installed app crashed at launch because hardened-runtime library validation rejected Sparkle's different Team ID. This also explains the previously unobserved November 3 relaunch. The published November 3 archive remains unsuitable; the existing packaging script's ad-hoc runtime correction must be used for a replacement release, followed by an installed-copy update and relaunch check. Newer CI previews do not refresh the signed feed.
+
+## November 6 repaired channel
+
+Published v2026.11.6.001 (build 1361, source dde779c) to replace the faulty November 3 channel entry. The exact published ZIP was first installed by Sparkle over a disposable release copy with build number 1117 under ~/Applications/Scrooge Update Repair. The test used a locally served, Ed25519-signed feed and archive; signature enforcement remained enabled. Automatic relaunch succeeded and the dashboard rendered. This tests replacement from a runnable test host, not recovery of the already-crashing November 3 binary.
+
+All 100 unit tests passed. After publishing, the public feed and ZIP were downloaded and compared byte-for-byte with the tested artifacts, and the downloaded feed signature was verified. The installed app checked the public GitHub feed and displayed “You’re up to date.” The channel now points to the corrected ad-hoc preview; Developer ID notarization and verification on another Mac remain outstanding.
