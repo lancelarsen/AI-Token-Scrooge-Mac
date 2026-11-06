@@ -2,6 +2,10 @@
 set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
+if [[ "$(git rev-parse --is-shallow-repository)" != false ]]; then
+  echo 'Preview packaging requires full Git history for the Sparkle build number. Run git fetch --unshallow and retry.' >&2
+  exit 1
+fi
 OUTPUT_DIR="$ROOT_DIR/artifacts/package"
 BUILD_DIR="$ROOT_DIR/build/package"
 APP_NAME="AI Token Scrooge"
