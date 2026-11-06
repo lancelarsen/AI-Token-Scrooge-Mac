@@ -76,9 +76,10 @@ final class MonitoringTests: XCTestCase {
         try FileManager.default.createSymbolicLink(at: alias, withDestinationURL: outside)
         XCTAssertThrowsError(try OwnedProfileDirectory.directory(provider: .codex, id: id, base: base))
         try FileManager.default.removeItem(at: alias)
-        if let executable = try? CodexConnection.executable() {
+        for executable in CodexConnection.installedExecutables {
             try FileManager.default.createSymbolicLink(at: alias, withDestinationURL: executable)
             XCTAssertNoThrow(try OwnedProfileDirectory.directory(provider: .codex, id: id, base: base))
+            try FileManager.default.removeItem(at: alias)
         }
         let link = profile.appendingPathComponent("auth.json")
         try FileManager.default.createSymbolicLink(at: link, withDestinationURL: outside)

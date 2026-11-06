@@ -29,15 +29,16 @@ enum OwnedProfileDirectory {
     private static func validateContents(_ url: URL, provider: Provider) throws {
         var failed = false
         guard let walker = FileManager.default.enumerator(at: url, includingPropertiesForKeys: nil, options: [], errorHandler: { _, _ in failed = true; return false }) else { throw StoreError.operation }
-        let executable = provider == .codex ? try? CodexConnection.executable() : nil
+        // Existing profiles may contain aliases created by a previously selected CLI.
+        let helperTargets = provider == .codex ? Set(CodexConnection.installedExecutables.map(\.path)) : []
         for case let child as URL in walker {
             let relative = child.pathComponents.dropFirst(url.pathComponents.count)
             // Codex installs these helper aliases during app-server startup.
-            if let executable, relative.count == 4, relative.prefix(2).elementsEqual(["tmp", "arg0"]),
+            if relative.count == 4, relative.prefix(2).elementsEqual(["tmp", "arg0"]),
                relative.dropFirst(2).first?.hasPrefix("codex-arg0") == true,
                ["applypatch", "apply_patch", "codex-execve-wrapper"].contains(child.lastPathComponent),
                let target = try? FileManager.default.destinationOfSymbolicLink(atPath: child.path),
-               target == executable.path,
+               helperTargets.contains(target),
                (try FileManager.default.attributesOfItem(atPath: child.path)[.ownerAccountID] as? NSNumber)?.uint32Value == getuid() {
                 walker.skipDescendants()
                 continue

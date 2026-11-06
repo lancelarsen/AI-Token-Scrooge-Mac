@@ -24,13 +24,21 @@ actor CodexConnection {
         return FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("AI Token Scrooge/Profiles/\(uuid.uuidString)", isDirectory: true)
     }
+    // The desktop CLI reports earned reset credits on accounts where older
+    // standalone releases return only the ordinary quota windows.
+    static var installedExecutables: [URL] {
+        let desktop = URL(fileURLWithPath: "/Applications/Codex.app/Contents/Resources")
+        let candidates = [
+            desktop.appendingPathComponent("codex-cli/CodexCLI.app/Contents/MacOS/codex"),
+            desktop.appendingPathComponent("codex"),
+            FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".local/bin/codex"),
+            URL(fileURLWithPath: "/opt/homebrew/bin/codex"),
+            URL(fileURLWithPath: "/usr/local/bin/codex")
+        ]
+        return candidates.filter { FileManager.default.isExecutableFile(atPath: $0.path) }
+    }
     static func executable() throws -> URL {
-        let home = FileManager.default.homeDirectoryForCurrentUser
-        let candidates = [home.appendingPathComponent(".local/bin/codex"),
-                          URL(fileURLWithPath: "/opt/homebrew/bin/codex"),
-                          URL(fileURLWithPath: "/usr/local/bin/codex"),
-                          URL(fileURLWithPath: "/Applications/Codex.app/Contents/Resources/codex")]
-        guard let found = candidates.first(where: { FileManager.default.isExecutableFile(atPath: $0.path) }) else {
+        guard let found = installedExecutables.first else {
             throw ProviderFailure(message: "Install the Codex desktop app or CLI to connect an OpenAI account.", health: .unsupported)
         }
         return found
