@@ -6,7 +6,7 @@ struct CodexConnectView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var connection: CodexConnection?
-    @State private var credentialID = UUID().uuidString
+    @State private var credentialID: String?
     @State private var loginID: String?
     @State private var status = ""
     @State private var busy = false
@@ -26,13 +26,15 @@ struct CodexConnectView: View {
         .onDisappear { closed = true; listener?.cancel(); if !committing && !busy { Task { await cleanup() } } }
     }
     private func start() async {
-        guard !busy else { return }
+        guard !busy, !closed else { return }
+        let credentialID = UUID().uuidString
+        self.credentialID = credentialID
         busy = true
         defer { busy = false; if closed { Task { await cleanup() } } }
         do {
             try await store.stageCredential(provider: .codex, id: credentialID)
             let opened = try await CodexConnection.start(credentialID: credentialID)
-            guard !closed else { await opened.close(); store.endCredentialAttempt(credentialID); return }
+            guard !closed else { await opened.close(); return }
             connection = opened
             let login = try await opened.call("account/login/start", parameters: .object(["type": .string("chatgpt")]))
             loginID = login["loginId"].string
@@ -53,7 +55,7 @@ struct CodexConnectView: View {
         } catch { status = safeMessage(error); await cleanup() }
     }
     private func finish() async {
-        guard !busy, !closed, let connection else { return }
+        guard !busy, !closed, let connection, let credentialID else { return }
         busy = true
         defer { busy = false; if closed { Task { await cleanup() } } }
         do {
@@ -64,7 +66,10 @@ struct CodexConnectView: View {
             let limits = try await connection.call("account/rateLimits/read")
             var account = ProviderAccount(provider: .codex, nickname: nickname.trimmingCharacters(in: .whitespacesAndNewlines), subject: email,
                 scope: limits["accountId"].string ?? "unresolved", credentialID: credentialID)
-            if let original { account.id = original.id; account = try AccountPolicy.reconnect(original: original, replacement: account) }
+            if let original {
+                account.id = original.id
+                try AccountPolicy.validateReconnect(original: original, replacement: account)
+            }
             var snapshot = try ProviderMapping.codex(account: account, response: limits, observed: .now)
             snapshot.planType = identity["account"]["planType"].string
             guard !closed else { return }
@@ -76,6 +81,8 @@ struct CodexConnectView: View {
         } catch { status = safeMessage(error); if closed { await cleanup() } }
     }
     private func cleanup() async {
+        guard let credentialID else { return }
+        self.credentialID = nil
         defer { store.endCredentialAttempt(credentialID) }
         guard let owned = connection else { return }
         connection = nil

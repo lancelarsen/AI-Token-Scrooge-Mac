@@ -42,6 +42,26 @@ final class PackedHistoryTests: XCTestCase {
         XCTAssertEqual(sqlite3_step(query), SQLITE_ROW)
         XCTAssertEqual(sqlite3_column_int(query, 0), 1)
     }
+    func testFailedSchemaUpgradeLeavesTheOriginalDatabaseIntact() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("test.db")
+        var database: OpaquePointer?
+        XCTAssertEqual(sqlite3_open(url.path, &database), SQLITE_OK)
+        defer { sqlite3_close(database) }
+
+        // An incompatible legacy history table makes index creation fail midway.
+        XCTAssertEqual(sqlite3_exec(database, "CREATE TABLE history(legacy INTEGER); PRAGMA user_version=1", nil, nil, nil), SQLITE_OK)
+        XCTAssertThrowsError(try LocalStore(url: url))
+        var query: OpaquePointer?
+        XCTAssertEqual(sqlite3_prepare_v2(database, "SELECT user_version, (SELECT count(*) FROM sqlite_schema WHERE name='state') FROM pragma_user_version", -1, &query, nil), SQLITE_OK)
+        defer { sqlite3_finalize(query) }
+        XCTAssertEqual(sqlite3_step(query), SQLITE_ROW)
+        XCTAssertEqual(sqlite3_column_int(query, 0), 1)
+        XCTAssertEqual(sqlite3_column_int(query, 1), 0)
+    }
+
     func testRetentionFailureRollsBackStateAndHistoryTogether() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

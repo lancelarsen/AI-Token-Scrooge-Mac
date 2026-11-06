@@ -46,7 +46,9 @@ final class ClaudeTests: XCTestCase {
         XCTAssertFalse(ClaudeClient.supportsUsage("2.1.309 (Claude Code)"))
         XCTAssertTrue(ClaudeClient.supportsUsage("2.1.310 (Claude Code)"))
         XCTAssertTrue(ClaudeClient.supportsUsage("3.0.0 (Claude Code)"))
-        XCTAssertFalse(ClaudeClient.supportsUsage("unknown"))
+        for version in ["unknown", "2.beta.1.310", "2..1.310", "2.1.310-beta.1", "invalid.3.0.0"] {
+            XCTAssertFalse(ClaudeClient.supportsUsage(version), version)
+        }
     }
     func testSeparateWindowsAndResetTimes() {
         let now = date("2026-11-02T18:00:00Z")

@@ -168,8 +168,8 @@ struct DetailLine: View {
     let label: String
     let value: String
     var body: some View {
-        (Text(label + ": ").font(ReferenceTypography.nativeTextFont(semibold: true)).foregroundColor(Color(hex: "#F2F1F5"))
-         + Text(value).foregroundColor(Theme.dialogText))
+        let heading = Text(label + ": ").font(ReferenceTypography.nativeTextFont(semibold: true)).foregroundColor(Theme.primaryText)
+        Text("\(heading)\(Text(verbatim: value).foregroundColor(Theme.dialogText))")
             .frame(minHeight: 19, alignment: .leading)
     }
 }

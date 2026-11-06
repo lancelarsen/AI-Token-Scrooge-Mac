@@ -4,8 +4,9 @@ struct GitHubConnectView: View {
     let nickname: String
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
-    @Binding var unit: UsageUnit
-    @Binding var allowance: String
+    let unit: UsageUnit
+    let allowance: String
+    let original: ProviderAccount?
     @State private var challenge: GitHubChallenge?
     @State private var task: Task<Void, Never>?
     @State private var busy = false
@@ -47,20 +48,14 @@ struct GitHubConnectView: View {
             }
 
         }.onDisappear { if !committing { task?.cancel() }; challenge = nil }
-        .onAppear {
-            if let original = store.state.accounts.first(where: { $0.id == store.reconnectAccountID }) {
-                unit = original.unit; allowance = original.allowance.map { NSDecimalNumber(decimal: $0).stringValue } ?? ""
-            }
-        }
+
     }
     private func begin() {
         busy = true
         task = Task {
             defer { busy = false; challenge = nil }
             do {
-                let enteredAllowance = allowance.trimmingCharacters(in: .whitespacesAndNewlines)
-                let amount = enteredAllowance.isEmpty ? nil : Decimal(string: enteredAllowance, locale: Locale(identifier: "en_US_POSIX"))
-                guard enteredAllowance.isEmpty || (amount != nil && amount! > 0) else { throw ProviderFailure(message: "Allowance must be a positive number, or blank.") }
+                let amount = try GitHubAllowanceInput.parse(allowance)
                 let code = try await flow.begin()
                 try Task.checkCancellation()
                 challenge = code
@@ -70,11 +65,23 @@ struct GitHubConnectView: View {
                 try Task.checkCancellation()
                 committing = true
                 defer { committing = false }
-                try await store.connectGitHub(nickname: nickname.trimmingCharacters(in: .whitespacesAndNewlines), token: tokens.accessToken, allowance: amount, unit: unit, organization: "", appTokens: tokens)
+                try await store.connectGitHub(nickname: nickname.trimmingCharacters(in: .whitespacesAndNewlines), token: tokens.accessToken, allowance: amount, unit: unit, organization: "", appTokens: tokens, replacing: original)
                 dismiss()
             } catch {
                 status = (error as? ProviderFailure)?.message ?? (error is AccountError || error is StoreError ? error.localizedDescription : "GitHub sign-in could not be completed. Please try again.")
             }
         }
+    }
+}
+
+/// Both GitHub sign-in methods accept the same optional, positive decimal allowance.
+enum GitHubAllowanceInput {
+    static func parse(_ input: String) throws -> Decimal? {
+        let text = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return nil }
+        guard let amount = QuotaAmount.decimal(text), amount > 0 else {
+            throw ProviderFailure(message: "Allowance must be a positive number, or blank.")
+        }
+        return amount
     }
 }

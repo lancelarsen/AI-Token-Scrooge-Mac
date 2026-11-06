@@ -1,20 +1,10 @@
 import Foundation
 
-final class NoRedirects: NSObject, URLSessionTaskDelegate, Sendable {
-    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest) async -> URLRequest? { nil }
-}
 actor GitHubClient {
-    private let session: URLSession
-    init() {
-        let config = URLSessionConfiguration.ephemeral
-        config.timeoutIntervalForRequest = 40
-        config.timeoutIntervalForResource = 60
-        config.httpCookieStorage = nil
-        config.urlCache = nil
-        session = URLSession(configuration: config, delegate: NoRedirects(), delegateQueue: nil)
-    }
+    private static let session = GitHubTransport.session(requestTimeout: 40, resourceTimeout: 60)
+
     func get(_ path: String, token: String) async throws -> JSONValue {
-        guard let url = URL(string: "https://api.github.com/" + path), url.host == "api.github.com", !token.isEmpty else {
+        guard let url = URL(string: "https://api.github.com/" + path), url.host == "api.github.com", GitHubDeviceFlow.validSecret(token) else {
             throw ProviderFailure(message: "GitHub credentials are unavailable.", health: .authenticationRequired)
         }
         var request = URLRequest(url: url)
@@ -22,7 +12,8 @@ actor GitHubClient {
         request.setValue("AITokenScrooge/0.1", forHTTPHeaderField: "User-Agent")
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.setValue("2026-03-10", forHTTPHeaderField: "X-GitHub-Api-Version")
-        let (bytes, response) = try await session.bytes(for: request)
+        let (bytes, response) = try await Self.session.bytes(for: request)
+        defer { bytes.task.cancel() }
         guard let response = response as? HTTPURLResponse else { throw ProviderFailure(message: "GitHub returned an invalid response.") }
         let now = Date.now
         let retry = Self.retryAfter(response.value(forHTTPHeaderField: "Retry-After"), now: now)
@@ -33,12 +24,8 @@ actor GitHubClient {
         if response.statusCode == 401 { throw ProviderFailure(message: "GitHub sign-in expired. Reconnect this account.", health: .authenticationRequired) }
         if [403,404].contains(response.statusCode) { throw ProviderFailure(message: "GitHub billing access is unavailable. Personal tokens need Plan read permission; organization billing needs authorized administration access.", health: .permissionRequired) }
         guard (200..<300).contains(response.statusCode) else { throw ProviderFailure(message: "GitHub usage is temporarily unavailable. Last known values are retained.") }
-        guard response.expectedContentLength <= 5_000_000 else { throw ProviderFailure(message: "GitHub report exceeded the monitor's size limit.") }
-        var data = Data()
-        for try await byte in bytes {
-            guard data.count < 5_000_000 else { throw ProviderFailure(message: "GitHub report exceeded the monitor's size limit.") }
-            data.append(byte)
-        }
+        let data = try await GitHubTransport.body(bytes, response: response, limit: 5_000_000,
+                                                  sizeError: "GitHub report exceeded the monitor's size limit.")
         return try JSONDecoder().decode(JSONValue.self, from: data)
     }
     nonisolated static func retryDeadline(_ reported: Date?, now: Date) -> Date {
@@ -85,7 +72,11 @@ actor GitHubClient {
                 plan = entitlement["copilot_plan"].string
             } catch let error as ProviderFailure where error.retryAt != nil || error.health == .authenticationRequired { throw error }
             catch is CancellationError { throw CancellationError() }
-            catch { /* Optional allowance does not invalidate the billing report. */ }
+            catch {
+                // URLSession can report task cancellation as URLError.cancelled.
+                try Task.checkCancellation()
+                // Other failures of the optional allowance leave the billing report usable.
+            }
         }
         var snapshot = try ProviderMapping.github(account: account, response: report, observed: now, allowance: allowance)
         snapshot.planType = plan

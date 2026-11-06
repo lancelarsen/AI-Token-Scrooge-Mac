@@ -225,7 +225,7 @@ struct SettingsScrollView<Content: View>: View {
     }
 }
 /// Bundle assets are immutable; decoding SVGs during each scroll frame is unnecessary.
-@MainActor private enum ThemeImages {
+@MainActor enum ThemeImages {
     private static var images: [String: NSImage] = [:]
     private static var missing: Set<String> = []
     static func image(_ name: String, extension ext: String) -> NSImage? {

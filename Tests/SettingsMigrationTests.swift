@@ -64,6 +64,27 @@ final class SettingsMigrationTests: XCTestCase {
         let restored = try JSONDecoder().decode(PersistedState.self, from: JSONEncoder().encode(state))
         XCTAssertEqual(restored, state)
     }
+    func testDuplicateAccountIDsFailBeforeUsageCanBeAssignedToTheWrongAccount() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("test.db"))
+        let account = ProviderAccount(provider: .codex, nickname: "Work", subject: "user", scope: "work")
+        var otherWorkspace = account
+        otherWorkspace.scope = "personal"
+        var original = PersistedState()
+        original.accounts = [account]
+        try await database.save(original)
+        var ambiguous = original
+        ambiguous.accounts.append(otherWorkspace)
+        XCTAssertThrowsError(try JSONDecoder().decode(PersistedState.self, from: JSONEncoder().encode(ambiguous)))
+        do {
+            try await database.save(ambiguous)
+            XCTFail("Expected duplicate account IDs to be rejected")
+        } catch AccountError.duplicateID {}
+        let saved = try await database.load()
+        XCTAssertEqual(saved, original)
+    }
+
     func testSavedSnapshotForWrongIdentityIsDiscarded() throws {
         var state = PersistedState()
         let account = ProviderAccount(provider: .codex, nickname: "A", subject: "correct", scope: "w")

@@ -4,7 +4,7 @@ Run `./script/package_preview.sh` to build a Release configuration for Apple sil
 
 The default archive is ad-hoc signed. It is not notarized or a trusted Developer ID release. Local packaging validates the bundle; it does not prove Gatekeeper acceptance on another Mac, live provider integration, or complete feature parity.
 
-The GitHub workflow builds on a macOS 26 Apple silicon runner, runs the unit suite, and uploads the archive and test evidence. Successful main-branch builds publish a prerelease. Pull requests only upload artifacts. Action versions are pinned to commits. UI tests remain in the Xcode scheme but are not claimed as a release gate: the local Xcode UI runner currently times out enabling automation before assertions run.
+The GitHub workflow builds on a macOS 26 Apple silicon runner, runs the unit suite, and uploads the archive and test evidence. Successful main-branch builds publish a prerelease. Pull requests only upload artifacts. Action versions are pinned to commits. The native UI suite runs from the shared Xcode scheme. The hosted release gate runs the unit suite and bundle checks.
 
 ## Download verification
 

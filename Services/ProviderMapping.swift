@@ -89,7 +89,7 @@ enum ProviderMapping {
               (billing ? UsageUnit.credits : .requests) == unit else { return nil }
         let quota = response["quota_snapshots"]["premium_interactions"]
         guard quota["unlimited"].bool == false else { return nil }
-        let amount = quota["entitlement"].number ?? quota["entitlement"].string.flatMap { Decimal(string: $0, locale: Locale(identifier: "en_US_POSIX")) }
+        let amount = quota["entitlement"].number ?? quota["entitlement"].string.flatMap(QuotaAmount.decimal)
         return amount.flatMap { $0 >= 0 ? $0 : nil }
     }
     static func github(account: ProviderAccount, response: JSONValue, observed: Date, allowance: Decimal? = nil) throws -> QuotaSnapshot {

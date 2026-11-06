@@ -4,7 +4,8 @@ struct AccountSettingsView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     let accountID: String
-    var hostSize = CGSize(width: 1048, height: 864)
+    let hostSize: CGSize
+    let reconnect: (ProviderAccount) -> Void
     @State private var newColor = Color(hex: "#B5A0F4")
     @State private var showColor = false
     @State private var confirmRemove = false
@@ -108,7 +109,7 @@ struct AccountSettingsView: View {
                         }
                         SettingsCard(title: "Connection", symbol: "link", help: "Sign in again to renew the connection while keeping settings. Removing the connection only removes it from Scrooge; your provider account is unaffected.") {
                             Text("Sign in again only if this account needs a new connection. Your saved settings stay in place.").font(.reference(size: 13)).foregroundStyle(Theme.secondary)
-                            Button { store.reconnectAccountID = accountID; dismiss(); store.showConnection = true } label: { DialogActionLabel(title: "Sign In Again").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
+                            Button { reconnect(account) } label: { DialogActionLabel(title: "Sign In Again").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
                             Button(role: .destructive) { confirmRemove = true } label: { DialogActionLabel(title: "Remove Account").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
                         }
                     }.padding(.horizontal, 16).padding(.vertical, 12).frame(width: min(960, panelSize.width - 24)).frame(maxWidth: .infinity)

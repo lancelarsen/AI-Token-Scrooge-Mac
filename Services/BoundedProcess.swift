@@ -1,10 +1,12 @@
 import Foundation
 import Darwin
 
-/// Owns a single bounded CLI operation, drains stderr without retaining secrets, and cancels its process.
+/// Owns a single bounded CLI operation, discards stderr, and cancels its process.
 actor BoundedProcess {
     private let process: Process
     init(process: Process = Process()) { self.process = process }
+    private var reader: (any DispatchSourceRead)?
+    private var started = false
     private var output = Data()
     private var completion: CheckedContinuation<Data, Error>?
     private var exited: Int32?
@@ -13,33 +15,27 @@ actor BoundedProcess {
     private var timer: Task<Void, Never>?
     func run(executable: URL, arguments: [String], directory: URL, environment: [String: String], timeout: Duration = .seconds(40)) async throws -> Data {
         try Task.checkCancellation()
-        process.executableURL = executable; process.arguments = arguments
+        guard !started else { throw ProviderFailure(message: "This provider command has already started.") }
+        started = true
+        process.executableURL = executable
+        process.arguments = arguments
         process.currentDirectoryURL = directory; process.environment = environment
-        let stdout = Pipe(), stderr = Pipe()
+        let stdout = Pipe()
         process.standardInput = FileHandle.nullDevice
-        process.standardOutput = stdout; process.standardError = stderr
+        process.standardOutput = stdout
+        process.standardError = FileHandle.nullDevice
         process.terminationHandler = { [weak self] process in Task { await self?.didExit(process.terminationStatus) } }
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
+                guard !stopped, !Task.isCancelled else {
+                    continuation.resume(throwing: CancellationError())
+                    return
+                }
                 completion = continuation
                 do {
                     try process.run()
-                    let stream = AsyncStream<Data> { continuation in
-                        DispatchQueue(label: "scrooge.cli.stdout").async {
-                            defer { continuation.finish(); try? stdout.fileHandleForReading.close() }
-                            while true {
-                                let data = stdout.fileHandleForReading.availableData
-                                if data.isEmpty { break }; continuation.yield(data)
-                            }
-                        }
-                    }
-                    Task { [weak self] in
-                        for await data in stream { await self?.append(data) }
-                        await self?.finishedOutput()
-                    }
-                    DispatchQueue(label: "scrooge.cli.stderr").async {
-                        defer { try? stderr.fileHandleForReading.close() }
-                        while !stderr.fileHandleForReading.availableData.isEmpty { }
+                    reader = stdout.readCommandOutput { [weak self] data in
+                        await self?.receive(data)
                     }
                     timer = Task { [weak self] in
                         do { try await Task.sleep(for: timeout) } catch { return }
@@ -49,21 +45,32 @@ actor BoundedProcess {
             }
         } onCancel: { Task { await self.fail(CancellationError()) } }
     }
-    private func append(_ data: Data) {
+    private func receive(_ data: Data) {
         guard !stopped else { return }
+        if data.isEmpty {
+            outputFinished = true
+            completeIfReady()
+            return
+        }
         guard output.count + data.count <= 2_000_000 else { fail(ProviderFailure(message: "Provider output exceeded the monitor's size limit.")); return }
         output.append(data)
     }
     private func didExit(_ status: Int32) { exited = status; completeIfReady() }
-    private func finishedOutput() { outputFinished = true; completeIfReady() }
     private func completeIfReady() {
         guard !stopped, outputFinished, let exited else { return }
         if exited != 0 { fail(ProviderFailure(message: "Provider sign-in could not be confirmed. Reconnect this account.", health: .authenticationRequired)); return }
-        stopped = true; timer?.cancel(); completion?.resume(returning: output); completion = nil
+        stopped = true
+        timer?.cancel()
+        completion?.resume(returning: output)
+        completion = nil
+        reader = nil
     }
     private func fail(_ error: Error) {
         guard !stopped else { return }
-        stopped = true; timer?.cancel()
+        stopped = true
+        timer?.cancel()
+        reader?.cancel()
+        reader = nil
         process.stopWithDeadline()
         completion?.resume(throwing: error); completion = nil
     }

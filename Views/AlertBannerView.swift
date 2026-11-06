@@ -17,7 +17,7 @@ struct AlertBannerView: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 12) {
                     if let provider { ProviderIcon(provider: provider, size: 38) }
-                    else if let url = Bundle.main.url(forResource: "token_baron", withExtension: "png"), let image = NSImage(contentsOf: url) {
+                    else if let image = ThemeImages.image("token_baron", extension: "png") {
                         Image(nsImage: image).resizable().scaledToFit().frame(width: 38, height: 38).accessibilityHidden(true)
                     }
                     VStack(alignment: .leading, spacing: 3) {

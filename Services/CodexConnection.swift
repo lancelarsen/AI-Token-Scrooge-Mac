@@ -7,7 +7,7 @@ actor CodexConnection {
     private let notificationContinuation: AsyncStream<JSONValue>.Continuation
     private let process: Process
     private let input: FileHandle
-    private var reader: Task<Void, Never>?
+    private var reader: (any DispatchSourceRead)?
     private var pending: [Int: CheckedContinuation<JSONValue, Error>] = [:]
     private var deadlines: [Int: Task<Void, Never>] = [:]
     private var nextID = 0
@@ -52,29 +52,14 @@ actor CodexConnection {
         env["CODEX_HOME"] = profile.path
         process.environment = env
         process.arguments = ["app-server", "--stdio", "-c", "cli_auth_credentials_store=\"keyring\"", "-c", "mcp_servers={}", "-c", "analytics.enabled=false"]
-        let input = Pipe(), output = Pipe(), errors = Pipe()
-        process.standardInput = input; process.standardOutput = output; process.standardError = errors
+        let input = try Pipe.commandInput()
+        let output = Pipe()
+        process.standardInput = input
+        process.standardOutput = output
+        process.standardError = FileHandle.nullDevice
         let connection = CodexConnection(process: process, input: input.fileHandleForWriting)
         try process.run()
-        let stream = AsyncStream<Data> { continuation in
-            DispatchQueue(label: "scrooge.codex.output").async {
-                defer { continuation.finish(); try? output.fileHandleForReading.close() }
-                while true {
-                    let data = output.fileHandleForReading.availableData
-                    if data.isEmpty { break }
-                    continuation.yield(data)
-                }
-            }
-        }
-        DispatchQueue(label: "scrooge.codex.errors").async {
-            defer { try? errors.fileHandleForReading.close() }
-            while true {
-                let data = errors.fileHandleForReading.availableData
-                if data.isEmpty { break }
-                /* Never log auth/provider output. */
-            }
-        }
-        await connection.beginReading(stream)
+        await connection.beginReading(output)
         do {
             _ = try await connection.call("initialize", parameters: .object([
                 "clientInfo": .object(["name": .string("ai_reset_radar"), "title": .string("AI Token Scrooge"), "version": .string(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "development")]),
@@ -83,13 +68,9 @@ actor CodexConnection {
             return connection
         } catch { await connection.close(); throw error }
     }
-    private func beginReading(_ stream: AsyncStream<Data>) {
-        reader = Task { [weak self] in
-            for await chunk in stream {
-                guard let self else { return }
-                await self.receive(chunk)
-            }
-            await self?.close()
+    private func beginReading(_ output: Pipe) {
+        reader = output.readCommandOutput { [weak self] data in
+            await self?.receive(data)
         }
     }
     func call(_ method: String, parameters: JSONValue = .null) async throws -> JSONValue {
@@ -106,16 +87,20 @@ actor CodexConnection {
                     await self?.fail(id, error: ProviderFailure(message: "Codex did not respond in time. Please retry."))
                 }
                 do { try write(.object(["id": .number(Decimal(id)), "method": .string(method), "params": parameters])) }
-                catch { fail(id, error: error) }
+                catch {
+                    fail(id, error: error)
+                    close()
+                }
             }
         } onCancel: { Task { await self.fail(id, error: CancellationError()) } }
     }
     private func write(_ message: JSONValue) throws {
         var data = try JSONEncoder().encode(message); data.append(10)
-        try input.write(contentsOf: data)
+        try input.writeCommand(data)
     }
     private func receive(_ data: Data) {
         guard !ended else { return }
+        guard !data.isEmpty else { close(); return }
         buffer.append(data)
         do {
             while let end = buffer.firstIndex(of: 10) {
