@@ -70,6 +70,16 @@ final class MonitoringTests: XCTestCase {
         XCTAssertEqual((attributes[.posixPermissions] as? NSNumber)?.intValue, 0o700)
         let outside = base.appendingPathComponent("outside")
         try Data("keep".utf8).write(to: outside)
+        let helpers = profile.appendingPathComponent("tmp/arg0/codex-arg0fixture")
+        try FileManager.default.createDirectory(at: helpers, withIntermediateDirectories: true)
+        let alias = helpers.appendingPathComponent("apply_patch")
+        try FileManager.default.createSymbolicLink(at: alias, withDestinationURL: outside)
+        XCTAssertThrowsError(try OwnedProfileDirectory.directory(provider: .codex, id: id, base: base))
+        try FileManager.default.removeItem(at: alias)
+        if let executable = try? CodexConnection.executable() {
+            try FileManager.default.createSymbolicLink(at: alias, withDestinationURL: executable)
+            XCTAssertNoThrow(try OwnedProfileDirectory.directory(provider: .codex, id: id, base: base))
+        }
         let link = profile.appendingPathComponent("auth.json")
         try FileManager.default.createSymbolicLink(at: link, withDestinationURL: outside)
         XCTAssertThrowsError(try OwnedProfileDirectory.directory(provider: .codex, id: id, base: base))

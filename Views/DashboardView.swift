@@ -283,6 +283,7 @@ struct QuotaRow: View {
             return "\(status): \(snapshot.message ?? "")"
         }
         if snapshot.usageAllowed == false { return "Provider reports usage is paused" }
+        if account.provider == .codex && snapshot.message == "Workspace identity unavailable from provider" { return "" }
         if account.provider == .claude || snapshot.message == "Allowance reported by GitHub; billing usage may lag." { return "" }
         return snapshot.message ?? (window.allowanceSource == .manual ? "User-entered allowance · Billing data may lag" : "")
     }

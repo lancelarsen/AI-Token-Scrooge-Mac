@@ -19,17 +19,31 @@ enum OwnedProfileDirectory {
             try validate(url, directory: true)
             try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: url.path)
         }
-        try validateContents(result)
+        try validateContents(result, provider: provider)
         return result
     }
     static func remove(provider: Provider, id: String, base: URL? = nil) throws {
         let url = try directory(provider: provider, id: id, base: base)
         try FileManager.default.removeItem(at: url)
     }
-    private static func validateContents(_ url: URL) throws {
+    private static func validateContents(_ url: URL, provider: Provider) throws {
         var failed = false
         guard let walker = FileManager.default.enumerator(at: url, includingPropertiesForKeys: nil, options: [], errorHandler: { _, _ in failed = true; return false }) else { throw StoreError.operation }
-        for case let child as URL in walker { try validate(child, directory: false) }
+        let executable = provider == .codex ? try? CodexConnection.executable() : nil
+        for case let child as URL in walker {
+            let relative = child.pathComponents.dropFirst(url.pathComponents.count)
+            // Codex installs these helper aliases during app-server startup.
+            if let executable, relative.count == 4, relative.prefix(2).elementsEqual(["tmp", "arg0"]),
+               relative.dropFirst(2).first?.hasPrefix("codex-arg0") == true,
+               ["applypatch", "apply_patch", "codex-execve-wrapper"].contains(child.lastPathComponent),
+               let target = try? FileManager.default.destinationOfSymbolicLink(atPath: child.path),
+               target == executable.path,
+               (try FileManager.default.attributesOfItem(atPath: child.path)[.ownerAccountID] as? NSNumber)?.uint32Value == getuid() {
+                walker.skipDescendants()
+                continue
+            }
+            try validate(child, directory: false)
+        }
         if failed { throw StoreError.operation }
     }
     private static func validateAncestors(_ url: URL) throws {
