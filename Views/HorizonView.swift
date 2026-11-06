@@ -327,7 +327,13 @@ struct HorizonView: View {
             .focused($historyFocused)
             .focusEffectDisabled()
             .onChange(of: historyFocused) { _, focused in
-                if !focused { clearHistorySample() }
+                if !focused {
+                    clearHistorySample()
+                } else if let event = NSApp.currentEvent, event.type == .keyDown, event.keyCode == 48 {
+                    // Tab and Shift-Tab inspect the latest visible observation.
+                    // Focus restored after rebuilding a selector has no keyboard readout.
+                    inspectSample(direction: 0)
+                }
             }
             .accessibilityLabel("Usage history. Use arrow keys to inspect samples; Page Up and Page Down move seven days; Home returns to today; Escape dismisses details.")
             .accessibilityValue(hoverText ?? "No sample selected")
@@ -450,7 +456,7 @@ struct HorizonView: View {
         samples.sort { $0.1.at < $1.1.at }
         guard !samples.isEmpty else { return }
         let current = samples.firstIndex { $0.0.id == hoveredSample?.account.id && $0.1.at == hoveredSample?.point.at }
-        let index = current.map { min(samples.count - 1, max(0, $0 + direction)) } ?? (direction >= 0 ? 0 : samples.count - 1)
+        let index = current.map { min(samples.count - 1, max(0, $0 + direction)) } ?? (direction > 0 ? 0 : samples.count - 1)
         let sample = samples[index]
         showHistorySample(account: sample.0, point: sample.1)
         historyPinned = true
