@@ -2,12 +2,13 @@
 
 This is a verification checklist for the original native Mac parity objective, not a reduced definition of completion. The pinned Windows baseline and detailed evidence remain in README.md and tasks/parity.md.
 
-Current local evidence: 98 hosted unit tests pass in artifacts/claude-isolated-auth-tests.log; canonical Debug build passes in artifacts/display-linked-wheel-build.log. The XCTest UI target compiles. A November5 focused execution attempt failed before assertions because macOS timed out enabling UI automation; selected flows have native computer-use evidence. See artifacts/native-ui-test-run.log and artifacts/ui-runner-startup-sample.txt. UI test assertions remain unverified. These results do not prove live authentication, OS event delivery, or full visual parity.
+On November 6, the native Codex dashboard showed one weekly quota and three available earned resets. The saved account snapshots also showed healthy GitHub Copilot and Devin quotas. These checks cover quota reads on this Mac. Each provider's remaining sign-in and recovery checks are listed below. The XCTest UI target compiles; its last attempted run stopped while macOS was enabling automation, before any UI assertions ran (see artifacts/native-ui-test-run.log).
 
 | Requirement | Evidence required to close it | Current gap |
 | --- | --- | --- |
-| Codex connection lifecycle | Native browser login, cancellation, quota refresh, reconnect, and logout using an isolated profile; verify identity and displayed quotas against the provider | Live account session not supplied; signed-out transport only verified |
-| GitHub connection lifecycle | Device login and advanced-token flow, quota units/allowance, renewal, reconnect, and credential retirement with a live authorized account | Fixture and persistence tests pass; live session remains unverified |
+| Codex connection lifecycle | Native browser login, cancellation, quota refresh, reconnect, and logout using an isolated profile; verify identity and displayed quotas against the provider | After the user reconnected, a manual refresh advanced the fetch time and usage percentage. The desktop CLI returned three earned resets; clicking the weekly countdown opened their matching dates. Live cancellation, logout, and comparison with the provider usage page remain open |
+| GitHub connection lifecycle | Device login and advanced-token flow, quota units/allowance, renewal, reconnect, and credential retirement with a live authorized account | The live personal Copilot account has a healthy monthly usage snapshot and dashboard row. Device login, advanced token, renewal, organization billing, reconnect, and retirement still need individual verification |
+| Devin connection lifecycle | Isolated browser SSO, workspace discovery, usage, reconnect, and profile retirement | A live enterprise account has a healthy monthly ACU snapshot and dashboard row. Reconnect, identity-change rejection, and retirement still need live verification |
 | Claude connection lifecycle | Install supported official CLI; isolated login/status/usage/logout; verify displayed quota windows against the provider | Homebrew upgraded the CLI to 2.1.311 on November5; Scrooge’s selected executable reports that version with an isolated configuration and provider environment excluded. Version prerequisite and installed-CLI signed-out isolation check pass; live account session and quota parsing remain unverified |
 | History hover | Physical pointer displays the correct account, observation/estimate, guide and details; leaving chart clears them; privacy and selection changes clear stale content | Original failure confirmed by user; native replacement builds and coordinate tests pass, physical verification pending |
 | Native notification delivery | Enable per-app permission with user confirmation, send one test, observe OS notification and accepted history status; exercise Show Info, Snooze and Dismiss | User authorized enable/test on November 3. Allow notifications verified on; one native test shows Sent to macOS in Alert History. OS banner/Notification Center visibility and action callbacks remain unverified. |
@@ -22,7 +23,7 @@ Current local evidence: 98 hosted unit tests pass in artifacts/claude-isolated-a
 ## Pending user decisions
 
 - Notification permission and one test were authorized and completed November 3; visible OS presentation and action callbacks still need verification.
-- Which live provider account to connect first. Do not substitute existing unrelated CLI credentials.
+- A live Claude subscription session is still needed for the signed-in Claude checks. Use Scrooge’s isolated sign-in flow.
 - Whether the replacement history pointer handler now displays details with normal mouse movement.
 
 ## Reporting rules
