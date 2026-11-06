@@ -28,6 +28,7 @@ import Network
         .commands {
             CommandGroup(after: .appInfo) {
                 Button("Check for Updates…") { AppUpdater.shared.checkNow() }
+                    .disabled(!AppUpdater.supportsUpdates)
             }
             CommandGroup(after: .toolbar) {
                 Toggle("Privacy Mode", isOn: Binding(

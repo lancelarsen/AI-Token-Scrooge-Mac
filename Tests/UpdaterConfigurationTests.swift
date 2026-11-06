@@ -2,6 +2,16 @@ import XCTest
 @testable import AITokenScrooge
 
 final class UpdaterConfigurationTests: XCTestCase {
+    @MainActor func testDevelopmentBuildCannotStartReleaseUpdater() {
+#if DEBUG
+        XCTAssertFalse(AppUpdater.supportsUpdates)
+        XCTAssertFalse(AppUpdater.shared.canCheck)
+        XCTAssertFalse(AppUpdater.shared.automaticChecks)
+        AppUpdater.shared.checkNow()
+        XCTAssertFalse(AppUpdater.shared.canCheck)
+#endif
+    }
+
     func testUpdateChannelRequiresSignedFeedAndPreExtractionVerification() {
         let bundle = Bundle.main
         XCTAssertEqual(bundle.object(forInfoDictionaryKey: "SUFeedURL") as? String,

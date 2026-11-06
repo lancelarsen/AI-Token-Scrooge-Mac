@@ -19,3 +19,9 @@ The current distribution is an ad-hoc-signed development preview, not Developer 
 References: https://sparkle-project.org/documentation/ and https://sparkle-project.org/documentation/programmatic-setup/.
 
 November 3 verification: the published v2026.11.3.001 feed and archive passed signature verification, including a negative test that changed signed feed content. Sparkle installed build 1117 over a disposable build-100 copy under ~/Applications. Automatic relaunch was not observed. Testing from the Desktop triggered a macOS folder-access prompt; test installed copies under Applications instead of granting the updater broad Desktop access. Developer ID/notarization and a production relaunch pass remain outstanding.
+
+## Development build protection
+
+Debug builds never start Sparkle or allow manual release updates. Settings explain that local builds must be rebuilt. The build/run script also assigns the commit-based build number used by packaging instead of the project's placeholder 100.
+
+November 6 incident: a local Debug bundle was replaced by signed channel build 1117 (November 3). Feed and archive signature checks passed, but the installed app crashed at launch because hardened-runtime library validation rejected Sparkle's different Team ID. This also explains the previously unobserved November 3 relaunch. The published November 3 archive remains unsuitable; the existing packaging script's ad-hoc runtime correction must be used for a replacement release, followed by an installed-copy update and relaunch check. Newer CI previews do not refresh the signed feed.

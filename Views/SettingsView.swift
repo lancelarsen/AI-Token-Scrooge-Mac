@@ -25,12 +25,14 @@ struct SettingsView: View {
                         settingsSwitch("Check for Newer Versions", isOn: Binding(
                             get: { store.isDemo ? demoAutomaticChecks : updater.automaticChecks },
                             set: { if store.isDemo { demoAutomaticChecks = $0 } else { updater.automaticChecks = $0 } }
-                        ))
-                        Text(store.isDemo ? "Update Checks Are Paused in Demo" : "Downloads and installation require your choice.")
+                        )).disabled(!AppUpdater.supportsUpdates)
+                        Text(!AppUpdater.supportsUpdates ? "Updates are disabled for local development builds. Rebuild to use the latest code." : store.isDemo ? "Update Checks Are Paused in Demo" : "Downloads and installation require your choice.")
                             .font(.reference(size: 13)).foregroundStyle(Color(hex: "#BEC1D2"))
-                        Text(updater.lastChecked.map { "Last Checked: \(Format.snapshotDate($0, zone: store.state.settings.zone))" }
-                             ?? "Checks for updates every 8 hours while Scrooge is running.")
-                            .font(.reference(size: 12)).foregroundStyle(Color(hex: "#A5A8BA"))
+                        if AppUpdater.supportsUpdates {
+                            Text(updater.lastChecked.map { "Last Checked: \(Format.snapshotDate($0, zone: store.state.settings.zone))" }
+                                 ?? "Checks for updates every 8 hours while Scrooge is running.")
+                                .font(.reference(size: 12)).foregroundStyle(Color(hex: "#A5A8BA"))
+                        }
                         HStack(spacing: 8) {
                             Button { updater.checkNow() } label: {
                                 ActionLabel(title: "Check Now", symbol: "arrow.clockwise")

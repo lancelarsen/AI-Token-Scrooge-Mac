@@ -9,7 +9,14 @@ import Sparkle
     @Published private(set) var canCheck = false
     @Published private(set) var lastChecked: Date?
     @Published var automaticChecks = true {
-        didSet { if automaticChecks != controller.updater.automaticallyChecksForUpdates { controller.updater.automaticallyChecksForUpdates = automaticChecks } }
+        didSet { if Self.supportsUpdates && automaticChecks != controller.updater.automaticallyChecksForUpdates { controller.updater.automaticallyChecksForUpdates = automaticChecks } }
+    }
+    static var supportsUpdates: Bool {
+#if DEBUG
+        false
+#else
+        true
+#endif
     }
     private let controller: SPUStandardUpdaterController
     static var displayVersion: String {
@@ -22,11 +29,15 @@ import Sparkle
     }
     private init() {
         controller = SPUStandardUpdaterController(startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil)
-        automaticChecks = controller.updater.automaticallyChecksForUpdates
+        automaticChecks = Self.supportsUpdates && controller.updater.automaticallyChecksForUpdates
+        guard Self.supportsUpdates else { return }
         controller.updater.publisher(for: \.canCheckForUpdates).assign(to: &$canCheck)
         controller.updater.publisher(for: \.lastUpdateCheckDate).assign(to: &$lastChecked)
         guard ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] != "1" else { return }
         controller.startUpdater()
     }
-    func checkNow() { controller.checkForUpdates(nil) }
+    func checkNow() {
+        guard Self.supportsUpdates else { return }
+        controller.checkForUpdates(nil)
+    }
 }
