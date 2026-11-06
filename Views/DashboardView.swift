@@ -170,6 +170,10 @@ struct AccountCard: View {
                     identity.frame(width: wide ? 220 : nil, alignment: .leading)
                     VStack(spacing: 4) {
                         if let snapshot {
+                            if let note = snapshot.reportingNote(for: account.provider) {
+                                Text(note).font(.reference(size: 12)).foregroundStyle(Theme.secondary)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
                             ForEach(snapshot.windows) { window in QuotaRow(account: account, window: window, snapshot: snapshot, wide: wide) }
                         }
                     }
@@ -199,7 +203,7 @@ struct AccountCard: View {
     private var accountStatus: String {
         let name = store.state.settings.privacy ? "Account" : account.nickname
         let status = !account.enabled ? "Monitoring disabled" :
-            (snapshot?.belongs(to: account) == true ? snapshot?.message : nil) ?? "Waiting for usage data"
+            (snapshot?.belongs(to: account) == true ? snapshot.flatMap { $0.message ?? $0.reportingNote(for: account.provider) } : nil) ?? "Waiting for usage data"
         return "\(account.provider.rawValue) / \(name) · \(status) · Manage account"
     }
     private var identity: some View {
@@ -374,6 +378,9 @@ struct QuotaDetailsView: View {
             DetailLine(label: "Last successful fetch", value: Format.detailDate(snapshot.observedAt, zone: store.state.settings.zone))
                 .lineLimit(1).minimumScaleFactor(0.9)
             DetailLine(label: "Provider data as of", value: Format.detailDate(snapshot.providerDataAt, zone: store.state.settings.zone))
+            if let note = snapshot.reportingNote(for: account.provider) {
+                Text(note).foregroundStyle(Theme.dialogText)
+            }
             if !sourceNote.isEmpty {
                 Color.clear.frame(height: 6)
                 Text(sourceNote).foregroundStyle(Theme.dialogText).frame(minHeight: 19, alignment: .leading)

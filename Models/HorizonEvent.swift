@@ -68,3 +68,39 @@ struct HistoricalEventMarker: Identifiable {
         }
     }
 }
+
+// Reporting coverage is derived from the saved snapshot, including older
+// snapshots. Missing fields never create quota windows or synthetic events.
+extension QuotaSnapshot {
+    func missingWindowNames(for provider: Provider) -> [String] {
+        guard provider == .codex || provider == .claude else { return [] }
+        let periods = Set(windows.compactMap(\.durationMinutes))
+        var missing: [String] = []
+        if !periods.contains(300) { missing.append("5-hour limit") }
+        if !periods.contains(10080) { missing.append("weekly limit") }
+        return missing
+    }
+
+    func reportingNote(for provider: Provider) -> String? {
+        var missing = missingWindowNames(for: provider)
+        if provider == .codex {
+            if reserve?.availableCount == nil { missing.append("earned reset count") }
+            else if expirationDatesIncomplete { missing.append("some reset expiration times") }
+        }
+        return missing.isEmpty ? nil : "Not reported: " + missing.joined(separator: ", ")
+    }
+
+    var expirationDatesIncomplete: Bool {
+        guard let reserve, let count = reserve.availableCount else { return true }
+        if count == 0 { return false }
+        let dated = reserve.credits?.filter { $0.status == "available" && $0.expiresAt != nil }.count ?? 0
+        return dated < count
+    }
+}
+
+extension HorizonEvent {
+    static func legendCount(_ count: Int, incomplete: Bool) -> String {
+        if !incomplete { return String(count) }
+        return count == 0 ? "Not reported" : "\(count) reported"
+    }
+}

@@ -211,9 +211,23 @@ struct HorizonView: View {
         return text
     }
     private var legend: some View {
-        HStack(spacing: 40) {
-            HStack(spacing: 7) { Circle().fill(Theme.actionAccent).frame(width: 10, height: 10); Text("Quota Refresh (\(events.filter { !$0.expiration }.count))") }
-            HStack(spacing: 7) { Circle().fill(Theme.amber).frame(width: 10, height: 10); Text("Reset Expires (\(events.filter(\.expiration).count))") }
+        let visible = timelineAccounts.filter { !store.state.settings.hiddenHistoryAccounts.contains($0.id) }
+        let partialRefresh = visible.contains { account in
+            guard account.provider == .codex || account.provider == .claude else { return false }
+            guard let snapshot = store.state.snapshots[account.id], snapshot.belongs(to: account) else { return true }
+            return !snapshot.missingWindowNames(for: account.provider).isEmpty || snapshot.windows.contains { $0.resetsAt == nil }
+        }
+        let partialExpiry = visible.contains { account in
+            if account.provider == .claude { return true } // Claude /usage omits earned resets.
+            guard account.provider == .codex else { return false }
+            guard let snapshot = store.state.snapshots[account.id], snapshot.belongs(to: account) else { return true }
+            return snapshot.expirationDatesIncomplete
+        }
+        let refresh = HorizonEvent.legendCount(events.filter { !$0.expiration }.count, incomplete: partialRefresh)
+        let expiry = HorizonEvent.legendCount(events.filter(\.expiration).count, incomplete: partialExpiry)
+        return HStack(spacing: 40) {
+            HStack(spacing: 7) { Circle().fill(Theme.actionAccent).frame(width: 10, height: 10); Text("Quota Refresh (\(refresh))") }
+            HStack(spacing: 7) { Circle().fill(Theme.amber).frame(width: 10, height: 10); Text("Reset Expires (\(expiry))") }
         }.font(.reference(size: 13)).foregroundStyle(Theme.dialogText)
     }
     private var historyHint: some View {

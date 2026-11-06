@@ -20,6 +20,29 @@ final class CoreTests: XCTestCase {
         XCTAssertNil(RowDeadline.select(provider: .codex, window: window, reserve: reserve, now: expiry).at)
     }
 
+    func testMissingQuotaWindowsAndCreditsRemainDistinctFromExplicitZero() throws {
+        let account = ProviderAccount(provider: .codex, nickname: "Test", subject: "s", scope: "unresolved")
+        func snapshot(_ json: String) throws -> QuotaSnapshot {
+            try ProviderMapping.codex(account: account, response: JSONDecoder().decode(JSONValue.self, from: Data(json.utf8)), observed: .now)
+        }
+        let omitted = try snapshot(#"{"rateLimits":{"primary":{"usedPercent":0,"windowDurationMins":10080}}}"#)
+        XCTAssertEqual(omitted.windows.first?.used, 0)
+        XCTAssertEqual(omitted.reportingNote(for: .codex), "Not reported: 5-hour limit, earned reset count")
+        XCTAssertEqual(HorizonEvent.legendCount(0, incomplete: omitted.expirationDatesIncomplete), "Not reported")
+
+        let zero = try snapshot(#"{"rateLimits":{"primary":{"usedPercent":0,"windowDurationMins":300},"secondary":{"usedPercent":0,"windowDurationMins":10080}},"rateLimitResetCredits":{"availableCount":0}}"#)
+        XCTAssertNil(zero.reportingNote(for: .codex))
+        XCTAssertEqual(HorizonEvent.legendCount(0, incomplete: zero.expirationDatesIncomplete), "0")
+
+        var partial = zero
+        partial.reserve = ResetReserve(availableCount: 3, credits: [ResetCredit(id: "one", status: "available", expiresAt: .now)])
+        XCTAssertTrue(partial.expirationDatesIncomplete)
+        XCTAssertEqual(HorizonEvent.legendCount(1, incomplete: partial.expirationDatesIncomplete), "1 reported")
+        partial.windows = ClaudeUsageParser.parse("Current week (all models)\n0% used", now: .now)
+        XCTAssertEqual(partial.windows.first?.used, 0)
+        XCTAssertEqual(partial.reportingNote(for: .claude), "Not reported: 5-hour limit")
+    }
+
     func testTimeZoneMenuUsesStandardOffsetsAcrossSeasons() throws {
         let zones = ["Asia/Kathmandu", "America/Phoenix", "Pacific/Honolulu", "Asia/Kolkata", "America/Los_Angeles", "America/Phoenix", "invalid/zone"]
         let expected = ["Pacific/Honolulu", "America/Los_Angeles", "America/Phoenix", "Asia/Kolkata", "Asia/Kathmandu"]
