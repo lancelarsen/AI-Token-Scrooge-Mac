@@ -69,6 +69,63 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(history.waitForNonExistence(timeout: 5))
     }
 
+    @MainActor func testColorPickerKeyboardModeAndExactSwatch() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", "--data-dir", directory.path]
+        app.launch()
+        defer { app.terminate() }
+
+        let settings = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Settings for OpenAI / Personal")).firstMatch
+        if !app.windows["dashboard"].waitForExistence(timeout: 2) {
+            // The last session may have closed its dashboard to the menu bar.
+            let windowMenu = app.menuBars.menuBarItems["Window"]
+            windowMenu.click()
+            windowMenu.menuItems["AI Token Scrooge"].click()
+        }
+        guard settings.waitForExistence(timeout: 10) else {
+            XCTFail("Demo account settings unavailable")
+            return
+        }
+        settings.click()
+        app.buttons["Add Custom Line Color"].click()
+        let hex = app.textFields.matching(NSPredicate(format: "placeholderValue == %@", "Hex Color")).firstMatch
+        XCTAssertTrue(hex.waitForExistence(timeout: 5))
+        hex.click()
+        hex.typeKey("a", modifierFlags: .command)
+        hex.typeText("#123456")
+
+        app.typeKey(.tab, modifierFlags: .shift)
+        app.typeKey(.space, modifierFlags: [])
+        app.typeKey(.downArrow, modifierFlags: [])
+        app.typeKey(.return, modifierFlags: [])
+        let hsv = app.textFields.matching(NSPredicate(format: "placeholderValue == %@", "Hue")).firstMatch
+        XCTAssertTrue(hsv.waitForExistence(timeout: 3))
+        // Tab across Hex, Hue, Saturation and Value. Merely leaving rounded
+        // display fields must never quantize the original RGB bytes.
+        for _ in 0..<5 { app.typeKey(.tab, modifierFlags: []) }
+        XCTAssertEqual(hex.value as? String, "#123456")
+        app.typeKey(.return, modifierFlags: [])
+        let saved = app.buttons["Line Color #123456"]
+        XCTAssertTrue(saved.waitForExistence(timeout: 5))
+
+        app.buttons["Add Custom Line Color"].click()
+        XCTAssertEqual(hex.value as? String, "#123456")
+        hex.click()
+        hex.typeKey("a", modifierFlags: .command)
+        hex.typeText("#ABCDEF")
+        // R, G, B, Add Color, Cancel. Space dismisses the draft.
+        for _ in 0..<5 { app.typeKey(.tab, modifierFlags: []) }
+        app.typeKey(.space, modifierFlags: [])
+        XCTAssertTrue(hex.waitForNonExistence(timeout: 3))
+        app.buttons["Add Custom Line Color"].click()
+        XCTAssertEqual(hex.value as? String, "#123456")
+        app.typeKey(.escape, modifierFlags: [])
+        XCTAssertTrue(hex.waitForNonExistence(timeout: 3))
+    }
+
     private func seedPausedAccount(at url: URL) {
         var database: OpaquePointer?
         let result = sqlite3_open(url.path, &database)

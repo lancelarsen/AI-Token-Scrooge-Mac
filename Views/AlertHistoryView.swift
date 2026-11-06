@@ -115,6 +115,7 @@ struct DetailsDialog<Content: View>: View {
     var width: CGFloat = 480
     var maximumHeight: CGFloat = 560
     var closeTitle = "Close"
+    var tabToFooter = false
     var primaryTitle: String? = nil
     var primaryAction: (() -> Void)? = nil
     let close: () -> Void
@@ -135,18 +136,23 @@ struct DetailsDialog<Content: View>: View {
             Rectangle().fill(Color(hex: "#3B3D47")).frame(height: 1)
             HStack(spacing: 8) {
                 if !hasPrimaryAction { Spacer() }
-                if let primaryTitle, let primaryAction {
-                    Button(action: primaryAction) {
-                        DialogActionLabel(title: primaryTitle)
-                            .frame(maxWidth: .infinity)
-                    }.buttonStyle(ScroogeButtonStyle())
+                if tabToFooter, let primaryTitle, let primaryAction {
+                    EditorFooterButton(title: primaryTitle, action: primaryAction)
+                    EditorFooterButton(title: closeTitle, isCancel: true, action: close)
+                } else {
+                    if let primaryTitle, let primaryAction {
+                        Button(action: primaryAction) {
+                            DialogActionLabel(title: primaryTitle)
+                                .frame(maxWidth: .infinity)
+                        }.buttonStyle(ScroogeButtonStyle())
+                    }
+                    Button(action: close) {
+                        DialogActionLabel(title: closeTitle)
+                            .frame(minWidth: hasPrimaryAction ? 0 : 104, maxWidth: hasPrimaryAction ? .infinity : nil)
+                    }
+                    .buttonStyle(ScroogeButtonStyle())
+                    .keyboardShortcut(.cancelAction)
                 }
-                Button(action: close) {
-                    DialogActionLabel(title: closeTitle)
-                        .frame(minWidth: hasPrimaryAction ? 0 : 104, maxWidth: hasPrimaryAction ? .infinity : nil)
-                }
-                .buttonStyle(ScroogeButtonStyle())
-                .keyboardShortcut(.cancelAction)
             }.padding(24)
         }
         .frame(width: width)
@@ -161,6 +167,85 @@ struct DetailsDialog<Content: View>: View {
         }
         .presentationCornerRadius(16)
         .preferredColorScheme(.dark)
+    }
+}
+
+/// A native action stays in the same AppKit key-view loop as the color fields.
+/// SwiftUI supplies the visible label; the NSButton owns clicks, key presses and AX.
+private struct EditorFooterButton: View {
+    let title: String
+    var isCancel = false
+    let action: () -> Void
+    @State private var hovered = false
+    var body: some View {
+        DialogActionLabel(title: title)
+            .foregroundStyle(hovered ? Color.white : Theme.primaryText)
+            .environment(\.actionForeground, hovered ? .white : Theme.actionAccent)
+            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .background(hovered ? Theme.activeControl : Theme.control, in: RoundedRectangle(cornerRadius: 10))
+            .overlay { RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#45464D")) }
+            .accessibilityHidden(true)
+            .overlay { KeyViewButton(title: title, isCancel: isCancel, action: action) }
+            .onHover { hovered = $0 }
+    }
+
+    private struct KeyViewButton: NSViewRepresentable {
+        let title: String
+        let isCancel: Bool
+        let action: () -> Void
+
+        final class Control: NSButton {
+            var invoke: (() -> Void)?
+            override var canBecomeKeyView: Bool { isEnabled && !isHiddenOrHasHiddenAncestor }
+            override var acceptsFirstResponder: Bool { isEnabled }
+
+            @objc func invokeAction() { invoke?() }
+            override func keyDown(with event: NSEvent) {
+                let unmodified = event.modifierFlags.intersection([.command, .option, .shift, .control]).isEmpty
+                if unmodified && [36, 49, 76].contains(event.keyCode) { // Return, Space, keypad Enter
+                    if !event.isARepeat { performClick(nil) }
+                } else {
+                    super.keyDown(with: event)
+                }
+            }
+            override func becomeFirstResponder() -> Bool {
+                let accepted = super.becomeFirstResponder()
+                needsDisplay = true
+                return accepted
+            }
+            override func resignFirstResponder() -> Bool {
+                let resigned = super.resignFirstResponder()
+                needsDisplay = true
+                return resigned
+            }
+            override func draw(_ dirtyRect: NSRect) {
+                guard window?.firstResponder === self else { return }
+                let ring = NSBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), xRadius: 9, yRadius: 9)
+                NSColor(Theme.accent).setStroke()
+                ring.lineWidth = 2
+                ring.stroke()
+            }
+        }
+        func makeNSView(context: Context) -> Control {
+            let button = Control(frame: .zero)
+            button.setButtonType(.momentaryPushIn)
+            button.isBordered = false
+            button.focusRingType = .none
+            button.target = button
+            button.action = #selector(Control.invokeAction)
+            return button
+        }
+        func sizeThatFits(_ proposal: ProposedViewSize, nsView: Control, context: Context) -> CGSize? {
+            proposal.replacingUnspecifiedDimensions(by: CGSize(width: 104, height: 44))
+        }
+        func updateNSView(_ button: Control, context: Context) {
+            button.title = title
+            button.setAccessibilityLabel(title)
+            button.invoke = action
+            button.keyEquivalent = isCancel ? "\u{1b}" : ""
+            button.keyEquivalentModifierMask = []
+        }
     }
 }
 

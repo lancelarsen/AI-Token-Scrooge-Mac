@@ -62,7 +62,7 @@ struct AccountSettingsView: View {
                                     .modifier(ImmediateReferenceTooltip(text: "Add Custom Line Color"))
                                     .accessibilityLabel("Add Custom Line Color")
                                     .sheet(isPresented: $showColor) {
-                                        DetailsDialog(width: 360, maximumHeight: 640, closeTitle: "Cancel", primaryTitle: "Add Color", primaryAction: {
+                                        DetailsDialog(width: 360, maximumHeight: 640, closeTitle: "Cancel", tabToFooter: true, primaryTitle: "Add Color", primaryAction: {
                                             let hex = newColor.hex; store.edit { state in
                                                 if !state.settings.customColors.contains(hex) { state.settings.customColors.append(hex) }
                                                 if let i = state.accounts.firstIndex(where: { $0.id == accountID }) { state.accounts[i].lineColor = hex }
@@ -70,7 +70,13 @@ struct AccountSettingsView: View {
                                         }, close: { showColor = false }) {
                                             VStack(alignment: .leading, spacing: 16) {
                                                 Text("Add Line Color").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
-                                                ScrollView { InlineLineColorEditor(color: $newColor) }.frame(height: 420)
+                                                ScrollViewReader { proxy in
+                                                    ScrollView {
+                                                        InlineLineColorEditor(color: $newColor) { target in
+                                                            proxy.scrollTo(target, anchor: target == .channels ? .bottom : .top)
+                                                        }
+                                                    }
+                                                }.frame(height: 420)
                                             }
                                         }
                                     }
@@ -226,8 +232,12 @@ struct MinuteSlider: View {
 
 
 /// Inline opaque-color editor matching the Windows color dialog's control arrangement.
+private enum ColorEditorSection: Hashable { case spectrum, channels }
+
 private struct InlineLineColorEditor: View {
     @Binding var color: Color
+    let reveal: (ColorEditorSection) -> Void
+    @FocusState private var focusedChannel: Int?
     @Environment(\.appearsActive) private var appearsActive
     @State private var hue = 0.0
     @State private var saturation = 0.0
@@ -280,7 +290,7 @@ private struct InlineLineColorEditor: View {
                         .focusable().focused($spectrumFocused).focusEffectDisabled()
                         .onChange(of: spectrumFocused) { _, focused in
                             if !focused { spectrumKeyboardFocus = false; spectrumPressed = false }
-                            else if !spectrumPressed { spectrumKeyboardFocus = true }
+                            else if !spectrumPressed { spectrumKeyboardFocus = true; reveal(.spectrum) }
                         }
                         .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { press in
                             spectrumKeyboardFocus = true
@@ -295,7 +305,7 @@ private struct InlineLineColorEditor: View {
                 }.frame(height: 256)
                 RoundedRectangle(cornerRadius: 10).fill(color).frame(width: 44, height: 256)
                     .accessibilityLabel("Selected Color").accessibilityValue(color.hex)
-            }.padding(.bottom, 16)
+            }.padding(.bottom, 16).id(ColorEditorSection.spectrum)
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     Capsule().fill(LinearGradient(colors: [.black, Color(hue: hue, saturation: saturation, brightness: 1)], startPoint: .leading, endPoint: .trailing)).frame(height: 12)
@@ -334,17 +344,14 @@ private struct InlineLineColorEditor: View {
                     }
             }.frame(height: 32).padding(.bottom, 6)
             HStack {
-                Menu {
-                    Picker("Color Model", selection: $mode) { Text("RGB").tag("RGB"); Text("HSV").tag("HSV") }.pickerStyle(.inline)
-                } label: {
-                    HStack {
-                        Text(mode)
-                        Spacer()
-                        ReferenceDropdownChevron()
-                    }.padding(.horizontal, 12).frame(width: 120, height: 32)
-                        .background(Color(hex: "#303138"), in: RoundedRectangle(cornerRadius: 10))
-                }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
-                    .accessibilityLabel("Color Model").accessibilityValue(mode)
+                HStack {
+                    Text(mode)
+                    Spacer()
+                    ReferenceDropdownChevron()
+                }.padding(.horizontal, 12).frame(width: 120, height: 32)
+                    .background(Color(hex: "#303138"), in: RoundedRectangle(cornerRadius: 10))
+                    .accessibilityHidden(true)
+                    .overlay { ColorModelPopup(selection: $mode) }
                 Spacer()
                 TextField("Hex Color", text: $hexDraft)
                     .onChange(of: hexDraft) { _, value in
@@ -363,11 +370,15 @@ private struct InlineLineColorEditor: View {
                     HStack(spacing: 8) {
                         TextField(channelName(index), value: channel(index), format: .number)
                             .modifier(ColorEntryStyle()).frame(width: 120)
+                            .focused($focusedChannel, equals: index)
                         Text(channelName(index)).font(ReferenceTypography.nativeTextFont())
                         Spacer()
                     }
                 }
-            }
+            }.id(ColorEditorSection.channels)
+                .onChange(of: focusedChannel) { _, index in
+                    if index != nil { reveal(.channels) }
+                }
         }.textFieldStyle(.plain).font(ReferenceTypography.nativeTextFont()).foregroundStyle(Theme.primaryText)
             .textSelection(.disabled)
             .padding(.vertical, 4)
@@ -428,12 +439,17 @@ private struct InlineLineColorEditor: View {
     private func channelName(_ index: Int) -> String {
         (mode == "RGB" ? ["Red", "Green", "Blue"] : ["Hue", "Saturation", "Value"])[index]
     }
+    private func displayedChannel(_ index: Int) -> Int {
+        if mode == "HSV" { return Int(([hue * 360, saturation * 100, brightness * 100][index]).rounded()) }
+        let rgb = NSColor(color).usingColorSpace(.sRGB) ?? .black
+        return Int(([rgb.redComponent, rgb.greenComponent, rgb.blueComponent][index] * 255).rounded())
+    }
+
     private func channel(_ index: Int) -> Binding<Int> {
-        Binding(get: {
-            if mode == "HSV" { return Int(([hue * 360, saturation * 100, brightness * 100][index]).rounded()) }
-            let rgb = NSColor(color).usingColorSpace(.sRGB) ?? .black
-            return Int(([rgb.redComponent, rgb.greenComponent, rgb.blueComponent][index] * 255).rounded())
-        }, set: { value in
+        Binding(get: { displayedChannel(index) }, set: { value in
+            // TextField commits its rounded representation on blur, even if the
+            // user only pressed Tab. Keep the original color until an edit.
+            guard value != displayedChannel(index) else { return }
             if mode == "HSV" {
                 let fraction = Double(max(0, min(index == 0 ? 359 : 100, value))) / (index == 0 ? 360 : 100)
                 if index == 0 { hue = fraction } else if index == 1 { saturation = fraction } else { brightness = fraction }
@@ -464,6 +480,71 @@ private struct InlineLineColorEditor: View {
         hue = r >= g && g == b ? 0 : rgb.hueComponent
         saturation = rgb.saturationComponent
         brightness = rgb.brightnessComponent
+    }
+}
+
+/// Keep the native popup in the key-view loop even when macOS limits Tab to
+/// editing controls. SwiftUI supplies the visible label and owns the selection.
+private struct ColorModelPopup: NSViewRepresentable {
+    @Binding var selection: String
+
+    final class Control: NSPopUpButton {
+        var didSelect: ((String) -> Void)?
+        override var canBecomeKeyView: Bool { isEnabled && !isHiddenOrHasHiddenAncestor }
+        override var acceptsFirstResponder: Bool { isEnabled }
+
+        @objc func selectionChanged() {
+            if let selected = titleOfSelectedItem { didSelect?(selected) }
+        }
+
+        override func keyDown(with event: NSEvent) {
+            switch event.keyCode {
+            case 36, 49, 76, 125, 126: performClick(nil) // Return, Space, Enter, Down, Up
+            case 123, 124:
+                selectItem(at: event.keyCode == 123 ? 0 : 1)
+                selectionChanged()
+            default: super.keyDown(with: event)
+            }
+        }
+
+        override func becomeFirstResponder() -> Bool {
+            let accepted = super.becomeFirstResponder()
+            needsDisplay = true
+            return accepted
+        }
+
+        override func resignFirstResponder() -> Bool {
+            let resigned = super.resignFirstResponder()
+            needsDisplay = true
+            return resigned
+        }
+
+        override func draw(_ dirtyRect: NSRect) {
+            guard window?.firstResponder === self else { return }
+            NSColor(Theme.accent).setStroke()
+            let ring = NSBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), xRadius: 9, yRadius: 9)
+            ring.lineWidth = 2
+            ring.stroke()
+        }
+    }
+
+    func makeNSView(context: Context) -> Control {
+        let control = Control(frame: .zero, pullsDown: false)
+        control.addItems(withTitles: ["RGB", "HSV"])
+        control.setAccessibilityLabel("Color Model")
+        control.focusRingType = .none
+        control.target = control
+        control.action = #selector(Control.selectionChanged)
+        return control
+    }
+
+    func sizeThatFits(_ proposal: ProposedViewSize, nsView: Control, context: Context) -> CGSize? {
+        proposal.replacingUnspecifiedDimensions(by: CGSize(width: 120, height: 32))
+    }
+
+    func updateNSView(_ control: Control, context: Context) {
+        control.didSelect = { selection = $0 }
+        control.selectItem(withTitle: selection)
     }
 }
 
