@@ -1,0 +1,37 @@
+name: Windows color reference
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/windows-color-names]
+    paths:
+      - 'script/windows-color-reference/**'
+      - '.github/workflows/windows-color-reference.yml'
+permissions:
+  contents: read
+jobs:
+  generate:
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Read the pinned Windows release's color names
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP 'reference.zip'
+          gh release download v2026.11.6.005 --repo lancelarsen/AI-Token-Scrooge --pattern '*.zip' --output $archive
+          if ($LASTEXITCODE -ne 0) { throw 'Release download failed.' }
+          if ((Get-FileHash $archive).Hash -ne '97be7b65c74a1afc4984db9cba0b73a01cff83db851ae61aacafa28b347f0cfb') { throw 'Windows reference archive checksum mismatch.' }
+          $release = Join-Path $env:RUNNER_TEMP 'reference'
+          [System.IO.Compression.ZipFile]::ExtractToDirectory($archive, $release)
+          Add-Type -Path script/windows-color-reference/Generate.cs
+          [ColorReference]::Generate($release, (Join-Path $env:RUNNER_TEMP 'color-names'))
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v7
+        with:
+          name: windows-en-US-color-names
+          path: ${{ runner.temp }}/color-names/
+          compression-level: 9
+          if-no-files-found: error
