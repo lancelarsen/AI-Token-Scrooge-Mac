@@ -6,6 +6,10 @@ if [[ "$(git rev-parse --is-shallow-repository)" != false ]]; then
   echo 'Preview packaging requires full Git history for the Sparkle build number. Run git fetch --unshallow and retry.' >&2
   exit 1
 fi
+if [[ -n "${SCROOGE_NOTARY_PROFILE:-}" && -z "${SCROOGE_SIGNING_IDENTITY:-}" ]]; then
+  echo "Notarization requires a Developer ID signing identity." >&2
+  exit 1
+fi
 OUTPUT_DIR="$ROOT_DIR/artifacts/package"
 BUILD_DIR="$ROOT_DIR/build/package"
 APP_NAME="AI Token Scrooge"
@@ -55,7 +59,6 @@ fi
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
 /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$APP_BUNDLE" "$ZIP_PATH"
 if [[ -n "${SCROOGE_NOTARY_PROFILE:-}" ]]; then
-  [[ -n "${SCROOGE_SIGNING_IDENTITY:-}" ]] || { echo "Notarization requires a Developer ID signing identity." >&2; exit 1; }
   xcrun notarytool submit "$ZIP_PATH" --keychain-profile "$SCROOGE_NOTARY_PROFILE" --wait
   xcrun stapler staple "$APP_BUNDLE"
   xcrun stapler validate "$APP_BUNDLE"
