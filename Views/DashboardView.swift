@@ -170,10 +170,6 @@ struct AccountCard: View {
                     identity.frame(width: wide ? 220 : nil, alignment: .leading)
                     VStack(spacing: 4) {
                         if let snapshot {
-                            if let note = snapshot.reportingNote(for: account.provider) {
-                                Text(note).font(.reference(size: 12)).foregroundStyle(Theme.secondary)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
                             ForEach(snapshot.windows) { window in QuotaRow(account: account, window: window, snapshot: snapshot, wide: wide) }
                         }
                     }
