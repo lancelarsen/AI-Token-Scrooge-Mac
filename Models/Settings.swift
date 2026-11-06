@@ -141,10 +141,17 @@ struct RadarSettings: Codable, Equatable, Sendable {
         historyEnabled = try values.decodeIfPresent(Bool.self, forKey: .historyEnabled) ?? historyEnabled
         hiddenHistoryAccounts = try values.decodeIfPresent(Set<String>.self, forKey: .hiddenHistoryAccounts) ?? hiddenHistoryAccounts
         customColors = try values.decodeIfPresent([String].self, forKey: .customColors) ?? customColors
-        guard thresholds.isValid, (0...23).contains(quietStartHour), (0...23).contains(quietEndHour),
-              soundVolume.isFinite, (0...100).contains(soundVolume), (1...365).contains(historyRetentionDays),
-              rules.allSatisfy({ $0.thresholds?.isValid ?? true }) else {
-            throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "Invalid saved preferences"))
+        do {
+            try validate()
+        } catch {
+            throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: error.localizedDescription))
+        }
+    }
+    func validate() throws {
+        guard thresholds.isValid, rules.allSatisfy({ $0.thresholds?.isValid ?? true }) else { throw PreferenceError.invalidThresholds }
+        guard (0...23).contains(quietStartHour), (0...23).contains(quietEndHour),
+              soundVolume.isFinite, (0...100).contains(soundVolume), (1...365).contains(historyRetentionDays) else {
+            throw PreferenceError.invalidRange
         }
     }
     var zone: TimeZone { TimeZone(identifier: timeZoneID) ?? TimeZone(identifier: "America/Chicago")! }
@@ -164,5 +171,16 @@ struct RadarSettings: Codable, Equatable, Sendable {
         return quietStartHour <= quietEndHour
             ? hour >= quietStartHour && hour < quietEndHour
             : hour >= quietStartHour || hour < quietEndHour
+    }
+}
+
+enum PreferenceError: LocalizedError {
+    case invalidThresholds, invalidRange
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidThresholds: "Alert levels must satisfy Critical < Warning ≤ Info, between 0 and 100."
+        case .invalidRange: "The selected preference is outside its supported range."
+        }
     }
 }

@@ -31,7 +31,10 @@ actor ClaudeClient {
         _ = try await run(credentialID, ["auth", "login"], timeout: .seconds(600))
         let identity = try await identity(credentialID)
         var account = ProviderAccount(provider: .claude, nickname: nickname, subject: identity.subject, scope: identity.scope, login: identity.subject, credentialID: credentialID)
-        if let original { account.id = original.id; account = try AccountPolicy.reconnect(original: original, replacement: account) }
+        if let original {
+            account.id = original.id
+            try AccountPolicy.validateReconnect(original: original, replacement: account)
+        }
         return (account, try await usage(account, plan: identity.plan))
     }
     func refresh(_ account: ProviderAccount) async throws -> QuotaSnapshot {
@@ -56,8 +59,11 @@ actor ClaudeClient {
     }
     nonisolated static func supportsUsage(_ text: String) -> Bool {
         guard let first = text.split(whereSeparator: \.isWhitespace).first else { return false }
-        let components = first.split(separator: ".").compactMap { Int($0) }
-        guard components.count >= 3 else { return false }
-        return !components.prefix(3).lexicographicallyPrecedes([2, 1, 310])
+        let parts = first.split(separator: ".", omittingEmptySubsequences: false)
+        guard parts.count == 3, parts.allSatisfy({ !$0.isEmpty && $0.utf8.allSatisfy { (48...57).contains($0) } }) else {
+            return false
+        }
+        let version = parts.compactMap { Int($0) }
+        return version.count == 3 && !version.lexicographicallyPrecedes([2, 1, 310])
     }
 }

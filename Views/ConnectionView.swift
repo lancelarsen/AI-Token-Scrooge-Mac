@@ -1,37 +1,15 @@
 import SwiftUI
 
 struct ConnectionView: View {
-    @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
-    @State private var provider: Provider = .copilot
-    @State private var providerChosen = false
-    @Environment(\.dashboardHostSize) private var hostSize
-    private var panelSize: CGSize {
-        guard let hostSize else { return CGSize(width: 1000, height: 800) }
-        return CGSize(width: min(1000, max(640, hostSize.width - 48)),
-                      height: min(800, max(400, hostSize.height - 64)))
-    }
-    private enum DevinField { case nickname, workspace }
-    @FocusState private var devinFocus: DevinField?
-    @State private var workspace = ""
-    @State private var nickname = ""
-    @State private var token = ""
-    @State private var organization = ""
-    @State private var allowance = ""
-    @State private var unit: UsageUnit = .credits
-    @State private var advanced = false
-    private var organizationReconnect: Bool {
-        guard let id = store.reconnectAccountID,
-              let original = store.state.accounts.first(where: { $0.id == id }) else { return false }
-        return original.provider == .copilot && original.scope.hasPrefix("organization:")
-    }
-    @State private var connecting = false
-    @State private var connectionTask: Task<Void, Never>?
-    @State private var error: String?
+    let original: ProviderAccount?
+    @State private var selectedProvider: Provider?
+
     var body: some View {
-        Group {
-            if providerChosen || store.reconnectAccountID != nil { connectionForm }
-            else { providerChooser }
+        if let provider = original?.provider ?? selectedProvider {
+            ConnectionForm(provider: provider, original: original)
+        } else {
+            providerChooser
         }
     }
 
@@ -42,11 +20,7 @@ struct ConnectionView: View {
                     .frame(minHeight: 32, alignment: .leading)
                 VStack(spacing: 10) {
                     ForEach(Provider.allCases) { choice in
-                        Button {
-                            provider = choice
-                            nickname = choice == .devin ? "Work" : "Personal"
-                            providerChosen = true
-                        } label: {
+                        Button { selectedProvider = choice } label: {
                             HStack(spacing: 16) {
                                 ProviderIcon(provider: choice, size: 28).accessibilityHidden(true)
                                 Text(choice == .codex ? "OpenAI Codex" : choice.rawValue)
@@ -71,6 +45,50 @@ struct ConnectionView: View {
             .presentationCornerRadius(16)
             .preferredColorScheme(.dark)
     }
+}
+
+private struct ConnectionForm: View {
+    @Environment(AppStore.self) private var store
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dashboardHostSize) private var hostSize
+    let provider: Provider
+    let original: ProviderAccount?
+
+    private enum DevinField { case nickname, workspace }
+    @FocusState private var devinFocus: DevinField?
+    @State private var workspace: String
+    @State private var nickname: String
+    @State private var token = ""
+    @State private var organization: String
+    @State private var allowance: String
+    @State private var unit: UsageUnit
+    @State private var advanced = false
+    @State private var connecting = false
+    @State private var connectionTask: Task<Void, Never>?
+    @State private var error: String?
+
+    init(provider: Provider, original: ProviderAccount?) {
+        self.provider = provider
+        self.original = original
+        _nickname = State(initialValue: original?.nickname ?? (provider == .devin ? "Work" : "Personal"))
+        _unit = State(initialValue: original?.unit ?? .credits)
+        _workspace = State(initialValue: original?.scope ?? "")
+        _allowance = State(initialValue: original?.allowance.map { NSDecimalNumber(decimal: $0).stringValue } ?? "")
+        let prefix = "organization:"
+        let scope = original?.scope ?? ""
+        _organization = State(initialValue: scope.hasPrefix(prefix) ? String(scope.dropFirst(prefix.count)) : "")
+    }
+
+    private var panelSize: CGSize {
+        guard let hostSize else { return CGSize(width: 1000, height: 800) }
+        return CGSize(width: min(1000, max(640, hostSize.width - 48)),
+                      height: min(800, max(400, hostSize.height - 64)))
+    }
+
+    private var organizationReconnect: Bool {
+        original?.provider == .copilot && original?.scope.hasPrefix("organization:") == true
+    }
+
     private var connectionDescription: String {
         switch provider {
         case .codex: "Sign in through OpenAI in your browser. Scrooge keeps this account in its own protected Codex profile and only reads usage limits."
@@ -88,7 +106,7 @@ struct ConnectionView: View {
         case .claude, .devin: 576
         }
     }
-    private var connectionForm: some View {
+    var body: some View {
         ScrollView {
         VStack(alignment: .leading, spacing: 18) {
             Text("Connect \(provider == .codex ? "OpenAI Codex" : provider.rawValue)").font(.reference(size: 26, weight: .semibold))
@@ -98,7 +116,7 @@ struct ConnectionView: View {
             TextField("Account nickname (Personal, Work…)", text: $nickname, prompt: Text("Account nickname (Personal, Work…)").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle())
                 .focused($devinFocus, equals: .nickname)
             if provider == .codex {
-                CodexConnectView(nickname: nickname, original: store.state.accounts.first { $0.id == store.reconnectAccountID })
+                CodexConnectView(nickname: nickname, original: original)
             } else if provider == .copilot {
                 Menu {
                     Button("AI Credits") { unit = .credits }
@@ -113,7 +131,7 @@ struct ConnectionView: View {
                         .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
                 }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
                     .accessibilityLabel("Billing Unit").accessibilityValue(unit == .credits ? "AI Credits" : "Legacy Premium Requests")
-                    .disabled(store.reconnectAccountID != nil)
+                    .disabled(original != nil)
                 TextField("Fallback allowance (optional; detected automatically when available)", text: $allowance, prompt: Text("Fallback allowance (optional; detected automatically when available)").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle())
                 if !organizationReconnect {
                 Button { token = ""; error = nil; advanced.toggle() } label: {
@@ -121,32 +139,30 @@ struct ConnectionView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }.buttonStyle(ScroogeButtonStyle()).disabled(connecting)
                 }
-                if !advanced && !organizationReconnect { GitHubConnectView(nickname: nickname, unit: $unit, allowance: $allowance) } else {
+                if !advanced && !organizationReconnect { GitHubConnectView(nickname: nickname, unit: unit, allowance: allowance, original: original) } else {
                 SecureField("Fine-grained personal access token", text: $token, prompt: Text("Fine-grained personal access token").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle())
                 TextField("Organization billing owner (optional)", text: $organization, prompt: Text("Organization billing owner (optional)").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle())
-                    .disabled(store.reconnectAccountID != nil)
+                    .disabled(original != nil)
                 ConnectionStatusLine(text: error ?? "")
                 Button {
                     connecting = true; error = nil
                     connectionTask = Task {
                         defer { connecting = false }
                         do {
-                            let enteredAllowance = allowance.trimmingCharacters(in: .whitespacesAndNewlines)
-                            let amount = enteredAllowance.isEmpty ? nil : Decimal(string: enteredAllowance, locale: Locale(identifier: "en_US_POSIX"))
-                            guard enteredAllowance.isEmpty || (amount != nil && amount! > 0) else { throw ProviderFailure(message: "Allowance must be a positive number, or blank.") }
-                            try await store.connectGitHub(nickname: nickname, token: token.trimmingCharacters(in: .whitespacesAndNewlines), allowance: amount, unit: unit, organization: organization.trimmingCharacters(in: .whitespacesAndNewlines))
+                            let amount = try GitHubAllowanceInput.parse(allowance)
+                            try await store.connectGitHub(nickname: nickname.trimmingCharacters(in: .whitespacesAndNewlines), token: token.trimmingCharacters(in: .whitespacesAndNewlines), allowance: amount, unit: unit, organization: organization.trimmingCharacters(in: .whitespacesAndNewlines), replacing: original)
                             token = ""; dismiss()
                         } catch { self.error = error.localizedDescription }
                     }
                 } label: { DialogActionLabel(title: connecting ? "Connecting…" : "Connect Account").frame(maxWidth: .infinity, alignment: .leading) }
-                    .buttonStyle(ScroogeButtonStyle()).disabled(connecting || token.isEmpty || nickname.isEmpty)
+                    .buttonStyle(ScroogeButtonStyle()).disabled(connecting || token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             } else if provider == .devin {
-                Text(store.reconnectAccountID == nil ? "Company workspace URL (optional)" : "Company workspace URL").font(.reference(size: 14))
+                Text(original == nil ? "Company workspace URL (optional)" : "Company workspace URL").font(.reference(size: 14))
                 TextField("https://your-company.devinenterprise.com", text: $workspace)
                     .focused($devinFocus, equals: .workspace)
                     .accessibilityLabel("Company Devin Workspace URL")
-                    .modifier(ConnectionFieldStyle()).disabled(store.reconnectAccountID != nil || connecting)
+                    .modifier(ConnectionFieldStyle()).disabled(original != nil || connecting)
                 ConnectionStatusLine(text: error ?? "")
                 Button {
                     guard workspace.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || DevinUsage.workspace(workspace) != nil else {
@@ -164,7 +180,7 @@ struct ConnectionView: View {
                     connectionTask = Task {
                         defer { connecting = false }
                         do {
-                            try await store.connectDevin(nickname: nickname, workspace: workspace)
+                            try await store.connectDevin(nickname: nickname, workspace: workspace, replacing: original)
                             dismiss()
                         } catch is CancellationError { self.error = "Sign-in canceled." }
                         catch { self.error = (error as? ProviderFailure)?.message ?? (error is AccountError ? error.localizedDescription : "Devin sign-in could not be saved. Try again.") }
@@ -172,20 +188,14 @@ struct ConnectionView: View {
                 } label: { DialogActionLabel(title: connecting ? "Signing In with Devin…" : "Sign In with Devin").frame(maxWidth: .infinity, alignment: .leading) }
                     .buttonStyle(ScroogeButtonStyle()).disabled(connecting)
             } else {
-                ClaudeConnectView(nickname: nickname, original: store.state.accounts.first { $0.id == store.reconnectAccountID })
+                ClaudeConnectView(nickname: nickname, original: original)
             }
             Button { dismiss() } label: { DialogActionLabel(title: "Cancel").frame(maxWidth: .infinity, alignment: .leading) }
                 .buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction).disabled(connecting)
         }.font(.reference(size: 14)).frame(maxWidth: formContentWidth).padding(32).frame(maxWidth: .infinity, alignment: .top)
         }.frame(width: panelSize.width, height: panelSize.height).referencePanelSurface().preferredColorScheme(.dark).tint(Theme.accent)
         .onDisappear { connectionTask?.cancel(); token = "" }
-        .onAppear {
-            if let original = store.state.accounts.first(where: { $0.id == store.reconnectAccountID }) {
-                provider = original.provider; workspace = original.scope; nickname = original.nickname; unit = original.unit
-                if original.scope.hasPrefix("organization:") { advanced = true; organization = String(original.scope.dropFirst(13)) }
-                allowance = original.allowance.map { NSDecimalNumber(decimal: $0).stringValue } ?? ""
-            }
-        }
+
     }
 }
 

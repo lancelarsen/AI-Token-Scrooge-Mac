@@ -2,6 +2,15 @@ import XCTest
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testGitHubFallbackAllowanceRequiresTheEntireNumber() throws {
+        XCTAssertNil(try GitHubAllowanceInput.parse("  "))
+        XCTAssertEqual(try GitHubAllowanceInput.parse(" 125.50 "), Decimal(string: "125.5"))
+        XCTAssertEqual(try GitHubAllowanceInput.parse("1e2"), 100)
+        for input in ["0", "-4", "1,000", "25 credits", "2.5.3", "1e", "1e999"] {
+            XCTAssertThrowsError(try GitHubAllowanceInput.parse(input), input)
+        }
+    }
+
     func testRowDeadlinePrefersOnlyEarlierEligibleAvailableExpiry() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
         let expiry = now.addingTimeInterval(60)

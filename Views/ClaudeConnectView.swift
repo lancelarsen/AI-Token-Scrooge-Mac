@@ -7,9 +7,7 @@ struct ClaudeConnectView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var operation: Task<Void, Never>?
     @State private var status = ""
-    @State private var credentialID = UUID().uuidString
     @State private var busy = false
-    @State private var committed = false
     @State private var committing = false
     @State private var closed = false
     private let client = ClaudeClient()
@@ -17,6 +15,7 @@ struct ClaudeConnectView: View {
         VStack(alignment: .leading, spacing: 18) {
             ConnectionStatusLine(text: status)
             Button {
+                let credentialID = UUID().uuidString
                 busy = true
                 operation = Task {
                     defer { busy = false; store.endCredentialAttempt(credentialID) }
@@ -28,7 +27,7 @@ struct ClaudeConnectView: View {
                         committing = true
                         defer { committing = false }
                         try await store.acceptConnection(account, snapshot: snapshot, replacing: original)
-                        committed = true; dismiss()
+                        dismiss()
                     } catch {
                         status = (error as? ProviderFailure)?.message ?? (error is AccountError ? error.localizedDescription : "Claude connection could not be completed. Please try again.")
                     }

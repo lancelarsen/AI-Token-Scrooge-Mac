@@ -10,7 +10,6 @@ packages:
 settings:
   base:
     SWIFT_VERSION: '6.0'
-    MACOSX_DEPLOYMENT_TARGET: '26.0'
     ARCHS: arm64
     CODE_SIGN_IDENTITY: '-'
     CODE_SIGN_STYLE: Manual
@@ -48,8 +47,6 @@ targets:
         PRODUCT_MODULE_NAME: AITokenScrooge
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.developer-tools
-        INFOPLIST_KEY_CFBundleDisplayName: AI Token Scrooge
     dependencies:
       - sdk: libsqlite3.tbd
       - package: Sparkle

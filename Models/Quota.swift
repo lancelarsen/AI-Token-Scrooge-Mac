@@ -11,6 +11,15 @@ enum UsageUnit: String, Codable, Sendable { case percent, credits, requests, acu
 enum SourceHealth: String, Codable, Sendable {
     case healthy, loading, stale, offline, authenticationRequired, permissionRequired, unsupported, demo
 }
+enum QuotaAmount {
+    /// Foundation's decimal initializer also accepts numeric prefixes, such as the "1" in "1,000".
+    static func decimal(_ input: String) -> Decimal? {
+        let text = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard text.wholeMatch(of: /[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?/) != nil else { return nil }
+        return Decimal(string: text, locale: Locale(identifier: "en_US_POSIX"))
+    }
+}
+
 enum AllowanceProvenance: String, Codable, Sendable { case unknown, provider, manual }
 enum CapacityState: String, Codable, Sendable { case unknown, healthy, info, low, critical, exhausted }
 
@@ -166,12 +175,16 @@ enum AccountPolicy {
             }
         }.map(\.element)
     }
-    static func reconnect(original: ProviderAccount, replacement: ProviderAccount) throws -> ProviderAccount {
+    static func validateReconnect(original: ProviderAccount, replacement: ProviderAccount) throws {
         guard original.id == replacement.id, original.provider == replacement.provider,
               original.subject == replacement.subject,
               original.scope == "unresolved" || original.scopeEquals(replacement.scope) else {
             throw AccountError.differentIdentity
         }
+    }
+
+    static func reconnect(original: ProviderAccount, replacement: ProviderAccount) throws -> ProviderAccount {
+        try validateReconnect(original: original, replacement: replacement)
         var accepted = replacement
         accepted.enabled = original.enabled
         accepted.pollingMinutes = original.effectivePollingMinutes
@@ -187,8 +200,15 @@ enum AccountPolicy {
         return boundaries.filter { $0 > now && $0 < ordinary }.min() ?? ordinary
     }
 }
-enum AccountError: LocalizedError { case differentIdentity
-    var errorDescription: String? { "This is a different account or workspace. Reconnect the original account, or add a separate connection." }
+enum AccountError: LocalizedError {
+    case differentIdentity, duplicateID
+
+    var errorDescription: String? {
+        switch self {
+        case .differentIdentity: "This is a different account or workspace. Reconnect the original account, or add a separate connection."
+        case .duplicateID: "Two saved accounts have the same identifier. Scrooge cannot safely associate their usage."
+        }
+    }
 }
 
 struct RowDeadline {

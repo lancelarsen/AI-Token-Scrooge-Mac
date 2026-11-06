@@ -5,6 +5,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @ObservedObject private var updater = AppUpdater.shared
+    @State private var showAlertHistory = false
     @State private var pendingRetention: Int?
     @State private var demoAutomaticChecks = true
     @State private var soundPreviewStatus: String?
@@ -123,7 +124,7 @@ struct SettingsView: View {
                             .disabled(store.isDemo)
                         if let message = store.loginItemMessage { Text(message).font(.reference(size: 12)).foregroundStyle(Theme.secondary) }
                         if store.loginItemNeedsApproval { Button("Open Login Items") { LoginItemService.openSettings() }.buttonStyle(ScroogeButtonStyle()) }
-                        Button { store.showAlertHistory = true } label: { DialogActionLabel(title: "Alert History").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle())
+                        Button { showAlertHistory = true } label: { DialogActionLabel(title: "Alert History").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle())
                         Button { dismiss(); Task { await store.sendTestNotification() } } label: { DialogActionLabel(title: "Send Test Notification").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle())
                     }
                 }.padding(.horizontal, 16).padding(.vertical, 12).frame(width: min(960, panelSize.width - 24)).frame(maxWidth: .infinity)
@@ -143,7 +144,7 @@ struct SettingsView: View {
                     if let days = pendingRetention { store.edit { $0.settings.historyRetentionDays = days }; pendingRetention = nil }
                 }
         }
-        .sheet(isPresented: Binding(get: { store.showAlertHistory }, set: { store.showAlertHistory = $0 })) { AlertHistoryView().environment(store) }
+        .sheet(isPresented: $showAlertHistory) { AlertHistoryView().environment(store) }
     }
     private func soundThemeOption(_ title: String, value: String) -> some View {
         let selected = store.state.settings.soundTheme == value

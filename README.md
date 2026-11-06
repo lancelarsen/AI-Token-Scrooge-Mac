@@ -30,7 +30,7 @@ To run the unit tests:
 ./script/test.sh
 ```
 
-The script builds the tests and runs the unit suite using the app-embedded Sparkle framework; the Xcode staging copy stalls during test-host startup on this Mac. Pass an Xcode filter such as `-only-testing:ScroogeTests/CoreTests` to narrow the run. UI tests are excluded from this command.
+The script runs the hosted unit suite with Xcode’s standard test action and DerivedData location. CI uses the same command. Pass an Xcode filter such as `-only-testing:ScroogeTests/CoreTests` to narrow the run. UI tests are excluded from this command.
 
 The test scheme sets `SCROOGE_TEST_MODE=1`, which uses temporary state and disables scheduled monitoring. UI tests also set this explicitly.
 

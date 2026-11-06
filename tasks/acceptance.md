@@ -2,7 +2,7 @@
 
 This is a verification checklist for the original native Mac parity objective, not a reduced definition of completion. The pinned Windows baseline and detailed evidence remain in README.md and tasks/parity.md.
 
-On November 6, the native Codex dashboard showed one weekly quota and three available earned resets. The saved account snapshots also showed healthy GitHub Copilot and Devin quotas. These checks cover quota reads on this Mac. Each provider's remaining sign-in and recovery checks are listed below. The XCTest UI target compiles; its last attempted run stopped while macOS was enabling automation, before any UI assertions ran (see artifacts/native-ui-test-run.log).
+On November 6, the native Codex dashboard showed one weekly quota and three available earned resets. The saved account snapshots also showed healthy GitHub Copilot and Devin quotas. These checks cover quota reads on this Mac. Each provider's remaining sign-in and recovery checks are listed below. Three native XCTest UI cases passed on November 6 with isolated data. They cover canceling a reconnect and opening Add Account, returning from Alert History to Settings, and toggling demo history and exiting demo.
 
 | Requirement | Evidence required to close it | Current gap |
 | --- | --- | --- |

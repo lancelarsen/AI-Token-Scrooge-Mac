@@ -17,13 +17,8 @@ struct GitHubChallenge: Sendable {
     var verificationURL: URL { URL(string: "https://github.com/login/device")! }
 }
 actor GitHubDeviceFlow {
-    private let session: URLSession
-    init() {
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.timeoutIntervalForRequest = 35; configuration.timeoutIntervalForResource = 35
-        configuration.httpCookieStorage = nil; configuration.urlCache = nil
-        session = URLSession(configuration: configuration, delegate: NoRedirects(), delegateQueue: nil)
-    }
+    private static let session = GitHubTransport.session(requestTimeout: 35, resourceTimeout: 35)
+
     nonisolated static func validClientID(_ value: String) -> Bool {
         !value.isEmpty && value.count <= 128 && value.range(of: #"\A[A-Za-z0-9_.-]+\z"#, options: .regularExpression) != nil
     }
@@ -87,13 +82,11 @@ actor GitHubDeviceFlow {
         request.httpBody = Data(fields.keys.sorted().map { key in
             "\(key.addingPercentEncoding(withAllowedCharacters: allowed)!)=\(fields[key]!.addingPercentEncoding(withAllowedCharacters: allowed)!)"
         }.joined(separator: "&").utf8)
-        let (bytes, response) = try await session.bytes(for: request)
+        let (bytes, response) = try await Self.session.bytes(for: request)
+        defer { bytes.task.cancel() }
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { throw ProviderFailure(message: "GitHub sign-in is temporarily unavailable. Try again.") }
-        guard response.expectedContentLength <= 65536 else { throw ProviderFailure(message: "GitHub sign-in response exceeded the size limit.") }
-        var data = Data()
-        for try await byte in bytes {
-            guard data.count < 65536 else { throw ProviderFailure(message: "GitHub sign-in response exceeded the size limit.") }; data.append(byte)
-        }
+        let data = try await GitHubTransport.body(bytes, response: response, limit: 65_536,
+                                                  sizeError: "GitHub sign-in response exceeded the size limit.")
         guard let result = try? JSONDecoder().decode(JSONValue.self, from: data), result.object != nil else { throw ProviderFailure(message: "GitHub returned an invalid sign-in response. Try again.") }
         return result
     }

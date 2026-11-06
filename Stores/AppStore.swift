@@ -1,6 +1,5 @@
 import Foundation
 import Observation
-import ServiceManagement
 import AppKit
 
 @MainActor @Observable final class AppStore {
@@ -24,19 +23,13 @@ import AppKit
         }
     }
     var errorMessage: String?
-    var selectedAccount: ProviderAccount?
     var highlightedAccountID: String?
     var accountRevealRequest = UUID()
     func showAlertAccount(_ alert: AlertEvent) {
-        selectedAccount = nil
-        showConnection = false
-        showAlertHistory = false
         highlightedAccountID = state.accounts.contains { $0.id == alert.accountID } ? alert.accountID : nil
         accountRevealRequest = UUID()
-        openDashboard?()
+        dashboardOpenRequest = UUID()
     }
-    var reconnectAccountID: String?
-    var showConnection = false
     private let github = GitHubClient()
     private let secrets = SecretStore()
     @ObservationIgnored private lazy var githubCredentials = GitHubCredentialManager(secrets: secrets, usage: github)
@@ -47,7 +40,7 @@ import AppKit
     var loginItemMessage: String?
     var loginItemNeedsApproval = false
     var activeAlert: AlertEvent?
-    @ObservationIgnored var openDashboard: (() -> Void)?
+    private(set) var dashboardOpenRequest = UUID()
     var iconAlert: AlertEvent? { IconAlertPolicy.evaluate(state: state, now: presentationDate) }
     var monitorAvailability: MonitorAvailability { MonitorAvailability.evaluate(state) }
     var iconUnavailable: Bool { state.settings.alertOnIcon && monitorAvailability.needsAttention }
@@ -68,14 +61,13 @@ import AppKit
     private var lastPruned: Date = .distantPast
     private var activeCredentialIDs: Set<String> = []
     private var lastCredentialCleanup: Date = .distantPast
-    var showAlertHistory = false
     let database: LocalStore?
     private let notifications: any NotificationDelivering
     private let refreshAccount: (@Sendable (ProviderAccount) async throws -> QuotaSnapshot)?
     private var realState = PersistedState()
     // Serialize state edits through one queue so awaited writes cannot lose intervening changes.
-    private var mutationTail: Task<Void, Never>?
-    private var loadTask: Task<Void, Never>?
+    @ObservationIgnored private var mutationTail: Task<Void, Never>?
+    @ObservationIgnored private var loadTask: Task<Void, Never>?
     private var localStateReady = false
     var accounts: [ProviderAccount] { AccountPolicy.ordered(state) }
     private var isTestLaunch: Bool { ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] == "1" }
@@ -86,6 +78,34 @@ import AppKit
         self.refreshAccount = refreshAccount
     }
     func waitForPendingMutations() async { await mutationTail?.value }
+
+    @discardableResult
+    private func enqueueMutation(_ operation: @escaping @MainActor () async -> Void) -> Task<Void, Never> {
+        let previous = mutationTail
+        let task = Task {
+            await previous?.value
+            await operation()
+        }
+        mutationTail = task
+        return task
+    }
+
+    /// A dismissed sign-in can cancel a queued write until persistence starts.
+    private func performCredentialMutation(_ operation: @escaping @MainActor () async throws -> Void) async throws {
+        let previous = mutationTail
+        let task = Task {
+            await previous?.value
+            try Task.checkCancellation()
+            try await operation()
+        }
+        mutationTail = Task { _ = try? await task.value }
+        try await withTaskCancellationHandler {
+            try await task.value
+        } onCancel: {
+            task.cancel()
+        }
+    }
+
     init() {
         notifications = NotificationService.shared
         refreshAccount = nil
@@ -101,12 +121,8 @@ import AppKit
     func load() async {
         if let loadTask { await loadTask.value; return }
         guard isLoading else { return }
-        let previous = mutationTail
-        let loading = Task { [weak self] in
-            await previous?.value
-            await self?.performLoad()
-        }
-        loadTask = loading; mutationTail = loading
+        let loading = enqueueMutation { [self] in await performLoad() }
+        loadTask = loading
         await loading.value
     }
     private func performLoad() async {
@@ -115,18 +131,15 @@ import AppKit
             guard let database else { throw StoreError.operation }
             state = try await database.load(); localStateReady = true
             for id in state.snapshots.keys { state.snapshots[id]?.health = .stale; state.snapshots[id]?.message = "Saved Values — Refreshing" }
-            if ProcessInfo.processInfo.arguments.contains("--demo") { enterDemo() }
+            if ProcessInfo.processInfo.arguments.contains("--demo") { loadDemoState() }
             else { await reconcileLoginItem(); await reloadHistory() }
         } catch { errorMessage = error.localizedDescription }
     }
     func edit(_ mutation: @escaping @MainActor (inout PersistedState) -> Void) {
-        let previous = mutationTail
-        mutationTail = Task { [weak self] in
-            await previous?.value
-            guard let self else { return }
+        enqueueMutation { [self] in
             var candidate = state; mutation(&candidate)
             do {
-                guard candidate.settings.thresholds.isValid else { throw PreferenceError.invalidThresholds }
+                try candidate.validate()
                 if !isDemo {
                     guard localStateReady, let database else { throw StoreError.operation }
                     try await database.save(candidate)
@@ -139,26 +152,24 @@ import AppKit
         }
     }
     func enterDemo() {
-        let previous = mutationTail
-        mutationTail = Task { [weak self] in
-            await previous?.value
-            guard let self, !isDemo else { return }
-            monitoringEpoch = UUID(); activeAlert = nil
-            realState = state
-            let arguments = ProcessInfo.processInfo.arguments
-            let scenario = arguments.firstIndex(of: "--scenario").flatMap { index in
-                arguments.indices.contains(index + 1) ? DemoData.Scenario(rawValue: arguments[index + 1]) : nil
-            } ?? .standard
-            let demo = DemoData.make(now: referenceDemoDate ?? .now, scenario: scenario)
-            historyRequest = UUID(); historyLoading = false; historyError = nil
-            state = demo.0; history = demo.1; isDemo = true
-        }
+        enqueueMutation { [self] in loadDemoState() }
+    }
+
+    private func loadDemoState() {
+        guard !isDemo else { return }
+        monitoringEpoch = UUID(); activeAlert = nil
+        realState = state
+        let arguments = ProcessInfo.processInfo.arguments
+        let scenario = arguments.firstIndex(of: "--scenario").flatMap { index in
+            arguments.indices.contains(index + 1) ? DemoData.Scenario(rawValue: arguments[index + 1]) : nil
+        } ?? .standard
+        let demo = DemoData.make(now: referenceDemoDate ?? .now, scenario: scenario)
+        historyRequest = UUID(); historyLoading = false; historyError = nil
+        state = demo.0; history = demo.1; isDemo = true
     }
     func exitDemo() {
-        let previous = mutationTail
-        mutationTail = Task { [weak self] in
-            await previous?.value
-            guard let self, isDemo else { return }
+        enqueueMutation { [self] in
+            guard isDemo else { return }
             monitoringEpoch = UUID(); activeAlert = nil
             state = realState; history = []; isDemo = false; schedule.reset()
             await reloadHistory()
@@ -233,29 +244,25 @@ import AppKit
     }
     private func pruneHistoryIfNeeded() async {
         guard !isDemo, Date.now.timeIntervalSince(lastPruned) >= 3600 else { return }
-        let previous = mutationTail
-        let pruning = Task { [weak self] in
-            await previous?.value
-            guard let self, !isDemo, let database else { return }
+        await enqueueMutation { [self] in
+            guard !isDemo, let database else { return }
             do {
                 var candidate = state
                 let cutoff = Date.now.addingTimeInterval(-Double(candidate.settings.historyRetentionDays) * 86400)
                 candidate.alerts.removeAll { $0.createdAt < cutoff }
                 try await database.prune(now: .now, days: candidate.settings.historyRetentionDays, state: candidate)
                 state = candidate; lastPruned = .now; historyCache.removeAll()
+                await reloadHistory()
             } catch { errorMessage = error.localizedDescription }
-        }
-        mutationTail = pruning; await pruning.value
+        }.value
     }
     func dismissAlert(_ id: String) {
         saveAlertAction(id, cue: "dismiss") { $0.dismissed = true }
     }
     private func saveAlertAction(_ id: String, cue: String, mutation: @escaping @MainActor (inout AlertEvent) -> Void) {
         let bannerID = activeAlert?.id
-        let previous = mutationTail
-        mutationTail = Task { [weak self] in
-            await previous?.value
-            guard let self, let index = state.alerts.firstIndex(where: { $0.id == id }) else { return }
+        enqueueMutation { [self] in
+            guard let index = state.alerts.firstIndex(where: { $0.id == id }) else { return }
             var candidate = state
             mutation(&candidate.alerts[index])
             if cue == "snooze", let until = candidate.alerts[index].snoozedUntil {
@@ -278,8 +285,7 @@ import AppKit
     }
     private func deliver(_ alert: AlertEvent, account: ProviderAccount, epoch: UUID) async {
         func eligible() -> Bool {
-            guard !isDemo, monitoringEpoch == epoch,
-                  state.accounts.contains(where: { $0.id == account.id && $0.generation == account.generation }),
+            guard currentAccount(account, epoch: epoch) != nil,
                   let current = state.alerts.first(where: { $0.id == alert.id }), !current.delivered else { return false }
             return AlertDeliveryPolicy.canDeliver(current, state: state, now: .now)
         }
@@ -313,11 +319,14 @@ import AppKit
             else { state.settings.hiddenHistoryAccounts.insert(id) }
         }
     }
-    func toggleCapacity(account: String, window: String) {
+    func setCapacityAlerts(_ enabled: Bool, account: String, window: String) {
         edit { state in
             let key = QuotaAlertSection(accountID: account, windowID: window)
-            if state.settings.disabledCapacityAlerts.contains(key) { state.settings.disabledCapacityAlerts.removeAll { $0 == key } }
-            else { state.settings.disabledCapacityAlerts.append(key) }
+            if enabled {
+                state.settings.disabledCapacityAlerts.removeAll { $0 == key }
+            } else if !state.settings.disabledCapacityAlerts.contains(key) {
+                state.settings.disabledCapacityAlerts.append(key)
+            }
         }
     }
     func setThresholds(account: String, window: String, thresholds: AlertThresholds) {
@@ -392,19 +401,20 @@ import AppKit
         refreshLoginItemStatus()
     }
     func setLaunchAtSignIn(_ enabled: Bool) {
-        guard !isDemo, !isTestLaunch else { edit { $0.settings.launchAtSignIn = enabled }; return }
-        let previous = mutationTail
-        mutationTail = Task { [weak self] in
-            await previous?.value
-            guard let self else { return }
-            let old = state.settings.launchAtSignIn
+        enqueueMutation { [self] in
+            var candidate = state
+            candidate.settings.launchAtSignIn = enabled
+            if isDemo { state = candidate; return }
+            guard localStateReady, let database else {
+                errorMessage = StoreError.operation.localizedDescription
+                return
+            }
             do {
-                try await LoginItemService.apply(enabled)
-                var candidate = state; candidate.settings.launchAtSignIn = enabled
-                guard let database else { throw StoreError.operation }
-                try await database.save(candidate); state = candidate
+                if !isTestLaunch { try await LoginItemService.apply(enabled) }
+                try await database.save(candidate)
+                state = candidate
             } catch {
-                try? await LoginItemService.apply(old)
+                if !isTestLaunch { try? await LoginItemService.apply(state.settings.launchAtSignIn) }
                 errorMessage = error.localizedDescription
             }
             refreshLoginItemStatus()
@@ -420,7 +430,7 @@ import AppKit
         await mutationTail?.value
         guard monitoringEpoch == epoch, state.alerts.contains(where: { $0.id == alert.id }) else { return }
         activeAlert = alert
-        openDashboard?()
+        dashboardOpenRequest = UUID()
         SoundPlayer.shared.play(settings: state.settings, cue: "alert", preview: true)
         do {
             try await notifications.authorize()
@@ -451,10 +461,8 @@ import AppKit
         }
     }
     func removeAccount(_ id: String) async {
-        let previous = mutationTail
-        let removal = Task { [weak self] in
-            await previous?.value
-            guard let self, let account = state.accounts.first(where: { $0.id == id }) else { return }
+        await enqueueMutation { [self] in
+            guard let account = state.accounts.first(where: { $0.id == id }) else { return }
             var candidate = state
             candidate.accounts.removeAll { $0.id == id }
             candidate.snapshots.removeValue(forKey: id)
@@ -473,30 +481,28 @@ import AppKit
                 state = candidate; history.removeAll { $0.snapshot.accountID == id }
                 lastCredentialCleanup = .distantPast
             } catch { errorMessage = error.localizedDescription }
-        }
-        mutationTail = removal
-        await removal.value
+        }.value
     }
     /// Persist cleanup intent before a provider can write credentials. Reuse the durable
     /// retirement queue so interrupted sign-ins are recovered on the next launch.
     func stageCredential(provider: Provider, id: String) async throws {
         guard UUID(uuidString: id) != nil else { throw SecretStoreError.invalidID }
         activeCredentialIDs.insert(id)
-        let previous = mutationTail
-        let commit = Task { @MainActor [weak self] in
-            await previous?.value
-            guard let self, !isDemo, localStateReady, let database else { throw StoreError.operation }
-            guard !state.accounts.contains(where: { $0.credentialID == id }) else { throw StoreError.operation }
-            var candidate = state
-            if !candidate.retiredAccounts.contains(where: { $0.credentialID == id }) {
-                candidate.retiredAccounts.append(ProviderAccount(provider: provider, nickname: "Pending sign-in", subject: "", scope: "", credentialID: id))
+        do {
+            try await performCredentialMutation { [self] in
+                guard !isDemo, localStateReady, let database,
+                      !state.accounts.contains(where: { $0.credentialID == id }) else { throw StoreError.operation }
+                var candidate = state
+                if !candidate.retiredAccounts.contains(where: { $0.credentialID == id }) {
+                    candidate.retiredAccounts.append(ProviderAccount(provider: provider, nickname: "Pending sign-in", subject: "", scope: "", credentialID: id))
+                }
+                try await database.save(candidate)
+                state = candidate
             }
-            try await database.save(candidate)
-            state = candidate
+        } catch {
+            activeCredentialIDs.remove(id)
+            throw error
         }
-        mutationTail = Task { _ = try? await commit.value }
-        do { try await commit.value }
-        catch { activeCredentialIDs.remove(id); throw error }
     }
     func endCredentialAttempt(_ id: String) {
         activeCredentialIDs.remove(id)
@@ -504,35 +510,38 @@ import AppKit
     }
     /// Connection commits share the mutation queue with settings, refreshes and removal.
     func acceptConnection(_ account: ProviderAccount, snapshot: QuotaSnapshot, replacing original: ProviderAccount?) async throws {
-        let previous = mutationTail
-        let commit = Task { @MainActor [weak self] in
-            await previous?.value
-            try Task.checkCancellation()
-            guard let self, !isDemo, localStateReady, let database else { throw StoreError.operation }
+        try await performCredentialMutation { [self] in
+            guard !isDemo, localStateReady, let database else { throw StoreError.operation }
+            var candidate = state
+            let accepted: ProviderAccount
             if let original {
-                guard state.accounts.contains(where: { $0.id == original.id && $0.generation == original.generation }) else {
+                guard let index = candidate.accounts.firstIndex(where: { $0.id == original.id && $0.generation == original.generation }) else {
                     throw ProviderFailure(message: "This connection changed while signing in. Please reconnect again.")
                 }
+                let current = candidate.accounts[index]
+                accepted = try AccountPolicy.reconnect(original: current, replacement: account)
+                candidate.accounts[index] = accepted
+                if current.credentialID != accepted.credentialID { candidate.retiredAccounts.append(current) }
+            } else {
+                guard !candidate.accounts.contains(where: { $0.id == account.id }) else {
+                    throw ProviderFailure(message: "This account is already connected.")
+                }
+                accepted = account
+                candidate.accounts.append(accepted)
+                candidate.settings.accountOrder.append(accepted.id)
             }
-            guard snapshot.belongs(to: account) else { throw AccountError.differentIdentity }
-            guard !state.accounts.contains(where: { $0.id != account.id && $0.provider == account.provider && $0.subject == account.subject && $0.scopeEquals(account.scope) }) else {
+            guard snapshot.belongs(to: accepted) else { throw AccountError.differentIdentity }
+            guard !candidate.accounts.contains(where: { $0.id != accepted.id && $0.provider == accepted.provider && $0.subject == accepted.subject && $0.scopeEquals(accepted.scope) }) else {
                 throw ProviderFailure(message: "This account is already connected.")
             }
-            var candidate = state
-            if let index = candidate.accounts.firstIndex(where: { $0.id == account.id }) { candidate.accounts[index] = account }
-            else { candidate.accounts.append(account); candidate.settings.accountOrder.append(account.id) }
-            candidate.snapshots[account.id] = snapshot
-            candidate.retiredAccounts.removeAll { $0.credentialID == account.credentialID }
-            if let original { candidate.retiredAccounts.append(original) }
-            try await database.accept(snapshot, account: account, state: candidate)
-            state = candidate; reconnectAccountID = nil; lastCredentialCleanup = .distantPast
+            candidate.snapshots[accepted.id] = snapshot
+            candidate.retiredAccounts.removeAll { $0.credentialID == accepted.credentialID }
+            try await database.accept(snapshot, account: accepted, state: candidate)
+            state = candidate; lastCredentialCleanup = .distantPast
         }
-        mutationTail = Task { _ = try? await commit.value }
-        try await commit.value
         await reloadHistory()
     }
-    func connectDevin(nickname: String, workspace: String) async throws {
-        let original = state.accounts.first { $0.id == reconnectAccountID }
+    func connectDevin(nickname: String, workspace: String, replacing original: ProviderAccount?) async throws {
         let input = (original?.scope ?? workspace).trimmingCharacters(in: .whitespacesAndNewlines)
         let host = DevinUsage.workspace(input)?.host
         guard host != nil || (input.isEmpty && original == nil) else {
@@ -546,17 +555,18 @@ import AppKit
         let snapshot = try await DevinClient.read(account: account, secrets: secrets, interactive: true)
         account.subject = snapshot.subject
         account.scope = snapshot.scope
-        if let original { account = try AccountPolicy.reconnect(original: original, replacement: account) }
         try Task.checkCancellation()
         try await acceptConnection(account, snapshot: snapshot, replacing: original)
     }
 
-    func connectGitHub(nickname: String, token: String, allowance: Decimal?, unit: UsageUnit, organization: String, appTokens: GitHubAppTokens? = nil) async throws {
-        let original = state.accounts.first { $0.id == reconnectAccountID }
+    func connectGitHub(nickname: String, token: String, allowance: Decimal?, unit: UsageUnit, organization: String, appTokens: GitHubAppTokens? = nil, replacing original: ProviderAccount?) async throws {
         let identity = try await github.identify(token: token)
         var account = ProviderAccount(provider: .copilot, nickname: nickname, subject: identity.subject,
             scope: organization.isEmpty ? "personal" : "organization:" + organization.lowercased(), allowance: allowance, unit: unit, login: identity.login)
-        if let original { account.id = original.id; account = try AccountPolicy.reconnect(original: original, replacement: account) }
+        if let original {
+            account.id = original.id
+            try AccountPolicy.validateReconnect(original: original, replacement: account)
+        }
         var snapshot: QuotaSnapshot
         do { snapshot = try await github.read(account: account, token: token) }
         catch let error as ProviderFailure {
@@ -610,7 +620,9 @@ import AppKit
     private func currentAccount(_ account: ProviderAccount, epoch: UUID) -> ProviderAccount? {
         guard !isDemo, monitoringEpoch == epoch else { return nil }
         return state.accounts.first {
-            $0.enabled && $0.id == account.id && $0.generation == account.generation && $0.credentialID == account.credentialID
+            $0.enabled && $0.id == account.id && $0.generation == account.generation &&
+                $0.credentialID == account.credentialID && $0.provider == account.provider &&
+                $0.subject == account.subject && $0.scopeEquals(account.scope)
         }
     }
 
@@ -643,10 +655,8 @@ import AppKit
             response = .success(snapshot)
         } catch { response = .failure(error) }
 
-        let previous = mutationTail
         var historyChanged = false
-        let acceptance = Task {
-            await previous?.value
+        await enqueueMutation { [self] in
             guard let current = currentAccount(account, epoch: epoch) else { return }
             var candidate = state
             let prior = candidate.snapshots[current.id]
@@ -684,13 +694,8 @@ import AppKit
                     }
                 }
             } catch { errorMessage = error.localizedDescription }
-        }
-        mutationTail = acceptance
-        await acceptance.value
+        }.value
         if historyChanged { await reloadHistory() }
     }
 
-}
-enum PreferenceError: LocalizedError { case invalidThresholds
-    var errorDescription: String? { "Alert levels must satisfy Critical < Warning ≤ Info, between 0 and 100." }
 }

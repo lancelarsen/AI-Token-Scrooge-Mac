@@ -1,13 +1,25 @@
 import SwiftUI
 
+private enum DashboardSheet: Identifiable {
+    case settings
+    case accountSettings(String)
+    case connection(original: ProviderAccount?)
+
+    var id: String {
+        switch self {
+        case .settings: "settings"
+        case let .accountSettings(id): "account/" + id
+        case let .connection(original): "connect/" + (original?.id ?? "new")
+        }
+    }
+}
+
 struct DashboardView: View {
     @Environment(AppStore.self) private var store
     @State private var dragging = AccountDragging()
-    @State private var showSettings = false
+    @State private var sheet: DashboardSheet?
     @State private var hostSize = CGSize(width: 1000, height: 800)
-    @Environment(\.openWindow) private var openWindow
     var body: some View {
-        @Bindable var store = store
         GeometryReader { geometry in
             VStack(spacing: 0) {
                 header(wide: geometry.size.width >= 1100)
@@ -15,11 +27,12 @@ struct DashboardView: View {
                 ScrollViewReader { proxy in
                     ScrollView {
                         VStack(spacing: 20) {
-                            HorizonView()
+                            HorizonView(openSettings: { sheet = .settings })
                             toolbar
                             if store.accounts.isEmpty { emptyState }
                             ForEach(store.accounts) { account in
-                                AccountCard(account: account, wide: geometry.size.width - 64 - (store.state.settings.accountSort == .custom ? 57 : 0) - 56 > 1050)
+                                AccountCard(account: account, wide: geometry.size.width - 64 - (store.state.settings.accountSort == .custom ? 57 : 0) - 56 > 1050,
+                                            openSettings: { sheet = .accountSettings(account.id) })
                                     .id(account.id)
                                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.accent, lineWidth: store.highlightedAccountID == account.id ? 3 : 0))
                                     .background(AccountDragMarker(id: account.id, dragging: dragging))
@@ -45,24 +58,33 @@ struct DashboardView: View {
         .environment(dragging)
         .onChange(of: store.accounts.map(\.id)) { dragging.cancel() }
         .onChange(of: store.state.settings.accountSort) { dragging.cancel() }
+        .onChange(of: store.accountRevealRequest) { sheet = nil }
         .onDisappear { dragging.cancel() }
         .preferredColorScheme(.dark).tint(Theme.accent)
         .overlay(alignment: .bottomTrailing) { if let alert = store.activeAlert { AlertBannerView(alert: alert) } }
-        .sheet(item: $store.selectedAccount) { account in AccountSettingsView(accountID: account.id, hostSize: hostSize).environment(store) }
-        .sheet(isPresented: $showSettings) { SettingsView().environment(store).environment(\.dashboardHostSize, hostSize) }
-        .sheet(isPresented: $store.showConnection) { ConnectionView().environment(store).environment(\.dashboardHostSize, hostSize) }
-        .sheet(isPresented: $store.showAlertHistory) { AlertHistoryView().environment(store).environment(\.dashboardHostSize, hostSize) }
-        .sheet(isPresented: Binding(get: { store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })) {
+        .sheet(item: $sheet) { destination in
+            Group {
+                switch destination {
+                case .settings:
+                    SettingsView()
+                case let .accountSettings(id):
+                    AccountSettingsView(accountID: id, hostSize: hostSize) { account in
+                        sheet = .connection(original: account)
+                    }
+                case let .connection(original):
+                    ConnectionView(original: original)
+                }
+            }
+            .environment(store)
+            .environment(\.dashboardHostSize, hostSize)
+        }
+        .sheet(isPresented: Binding(get: { sheet == nil && store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })) {
             DetailsDialog(close: { store.errorMessage = nil }) {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Scrooge Needs Attention").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
                     Text(store.errorMessage ?? "")
                 }
             }
-        }
-        .task {
-            store.openDashboard = { openWindow(id: "dashboard"); NSApp.activate(ignoringOtherApps: true) }
-            await store.load()
         }
     }
     private func header(wide: Bool) -> some View {
@@ -71,7 +93,7 @@ struct DashboardView: View {
         let refreshDisabled = refreshing && !store.canRequestRefresh
         return layout {
             HStack(spacing: 14) {
-                if let url = Bundle.main.url(forResource: "token_baron", withExtension: "png"), let mascot = NSImage(contentsOf: url) {
+                if let mascot = ThemeImages.image("token_baron", extension: "png") {
                     Image(nsImage: mascot).resizable().scaledToFit().frame(width: 66, height: 66)
                 }
                 VStack(alignment: .leading, spacing: 0) {
@@ -96,7 +118,7 @@ struct DashboardView: View {
                 }
                 .buttonStyle(ScroogeButtonStyle(processing: refreshing))
                 .disabled(refreshDisabled).accessibilityIdentifier("refreshButton")
-                Button { showSettings = true } label: { ActionLabel(title: "Settings", symbol: "gearshape") }.accessibilityIdentifier("settingsButton")
+                Button { sheet = .settings } label: { ActionLabel(title: "Settings", symbol: "gearshape") }.accessibilityIdentifier("settingsButton")
             }.frame(maxWidth: wide ? 500 : .infinity).buttonStyle(ScroogeButtonStyle())
         }.padding(.horizontal, 32).padding(.vertical, 18)
     }
@@ -120,7 +142,7 @@ struct DashboardView: View {
                         .overlay(alignment: .trailing) { if sort != AccountSort.allCases.last { Rectangle().fill(Color(hex: "#45464D")).frame(width: 1) } }
                 }
             }.clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#45464D")))
-            Button { if store.isDemo { store.exitDemo() } else { store.showConnection = true } } label: {
+            Button { if store.isDemo { store.exitDemo() } else { sheet = .connection(original: nil) } } label: {
                 ActionLabel(title: store.isDemo ? "Exit Demo" : "Add Account", symbol: store.isDemo ? "arrow.up.right.square" : "plus")
             }.buttonStyle(ScroogeButtonStyle()).accessibilityIdentifier("addAccountButton")
         }
@@ -142,6 +164,7 @@ struct AccountCard: View {
     @Environment(AccountDragging.self) private var dragging
     let account: ProviderAccount
     let wide: Bool
+    let openSettings: () -> Void
     private var snapshot: QuotaSnapshot? { store.state.snapshots[account.id] }
     @State private var showIdentityDetails = false
     private var hasQuotaDetails: Bool {
@@ -172,13 +195,13 @@ struct AccountCard: View {
                     }
                 }.padding(.leading, 20).padding(.trailing, 16).padding(.vertical, 8)
             } else {
-                Button { store.selectedAccount = account } label: {
+                Button(action: openSettings) {
                     DialogActionLabel(title: accountStatus)
                         .frame(maxWidth: .infinity, minHeight: 50)
                         .padding(.vertical, 10)
                 }.buttonStyle(ScroogeButtonStyle())
             }
-            Button { store.selectedAccount = account } label: { ActionIcon(symbol: "gearshape", size: 20).frame(width: 44, height: 44) }.buttonStyle(ScroogeButtonStyle(segmented: true)).clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#45464D"))).modifier(ImmediateReferenceTooltip(text: settingsDescription))
+            Button(action: openSettings) { ActionIcon(symbol: "gearshape", size: 20).frame(width: 44, height: 44) }.buttonStyle(ScroogeButtonStyle(segmented: true)).clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#45464D"))).modifier(ImmediateReferenceTooltip(text: settingsDescription))
                 .accessibilityLabel(settingsDescription)
                 .padding(.top, 14).padding(.trailing, 12).frame(maxHeight: .infinity, alignment: .top)
         }.background(Theme.card)
@@ -202,7 +225,7 @@ struct AccountCard: View {
     private var identity: some View {
         Button {
             if hasQuotaDetails { showIdentityDetails = true }
-            else { store.selectedAccount = account }
+            else { openSettings() }
         } label: {
             HStack(spacing: 16) {
                 ProviderIcon(provider: account.provider, size: 44)
@@ -298,9 +321,7 @@ struct QuotaRow: View {
                     ForEach([true, false], id: \.self) { enabled in
                         if !enabled { Rectangle().fill(Color(hex: "#45464D")).frame(width: 1, height: 46) }
                         Button {
-                            if store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) != enabled {
-                                store.toggleCapacity(account: account.id, window: window.id)
-                            }
+                            store.setCapacityAlerts(enabled, account: account.id, window: window.id)
                         } label: {
                             ActionIcon(symbol: enabled ? "bell.badge" : "bell.slash", size: 22)
                                 .frame(width: 39, height: 46)
