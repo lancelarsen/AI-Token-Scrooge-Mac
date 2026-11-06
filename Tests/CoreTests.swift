@@ -2,6 +2,24 @@ import XCTest
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testRowDeadlinePrefersOnlyEarlierEligibleAvailableExpiry() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let expiry = now.addingTimeInterval(60)
+        var window = QuotaWindow(id: "weekly", name: "Weekly", unit: .percent, resetsAt: now.addingTimeInterval(120))
+        window.durationMinutes = 10080
+        let reserve = ResetReserve(availableCount: 1, credits: [ResetCredit(id: "credit", status: "available", expiresAt: expiry)])
+        XCTAssertTrue(RowDeadline.select(provider: .codex, window: window, reserve: reserve, now: now).isExpiry)
+        XCTAssertEqual(RowDeadline.select(provider: .codex, window: window, reserve: reserve, now: now).at, expiry)
+        window.durationMinutes = 300
+        XCTAssertFalse(RowDeadline.select(provider: .codex, window: window, reserve: reserve, now: now).isExpiry)
+        window.durationMinutes = 10080
+        window.resetsAt = expiry
+        XCTAssertFalse(RowDeadline.select(provider: .codex, window: window, reserve: reserve, now: now).isExpiry)
+        window.resetsAt = nil
+        XCTAssertTrue(RowDeadline.select(provider: .codex, window: window, reserve: reserve, now: now).isExpiry)
+        XCTAssertNil(RowDeadline.select(provider: .codex, window: window, reserve: reserve, now: expiry).at)
+    }
+
     func testTimeZoneMenuUsesStandardOffsetsAcrossSeasons() throws {
         let zones = ["Asia/Kathmandu", "America/Phoenix", "Pacific/Honolulu", "Asia/Kolkata", "America/Los_Angeles", "America/Phoenix", "invalid/zone"]
         let expected = ["Pacific/Honolulu", "America/Los_Angeles", "America/Phoenix", "Asia/Kolkata", "Asia/Kathmandu"]

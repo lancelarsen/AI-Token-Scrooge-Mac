@@ -228,7 +228,10 @@ struct QuotaRow: View {
     let snapshot: QuotaSnapshot
     let wide: Bool
     @State private var showDetails = false
+    @State private var showReserve = false
+    private var deadline: RowDeadline { RowDeadline.select(provider: account.provider, window: window, reserve: snapshot.reserve, now: store.presentationDate) }
     var body: some View {
+        TimelineView(.periodic(from: .now, by: 30)) { _ in
         Group {
             if wide {
                 HStack(spacing: 12) { quotaDetailsButton; usageControls; resetDetailsButton.frame(width: 200, alignment: .leading) }
@@ -236,7 +239,7 @@ struct QuotaRow: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(alignment: .center, spacing: 12) {
                         quotaDetailsButton.frame(maxWidth: .infinity, alignment: .leading)
-                        if window.resetsAt != nil {
+                        if deadline.at != nil {
                             resetDetailsButton.frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
@@ -244,7 +247,11 @@ struct QuotaRow: View {
                 }
             }
         }
+        }
         .frame(minHeight: 56)
+        .sheet(isPresented: $showReserve) {
+            AccountUsageDialog(accountID: account.id, windowID: nil, close: { showReserve = false })
+        }
         .sheet(isPresented: $showDetails) {
             AccountUsageDialog(accountID: account.id, windowID: window.id, close: { showDetails = false })
         }
@@ -256,8 +263,10 @@ struct QuotaRow: View {
             .accessibilityLabel("\(Format.windowTitle(window.name)). Open Details")
     }
     @ViewBuilder private var resetDetailsButton: some View {
-        if window.resetsAt != nil {
-            Button { showDetails = true } label: {
+        if deadline.at != nil {
+            Button {
+                if deadline.isExpiry { showReserve = true } else { showDetails = true }
+            } label: {
                 resetCountdown.contentShape(Rectangle())
             }.buttonStyle(.plain)
                 .accessibilityLabel("Reset for \(Format.windowTitle(window.name)). Open Details")
@@ -312,11 +321,12 @@ struct QuotaRow: View {
             }
     }
     @ViewBuilder private var resetCountdown: some View {
-        if window.resetsAt != nil {
+        if deadline.at != nil {
             TimelineView(.periodic(from: .now, by: 30)) { context in
                 let now = store.isDemo ? store.presentationDate : context.date
+                let selected = RowDeadline.select(provider: account.provider, window: window, reserve: snapshot.reserve, now: now)
                 let enabled = store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id)
-                let severity = enabled ? window.resetsAt.flatMap { TimedReminder.due(store.state.settings.quotaRefreshReminders, at: $0, now: now)?.severity } : nil
+                let severity = enabled ? selected.at.flatMap { TimedReminder.due(store.state.settings.quotaRefreshReminders, at: $0, now: now)?.severity } : nil
                 let clockColor: Color = switch severity {
                 case .critical: Color(hex: "#F05B69")
                 case .warning: Color(hex: "#F2C94C")
@@ -324,10 +334,10 @@ struct QuotaRow: View {
                 case nil: Color(hex: "#B5A0F4")
                 }
                 HStack(alignment: .top, spacing: 12) {
-                    ActionIcon(symbol: "clock", size: 25)
-                        .environment(\.actionForeground, clockColor)
+                    ResetCountdownIcon(isExpiry: selected.isExpiry)
+                        .environment(\.actionForeground, selected.isExpiry ? Color(hex: "#EAAA51") : clockColor)
                         .padding(.top, 3)
-                    ResetCountdownText(date: window.resetsAt, now: now, zone: store.state.settings.zone)
+                    ResetCountdownText(date: selected.at, now: now, zone: store.state.settings.zone, isExpiry: selected.isExpiry)
                 }.frame(width: wide ? 200 : nil, alignment: .leading)
             }
         }

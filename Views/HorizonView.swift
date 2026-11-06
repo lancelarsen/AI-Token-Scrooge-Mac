@@ -369,7 +369,7 @@ struct HorizonView: View {
                     }.buttonStyle(.plain)
                         .modifier(ImmediateResetTooltip(context: eventCountdownContext(event), date: event.date,
                             zone: store.state.settings.zone, accessibilityText: eventTooltip(event),
-                            referenceDate: store.isDemo ? now : nil))
+                            referenceDate: store.isDemo ? now : nil, isExpiry: event.expiration))
                         .position(x: viewport.dayAnchor(date), y: CGFloat(114 + index * 76))
                 }
             }

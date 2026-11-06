@@ -187,3 +187,16 @@ enum AccountPolicy {
 enum AccountError: LocalizedError { case differentIdentity
     var errorDescription: String? { "This is a different account or workspace. Reconnect the original account, or add a separate connection." }
 }
+
+struct RowDeadline {
+    let at: Date?
+    let isExpiry: Bool
+    static func select(provider: Provider, window: QuotaWindow, reserve: ResetReserve?, now: Date) -> RowDeadline {
+        if UsageHistory.selectWindow(provider: provider, windows: [window]).window != nil,
+           let expiry = reserve?.earliestExpiry(after: now),
+           window.resetsAt == nil || expiry < window.resetsAt! {
+            return RowDeadline(at: expiry, isExpiry: true)
+        }
+        return RowDeadline(at: window.resetsAt, isExpiry: false)
+    }
+}

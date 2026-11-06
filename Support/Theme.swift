@@ -450,6 +450,7 @@ struct ImmediateResetTooltip: ViewModifier {
     let zone: TimeZone
     let accessibilityText: String
     var referenceDate: Date? = nil
+    var isExpiry = false
     @State private var visible = false
     @State private var openedAt = Date.now
     func body(content: Content) -> some View {
@@ -463,7 +464,7 @@ struct ImmediateResetTooltip: ViewModifier {
             .background {
                 GeometryReader { geometry in
                     HistoryPointerTracking(plainText: true,
-                        resetContent: ResetTooltipContent(context: context, date: date, now: openedAt, zone: zone),
+                        resetContent: ResetTooltipContent(context: context, date: date, now: openedAt, zone: zone, isExpiry: isExpiry),
                         text: visible ? context : nil, pinned: true,
                         anchor: CGPoint(x: geometry.size.width / 2, y: 0),
                         onMove: { point in if point == nil { visible = false } })

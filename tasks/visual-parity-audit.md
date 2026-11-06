@@ -1445,3 +1445,10 @@ The user explicitly requires Windows-exact color names. Native macOS color names
 ### Empty Timeline Right Inset — 2026-11-06
 
 Windows HistoryTimelineView defines PlotRight=12 and Span=chart.Width-AxisLeft-PlotRight; its rail ends at AxisLeft+Span. The Mac emptyTimeline Canvas omitted that inset and drew through size.width. Added the same12-point right reservation, clamped at the left endpoint. The populated scrolling timeline is unchanged. Canonical build passes in artifacts/empty-rail-inset-build.log. Post-build native verification was interrupted by a Sparkle update reminder and then CUA timeout; fresh rendered confirmation remains open. The reminder displayed available2026.11.3 versus installed2026.11.6 and requires a separate update-version investigation; no update was installed.
+
+
+### Windows Countdown Updates Through c09f499 — 2026-11-06
+
+Reviewed all four commits after3c863a5: earlier earned-reset deadlines (3fb017f), matching tooltip glyphs/colors (efa3e2f), clock scale (bae1c75), and visible left-edge offset (c09f499). Ported eligible weekly/monthly row selection of an available future expiry only when earlier than the quota refresh (or when refresh is missing). Expiry clicks open Available Resets; the row reevaluates on its30-second clock. Refresh uses Fluent E72C, expiry uses E823 in amber EAAA51 with44/41 scale and+1 horizontal offset in the existing25-point slot. Tooltip timing includes the icon,12-point gap and7-point top margin; width calculation reserves the new icon column.
+
+Build passes (windows-row-deadline-build.log); final build-for-testing and focused deadline regression pass (windows-deadline-tests.log). Test covers earlier expiry, ineligible five-hour window, tied deadlines, missing refresh and elapsed expiry. Native hover rendering, click routing and clock-edge visual measurement remain to be checked; passing model tests do not establish those.

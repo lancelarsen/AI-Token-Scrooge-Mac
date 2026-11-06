@@ -31,11 +31,12 @@ struct ResetCountdownText: View {
     let date: Date?
     let now: Date
     let zone: TimeZone
+    var isExpiry = false
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(Format.countdown(date, now: now))
                 .font(.reference(size: 20, weight: .semibold))
-                .foregroundStyle(Color(hex: "#BDA3F5"))
+                .foregroundStyle(Color(hex: isExpiry ? "#EAAA51" : "#BDA3F5"))
             Text(Format.date(date, zone: zone))
                 .font(.reference(size: 12)).foregroundStyle(Theme.dialogText)
         }
@@ -47,6 +48,7 @@ struct ResetTooltipContent: Equatable {
     let date: Date
     let now: Date
     let zone: TimeZone
+    var isExpiry = false
 
     func width(available: CGFloat) -> CGFloat {
         let contextWidth = context.components(separatedBy: "\n").map {
@@ -54,7 +56,7 @@ struct ResetTooltipContent: Equatable {
         }.max() ?? 0
         let countdownWidth = (Format.countdown(date, now: now) as NSString).size(withAttributes: [.font: ReferenceTypography.measuringFont(ofSize: 20, weight: .semibold)]).width
         let dateWidth = (Format.date(date, zone: zone) as NSString).size(withAttributes: [.font: ReferenceTypography.measuringFont(ofSize: 12)]).width
-        return max(0, min(320, available, ceil(max(contextWidth, countdownWidth, dateWidth) + 30)))
+        return max(0, min(320, available, ceil(max(contextWidth, max(countdownWidth, dateWidth) + 37) + 30)))
     }
 }
 
@@ -64,11 +66,26 @@ struct ReferenceResetTooltip: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(content.context).font(.reference(size: 13)).foregroundStyle(Color(hex: "#F2F1F5"))
-            ResetCountdownText(date: content.date, now: content.now, zone: content.zone)
+            HStack(alignment: .top, spacing: 12) {
+                ResetCountdownIcon(isExpiry: content.isExpiry)
+                    .environment(\.actionForeground, Color(hex: content.isExpiry ? "#EAAA51" : "#BDA3F5"))
+                    .padding(.top, 3)
+                ResetCountdownText(date: content.date, now: content.now, zone: content.zone, isExpiry: content.isExpiry)
+            }.padding(.top, 7)
         }
         .padding(.horizontal, 14).padding(.vertical, 10).padding(1)
         .frame(width: width, alignment: .leading).fixedSize(horizontal: false, vertical: true)
         .background(Color(hex: "#222329"), in: RoundedRectangle(cornerRadius: 12))
         .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color(hex: "#65577F"), lineWidth: 1))
+    }
+}
+
+/// Keep the 25-point slot while matching the visible Fluent glyph bounds.
+struct ResetCountdownIcon: View {
+    var isExpiry = false
+    var body: some View {
+        ActionIcon(symbol: isExpiry ? "clock" : "arrow.clockwise", size: 25)
+            .scaleEffect(isExpiry ? 44.0 / 41.0 : 1)
+            .offset(x: isExpiry ? 1 : 0)
     }
 }
