@@ -444,6 +444,36 @@ try {
     if (-not ($footer.Rows | Where-Object { $_.type -eq 'ControlType.Button' -and $_.name -eq 'Send Test Notification' -and -not $_.offscreen })) {
         throw 'Global settings footer was not exposed.'
     }
+    Invoke-ReferenceAction -Name 'Close' -Root $root
+    Start-Sleep -Seconds 1
+    Scroll-ReferencePanel -Percent 40
+    Invoke-ReferenceAction -Name 'Exit demo' -Root $root
+    Start-Sleep -Seconds 2
+    $empty = Save-ReferenceView -Name 'empty-dashboard' -Root $root -Handle $handle -Output $Output
+    # These are untouched connection forms in fresh storage. Never invoke a
+    # sign-in, submit credentials, or begin provider authorization in this probe.
+    foreach ($provider in @('OpenAI Codex', 'GitHub Copilot', 'Claude', 'Devin')) {
+        Invoke-ReferenceAction -Name 'Add account' -Root $root
+        Start-Sleep -Seconds 1
+        $chooser = Save-ReferenceView -Name 'provider-chooser' -Root $root -Handle $handle -Output $Output
+        Invoke-ReferenceAction -Name $provider -Root $root
+        Start-Sleep -Seconds 1
+        $slug = $provider.ToLowerInvariant().Replace(' ', '-')
+        $form = Save-ReferenceView -Name ('connect-' + $slug) -Root $root -Handle $handle -Output $Output
+        if (-not ($form.Rows | Where-Object { $_.type -eq 'ControlType.Text' -and $_.name -eq ('Connect ' + $provider) })) {
+            throw "Connection form heading not exposed: $provider"
+        }
+        if ($provider -eq 'GitHub Copilot') {
+            Invoke-ReferenceAction -Name 'Use an access token instead' -Root $root
+            Start-Sleep -Seconds 1
+            $advanced = Save-ReferenceView -Name 'connect-github-advanced' -Root $root -Handle $handle -Output $Output
+            if (-not ($advanced.Rows | Where-Object { $_.name -eq 'Use browser sign-in instead' })) {
+                throw 'Advanced GitHub form did not appear.'
+            }
+        }
+        Invoke-ReferenceAction -Name 'Cancel' -Root $root
+        Start-Sleep -Seconds 1
+    }
 
 } catch {
     [ordered]@{ message = $_.Exception.Message; stack = $_.ScriptStackTrace;
