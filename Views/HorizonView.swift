@@ -393,7 +393,8 @@ struct HorizonView: View {
                                     if store.state.accounts.filter({ $0.enabled && $0.provider == event.account.provider }).count > 1 {
                                         Text(plan == "Plan Unavailable" ? "?" : plan)
                                             .font(.reference(size: 10, weight: .semibold)).lineLimit(1)
-                                            .padding(.horizontal, 5).padding(.vertical, 1)
+                                            .referenceFallbackLineMetrics(size: 10)
+                                            .padding(.horizontal, 5).padding(.vertical, 1).padding(1)
                                             .background(Color(hex: "#1C1E24"))
                                             .clipShape(RoundedRectangle(cornerRadius: 6))
                                             .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(accent, lineWidth: 1))

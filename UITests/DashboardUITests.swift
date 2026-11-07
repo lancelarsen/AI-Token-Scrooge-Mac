@@ -384,6 +384,78 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(hex.waitForNonExistence(timeout: 3))
     }
 
+    @MainActor func testTimelineResetTooltipContentPlacementAndClickThrough() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", "--compact", "--reference-date", "2026-11-04T16:16:00Z"]
+        app.launch()
+        defer { app.terminate() }
+        let dashboard = app.windows["dashboard"]
+        if !dashboard.waitForExistence(timeout: 2) {
+            let menu = app.menuBars.menuBarItems["Window"]
+            menu.click()
+            menu.menuItems["AI Token Scrooge"].click()
+        }
+        app.activate()
+        let header = dashboard.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.12))
+        header.click()
+        header.hover()
+        let owner = try XCTUnwrap(NSRunningApplication.runningApplications(withBundleIdentifier: "com.lancelarsen.AITokenScrooge")
+            .max { ($0.launchDate ?? .distantPast) < ($1.launchDate ?? .distantPast) }).processIdentifier
+        let initialWindows = Set(Self.visibleWindows(for: owner).keys)
+        let candidates = dashboard.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "OpenAI,")).allElementsBoundByIndex
+            .filter { $0.isHittable && $0.frame.width < 70 && $0.frame.height >= 70 && dashboard.frame.contains($0.frame) }
+        let event = try XCTUnwrap(candidates.max { $0.frame.maxX < $1.frame.maxX }, "A visible right-side reset event is required")
+        event.hover()
+        func floatingPanel() -> (key: CGWindowID, value: CGRect)? {
+            Self.visibleWindows(for: owner).first { !initialWindows.contains($0.key) && $0.value.width <= 450 }
+        }
+        let appeared = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in floatingPanel() != nil }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [appeared], timeout: 3), .completed)
+        let panel = try XCTUnwrap(floatingPanel())
+        XCTAssertTrue(dashboard.frame.contains(panel.value))
+        XCTAssertLessThanOrEqual(panel.value.width, 320)
+        let screen = CGDisplayBounds(CGMainDisplayID())
+        let image = XCUIScreen.main.screenshot().image
+        let pixels = try XCTUnwrap(image.cgImage(forProposedRect: nil, context: nil, hints: nil))
+        let cropBounds = panel.value.offsetBy(dx: -screen.minX, dy: -screen.minY)
+            .applying(CGAffineTransform(scaleX: CGFloat(pixels.width) / screen.width, y: CGFloat(pixels.height) / screen.height))
+        let crop = try XCTUnwrap(pixels.cropping(to: cropBounds.integral))
+        let recognition = VNRecognizeTextRequest()
+        recognition.recognitionLevel = .accurate
+        recognition.recognitionLanguages = ["en-US"]
+        try VNImageRequestHandler(cgImage: crop).perform([recognition])
+        let text = recognition.results?.compactMap { $0.topCandidates(1).first?.string }.joined(separator: " ") ?? ""
+        XCTAssertTrue((text.contains("OpenAI") || text.contains("OpenAl")) && text.contains("Nov"), text)
+        XCTAssertTrue(text.contains("Quota Refresh") || text.contains("Expires"), text)
+        XCTAssertNotNil(text.range(of: #"[0-9]+[dhm]"#, options: .regularExpression), "A styled remaining-time label must be visible: \(text)")
+        let attachment = XCTAttachment(image: NSImage(cgImage: crop, size: panel.value.size))
+        attachment.name = "Reset event tooltip at compact right side"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        header.hover()
+        XCTAssertNil(Self.visibleWindows(for: owner)[panel.key], "Pointer exit hides reset details")
+        event.hover()
+        let reopened = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in floatingPanel() != nil }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [reopened], timeout: 3), .completed)
+        let reopenedPanel = try XCTUnwrap(floatingPanel())
+        event.click()
+        XCTAssertTrue(app.buttons["Close"].waitForExistence(timeout: 5), "The tooltip must not intercept the reset event's details action")
+        if text.contains("Expires") {
+            XCTAssertTrue(app.staticTexts["Available Resets"].exists)
+        } else {
+            let work = event.label.contains(", Pro,")
+            let account = work ? "OpenAI / Work · Pro" : "OpenAI / Personal · Plus"
+            XCTAssertTrue(app.staticTexts[account].exists)
+            let weekly = text.contains("Weekly")
+            let usage = work ? (weekly ? "58% Used · 42% Left" : "19% Used · 81% Left") :
+                (weekly ? "74% Used · 26% Left" : "38% Used · 62% Left")
+            XCTAssertTrue(app.staticTexts[usage].exists, "The hovered event must open its matching quota")
+        }
+        XCTAssertNil(Self.visibleWindows(for: owner)[reopenedPanel.key], "Clicking an event hides its tooltip")
+        app.buttons["Close"].click()
+    }
+
     @MainActor func testHistoryHoverShowsDetailsAndDismissesOnExit() throws {
         try verifyHistoryInteraction(keyboardEntry: false)
     }
