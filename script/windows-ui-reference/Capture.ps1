@@ -2,6 +2,7 @@ param(
     [Parameter(Mandatory)][string]$Release,
     [Parameter(Mandatory)][string]$Output
 )
+Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 New-Item -ItemType Directory -Force -Path $Output | Out-Null
 Add-Type -AssemblyName UIAutomationClient
@@ -16,6 +17,7 @@ public static class ReferenceWindowNative {
     public struct Rect { public int Left, Top, Right, Bottom; }
     [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
     [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr handle, out Rect rect);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern IntPtr FindWindow(string className, string title);
     [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr handle, int command);
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr handle);
 }
@@ -32,18 +34,21 @@ try {
     foreach ($key in @($start.EnvironmentVariables.Keys)) {
         if ($key -match '^(GH_|GITHUB_|OPENAI_|CODEX_|ANTHROPIC_|CLAUDE_)') { $start.EnvironmentVariables.Remove($key) }
     }
-    $app = [System.Diagnostics.Process]::Start($start)
+    $app = New-Object System.Diagnostics.Process
+    $app.StartInfo = $start
+    if (-not $app.Start()) { throw 'Reference process did not start.' }
     $deadline = [DateTime]::UtcNow.AddSeconds(40)
-    while ($app.MainWindowHandle -eq [IntPtr]::Zero -and [DateTime]::UtcNow -lt $deadline) {
+    [IntPtr]$handle = [IntPtr]::Zero
+    while ($handle -eq [IntPtr]::Zero -and [DateTime]::UtcNow -lt $deadline) {
         if ($app.HasExited) { throw "Reference app exited before showing a window (exit $($app.ExitCode))." }
-        Start-Sleep -Milliseconds 500
-        $app.Refresh()
+        $handle = [ReferenceWindowNative]::FindWindow($null, 'AI Token Scrooge')
+        if ($handle -eq [IntPtr]::Zero) { Start-Sleep -Milliseconds 500 }
     }
-    if ($app.MainWindowHandle -eq [IntPtr]::Zero) { throw 'No native reference window became available.' }
-    [ReferenceWindowNative]::ShowWindow($app.MainWindowHandle, 9) | Out-Null
-    [ReferenceWindowNative]::SetForegroundWindow($app.MainWindowHandle) | Out-Null
+    if ($handle -eq [IntPtr]::Zero) { throw 'No native reference window became available.' }
+    [ReferenceWindowNative]::ShowWindow($handle, 9) | Out-Null
+    [ReferenceWindowNative]::SetForegroundWindow($handle) | Out-Null
     Start-Sleep -Seconds 3
-    $root = [System.Windows.Automation.AutomationElement]::FromHandle($app.MainWindowHandle)
+    $root = [System.Windows.Automation.AutomationElement]::FromHandle($handle)
     $elements = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
     $rows = @()
     foreach ($element in $elements) {
@@ -66,7 +71,7 @@ try {
     }
     $rows | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 (Join-Path $Output 'dashboard-elements.json')
     $rect = New-Object ReferenceWindowNative+Rect
-    if (-not [ReferenceWindowNative]::GetWindowRect($app.MainWindowHandle, [ref]$rect)) { throw 'Could not read native window bounds.' }
+    if (-not [ReferenceWindowNative]::GetWindowRect($handle, [ref]$rect)) { throw 'Could not read native window bounds.' }
     $width = $rect.Right - $rect.Left
     $height = $rect.Bottom - $rect.Top
     if ($width -lt 600 -or $height -lt 400) { throw 'Unexpected reference window dimensions.' }
