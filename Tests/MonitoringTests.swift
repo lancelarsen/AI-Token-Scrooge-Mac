@@ -78,6 +78,30 @@ final class MonitoringTests: XCTestCase {
     }
 
     @MainActor
+    func testKeychainReadFailurePreservesQuotaAndReportsPermission() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("keychain.db"))
+        let account = ProviderAccount(provider: .copilot, nickname: "Personal", subject: "test", scope: "personal")
+        var initial = PersistedState()
+        initial.accounts = [account]
+        initial.snapshots[account.id] = QuotaSnapshot(accountID: account.id, subject: account.subject,
+            scope: account.scope, observedAt: .now,
+            windows: [QuotaWindow(id: "monthly", name: "Monthly", unit: .credits, used: 40, limit: 100)])
+        try await database.save(initial)
+        let store = AppStore(database: database, refreshAccount: { _ in throw SecretStoreError.unavailable })
+        await store.load()
+        await store.refreshByUser()
+        let snapshot = try XCTUnwrap(store.state.snapshots[account.id])
+        XCTAssertEqual(snapshot.health, .permissionRequired)
+        XCTAssertTrue(snapshot.message?.contains("Keychain") == true)
+        XCTAssertEqual(snapshot.windows, initial.snapshots[account.id]?.windows)
+        XCTAssertFalse(store.isRefreshing)
+        let saved = try await database.load()
+        XCTAssertEqual(saved.snapshots[account.id], snapshot)
+    }
+
+    @MainActor
     func testNextPollStartsNewlyEnabledAccountAndDiscardsRemovedAccountsPendingResult() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

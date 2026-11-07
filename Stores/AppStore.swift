@@ -676,10 +676,11 @@ import AppKit
                 schedule.succeeded(snapshot, account: current, now: .now)
             case .failure(let error):
                 let failure = error as? ProviderFailure
+                let keychainError = error as? SecretStoreError
                 schedule.failed(current.id, now: .now, retryAt: failure?.retryAt)
                 snapshot = prior ?? QuotaSnapshot(accountID: current.id, subject: current.subject, scope: current.scope, observedAt: .now, windows: [])
-                snapshot.health = failure?.health ?? (error is AccountError ? .authenticationRequired : .offline)
-                snapshot.message = failure?.message ?? "Refresh failed. Last known values are retained."
+                snapshot.health = failure?.health ?? (keychainError != nil ? .permissionRequired : error is AccountError ? .authenticationRequired : .offline)
+                snapshot.message = failure?.message ?? keychainError?.localizedDescription ?? "Refresh failed. Last known values are retained."
             }
 
             let alerts = AlertEvaluator.evaluate(account: current, previous: prior, current: snapshot, settings: candidate.settings, now: .now)
