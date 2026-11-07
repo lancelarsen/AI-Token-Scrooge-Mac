@@ -351,6 +351,29 @@ final class ReferenceTypographyTests: XCTestCase {
             XCTAssertEqual(button.fittingSize.width, width, accuracy: 0.5)
             XCTAssertEqual(button.fittingSize.height, 44, accuracy: 0.5)
         }
+        // The source caps the banner at520 points before wrapping its labels.
+        // Preserve its18-point inset and full44-point actions when either text
+        // block grows. The old unconstrained measurement retained194 points
+        // for both cases and compressed their content inside the short frame.
+        for (title, detail, height) in [
+            ("Critical Alert · Quota Refresh",
+             "Codex · Weekly · 2h 13m · Sat, Nov 7 1:39 PM CST · Personal account for development and research projects", 210.0),
+            ("Codex · Weekly for development and research projects Is Running Low",
+             "10% Left · OpenAI / Personal account for development and research projects", 211.0)
+        ] {
+            var wrapped = alert
+            wrapped.title = title
+            wrapped.detail = detail
+            let content = AlertBannerView(alert: wrapped).environment(store)
+            let host = NSHostingView(rootView: content)
+            XCTAssertEqual(host.fittingSize.width, 560, accuracy: 0.5)
+            XCTAssertEqual(host.fittingSize.height, height, accuracy: 0.5)
+            let renderer = ImageRenderer(content: content)
+            renderer.scale = 1
+            let image = NSBitmapImageRep(cgImage: try XCTUnwrap(renderer.cgImage))
+            XCTAssertEqual(image.pixelsWide, 560)
+            XCTAssertEqual(image.pixelsHigh, Int(height))
+        }
     }
 
     @MainActor func testActionButtonsMatchCapturedWindowsBounds() {

@@ -13,7 +13,7 @@ struct AlertBannerView: View {
         }
     }
     var body: some View {
-        Group {
+        AlertBannerSizing {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 12) {
                     if let provider { ProviderIcon(provider: provider, size: 38) }
@@ -38,11 +38,28 @@ struct AlertBannerView: View {
                     Button { store.dismissAlert(alert.id) } label: { DialogActionLabel(title: "Dismiss") }
                 }.buttonStyle(ScroogeButtonStyle())
             }
-        }.padding(18).frame(maxWidth: 520, alignment: .leading)
-            .fixedSize(horizontal: true, vertical: true)
-            .background(Color(hex: "#222329"))
-            .clipShape(RoundedRectangle(cornerRadius: 14))
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(severityColor))
-            .padding(20)
+            .padding(18)
+        }
+        .background(Color(hex: "#222329"))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(severityColor))
+        .padding(20)
+    }
+}
+
+/// Measure wrapped messages at the final width before allocating their height.
+/// Capping an unconstrained ideal size keeps the short banner height even when
+/// its title or detail needs more lines.
+private struct AlertBannerSizing: Layout {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let content = subviews.first else { return .zero }
+        let width = min(520, content.sizeThatFits(.unspecified).width)
+        let fitted = content.sizeThatFits(.init(width: width, height: nil))
+        return CGSize(width: width, height: fitted.height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, anchor: .topLeading,
+                             proposal: .init(width: bounds.width, height: bounds.height))
     }
 }
