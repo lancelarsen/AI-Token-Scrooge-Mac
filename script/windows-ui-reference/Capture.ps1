@@ -120,6 +120,10 @@ function Save-ReferenceView {
             $row['rangeMinimum'] = $rangeValue.Current.Minimum
             $row['rangeMaximum'] = $rangeValue.Current.Maximum
         }
+        $selectionItem = $null
+        if ($element.TryGetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern, [ref]$selectionItem)) {
+            $row['selected'] = $selectionItem.Current.IsSelected
+        }
         $pattern = $null
         if ($element.TryGetCurrentPattern([System.Windows.Automation.TextPattern]::Pattern, [ref]$pattern) -and $null -ne $pattern) {
             $range = $pattern.DocumentRange
@@ -586,6 +590,33 @@ try {
         Scroll-ReferencePanel -Percent $percent
         $sweep = Save-ReferenceView -Name ('global-settings-sweep-' + $percent) -Root $root -Handle $handle -Output $Output
     }
+    function Capture-ReferenceCombo {
+        param([string]$Name, [string]$Slug)
+        $bounds = $root.Current.BoundingRectangle
+        $choices = @($root.FindAll([System.Windows.Automation.TreeScope]::Descendants,
+            [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, $Name)) |
+            Where-Object { $_.Current.ControlType -eq [System.Windows.Automation.ControlType]::ComboBox -and
+                $_.Current.BoundingRectangle.Top -gt $bounds.Top + 100 -and
+                $_.Current.BoundingRectangle.Bottom -lt $bounds.Bottom - 40 } |
+            Sort-Object { $_.Current.BoundingRectangle.Top })
+        if ($choices.Count -eq 0) { throw "Visible reference ComboBox not found: $Name" }
+        $expansion = $null
+        if (-not $choices[0].TryGetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern, [ref]$expansion)) {
+            throw "Reference ComboBox expansion unavailable: $Name"
+        }
+        try {
+            $expansion.Expand()
+            Start-Sleep -Milliseconds 500
+            Save-ReferenceView -Name $Slug -Root $root -Handle $handle -Output $Output | Out-Null
+        } finally { $expansion.Collapse() }
+        Start-Sleep -Milliseconds 300
+    }
+    Scroll-ReferencePanel -Percent 50
+    Capture-ReferenceCombo -Name 'Reminder Severity' -Slug 'settings-severity-menu'
+    Capture-ReferenceCombo -Name 'Days or Hours' -Slug 'settings-unit-menu'
+    Scroll-ReferencePanel -Percent 0
+    Capture-ReferenceCombo -Name 'History and Alert Retention' -Slug 'settings-retention-menu'
+    Capture-ReferenceCombo -Name 'Time Zone for dates and quiet hours' -Slug 'settings-time-zone-menu'
     # Find the middle control by its exposed role/name rather than assuming
     # a fixed content offset; compact wrapping changes total scroll extent.
     $quietCaptured = $false
