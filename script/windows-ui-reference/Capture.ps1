@@ -386,6 +386,41 @@ try {
     if (-not ($colorPicker.Rows | Where-Object { $_.type -eq 'ControlType.Button' -and $_.name -eq 'Add Color' -and -not $_.offscreen })) {
         throw 'Custom color picker did not expose its Add Color action.'
     }
+    # Record actual captured-pointer spectrum coordinates independently of
+    # keyboard/channel input. Keep brightness and restore the initial color.
+    $spectrum = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,
+        [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, 'Color picker'))
+    $dragHex = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,
+        [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, 'RGB hex'))
+    $dragHexValue = $null
+    if ($null -eq $spectrum -or $null -eq $dragHex -or
+        -not $dragHex.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern, [ref]$dragHexValue)) {
+        throw 'Spectrum pointer probe controls are unavailable.'
+    }
+    $dragOriginal = $dragHexValue.Current.Value
+    $spectrumBounds = $spectrum.Current.BoundingRectangle
+    $dragRows = @()
+    foreach ($target in @(@{ X = 128; Y = 128 }, @{ X = 255; Y = 0 },
+        @{ X = 268; Y = -12 }, @{ X = 0; Y = 255 }, @{ X = -12; Y = 268 }, @{ X = 64; Y = 64 })) {
+        [ReferenceWindowNative]::MovePointer([int]($spectrumBounds.X + 128), [int]($spectrumBounds.Y + 128))
+        try {
+            [ReferenceWindowNative]::SetLeftButton($true)
+            for ($step = 1; $step -le 8; $step++) {
+                [ReferenceWindowNative]::MovePointer([int]($spectrumBounds.X + 128 + ($target.X - 128) * $step / 8),
+                    [int]($spectrumBounds.Y + 128 + ($target.Y - 128) * $step / 8))
+                Start-Sleep -Milliseconds 30
+            }
+        } finally { [ReferenceWindowNative]::SetLeftButton($false) }
+        Start-Sleep -Milliseconds 200
+        $dragRows += [ordered]@{ x = $target.X; y = $target.Y; width = $spectrumBounds.Width;
+            height = $spectrumBounds.Height; hex = $dragHexValue.Current.Value }
+    }
+    $dragRows | ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $Output 'color-spectrum-pointer-trace.json')
+    Save-ReferenceView -Name 'custom-color-spectrum-pointer-last' -Root $root -Handle $handle -Output $Output | Out-Null
+    $dragHexValue.SetValue($dragOriginal)
+    [ReferenceWindowNative]::MovePointer($away.X, $away.Y)
+    Start-Sleep -Milliseconds 300
+    if ($dragHexValue.Current.Value -ne $dragOriginal) { throw 'Spectrum probe did not restore the original color.' }
     # Only inspect both ends of the native picker; Cancel leaves the palette
     # unchanged. Its bounded dialog scroll is narrower than the settings form.
     $colorScrolls = @()
