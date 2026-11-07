@@ -32,6 +32,7 @@
 		3493731F5A08F5675288E835 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66031B2D20D103F7DA4B5042 /* Settings.swift */; };
 		3871C893EC7CDC1282F9F7F2 /* classic-alert.wav in Resources */ = {isa = PBXBuildFile; fileRef = 5C49EF81DDE068F0211F0EF0 /* classic-alert.wav */; };
 		38C9B17D702E34EBC4DAC6C0 /* HorizonViewport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00030CAB4618F55476480A2 /* HorizonViewport.swift */; };
+		401B7205F4988802A6C66A45 /* ReferenceHistoryTooltip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6A7829BF07D9E66CFB948A /* ReferenceHistoryTooltip.swift */; };
 		411E709C67583AE4D25720F7 /* AccountSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76176BFD681D3CDB853D8895 /* AccountSettingsView.swift */; };
 		43944D356D6CFCE69269F7DA /* HorizonPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00DD87EC6F7F3FE070518237 /* HorizonPerformanceTests.swift */; };
 		4CA1FD40497EDB0FE1D1951B /* BundledColorNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = E72561E2E530FB3712D65E03 /* BundledColorNames.swift */; };
@@ -157,6 +158,7 @@
 		1573514253411593FDA65F50 /* ClaudeConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeConnectView.swift; sourceTree = "<group>"; };
 		18DF3506F10ED039C2E35700 /* SegoeFluentIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SegoeFluentIcons.ttf; sourceTree = "<group>"; };
 		1CE84E17CBE82C4DB3B77B2D /* classic-info.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "classic-info.wav"; sourceTree = "<group>"; };
+		1E6A7829BF07D9E66CFB948A /* ReferenceHistoryTooltip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceHistoryTooltip.swift; sourceTree = "<group>"; };
 		1EFFB3B427B1675530260BA6 /* Format.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Format.swift; sourceTree = "<group>"; };
 		2016481A22DAA1073A10FF0B /* LUCIDE-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "LUCIDE-LICENSE.txt"; sourceTree = "<group>"; };
 		24581CFA900CBB96F831DCDC /* SegoeUIVariable-EULA.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "SegoeUIVariable-EULA.txt"; sourceTree = "<group>"; };
@@ -414,6 +416,7 @@
 				3DC2091377C1205CB1EE8605 /* HistoryCurveDrawing.swift */,
 				2C3B0557D8B55197325FE987 /* HorizonInteraction.swift */,
 				F5A5186F536026FDE9E8A856 /* ReferenceHelpTooltip.swift */,
+				1E6A7829BF07D9E66CFB948A /* ReferenceHistoryTooltip.swift */,
 				9114E87C76735510A121AC43 /* ReferenceTypography.swift */,
 				39135C6BE784A1D2EF821CC5 /* SpectrumSelectionIndicator.swift */,
 				B36386F305B5106D36AA5C9A /* Theme.swift */,
@@ -745,6 +748,7 @@
 				566CB9325847F259F08617FC /* ProviderMapping.swift in Sources */,
 				B8C91125DC0237F8F6F95081 /* Quota.swift in Sources */,
 				20BD14722A47969CCB32DC65 /* ReferenceHelpTooltip.swift in Sources */,
+				401B7205F4988802A6C66A45 /* ReferenceHistoryTooltip.swift in Sources */,
 				546E1DFFCEFD0BEB1BC5BF33 /* ReferenceTypography.swift in Sources */,
 				2C8684C261F07C12556DA2B5 /* RefreshSchedule.swift in Sources */,
 				E91992A6469EC4258D7EF341 /* ScroogeApp.swift in Sources */,

@@ -91,6 +91,8 @@ struct HistoryPointerTracking: NSViewRepresentable {
                         ReferenceResetTooltip(content: resetContent, width: popupWidth)
                     } else if plainText {
                         ReferenceHelpTooltip(text: text, width: popupWidth)
+                    } else if severity == nil {
+                        ReferenceHistoryTooltip(text: text, width: popupWidth)
                     } else {
                         VStack(alignment: .leading, spacing: 5) {
                             HStack(spacing: 8) {

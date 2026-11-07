@@ -4,6 +4,29 @@ import XCTest
 @testable import AITokenScrooge
 
 final class ReferenceTypographyTests: XCTestCase {
+    @MainActor func testHistoryReadoutMatchesCapturedWindowsBounds() {
+        let host = NSHostingView(rootView: ReferenceHistoryTooltip(
+            text: "OpenAI / Personal · Plus\nWeekly · 74% Used\nSat, Nov 7 12:03 AM", width: 183))
+        // Windows native keyboard capture 42362619856: 19-point heading,
+        // five-point gap, 35-point detail block and 22 points of padding/border.
+        XCTAssertEqual(host.fittingSize, CGSize(width: 183, height: 81))
+    }
+
+    @MainActor func testHistoryReadoutFractionalAdvanceKeepsAllLinesAndDescenders() throws {
+        for (count, height) in [(1, 64), (2, 81), (4, 116), (12, 254)] {
+            let body = Array(repeating: "Hg", count: count).joined(separator: "\n")
+            let renderer = ImageRenderer(content: ReferenceHistoryTooltip(text: "Hg\n" + body, width: 183))
+            renderer.scale = 1
+            let image = NSBitmapImageRep(cgImage: try XCTUnwrap(renderer.cgImage))
+            XCTAssertEqual(image.pixelsHigh, height)
+            let rows = inkRows(image, minimum: 0.65)
+            let starts = rows.filter { !rows.contains($0 - 1) }
+            XCTAssertEqual(starts.count, count + 1, "Every detail line and the heading must render")
+            XCTAssertGreaterThan(try XCTUnwrap(rows.last), height - 20)
+            XCTAssertLessThan(try XCTUnwrap(rows.last), height - 10, "Keep descenders inside the bottom padding")
+        }
+    }
+
     @MainActor func testEarnedResetDialogRetainsMeasuredWindowsGeometry() {
         let host = NSHostingView(rootView: DetailsDialog(title: "Available resets", close: {}) {
             VStack(alignment: .leading, spacing: 8) {
@@ -111,11 +134,11 @@ final class ReferenceTypographyTests: XCTestCase {
         return NSBitmapImageRep(cgImage: try XCTUnwrap(renderer.cgImage))
     }
 
-    private func inkRows(_ image: NSBitmapImageRep) -> [Int] {
+    private func inkRows(_ image: NSBitmapImageRep, minimum: CGFloat = 0.8) -> [Int] {
         (0..<image.pixelsHigh).filter { y in
             (0..<image.pixelsWide).contains { x in
                 guard let color = image.colorAt(x: x, y: y)?.usingColorSpace(.sRGB) else { return false }
-                return color.alphaComponent > 0.8 && color.redComponent > 0.8 && color.greenComponent > 0.8 && color.blueComponent > 0.8
+                return color.alphaComponent > 0.8 && color.redComponent > minimum && color.greenComponent > minimum && color.blueComponent > minimum
             }
         }
     }
