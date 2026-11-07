@@ -287,7 +287,7 @@ struct ReminderEditor: View {
                             amountDrafts.removeValue(forKey: reminder.id)
                         } label: {
                             ActionIcon(symbol: "trash", size: 20)
-                        }.buttonStyle(ScroogeButtonStyle(horizontalPadding: 12))
+                        }.buttonStyle(ScroogeButtonStyle(horizontalPadding: 11))
                             .modifier(ImmediateReferenceTooltip(text: "Remove This Reminder from the Schedule")).accessibilityLabel("Remove Reminder")
                     }
                 }

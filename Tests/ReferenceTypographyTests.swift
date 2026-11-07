@@ -4,6 +4,37 @@ import XCTest
 @testable import AITokenScrooge
 
 final class ReferenceTypographyTests: XCTestCase {
+    @MainActor func testActionButtonsMatchCapturedWindowsBounds() {
+        for (title, symbol, width) in [("Settings", "gearshape", 113.0), ("Refresh", "arrow.clockwise", 109.0)] {
+            let host = NSHostingView(rootView: Button {} label: { ActionLabel(title: title, symbol: symbol) }
+                .buttonStyle(ScroogeButtonStyle()))
+            XCTAssertEqual(host.fittingSize.width, width, accuracy: 0.5)
+            XCTAssertEqual(host.fittingSize.height, 44, accuracy: 0.5)
+        }
+    }
+
+    @MainActor func testSortIconCanvasExtentsMatchWindows() {
+        for (symbol, width, height) in [("battery.100percent", 22.0, 20.0), ("battery.25percent", 22, 20),
+            ("circle.grid.3x3.fill", 20, 22), ("gearshape", 20, 20)] {
+            let host = NSHostingView(rootView: ActionIcon(symbol: symbol, size: 20))
+            XCTAssertEqual(host.fittingSize.width, width, accuracy: 0.5)
+            XCTAssertEqual(host.fittingSize.height, height, accuracy: 0.5)
+        }
+    }
+
+    @MainActor func testButtonOuterMinimaIncludeTheirBorders() {
+        let icon = NSHostingView(rootView: Button {} label: { ActionIcon(symbol: "gearshape", size: 20) }
+            .buttonStyle(ScroogeButtonStyle(horizontalPadding: 11)))
+        XCTAssertEqual(icon.fittingSize.width, 44, accuracy: 0.5)
+        XCTAssertEqual(icon.fittingSize.height, 44, accuracy: 0.5)
+        for (inside, outer) in [(52.0, 54.0), (68, 70), (78, 80)] {
+            let host = NSHostingView(rootView: Button {} label: {
+                Text("Action").frame(minHeight: inside)
+            }.buttonStyle(ScroogeButtonStyle()))
+            XCTAssertEqual(host.fittingSize.height, outer, accuracy: 0.5)
+        }
+    }
+
     @MainActor func testCountdownUsesCapturedWindowsLineHeightAndBaseline() throws {
         let image = try render("Hg")
         XCTAssertEqual(image.pixelsHigh, 24)

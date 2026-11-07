@@ -243,7 +243,7 @@ struct HorizonView: View {
             Text("History").font(.reference(size: 13))
         }
     }
-    private var settingsButton: some View { Button(action: openSettings) { ActionLabel(title: "", symbol: "gearshape") }.buttonStyle(ScroogeButtonStyle(horizontalPadding: 12)).modifier(ImmediateReferenceTooltip(text: "Earned Reset Alert Settings"))
+    private var settingsButton: some View { Button(action: openSettings) { ActionLabel(title: "", symbol: "gearshape") }.buttonStyle(ScroogeButtonStyle(horizontalPadding: 11)).modifier(ImmediateReferenceTooltip(text: "Earned Reset Alert Settings"))
         .accessibilityLabel("Earned Reset Alert Settings") }
     private var selectors: some View {
         ScrollView {

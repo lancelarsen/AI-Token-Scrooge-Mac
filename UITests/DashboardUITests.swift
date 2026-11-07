@@ -30,6 +30,10 @@ final class DashboardUITests: XCTestCase {
         let segments = names.map { dashboard.buttons[$0] }
         XCTAssertTrue(segments[0].waitForExistence(timeout: 5))
         XCTAssertEqual(dashboard.frame.width, compact ? 789 : 1463, accuracy: 1)
+        XCTAssertEqual(dashboard.buttons["refreshButton"].frame.width, 109, accuracy: 0.5)
+        XCTAssertEqual(dashboard.buttons["settingsButton"].frame.width, 113, accuracy: 0.5)
+        XCTAssertEqual(dashboard.buttons["refreshButton"].frame.height, 44, accuracy: 0.5)
+        XCTAssertEqual(dashboard.buttons["Earned Reset Alert Settings"].frame.width, 44, accuracy: 0.5)
         let offset = segments[0].frame.minY - (dashboard.frame.minY + 200)
         let scrollbar = dashboard.scrollBars.firstMatch
         scrollbar.hover()
@@ -411,7 +415,34 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Connect Account"].waitForExistence(timeout: 5))
         for provider in ["OpenAI Codex", "GitHub Copilot", "Claude", "Devin"] {
             XCTAssertTrue(app.buttons[provider].exists)
+            XCTAssertEqual(app.buttons[provider].frame.height, 54, accuracy: 0.5)
         }
+    }
+
+    @MainActor func testPopulatedAlertHistoryKeepsSourceButtonHeight() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", "--reference-wide", "--scenario", "alert-history"]
+        app.launch()
+        defer { app.terminate() }
+        if !app.windows["dashboard"].waitForExistence(timeout: 2) {
+            let menu = app.menuBars.menuBarItems["Window"]
+            menu.click(); menu.menuItems["AI Token Scrooge"].click()
+        }
+        app.buttons["settingsButton"].click()
+        let history = app.buttons["Alert History"]
+        XCTAssertTrue(history.waitForExistence(timeout: 5))
+        history.click()
+        let row = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Recorded in history")).firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        XCTAssertEqual(row.frame.height, 80, accuracy: 0.5)
+        let capture = XCTAttachment(screenshot: app.sheets.firstMatch.screenshot())
+        capture.name = "Alert History rows retain their 80-point minimum"
+        capture.lifetime = .keepAlways
+        add(capture)
+        app.typeKey(.escape, modifierFlags: [])
+        XCTAssertTrue(row.waitForNonExistence(timeout: 5))
+        app.buttons["Close"].click()
     }
 
     @MainActor func testRowAlarmWaitsForSaveAndRestoresAfterFailure() throws {

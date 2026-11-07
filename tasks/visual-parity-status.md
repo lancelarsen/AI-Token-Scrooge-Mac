@@ -50,6 +50,10 @@ Cross-cutting open requirements: exact Semibold font metrics and Segoe Fluent gl
 
 Detailed implementation and validation evidence: [visual-parity-audit.md](visual-parity-audit.md). This status replaces its original summary table; chronological evidence there remains useful.
 
+### Shared action bounds — November 7
+
+Reserved the source one-point border in shared action buttons: hosted and native header bounds now match Windows Refresh 109×44 and Settings 113×44. Native provider choices remain 54 points high and populated Alert History rows remain 80. Sort icon layout slots now retain the source 22×20 capacity meter and 20×22 Custom Order canvas. Seven hosted checks and five native checks pass; current compact/wide dashboards and history were inspected. This verifies these geometry contracts, not full raster parity.
+
 ### Shared action icon audit — November 6
 
 Compared Windows Controls/ActionButton.cs with Mac Format.actionGlyph and ActionIcon. The ordered title rules and glyph values agree for shared actions; Mac also recognizes its added Devin provider title. The custom remaining-capacity meters match the source's 22×20 frame, 14-point outline height, 1.5-point stroke, 3-point corner radius, 7-point fill height, 4-point leading inset and 4/14-point fills for Most/Least Remaining. A CoreText check registered the bundled SegoeFluentIcons.ttf and resolved all 29 distinct private-use glyphs referenced by the shared Theme/Format helpers without a missing glyph. This establishes mapping and font coverage. Per-surface optical alignment and final raster comparisons remain open.

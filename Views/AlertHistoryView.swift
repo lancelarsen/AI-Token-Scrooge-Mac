@@ -25,7 +25,7 @@ struct AlertHistoryView: View {
                                 DialogActionLabel(title: text)
                                     .multilineTextAlignment(.leading)
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.vertical, 10).frame(minHeight: 80)
+                                    .padding(.vertical, 10).frame(minHeight: 78)
                             }.buttonStyle(ScroogeButtonStyle()).help("Show Usage Details")
                             .contextMenu {
                                 Menu("Snooze") { ForEach([15,30,60,120], id: \.self) { minutes in Button("\(minutes) Minutes") { store.snooze(alert.id, minutes: minutes) } } }
@@ -221,9 +221,10 @@ private struct EditorFooterButton: View {
             .foregroundStyle(hovered ? Color.white : Theme.primaryText)
             .environment(\.actionForeground, hovered ? .white : Theme.actionAccent)
             .padding(.horizontal, 16)
+            .padding(1)
             .frame(maxWidth: .infinity, minHeight: 44)
             .background(hovered ? Theme.activeControl : Theme.control, in: RoundedRectangle(cornerRadius: 10))
-            .overlay { RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#45464D")) }
+            .overlay { RoundedRectangle(cornerRadius: 10).strokeBorder(Color(hex: "#45464D"), lineWidth: 1) }
             .accessibilityHidden(true)
             .overlay { KeyViewButton(title: title, isCancel: isCancel, action: action) }
             .onHover { hovered = $0 }

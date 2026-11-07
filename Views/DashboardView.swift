@@ -107,10 +107,10 @@ struct DashboardView: View {
                 Button {
                     Task { await store.refreshByUser() }
                 } label: {
-                    HStack(spacing: 10) {
+                    HStack(spacing: 9) {
                         if refreshing {
-                            ActionProgressRing(size: 19)
-                        } else { ActionIcon(symbol: "arrow.clockwise", size: 19) }
+                            ActionProgressRing(size: 20)
+                        } else { ActionIcon(symbol: "arrow.clockwise", size: 20) }
                         Text(refreshDisabled ? "Refreshing…" : "Refresh")
                     }
                 }
@@ -201,7 +201,7 @@ struct AccountCard: View {
             } else {
                 Button(action: openSettings) {
                     DialogActionLabel(title: accountStatus)
-                        .frame(maxWidth: .infinity, minHeight: 50)
+                        .frame(maxWidth: .infinity, minHeight: 48)
                         .padding(.vertical, 10)
                 }.buttonStyle(ScroogeButtonStyle())
             }

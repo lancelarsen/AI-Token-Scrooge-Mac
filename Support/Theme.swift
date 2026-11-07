@@ -144,11 +144,12 @@ struct ScroogeButtonStyle: ButtonStyle {
                 .foregroundStyle(interacting ? Color.white : Color(hex: "#F2F1F5"))
                 .environment(\.actionForeground, interacting ? .white : Theme.actionAccent)
                 .padding(.horizontal, segmented ? 0 : horizontalPadding)
+                .padding(segmented ? 0 : 1)
                 .frame(minHeight: 44)
                 .background(highlighted ? Theme.activeControl : Theme.control)
                 .clipShape(RoundedRectangle(cornerRadius: segmented ? 0 : 10))
                 .overlay {
-                    if !segmented { RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#45464D")) }
+                    if !segmented { RoundedRectangle(cornerRadius: 10).strokeBorder(Color(hex: "#45464D"), lineWidth: 1) }
                 }
                 .onHover { hovered = $0 }
         }
@@ -348,7 +349,9 @@ struct ActionIcon: View {
             } else if let resource, let image = ThemeImages.image(resource, extension: "svg") {
                 Image(nsImage: image).renderingMode(.template).resizable().scaledToFit().foregroundStyle(foreground)
             } else { Image(systemName: symbol).font(.reference(size: size)).foregroundStyle(foreground) }
-        }.frame(width: size, height: size).accessibilityHidden(true)
+        }.frame(width: symbol == "battery.100percent" || symbol == "battery.25percent" ? size * 1.1 : size,
+                height: symbol == "circle.grid.3x3.fill" ? size * 1.1 : size)
+            .accessibilityHidden(true)
     }
 }
 

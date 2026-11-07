@@ -22,7 +22,7 @@ struct ConnectionView: View {
                             ProviderIcon(provider: choice, size: 28).accessibilityHidden(true)
                             Text(choice == .codex ? "OpenAI Codex" : choice.rawValue)
                                 .font(ReferenceTypography.nativeTextFont(size: 16))
-                        }.frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
+                        }.frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
                     }.buttonStyle(ScroogeButtonStyle())
                 }
             }.textSelection(.disabled)
