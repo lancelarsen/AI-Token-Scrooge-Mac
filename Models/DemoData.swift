@@ -127,7 +127,14 @@ enum DemoData {
               let endRemaining = window.remainingPercent else { return [] }
         let start = HorizonViewport(now: now, furthestFuture: nil, zone: zone, width: 700).date(at: 0)
         var calendar = Calendar(identifier: .gregorian); calendar.timeZone = zone
-        var refresh = window.resetsAt.flatMap { calendar.date(byAdding: account.provider == .copilot ? .month : .day, value: account.provider == .copilot ? -1 : -7, to: $0) }
+        var utc = Calendar(identifier: .gregorian)
+        utc.timeZone = TimeZone(secondsFromGMT: 0)!
+        // HistoryDemo uses UTC DateTimeOffset month arithmetic and fixed seven-day intervals.
+        var refresh = window.resetsAt.flatMap { reset in
+            account.provider == .copilot
+                ? utc.date(byAdding: .month, value: -1, to: reset)
+                : reset.addingTimeInterval(-7 * 86400)
+        }
         if let date = refresh, date <= start || date >= now { refresh = nil }
         let expiry = account.provider == .codex && index == 0 ? start.addingTimeInterval(4.25 * 86400) : nil
         let startRemaining = min(99, max(Decimal(78 - index * 4), endRemaining + 35))

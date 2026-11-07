@@ -106,6 +106,20 @@ final class CoreTests: XCTestCase {
         XCTAssertTrue(HorizonEvent.events(state: state, now: now).isEmpty)
     }
 
+    func testDemoHistoryResetDatesMatchWindowsAcrossDaylightSaving() throws {
+        let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-11-04T16:11:00Z"))
+        let (state, runs) = DemoData.make(now: now)
+        let expectedMonthly = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-11-01T00:00:00Z"))
+        for account in state.accounts {
+            let snapshot = try XCTUnwrap(state.snapshots[account.id])
+            let selected = try XCTUnwrap(UsageHistory.selectWindow(provider: account.provider, windows: snapshot.windows).window)
+            let first = try XCTUnwrap(runs.first { $0.snapshot.accountID == account.id })
+            let expected = account.provider == .copilot
+                ? expectedMonthly : try XCTUnwrap(selected.resetsAt).addingTimeInterval(-7 * 86400)
+            XCTAssertEqual(first.snapshot.windows.first?.resetsAt, expected, account.provider.rawValue)
+        }
+    }
+
     func testCountAllowanceLabelsAndCopilotPercentException() {
         let window = QuotaWindow(id: "requests", name: "Requests", unit: .requests, used: 1250, limit: 1000)
         let labels = Format.usageText(window, provider: .claude, locale: Locale(identifier: "en_US"))
