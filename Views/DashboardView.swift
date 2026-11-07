@@ -246,6 +246,7 @@ struct QuotaRow: View {
     let wide: Bool
     @State private var showDetails = false
     @State private var showReserve = false
+    @State private var savingCapacityAlerts = false
     private var deadline: RowDeadline { RowDeadline.select(provider: account.provider, window: window, reserve: snapshot.reserve, now: store.presentationDate) }
     var body: some View {
         TimelineView(.periodic(from: .now, by: 30)) { _ in
@@ -318,11 +319,19 @@ struct QuotaRow: View {
                     ForEach([true, false], id: \.self) { enabled in
                         if !enabled { Rectangle().fill(Color(hex: "#45464D")).frame(width: 1, height: 46) }
                         Button {
+                            guard !savingCapacityAlerts,
+                                  store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) != enabled else { return }
+                            savingCapacityAlerts = true
                             store.setCapacityAlerts(enabled, account: account.id, window: window.id)
+                            Task {
+                                await store.waitForPendingMutations()
+                                savingCapacityAlerts = false
+                            }
                         } label: {
                             ActionIcon(symbol: enabled ? "bell.badge" : "bell.slash", size: 22)
                                 .frame(width: 39, height: 46)
                         }.buttonStyle(ScroogeButtonStyle(selected: store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) == enabled, segmented: true))
+                            .disabled(savingCapacityAlerts)
                             .accessibilityAddTraits(store.state.settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) == enabled ? .isSelected : [])
                             .modifier(ImmediateReferenceTooltip(text: "Alarms \(enabled ? "On" : "Off") · Row Alerts · \(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType)) · \(Format.windowTitle(window.name))"))
                             .accessibilityLabel("\(enabled ? "Enable" : "Disable") Alerts for \(Format.windowTitle(window.name))")

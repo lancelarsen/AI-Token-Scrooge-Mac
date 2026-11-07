@@ -135,6 +135,46 @@ final class DashboardUITests: XCTestCase {
         }
     }
 
+    @MainActor func testRowAlarmWaitsForSaveAndRestoresAfterFailure() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let path = directory.appendingPathComponent("scrooge.db")
+        seedPausedAccount(at: path, withQuota: true)
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--data-dir", directory.path]
+        app.launch()
+        defer { app.terminate() }
+        if !app.windows["dashboard"].waitForExistence(timeout: 2) {
+            let menu = app.menuBars.menuBarItems["Window"]
+            menu.click(); menu.menuItems["AI Token Scrooge"].click()
+        }
+        let on = app.buttons["Enable Alerts for AI Credits · Monthly"]
+        let off = app.buttons["Disable Alerts for AI Credits · Monthly"]
+        XCTAssertTrue(off.waitForExistence(timeout: 10))
+        var database: OpaquePointer?
+        XCTAssertEqual(sqlite3_open(path.path, &database), SQLITE_OK)
+        defer { sqlite3_exec(database, "ROLLBACK", nil, nil, nil); sqlite3_close(database) }
+        // Hold the real SQLite write, rather than adding a UI-only delay.
+        XCTAssertEqual(sqlite3_exec(database, "BEGIN IMMEDIATE", nil, nil, nil), SQLITE_OK)
+        off.click()
+        XCTAssertFalse(on.isEnabled)
+        XCTAssertFalse(off.isEnabled)
+        XCTAssertTrue(on.isSelected, "Retain the saved selection until persistence succeeds")
+        XCTAssertEqual(sqlite3_exec(database, "COMMIT", nil, nil, nil), SQLITE_OK)
+        let saved = NSPredicate { _, _ in off.isEnabled && off.isSelected && on.isEnabled }
+        expectation(for: saved, evaluatedWith: nil)
+        waitForExpectations(timeout: 5)
+        XCTAssertEqual(sqlite3_exec(database, "CREATE TRIGGER reject_alarm BEFORE UPDATE ON state BEGIN SELECT RAISE(ABORT, 'injected save failure'); END;", nil, nil, nil), SQLITE_OK)
+        on.click()
+        XCTAssertTrue(app.staticTexts["Scrooge Needs Attention"].waitForExistence(timeout: 5))
+        app.buttons["Close"].click()
+        XCTAssertTrue(off.isSelected, "Failed writes must preserve the previous alarm selection")
+        XCTAssertTrue(on.isEnabled)
+        XCTAssertTrue(off.isEnabled)
+    }
+
     @MainActor func testClosingAlertHistoryReturnsToSettings() throws {
         let app = XCUIApplication()
         app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
@@ -414,7 +454,7 @@ final class DashboardUITests: XCTestCase {
         return result
     }
 
-    private func seedPausedAccount(at url: URL) {
+    private func seedPausedAccount(at url: URL, withQuota: Bool = false) {
         var database: OpaquePointer?
         let result = sqlite3_open(url.path, &database)
         defer { sqlite3_close(database) }
@@ -423,9 +463,9 @@ final class DashboardUITests: XCTestCase {
         let sql = """
             CREATE TABLE state (id INTEGER PRIMARY KEY, payload BLOB NOT NULL);
             INSERT INTO state VALUES (1, '{"accounts":[{"id":"sample","provider":"GitHub Copilot",
-                "nickname":"Work","subject":"sample","scope":"personal","enabled":false,"unit":"credits",
+                "nickname":"Work","subject":"sample","scope":"personal","enabled":\(withQuota ? "true" : "false"),"unit":"credits",
                 "credentialID":"8825F897-08B6-441C-BBCE-F58CA0C9BC76","pollingMinutes":2,
-                "generation":"EC88AFF0-5D3A-49C1-A7D1-19887D761FB6"}]}');
+                "generation":"EC88AFF0-5D3A-49C1-A7D1-19887D761FB6"}],"snapshots":\(withQuota ? #"{"sample":{"accountID":"sample","subject":"sample","scope":"personal","observedAt":800000000,"health":"stale","windows":[{"id":"monthly","name":"AI Credits · Monthly","unit":"credits","used":25,"limit":100,"allowanceSource":"provider"}]}}"# : "{}")}');
             """
         XCTAssertEqual(sqlite3_exec(database, sql, nil, nil, nil), SQLITE_OK)
     }
