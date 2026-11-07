@@ -472,6 +472,27 @@ try {
         $inputTrace[9]['red'] -ne '12' -or $inputTrace[11]['hex'] -ne '#000012') {
         throw 'Native color input draft trace did not match the captured blur and short-Hex behavior.'
     }
+    # RGB and Hex edits pass through native HSV bounds, including MaxHue359.
+    # Capture the pinned runtime rather than assuming current WinUI source matches it.
+    $edgeTrace = @()
+    foreach ($hex in @('#FF0000', '#FF0001', '#FF0004', '#FF0005', '#808080', '#00FF00', '#0000FF')) {
+        $hexField.SetFocus(); $hexValue.SetValue($hex); Start-Sleep -Milliseconds 200
+        $redField.SetFocus(); Start-Sleep -Milliseconds 200
+        $edgeTrace += [ordered]@{ input = $hex; hex = $hexValue.Current.Value;
+            red = $redValue.Current.Value; brightness = $brightnessRange.Current.Value }
+    }
+    $hexField.SetFocus(); $hexValue.SetValue('#FF0000'); Start-Sleep -Milliseconds 200
+    $blueField = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,
+        [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, 'Blue'))
+    $blueValue = $null
+    if ($null -eq $blueField -or -not $blueField.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern, [ref]$blueValue)) {
+        throw 'Native Blue input value was not exposed.'
+    }
+    $blueField.SetFocus(); $blueValue.SetValue('1'); Start-Sleep -Milliseconds 200
+    $hexField.SetFocus(); Start-Sleep -Milliseconds 200
+    $edgeTrace += [ordered]@{ input = 'RGB255,0,1'; hex = $hexValue.Current.Value;
+        blue = $blueValue.Current.Value; brightness = $brightnessRange.Current.Value }
+    $edgeTrace | ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $Output 'color-rgb-constraint-trace.json')
     Invoke-ReferenceAction -Name 'Cancel' -Root $root
     Start-Sleep -Seconds 1
     function Scroll-ReferencePanel {
