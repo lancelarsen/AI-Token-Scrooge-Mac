@@ -760,6 +760,20 @@ try {
         Invoke-ReferenceAction -Name 'Add account' -Root $root
         Start-Sleep -Seconds 1
         $chooser = Save-ReferenceView -Name 'provider-chooser' -Root $root -Handle $handle -Output $Output
+        if ($chooser.Rows | Where-Object { $_.type -eq 'ControlType.Text' -and $_.name -eq 'Notification test' }) {
+            # Delivery can complete after the earlier result check. Close only
+            # this known runner limitation, then retry the still-untouched form.
+            if (-not ($chooser.Rows | Where-Object { $_.type -eq 'ControlType.Text' -and
+                $_.name -eq 'Windows has disabled popup notifications for Scrooge. Events remain available in Alert history.' })) {
+                throw 'Unexpected delayed notification result; preserving its evidence.'
+            }
+            Save-ReferenceView -Name 'provider-chooser-blocked-notification' -Root $root -Handle $handle -Output $Output | Out-Null
+            Invoke-ReferenceAction -Name 'OK' -Root $root
+            Start-Sleep -Milliseconds 500
+            Invoke-ReferenceAction -Name 'Add account' -Root $root
+            Start-Sleep -Seconds 1
+            $chooser = Save-ReferenceView -Name 'provider-chooser' -Root $root -Handle $handle -Output $Output
+        }
         Invoke-ReferenceAction -Name $provider -Root $root
         Start-Sleep -Seconds 1
         $slug = $provider.ToLowerInvariant().Replace(' ', '-')
