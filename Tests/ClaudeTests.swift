@@ -75,6 +75,18 @@ final class ClaudeTests: XCTestCase {
         XCTAssertTrue(ClaudeUsageParser.parse("Current session\n-5% used", now: .now).isEmpty)
         XCTAssertTrue(ClaudeUsageParser.parse("Current session\n101% used", now: .now).isEmpty)
     }
+    func testMalformedUsageCannotBecomeAReportedZeroOrPositiveValue() {
+        for token in ["1,000", "1,00", "−5", "−0", "﹣5", "－0", "-5", "+0", "＋0", "﹢0", "1/0", "bad:0"] {
+            let screen = "Current session\n\(token)% used\nCurrent week (all models)\n0% used"
+            let windows = ClaudeUsageParser.parse(screen, now: date("2026-11-02T18:00:00Z"))
+            XCTAssertEqual(windows.map(\.id), ["weekly"], token)
+            XCTAssertEqual(windows.first?.used, 0, token)
+        }
+        let genuineZero = ClaudeUsageParser.parse("Current session\n0% used", now: .now)
+        XCTAssertEqual(genuineZero.first?.used, 0)
+        let progressBar = ClaudeUsageParser.parse("Current session\n██▏     24% used", now: .now)
+        XCTAssertEqual(progressBar.first?.used, 24)
+    }
     func testAmbiguousAndNonexistentCivilTimesAreUnknown() {
         XCTAssertNil(ClaudeUsageParser.parseReset("1:30am", zoneID: "America/Chicago", now: date("2026-11-01T05:00:00Z"), duration: 300))
         XCTAssertNil(ClaudeUsageParser.parseReset("2:30am", zoneID: "America/Chicago", now: date("2026-03-08T06:00:00Z"), duration: 300))

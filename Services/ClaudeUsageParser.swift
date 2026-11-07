@@ -7,7 +7,9 @@ enum ClaudeUsageParser {
             guard let start = screen.range(of: heading) else { return nil }
             var section = String(screen[start.upperBound...])
             if let end = section.range(of: #"\r?\n\s*(?:Current |Extra usage|Esc to cancel)"#, options: .regularExpression) { section = String(section[..<end.lowerBound]) }
-            guard let value = captures(#"(?<![\w.+-])(\d+(?:\.\d+)?)% used"#, in: section)?.first,
+            // Usage amounts are whitespace-delimited tokens. Do not recover a
+            // numeric suffix: "1,000" must not become a reported zero.
+            guard let value = captures(#"(?<!\S)([0-9]+(?:\.[0-9]+)?)% used"#, in: section)?.first,
                   let used = Decimal(string: value, locale: Locale(identifier: "en_US_POSIX")), used >= 0, used <= 100 else { return nil }
             let reset = captures(#"(?i)Resets ([^\r\n(]+)\s*\(([^)]+)\)"#, in: section)
             let date = reset.flatMap { parseReset($0[0].trimmingCharacters(in: .whitespaces), zoneID: $0[1], now: now, duration: duration) }
