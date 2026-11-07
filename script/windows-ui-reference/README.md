@@ -20,6 +20,7 @@ Outputs:
 - `earned-resets.png` / `earned-resets-elements.json`: earned-reset expiry popup, including the mixed-weight count line, title/body text bounds and Close action. Capture fails if the visible expiry is ambiguous or the expected title/count is absent.
 - `history-keyboard.png` / `history-keyboard-elements.json`: a sample readout opened with native focus and Right-arrow input, including its heading/body bounds. Capture fails if no Weekly / percent-used sample is exposed; Escape dismisses it before continuing.
 - `selector-tooltip.png` / `selector-tooltip-elements.json` and `reset-tooltip.png` / `reset-tooltip-elements.json`: ordinary help and styled countdown tooltips after pointer entry at UIA-derived target bounds. Each capture requires the expected tooltip text; the pointer leaves before the next check.
+- `tooltip-edge-targets.*` and `selector-tooltip-screen-edge.*`: the same selector help after moving the isolated runner window to the left screen edge, with refreshed target bounds. The original window position is restored before subsequent captures.
 - `account-settings.png` / `account-settings-elements.json`: first demo account settings, including regular-label and reserve-count measurements.
 - `capture.json`: pinned release/source and measured window dimensions.
 - `startup.json`: session/window diagnostics if no visible window appears.

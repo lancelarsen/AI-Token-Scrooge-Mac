@@ -71,6 +71,7 @@ public static class ReferenceWindowNative {
     }
     [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr handle, int command);
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr handle);
+    [DllImport("user32.dll")] public static extern bool MoveWindow(IntPtr handle, int x, int y, int width, int height, bool repaint);
     [StructLayout(LayoutKind.Sequential)]
     struct MouseInput { public int X, Y; public uint Data, Flags, Time; public IntPtr Extra; }
     [StructLayout(LayoutKind.Sequential)]
@@ -235,6 +236,32 @@ try {
     }
     [ReferenceWindowNative]::MovePointer($away.X, $away.Y)
     Start-Sleep -Seconds 1
+    $originalRect = New-Object ReferenceWindowNative+Rect
+    if (-not [ReferenceWindowNative]::GetWindowRect($handle, [ref]$originalRect)) { throw 'Cannot retain the reference window bounds.' }
+    if (-not [ReferenceWindowNative]::MoveWindow($handle, 0, $originalRect.Top,
+        $originalRect.Right - $originalRect.Left, $originalRect.Bottom - $originalRect.Top, $true)) {
+        throw 'Cannot place the reference window at the screen edge.'
+    }
+    Start-Sleep -Seconds 1
+    $edgeDashboard = Save-ReferenceView -Name 'tooltip-edge-targets' -Root $root -Handle $handle -Output $Output
+    $edgeTargets = @($edgeDashboard.Rows | Where-Object {
+        $_.type -eq 'ControlType.Button' -and $_.name.StartsWith('Hide OpenAI / Personal') -and -not $_.offscreen
+    })
+    if ($edgeTargets.Count -ne 1) { throw 'The screen-edge selector target was not uniquely visible.' }
+    $edgeTarget = $edgeTargets[0]
+    [ReferenceWindowNative]::MovePointer([int]($edgeTarget.x + $edgeTarget.width / 2), [int]($edgeTarget.y + $edgeTarget.height / 2))
+    Start-Sleep -Seconds 1
+    $edgeTip = Save-ReferenceView -Name 'selector-tooltip-screen-edge' -Root $root -Handle $handle -Output $Output
+    if (-not ($edgeTip.Rows | Where-Object { $_.type -eq 'ControlType.Text' -and $_.name -match 'Show or Hide History' })) {
+        throw 'Screen-edge pointer entry did not expose its help tooltip.'
+    }
+    [ReferenceWindowNative]::MovePointer(20, $originalRect.Top + 16)
+    if (-not [ReferenceWindowNative]::MoveWindow($handle, $originalRect.Left, $originalRect.Top,
+        $originalRect.Right - $originalRect.Left, $originalRect.Bottom - $originalRect.Top, $true)) {
+        throw 'Cannot restore the reference window bounds.'
+    }
+    Start-Sleep -Seconds 1
+    [ReferenceWindowNative]::MovePointer($away.X, $away.Y)
     $resetTargets = @($rows | Where-Object {
         $_.type -eq 'ControlType.Button' -and $_.name.StartsWith('OpenAI / Personal') -and
         $_.name.Contains('Weekly') -and $_.name.Contains('Quota Refresh:') -and -not $_.offscreen
