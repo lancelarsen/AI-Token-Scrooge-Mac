@@ -50,6 +50,7 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(overage.waitForExistence(timeout: 5), "Account identity opens the first quota even when earned resets exist")
         let sheet = app.sheets.firstMatch
         XCTAssertTrue(sheet.frame.contains(overage.frame), "Count details must fit within their popup")
+        XCTAssertEqual(app.buttons["Close"].frame.width, 142, accuracy: 1, "Windows reserves half the footer for a single close action")
         app.buttons["Close"].click()
         app.buttons["Unknown Request Limit. Open Details"].firstMatch.click()
         let unavailable = app.staticTexts["50 Used · Limit Unavailable"].firstMatch

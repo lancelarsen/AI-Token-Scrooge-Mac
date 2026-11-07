@@ -148,13 +148,15 @@ struct DetailsDialog<Content: View>: View {
                     }
                     Button(action: close) {
                         DialogActionLabel(title: closeTitle)
-                            .frame(minWidth: hasPrimaryAction ? 0 : 104, maxWidth: hasPrimaryAction ? .infinity : nil)
+                            .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(ScroogeButtonStyle())
+                    .frame(width: hasPrimaryAction ? nil : (width - 58) / 2)
                     .keyboardShortcut(.cancelAction)
                 }
             }.padding(24)
         }
+        .padding(1)
         .frame(width: width)
         .frame(maxHeight: maximumHeight)
         .fixedSize(horizontal: false, vertical: true)
