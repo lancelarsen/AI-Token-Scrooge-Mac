@@ -19,6 +19,7 @@ Outputs:
 - `usage-details.png` / `usage-details-elements.json`: first demo quota popup, opened through UI Automation.
 - `capture.json`: pinned release/source and measured window dimensions.
 - `startup.json`: session/window diagnostics if no visible window appears.
+- `resolved-fonts.json` and `font-*.ttf`: installed classic Segoe UI faces resolved independently through WPF, with hashes and family metrics. This identifies installed files for comparison; it does not establish WinUI fallback resolution on its own.
 
 The first successful run is [42335310777](https://github.com/lancelarsen/AI-Token-Scrooge-Mac/actions/runs/42335310777), harness source `2496f48`. The inspected output contains a populated native demo, 79 elements and 42 font-bearing elements in graphical session 2. Its window is 800×680 pixels, constrained by that runner's work area; it is not yet an equivalent-viewport replacement for the gallery's 789×694 compact image. Some captured outer pixels include the window's invisible frame margins.
 

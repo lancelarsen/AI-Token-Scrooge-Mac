@@ -9,6 +9,22 @@ Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
 Add-Type -AssemblyName WindowsBase
 Add-Type -AssemblyName System.Drawing
+Add-Type -AssemblyName PresentationCore
+# Resolve the installed classic faces independently of UIA's requested fallback
+# strings. Preserve the actual files so the Mac comparison uses the same version.
+$fontRows = @()
+foreach ($name in @('Segoe UI', 'Segoe UI Semibold')) {
+    $typeface = [System.Windows.Media.Typeface]::new($name)
+    $glyph = $null
+    if (-not $typeface.TryGetGlyphTypeface([ref]$glyph)) { throw "Could not resolve reference font: $name" }
+    $fontPath = $glyph.FontUri.LocalPath
+    $file = 'font-' + [System.IO.Path]::GetFileName($fontPath)
+    Copy-Item -LiteralPath $fontPath -Destination (Join-Path $Output $file)
+    $fontRows += [ordered]@{ requestedFamily = $name; file = $file;
+        sha256 = (Get-FileHash -LiteralPath $fontPath -Algorithm SHA256).Hash;
+        familyLineSpacing = $typeface.FontFamily.LineSpacing; baseline = $glyph.Baseline }
+}
+$fontRows | ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $Output 'resolved-fonts.json')
 Add-Type @'
 using System;
 using System.Runtime.InteropServices;

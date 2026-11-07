@@ -31,4 +31,5 @@ jobs:
           path: |
             ${{ runner.temp }}/ui-reference/*.png
             ${{ runner.temp }}/ui-reference/*.json
+            ${{ runner.temp }}/ui-reference/font-*.ttf
           if-no-files-found: warn
