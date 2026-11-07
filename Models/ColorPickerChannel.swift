@@ -20,6 +20,18 @@ enum ColorPickerChannel {
         return (min(359, max(0, degrees)) / 360, chroma / high, high)
     }
 
+    /// WinUI samples its logical-pixel HSV bitmap: round the pointer, clamp
+    /// the pixel index, then include both channel endpoints across side-1.
+    /// Retain brightness separately, as ColorSpectrum::UpdateColorFromPoint does.
+    static func spectrumComponents(x: Double, y: Double, side: Double)
+        -> (hue: Double, saturation: Double)? {
+        guard x.isFinite, y.isFinite, side.isFinite, side >= 2 else { return nil }
+        let last = side.rounded() - 1
+        let column = min(last, max(0, x.rounded()))
+        let row = min(last, max(0, y.rounded()))
+        return (column / last * 359 / 360, 1 - row / last)
+    }
+
     /// TextBox edits are drafts: reject invalid values rather than clamping
     /// them into a different color. WinUI restores the accepted value on blur.
     static func inputValue(_ text: String, maximum: Int) -> Int? {

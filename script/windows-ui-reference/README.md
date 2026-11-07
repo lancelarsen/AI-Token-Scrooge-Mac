@@ -89,3 +89,6 @@ The reference capture exports SelectionItemPattern.IsSelected where available an
 
 
 Clear-button reference run42391456789 at0477f89: attempt1 captured Hex clear hover/press/cancel but failed later at an unrelated provider lookup; attempt2 passed the complete workflow. The new capture holds left press, moves outside before release and asserts the Hex value is unchanged. Focused-input samples: normal31/31/33, hover44/44/46, pressed40/40/42; the inset is26x24 within the30x32 target. No account authorization is invoked. This provides native Windows interaction-state evidence, not Mac physical-hover or full-raster acceptance.
+
+
+Spectrum pointer run42392328103 atff6a064 passed. The probe captures actual held-button movement from center to six positions, including outside the256x256 target, records Hex through UIA, then restores its original value. At brightness213/255:128,128 ->#6BD5D5;255,0 and268,-12 ->#D50004;0,255 and-12,268 ->#D5D5D5;64,64 ->#85D535. The trace supports logical-pixel sampling/clamping independently of keyboard or RGB entry. Native Mac drags after the mapping fix reproduce these values; no provider authorization is used.

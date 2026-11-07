@@ -304,9 +304,12 @@ struct InlineLineColorEditor: View {
                         .gesture(DragGesture(minimumDistance: 0).onChanged { value in
                             finishChannelEdit()
                             spectrumPressed = true; spectrumKeyboardFocus = false; spectrumFocused = true
-                            hue = min(1, max(0, value.location.x / geometry.size.width)) * 359 / 360
-                            saturation = 1 - min(1, max(0, value.location.y / geometry.size.height))
-                            publish()
+                            if let selected = ColorPickerChannel.spectrumComponents(
+                                x: value.location.x, y: value.location.y,
+                                side: min(geometry.size.width, geometry.size.height)) {
+                                hue = selected.hue; saturation = selected.saturation
+                                publish()
+                            }
                         }.onEnded { _ in spectrumPressed = false })
                         .onHover { spectrumHovered = $0 }
                         .focusable().focused($spectrumFocused).focusEffectDisabled()

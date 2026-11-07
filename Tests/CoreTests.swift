@@ -286,6 +286,28 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(edge.brightness, 1)
     }
 
+    func testSpectrumPointerMatchesCapturedWindowsPixels() throws {
+        // Native pointer run42392328103,256-point spectrum, original V=213/255.
+        for (x, y, expected) in [(128.0, 128.0, "#6BD5D5"), (255, 0, "#D50004"),
+                                  (268, -12, "#D50004"), (0, 255, "#D5D5D5"),
+                                  (-12, 268, "#D5D5D5"), (64, 64, "#85D535")] {
+            let hsv = try XCTUnwrap(ColorPickerChannel.spectrumComponents(x: x, y: y, side: 256))
+            XCTAssertEqual(Color(hue: hsv.hue, saturation: hsv.saturation, brightness: 213.0 / 255).hex, expected)
+        }
+    }
+
+    func testSpectrumPointerRoundsAndRejectsInvalidGeometry() throws {
+        let before = try XCTUnwrap(ColorPickerChannel.spectrumComponents(x: 127.49, y: 0, side: 256))
+        let after = try XCTUnwrap(ColorPickerChannel.spectrumComponents(x: 127.5, y: 0, side: 256))
+        XCTAssertEqual(before.hue, 127.0 / 255 * 359 / 360, accuracy: 1e-12)
+        XCTAssertEqual(after.hue, 128.0 / 255 * 359 / 360, accuracy: 1e-12)
+        XCTAssertEqual(after.saturation, 1)
+        for (x, y, side) in [(Double.nan, 0.0, 256.0), (0, .infinity, 256),
+                              (0, 0, 0), (0, 0, 1), (0, 0, .infinity)] {
+            XCTAssertNil(ColorPickerChannel.spectrumComponents(x: x, y: y, side: side))
+        }
+    }
+
     func testSpectrumSelectionContrastsWithDisplayedHueAndSaturation() {
         XCTAssertTrue(SpectrumSelectionContrast.usesLightStroke(hue: 0, saturation: 1))
         XCTAssertFalse(SpectrumSelectionContrast.usesLightStroke(hue: 1 / 3, saturation: 1))
