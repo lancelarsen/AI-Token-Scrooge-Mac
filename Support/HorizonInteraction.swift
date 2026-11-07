@@ -158,6 +158,7 @@ struct HistoryPointerTracking: NSViewRepresentable {
                 owner: self, userInfo: nil)
             addTrackingArea(replacement)
             area = replacement
+            if popup?.isVisible == true { showPopup(popupText) }
         }
 
         override func mouseEntered(with event: NSEvent) { mouseMoved(with: event) }
