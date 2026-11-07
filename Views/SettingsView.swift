@@ -54,7 +54,9 @@ struct SettingsView: View {
                     SettingsCard(title: "Time Zone", symbol: "globe") {
                         Menu {
                             Picker("Time Zone", selection: Binding(get: { store.state.settings.zone.identifier }, set: { zone in store.edit { $0.settings.timeZoneID = zone } })) {
-                                ForEach(Format.sortedTimeZones(identifiers: TimeZone.knownTimeZoneIdentifiers + [store.state.settings.zone.identifier]), id: \.identifier) { zone in Text(Format.timeZoneName(zone)).tag(zone.identifier) }
+                                ForEach(Format.sortedTimeZones(identifiers: TimeZone.knownTimeZoneIdentifiers + [store.state.settings.zone.identifier]), id: \.identifier) { zone in
+                                    Text(Format.timeZoneName(zone)).font(ReferenceTypography.nativeTextFont()).tag(zone.identifier)
+                                }
                             }.pickerStyle(.inline)
                         } label: {
                             HStack {
@@ -69,12 +71,14 @@ struct SettingsView: View {
                     }
                     SettingsCard(title: "History and Alerts", symbol: "gearshape", description: "Choose how long to keep recorded usage and alerts. Shortening this period removes older records; increasing it cannot restore deleted records.") {
                         Menu {
-                            ForEach(Array(Set([7,30,60,90,180,365,store.state.settings.historyRetentionDays])).sorted(), id: \.self) { days in
-                                Button("\(days) Days") {
-                                    if days < store.state.settings.historyRetentionDays { pendingRetention = days }
-                                    else { store.edit { $0.settings.historyRetentionDays = days } }
+                            Picker("", selection: Binding(get: { store.state.settings.historyRetentionDays }, set: { days in
+                                if days < store.state.settings.historyRetentionDays { pendingRetention = days }
+                                else { store.edit { $0.settings.historyRetentionDays = days } }
+                            })) {
+                                ForEach(Array(Set([7,30,60,90,180,365,store.state.settings.historyRetentionDays])).sorted(), id: \.self) { days in
+                                    Text("\(days) Days").font(ReferenceTypography.nativeTextFont()).tag(days)
                                 }
-                            }
+                            }.labelsHidden().pickerStyle(.inline)
                         } label: {
                             HStack {
                                 Text("\(store.state.settings.historyRetentionDays) Days").font(ReferenceTypography.nativeTextFont())
@@ -267,9 +271,13 @@ struct ReminderEditor: View {
                     let unit = unitDrafts[reminder.id] ?? reminder.unit
                     HStack(spacing: 8) {
                         Menu {
-                            ForEach(ReminderSeverity.allCases, id: \.self) { level in
-                                Button(level.rawValue) { severityDrafts[reminder.id] = level; update(reminder.id) }
-                            }
+                            Picker("", selection: Binding(get: { severity }, set: { level in
+                                severityDrafts[reminder.id] = level; update(reminder.id)
+                            })) {
+                                ForEach(ReminderSeverity.allCases, id: \.self) { level in
+                                    Text(level.rawValue).font(ReferenceTypography.nativeTextFont()).tag(level)
+                                }
+                            }.labelsHidden().pickerStyle(.inline)
                         } label: {
                             menuLabel(severity.rawValue, color: severityColor(severity))
                         }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Reminder Severity").accessibilityValue(severity.rawValue)
@@ -284,9 +292,13 @@ struct ReminderEditor: View {
                             .accessibilityLabel("Time Before Event")
                             .accessibilityIdentifier("reminderAmount-\(reminder.id)")
                         Menu {
-                            ForEach(["Days", "Hours"], id: \.self) { unit in
-                                Button(unit) { unitDrafts[reminder.id] = unit; update(reminder.id) }
-                            }
+                            Picker("", selection: Binding(get: { unit }, set: { unit in
+                                unitDrafts[reminder.id] = unit; update(reminder.id)
+                            })) {
+                                ForEach(["Days", "Hours"], id: \.self) { unit in
+                                    Text(unit).font(ReferenceTypography.nativeTextFont()).tag(unit)
+                                }
+                            }.labelsHidden().pickerStyle(.inline)
                         } label: { menuLabel(unit) }
                             .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Days or Hours").accessibilityValue(unit)
                             .accessibilityIdentifier("reminderUnit-\(reminder.id)")

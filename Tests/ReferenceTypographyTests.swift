@@ -99,6 +99,18 @@ final class ReferenceTypographyTests: XCTestCase {
         XCTAssertEqual(host.fittingSize, CGSize(width: 312, height: 494))
     }
 
+    @MainActor func testSettingsPickerTextsMatchCapturedWindowsMenuMetrics() {
+        // Actual open ComboBox text bounds from native run42388250473.
+        let samples: [(String, CGFloat)] = [("Info", 25), ("Warning", 53), ("Critical", 43),
+                                           ("Days", 30), ("Hours", 37),
+                                           ("(UTC-06:00) Central Time (US & Canada)", 249)]
+        for (text, width) in samples {
+            let host = NSHostingView(rootView: Text(text).font(ReferenceTypography.nativeTextFont()))
+            XCTAssertEqual(host.fittingSize.width, width, accuracy: 0.5)
+            XCTAssertEqual(host.fittingSize.height, 19, accuracy: 0.5)
+        }
+    }
+
     @MainActor func testSoundChoicesMatchCapturedWindowsRadioTargets() {
         for title in ["Duck Sounds", "Classic Chimes"] {
             let host = NSHostingView(rootView: ReferenceRadioChoice(title: title, selected: false, select: {}))

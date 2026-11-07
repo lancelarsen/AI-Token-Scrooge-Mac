@@ -111,8 +111,10 @@ private struct ConnectionForm: View {
                 CodexConnectView(nickname: nickname, original: original, phase: $phase)
             } else if provider == .copilot {
                 Menu {
-                    Button("AI Credits") { unit = .credits }
-                    Button("Legacy Premium Requests") { unit = .requests }
+                    Picker("", selection: $unit) {
+                        Text("AI Credits").font(ReferenceTypography.nativeTextFont()).tag(UsageUnit.credits)
+                        Text("Legacy Premium Requests").font(ReferenceTypography.nativeTextFont()).tag(UsageUnit.requests)
+                    }.labelsHidden().pickerStyle(.inline)
                 } label: {
                     HStack {
                         Text(unit == .credits ? "AI Credits" : "Legacy Premium Requests")
