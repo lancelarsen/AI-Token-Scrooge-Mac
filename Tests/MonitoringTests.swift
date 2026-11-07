@@ -308,6 +308,38 @@ final class MonitoringTests: XCTestCase {
     }
 
     @MainActor
+    func testAcceptedNotificationWithFailedDeliverySaveReportsBothOutcomes() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("delivery-save.db")
+        let database = try LocalStore(url: url)
+        var original = PersistedState()
+        original.settings.soundVolume = 0
+        try await database.save(original)
+        let delivery = NotificationDeliveryFixture(denied: false)
+        let store = AppStore(database: database, notifications: delivery)
+        await store.load()
+        let sending = Task { await store.sendTestNotification() }
+        await delivery.waitForEnqueue()
+        var connection: OpaquePointer?
+        XCTAssertEqual(sqlite3_open(url.path, &connection), SQLITE_OK)
+        defer { sqlite3_close(connection) }
+        XCTAssertEqual(sqlite3_exec(connection, "CREATE TRIGGER reject_delivery_save BEFORE UPDATE ON state BEGIN SELECT RAISE(ABORT, 'injected save failure'); END;", nil, nil, nil), SQLITE_OK)
+        await delivery.finishEnqueue()
+        await sending.value
+        XCTAssertTrue(store.errorMessage?.contains("macOS accepted the notification") == true)
+        XCTAssertTrue(store.errorMessage?.contains("could not save the delivery status") == true)
+        XCTAssertTrue(store.errorMessage?.contains("will not be replayed") == true)
+        let alert = try XCTUnwrap(store.state.alerts.first)
+        XCTAssertFalse(alert.delivered, "Failed persistence must not invent a saved delivery")
+        XCTAssertEqual(store.activeAlert?.id, alert.id)
+        let persisted = try await database.load()
+        XCTAssertEqual(persisted.alerts, store.state.alerts)
+        let enqueued = await delivery.enqueued
+        XCTAssertEqual(enqueued, [alert.id])
+    }
+
+    @MainActor
     func testDismissalDuringNotificationEnqueueCancelsWithoutMarkingDelivered() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

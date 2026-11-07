@@ -454,6 +454,11 @@ import AppKit
                 if let index = state.alerts.firstIndex(where: { $0.id == alert.id }) { state.alerts[index].delivered = true }
             }
             await mutationTail?.value
+            if monitoringEpoch == epoch,
+               let current = state.alerts.first(where: { $0.id == alert.id }),
+               !current.delivered, !current.dismissed, current.snoozedUntil == nil {
+                errorMessage = "macOS accepted the notification, but Scrooge could not save the delivery status. The test will not be replayed."
+            }
         } catch {
             if monitoringEpoch == epoch {
                 errorMessage = "macOS did not accept the test notification. The test is recorded in Alert History. " + error.localizedDescription
