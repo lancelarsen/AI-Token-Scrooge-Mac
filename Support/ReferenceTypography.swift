@@ -130,9 +130,9 @@ extension View {
 }
 
 
-/// Classic Segoe Label/TextBlock rounds the complete line block upward in
-/// WinUI; SwiftUI otherwise rounds each individual line to the nearest point.
-private struct ReferenceClassicTextRenderer: TextRenderer {
+/// Measured Segoe text blocks round the complete fractional line block upward
+/// in WinUI; SwiftUI otherwise rounds each individual line to the nearest point.
+private struct ReferenceFractionalTextRenderer: TextRenderer {
     let baseline: CGFloat
     let advance: CGFloat
     func draw(layout: Text.Layout, in context: inout GraphicsContext) {
@@ -145,7 +145,7 @@ private struct ReferenceClassicTextRenderer: TextRenderer {
     }
 }
 
-private struct ReferenceClassicLineBox: Layout {
+private struct ReferenceFractionalLineBox: Layout {
     let advance: CGFloat
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         guard let text = subviews.first else { return .zero }
@@ -159,13 +159,23 @@ private struct ReferenceClassicLineBox: Layout {
 }
 
 extension View {
+    /// Measured native Variable labels also round the complete fractional
+    /// line block upward. At16 points this is22, rather than SwiftUI's21.
+    func referenceNativeTextLineMetrics(size: CGFloat) -> some View {
+        let font = ReferenceTypography.nativeMenuFont(size: size)
+        let advance = font.ascender - font.descender + font.leading
+        return ReferenceFractionalLineBox(advance: advance) {
+            self.textRenderer(ReferenceFractionalTextRenderer(baseline: font.ascender, advance: advance))
+        }
+    }
+
     /// Apply to a Text with the matching classic font. Native Variable text and
     /// the measured Semibold fallback keep their separate line-box policies.
     func referenceClassicLineMetrics(size: CGFloat) -> some View {
         let font = ReferenceTypography.measuringFont(ofSize: size)
         let advance = font.ascender - font.descender + font.leading
-        return ReferenceClassicLineBox(advance: advance) {
-            self.textRenderer(ReferenceClassicTextRenderer(baseline: font.ascender, advance: advance))
+        return ReferenceFractionalLineBox(advance: advance) {
+            self.textRenderer(ReferenceFractionalTextRenderer(baseline: font.ascender, advance: advance))
         }
     }
 }

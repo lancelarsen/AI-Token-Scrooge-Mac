@@ -142,6 +142,16 @@ final class ReferenceTypographyTests: XCTestCase {
         }
     }
 
+    @MainActor func testProviderChoiceTextMatchesNativeWindowsLineBoxes() {
+        // Four current provider rows, native Windows run42394008393.
+        for (text, width) in [("OpenAI Codex", 103.0), ("GitHub Copilot", 106.0),
+                              ("Claude", 49.0), ("Devin", 41.0)] {
+            let host = NSHostingView(rootView: Text(text).font(ReferenceTypography.nativeTextFont(size: 16))
+                .referenceNativeTextLineMetrics(size: 16))
+            XCTAssertEqual(host.fittingSize, CGSize(width: width, height: 22))
+        }
+    }
+
     @MainActor func testSpectrumGradientMatchesNativeLogicalPixels() throws {
         // Unobscured spectrum pixels from native Windows run42392328103.
         // Render the actual image through the same interpolation as the view.
