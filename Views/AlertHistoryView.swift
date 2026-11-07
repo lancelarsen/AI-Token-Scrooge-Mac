@@ -20,14 +20,12 @@ struct AlertHistoryView: View {
                 } else {
                     LazyVStack(spacing: 16) {
                         ForEach(store.state.alerts.sorted { $0.createdAt > $1.createdAt }) { alert in
+                            let text = "\(Format.historyDate(alert.createdAt, zone: store.state.settings.zone)) · \(alert.title)\n\(store.state.settings.privacy ? "Account Details Hidden" : alert.detail)\n\(alert.delivered ? "Sent to macOS" : "Recorded in history")"
                             Button { selectedAlert = alert } label: {
-                                HStack(spacing: 9) {
-                                    ActionIcon(symbol: alert.isRefreshReminder ? "arrow.clockwise" : alert.reminderID != nil ? "folder" : alert.delivered ? "arrow.up.right.square" : "clock.arrow.circlepath")
-                                    Text("\(Format.historyDate(alert.createdAt, zone: store.state.settings.zone)) · \(alert.title)\n\(store.state.settings.privacy ? "Account Details Hidden" : alert.detail)\n\(alert.delivered ? "Sent to macOS" : "Recorded in history")")
-                                        .font(Theme.dialogBodyFont)
-                                        .multilineTextAlignment(.leading)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                }.padding(.vertical, 12).frame(minHeight: 80)
+                                DialogActionLabel(title: text)
+                                    .multilineTextAlignment(.leading)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.vertical, 10).frame(minHeight: 80)
                             }.buttonStyle(ScroogeButtonStyle()).help("Show Usage Details")
                             .contextMenu {
                                 Menu("Snooze") { ForEach([15,30,60,120], id: \.self) { minutes in Button("\(minutes) Minutes") { store.snooze(alert.id, minutes: minutes) } } }
