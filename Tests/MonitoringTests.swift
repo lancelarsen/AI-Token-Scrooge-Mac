@@ -512,7 +512,6 @@ final class MonitoringTests: XCTestCase {
         ] {
             await ScroogeAppDelegate.handleNotification(id: id, action: action, store: store)
         }
-        await store.waitForPendingMutations()
         let saved = try await database.load()
         XCTAssertEqual(saved.alerts.count, 4)
         XCTAssertTrue(saved.alerts[0].dismissed)
@@ -524,6 +523,34 @@ final class MonitoringTests: XCTestCase {
         XCTAssertEqual(saved.alerts[3], state.alerts[3])
         XCTAssertEqual(store.state.alerts, saved.alerts)
         XCTAssertEqual(store.dashboardOpenRequest, openRequest)
+    }
+
+    @MainActor
+    func testNotificationResponseWaitsForSavedActionAndCleanup() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("response.db"))
+        let alert = AlertEvent(id: "response", accountID: "account", title: "Test", detail: "Test", createdAt: .now)
+        var state = PersistedState()
+        state.alerts = [alert]
+        state.settings.sound = false
+        try await database.save(state)
+        let notifications = NotificationDeliveryFixture(denied: false, holdsCancellation: true)
+        let store = AppStore(database: database, notifications: notifications)
+        await store.load()
+        var callbackReturned = false
+        let callback = Task {
+            await ScroogeAppDelegate.handleNotification(id: alert.id, action: "dismiss", store: store)
+            callbackReturned = true
+        }
+        await notifications.waitForCancellation()
+        XCTAssertFalse(callbackReturned, "macOS must not receive completion while action cleanup is pending")
+        let saved = try await database.load()
+        XCTAssertTrue(saved.alerts[0].dismissed)
+        await notifications.finishCancellation()
+        await callback.value
+        XCTAssertTrue(callbackReturned)
+        XCTAssertTrue(store.state.alerts[0].dismissed)
     }
 
     @MainActor
@@ -843,7 +870,13 @@ private actor NotificationDeliveryFixture: NotificationDelivering {
     private(set) var cancelled: [String] = []
     private var enqueueGate: CheckedContinuation<Void, Never>?
     private var startWaiter: CheckedContinuation<Void, Never>?
-    init(denied: Bool) { self.denied = denied }
+    private let holdsCancellation: Bool
+    private var cancellationGate: CheckedContinuation<Void, Never>?
+    private var cancellationWaiter: CheckedContinuation<Void, Never>?
+    init(denied: Bool, holdsCancellation: Bool = false) {
+        self.denied = denied
+        self.holdsCancellation = holdsCancellation
+    }
     func authorize() async throws { if denied { throw NotificationError.denied } }
     func enqueue(id: String, title: String, detail: String, delay: TimeInterval?) async throws {
         enqueued.append(id)
@@ -858,5 +891,19 @@ private actor NotificationDeliveryFixture: NotificationDelivering {
         await withCheckedContinuation { startWaiter = $0 }
     }
     func finishEnqueue() { enqueueGate?.resume(); enqueueGate = nil }
-    func cancel(_ id: String) { cancelled.append(id) }
+    func cancel(_ id: String) async {
+        cancelled.append(id)
+        if holdsCancellation {
+            await withCheckedContinuation { continuation in
+                cancellationGate = continuation
+                cancellationWaiter?.resume()
+                cancellationWaiter = nil
+            }
+        }
+    }
+    func waitForCancellation() async {
+        if cancellationGate != nil { return }
+        await withCheckedContinuation { cancellationWaiter = $0 }
+    }
+    func finishCancellation() { cancellationGate?.resume(); cancellationGate = nil }
 }

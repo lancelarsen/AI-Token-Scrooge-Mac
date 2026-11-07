@@ -153,9 +153,19 @@ struct MenuBarContent: View {
     static func handleNotification(id: String, action: String, store: AppStore) async {
         await store.load()
         let alert = store.state.alerts.first { $0.id == id }
+        // Returning completes macOS response processing; queued action writes
+        // and notification cleanup must finish before that completion.
         switch action {
-        case "snooze": if alert != nil { store.snooze(id, minutes: 60) }
-        case "dismiss", UNNotificationDismissActionIdentifier: if alert != nil { store.dismissAlert(id) }
+        case "snooze":
+            if alert != nil {
+                store.snooze(id, minutes: 60)
+                await store.waitForPendingMutations()
+            }
+        case "dismiss", UNNotificationDismissActionIdentifier:
+            if alert != nil {
+                store.dismissAlert(id)
+                await store.waitForPendingMutations()
+            }
         case "show-info", UNNotificationDefaultActionIdentifier: store.showAlertAccount(alert)
         default: break
         }
