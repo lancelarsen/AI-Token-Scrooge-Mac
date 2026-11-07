@@ -11,6 +11,7 @@ struct SettingsView: View {
     @State private var pendingRetention: Int?
     @State private var demoAutomaticChecks = true
     @State private var soundPreviewStatus: String?
+    @State private var quietDraft: QuietHoursDraft?
     @Environment(\.dashboardHostSize) private var hostSize
     private func setReminderValidation(_ section: String, invalid: Bool) {
         if invalid { invalidReminderSections.insert(section) }
@@ -21,12 +22,24 @@ struct SettingsView: View {
         return CGSize(width: min(1000, max(640, hostSize.width - 48)),
                       height: min(800, max(400, hostSize.height - 64)))
     }
+    private var resolvedQuietDraft: QuietHoursDraft { quietDraft ?? QuietHoursDraft(settings: store.state.settings) }
+    private var hasValidDrafts: Bool { invalidReminderSections.isEmpty && resolvedQuietDraft.isValid }
+    private func quietBinding<T>(_ path: WritableKeyPath<QuietHoursDraft, T>) -> Binding<T> {
+        Binding(get: { resolvedQuietDraft[keyPath: path] }, set: { value in
+            var draft = resolvedQuietDraft
+            draft[keyPath: path] = value
+            quietDraft = draft
+            guard draft.isValid else { return }
+            store.edit { draft.apply(to: &$0.settings) }
+        })
+    }
     private var statusMessage: String? {
-        invalidReminderSections.isEmpty ? (store.settingsSaveError ?? store.errorMessage) : "Enter a Positive Whole Number for Each Reminder"
+        if !resolvedQuietDraft.isValid { return "Choose different start and end times for quiet hours." }
+        return invalidReminderSections.isEmpty ? (store.settingsSaveError ?? store.errorMessage) : "Enter a Positive Whole Number for Each Reminder"
     }
     var body: some View {
         VStack(spacing: 0) {
-            HStack { HStack(spacing: 10) { ActionIcon(symbol: "gearshape", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text("Settings").font(.reference(size: 26, weight: .semibold)).referenceFallbackLineMetrics(size: 26) }; Spacer(); SettingsCloseButton(isClosing: $isClosing, canClose: invalidReminderSections.isEmpty) }.padding(.horizontal, 20).padding(.vertical, 12)
+            HStack { HStack(spacing: 10) { ActionIcon(symbol: "gearshape", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text("Settings").font(.reference(size: 26, weight: .semibold)).referenceFallbackLineMetrics(size: 26) }; Spacer(); SettingsCloseButton(isClosing: $isClosing, canClose: hasValidDrafts) }.padding(.horizontal, 20).padding(.vertical, 12)
             SettingsScrollView {
                 VStack(spacing: 12) {
                     if store.isDemo { Text("Demo changes stay in this preview. Notification test uses macOS.").font(.reference(size: 14)).foregroundStyle(Theme.actionAccent).frame(maxWidth: .infinity, alignment: .leading) }
@@ -115,10 +128,10 @@ struct SettingsView: View {
                             .frame(minHeight: 16, alignment: .leading)
                             .accessibilityHidden(soundPreviewStatus == nil)
                     }
-                    SettingsCard(title: "Quiet Hours", symbol: "moon", headerToggle: binding(\.quietHours), description: "A little peace, right on schedule.") {
-                        QuietHoursControl(start: binding(\.quietStartHour), end: binding(\.quietEndHour))
-                            .disabled(!store.state.settings.quietHours)
-                            .opacity(store.state.settings.quietHours ? 1 : 0.5)
+                    SettingsCard(title: "Quiet Hours", symbol: "moon", headerToggle: quietBinding(\.enabled), description: "A little peace, right on schedule.") {
+                        QuietHoursControl(start: quietBinding(\.start), end: quietBinding(\.end))
+                            .disabled(!resolvedQuietDraft.enabled)
+                            .opacity(resolvedQuietDraft.enabled ? 1 : 0.5)
                     }
                     SettingsCard(title: "Default Alert Levels", symbol: "slider.horizontal.3") {
                         ForEach(ReminderSeverity.allCases, id: \.self) { level in
@@ -139,7 +152,7 @@ struct SettingsView: View {
                         if store.loginItemNeedsApproval { Button("Open Login Items") { LoginItemService.openSettings() }.buttonStyle(ScroogeButtonStyle()) }
                         Button { showAlertHistory = true } label: { DialogActionLabel(title: "Alert History").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle())
                         Button {
-                            guard !isClosing, invalidReminderSections.isEmpty else { return }
+                            guard !isClosing, hasValidDrafts else { return }
                             isClosing = true
                             Task {
                                 if await store.finishSettingsEdits() {
@@ -161,6 +174,7 @@ struct SettingsView: View {
                 .accessibilityHidden(statusMessage == nil)
         }.font(.reference(size: 14)).foregroundStyle(Theme.primaryText).referencePanelFrame(size: panelSize).preferredColorScheme(.dark).tint(Theme.accent)
         .interactiveDismissDisabled()
+        .background(InvalidSettingsEscapeGuard(blocksEscape: !hasValidDrafts).accessibilityHidden(true))
         .onAppear {
             store.refreshLoginItemStatus()
             demoAutomaticChecks = updater.automaticChecks
@@ -492,4 +506,31 @@ private enum SettingsHelpCopy {
         "Quota Refresh Alerts": "Reminders before a scheduled quota refresh, separate from earned reset expirations. Each row sets severity and lead time in days or hours. Reminders sort from longest to shortest lead time.",
         "Available Resets": "Unused earned resets reported by this provider, with their expiration times when available",
     ]
+}
+
+/// AppKit's default sheet cancellation can run even when a SwiftUI cancel
+/// action refuses an invalid draft. Consume Escape only for this invalid sheet.
+private struct InvalidSettingsEscapeGuard: NSViewRepresentable {
+    var blocksEscape: Bool
+    func makeNSView(context: Context) -> GuardView { GuardView() }
+    func updateNSView(_ view: GuardView, context: Context) { view.blocksEscape = blocksEscape }
+    static func dismantleNSView(_ view: GuardView, coordinator: ()) { view.detach() }
+    final class GuardView: NSView {
+        var blocksEscape = false
+        private var monitor: Any?
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            detach()
+            guard window != nil else { return }
+            monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+                guard let self, self.blocksEscape, event.keyCode == 53,
+                      event.window === self.window else { return event }
+                return nil
+            }
+        }
+        func detach() {
+            if let monitor { NSEvent.removeMonitor(monitor) }
+            monitor = nil
+        }
+    }
 }

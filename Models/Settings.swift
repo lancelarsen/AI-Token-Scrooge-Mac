@@ -86,6 +86,31 @@ extension AlertRule {
     }
 }
 
+/// Keep incomplete quiet-hours edits visible without replacing the last saved
+/// interval. Equal endpoints are permitted only while delivery quieting is off.
+struct QuietHoursDraft: Equatable, Sendable {
+    var enabled: Bool
+    var start: Int
+    var end: Int
+
+    init(settings: RadarSettings) {
+        enabled = settings.quietHours
+        start = settings.quietStartHour
+        end = settings.quietEndHour
+    }
+    var isValid: Bool {
+        (0...23).contains(start) && (0...23).contains(end) && (!enabled || start != end)
+    }
+    @discardableResult
+    func apply(to settings: inout RadarSettings) -> Bool {
+        guard isValid else { return false }
+        settings.quietHours = enabled
+        settings.quietStartHour = start
+        settings.quietEndHour = end
+        return true
+    }
+}
+
 struct RadarSettings: Codable, Equatable, Sendable {
     // Defaults match RadarSettings.cs at Windows fc37458, not a user's saved preferences.
     var notifications = true

@@ -2,6 +2,47 @@ import XCTest
 @testable import AITokenScrooge
 
 final class SettingsMigrationTests: XCTestCase {
+    func testQuietHoursDraftRetainsSavedIntervalUntilValidAndPreservesOtherSettings() {
+        var saved = RadarSettings()
+        var draft = QuietHoursDraft(settings: saved)
+        draft.end = draft.start
+        let original = saved
+        XCTAssertFalse(draft.apply(to: &saved))
+        XCTAssertEqual(saved, original, "An enabled zero-length draft must not replace saved settings")
+        saved.soundVolume = 27
+        draft.start = 22
+        draft.end = 6
+        XCTAssertTrue(draft.apply(to: &saved))
+        XCTAssertTrue(saved.quietHours)
+        XCTAssertEqual(saved.quietStartHour, 22)
+        XCTAssertEqual(saved.quietEndHour, 6)
+        XCTAssertEqual(saved.soundVolume, 27, "Applying the recovered interval must retain unrelated edits")
+        draft.enabled = false
+        draft.end = draft.start
+        XCTAssertTrue(draft.apply(to: &saved), "Disabled quiet hours may retain equal endpoints")
+        XCTAssertFalse(saved.quietHours)
+        draft.enabled = true
+        XCTAssertFalse(draft.apply(to: &saved), "Re-enabling requires a nonempty interval")
+        XCTAssertFalse(saved.quietHours)
+    }
+
+    func testQuietHoursDraftAcceptsEveryNonemptyDayOrOvernightInterval() throws {
+        for enabled in [false, true] {
+            for start in 0..<24 {
+                for end in 0..<24 {
+                    var draft = QuietHoursDraft(settings: RadarSettings())
+                    draft.enabled = enabled; draft.start = start; draft.end = end
+                    XCTAssertEqual(draft.isValid, !enabled || start != end)
+                }
+            }
+        }
+        // Existing files written by older Mac builds remain loadable; the
+        // settings screen exposes their invalid interval as a recoverable draft.
+        let legacy = try JSONDecoder().decode(RadarSettings.self,
+            from: Data(#"{"quietHours":true,"quietStartHour":8,"quietEndHour":8}"#.utf8))
+        XCTAssertFalse(QuietHoursDraft(settings: legacy).isValid)
+    }
+
     func testAccountColorDefaultsFollowProviderAndPlanWithoutOverwritingCustomChoice() throws {
         var account = ProviderAccount(provider: .codex, nickname: "A", subject: "s", scope: "w")
         XCTAssertEqual(account.resolvedLineColor(plan: "ChatGPT Plus"), "#D587A5")
