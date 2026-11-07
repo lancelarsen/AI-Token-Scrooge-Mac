@@ -306,9 +306,9 @@ final class MonitoringTests: XCTestCase {
         let event = try XCTUnwrap(NSEvent.mouseEvent(with: .leftMouseDown,
             location: CGPoint(x: 30, y: 30), modifierFlags: [], timestamp: 0,
             windowNumber: window.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1))
-        func displaceDrag() async throws {
+        func displaceDrag(to location: CGPoint = CGPoint(x: 30, y: 180)) async throws {
             let movement = try XCTUnwrap(NSEvent.mouseEvent(with: .leftMouseDragged,
-                location: CGPoint(x: 30, y: 180), modifierFlags: [], timestamp: 0,
+                location: location, modifierFlags: [], timestamp: 0,
                 windowNumber: window.windowNumber, context: nil, eventNumber: 1, clickCount: 1, pressure: 1))
             NSApp.postEvent(movement, atStart: true)
             try await Task.sleep(for: .milliseconds(80))
@@ -326,7 +326,12 @@ final class MonitoringTests: XCTestCase {
         XCTAssertTrue(savedSlots.isEmpty)
         dragging.begin(id: "1", ids: ["0", "1"], event: event) { savedSlots.append($0) }
         XCTAssertEqual(dragging.activeID, "1", "Cancellation must release the input monitor for a fresh drag")
-        try await displaceDrag()
+        let originalScroll = scroll.contentView.bounds.origin
+        try await displaceDrag(to: CGPoint(x: 30, y: 405))
+        let firstScroll = scroll.contentView.bounds.origin
+        try await Task.sleep(for: .milliseconds(200))
+        XCTAssertNotEqual(scroll.contentView.bounds.origin, firstScroll, "Edge scrolling must continue while the pointer is held still")
+        XCTAssertNotEqual(scroll.contentView.bounds.origin, originalScroll, "Holding a dragged card at the viewport edge must scroll")
         let escape = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero,
             modifierFlags: [], timestamp: 0, windowNumber: window.windowNumber,
             context: nil, characters: "\u{1b}", charactersIgnoringModifiers: "\u{1b}",
@@ -336,6 +341,7 @@ final class MonitoringTests: XCTestCase {
         XCTAssertNil(dragging.activeID)
         XCTAssertTrue(dragging.offsets.isEmpty)
         XCTAssertTrue(savedSlots.isEmpty)
+        XCTAssertEqual(scroll.contentView.bounds.origin, originalScroll, "Escape restores the scroll position from drag start")
     }
 
     @MainActor
