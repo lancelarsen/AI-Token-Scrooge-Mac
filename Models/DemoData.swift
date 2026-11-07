@@ -9,6 +9,17 @@ enum DemoData {
         return ISO8601DateFormatter().date(from: arguments[index + 1])
     }
 
+    /// Capture the same sample data after its clock has advanced, without
+    /// moving the sample's observation time or scheduled resets.
+    static func referencePresentationDate(arguments: [String]) -> Date? {
+        guard let date = referenceDate(arguments: arguments) else { return nil }
+        guard let index = arguments.firstIndex(of: "--reference-elapsed-seconds"),
+              arguments.indices.contains(index + 1),
+              let seconds = Double(arguments[index + 1]), seconds.isFinite,
+              (0...3600).contains(seconds) else { return date }
+        return date.addingTimeInterval(seconds)
+    }
+
     enum Scenario: String, CaseIterable {
         case standard, offline, auth, permission, unknown, exhausted, due, partial
         case historyLong = "history-long"

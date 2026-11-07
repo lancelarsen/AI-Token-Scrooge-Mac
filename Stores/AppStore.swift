@@ -14,7 +14,8 @@ import AppKit
     private var historyCache: [String: HistoryRunCache] = [:]
     private(set) var isDemo = false
     @ObservationIgnored private let referenceDemoDate = DemoData.referenceDate(arguments: ProcessInfo.processInfo.arguments)
-    var presentationDate: Date { isDemo ? referenceDemoDate ?? .now : .now }
+    @ObservationIgnored private let referenceDemoPresentationDate = DemoData.referencePresentationDate(arguments: ProcessInfo.processInfo.arguments)
+    var presentationDate: Date { isDemo ? referenceDemoPresentationDate ?? .now : .now }
     private(set) var isLoading = true
     private var refreshingCredentials: Set<String> = []
     @ObservationIgnored private var pendingRefreshes: [String: (account: ProviderAccount, epoch: UUID)] = [:]

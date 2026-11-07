@@ -220,6 +220,27 @@ final class CoreTests: XCTestCase {
         XCTAssertTrue(history.allSatisfy { $0.lastObservedAt <= expected && $0.snapshot.observedAt <= expected })
     }
 
+    func testReferenceElapsedClockPreservesDataAndMatchesCapturedCountdowns() throws {
+        let arguments = ["app", "--demo", "--reference-date", "2026-11-04T16:11:00Z"]
+        let base = try XCTUnwrap(DemoData.referenceDate(arguments: arguments))
+        XCTAssertEqual(DemoData.referencePresentationDate(arguments: arguments), base)
+        XCTAssertEqual(DemoData.referencePresentationDate(arguments: arguments + ["--reference-elapsed-seconds"]), base)
+        XCTAssertEqual(DemoData.referencePresentationDate(arguments: arguments + ["--reference-elapsed-seconds", "3600"]), base.addingTimeInterval(3600))
+        let captured = try XCTUnwrap(DemoData.referencePresentationDate(arguments: arguments + ["--reference-elapsed-seconds", "1"]))
+        XCTAssertEqual(captured.timeIntervalSince(base), 1)
+        XCTAssertEqual(DemoData.referenceDate(arguments: arguments + ["--reference-elapsed-seconds", "1"]), base)
+        let state = DemoData.make(now: base).0
+        let snapshot = try XCTUnwrap(state.snapshots["demo-0"])
+        XCTAssertEqual(snapshot.observedAt, base)
+        XCTAssertEqual(Format.countdown(snapshot.windows[0].resetsAt, now: captured), "2h 13m")
+        XCTAssertEqual(Format.countdown(snapshot.windows[1].resetsAt, now: captured), "1d 23h")
+        for invalid in ["invalid", "nan", "inf", "-1", "3601"] {
+            XCTAssertEqual(DemoData.referencePresentationDate(arguments: arguments + ["--reference-elapsed-seconds", invalid]), base)
+        }
+        XCTAssertNil(DemoData.referencePresentationDate(arguments: ["app", "--reference-elapsed-seconds", "1"]))
+        XCTAssertNil(DemoData.referencePresentationDate(arguments: ["app", "--reference-date", "2026-11-04T16:11:00Z", "--reference-elapsed-seconds", "1"]))
+    }
+
     func testDemoScenariosPreserveStandardValuesAndRepresentMissingData() {
         let now = Date(timeIntervalSince1970: 1793808000)
         let standard = DemoData.make(now: now).0
