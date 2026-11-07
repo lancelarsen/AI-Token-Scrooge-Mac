@@ -121,7 +121,7 @@ struct MenuBarContent: View {
             UNNotificationAction(identifier: "show-info", title: "Show Info", options: .foreground),
             UNNotificationAction(identifier: "snooze", title: "Snooze 1 Hour"),
             UNNotificationAction(identifier: "dismiss", title: "Dismiss")
-        ], intentIdentifiers: [])
+        ], intentIdentifiers: [], options: .customDismissAction)
         center.setNotificationCategories([category])
         guard ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] != "1" else { return }
         _ = AppUpdater.shared
@@ -153,7 +153,7 @@ struct MenuBarContent: View {
         guard let alert = store.state.alerts.first(where: { $0.id == id }) else { return }
         switch action {
         case "snooze": store.snooze(id, minutes: 60)
-        case "dismiss": store.dismissAlert(id)
+        case "dismiss", UNNotificationDismissActionIdentifier: store.dismissAlert(id)
         case "show-info", UNNotificationDefaultActionIdentifier: store.showAlertAccount(alert)
         default: break
         }
