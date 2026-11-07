@@ -749,9 +749,11 @@ struct ColorEntryFieldSurface: View {
 }
 
 /// Immutable HSV spectrum in sRGB; avoids perceptual interpolation between hue stops.
-private enum LineColorSpectrum {
+enum LineColorSpectrum {
     static let image: NSImage? = {
-        let side = 512
+        // WinUI generates one sample per logical spectrum pixel. A larger
+        // bitmap downsampled here shifts the hue at the same pointer position.
+        let side = 256
         var pixels = [UInt8](repeating: 255, count: side * side * 4)
         for y in 0..<side {
             let saturation = 1 - Double(y) / Double(side - 1)

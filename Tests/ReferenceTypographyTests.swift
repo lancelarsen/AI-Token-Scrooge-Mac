@@ -142,6 +142,23 @@ final class ReferenceTypographyTests: XCTestCase {
         }
     }
 
+    @MainActor func testSpectrumGradientMatchesNativeLogicalPixels() throws {
+        // Unobscured spectrum pixels from native Windows run42392328103.
+        // Render the actual image through the same interpolation as the view.
+        let renderer = ImageRenderer(content: Image(nsImage: try XCTUnwrap(LineColorSpectrum.image))
+            .resizable().interpolation(.high).frame(width: 256, height: 256))
+        renderer.scale = 1
+        let image = NSBitmapImageRep(cgImage: try XCTUnwrap(renderer.cgImage))
+        for (x, y, expected) in [(16, 16, [255, 106, 16]), (64, 64, [159, 255, 64]),
+                                  (128, 128, [128, 255, 255]), (240, 16, [255, 16, 104]),
+                                  (128, 240, [240, 255, 255]), (32, 160, [255, 231, 160])] {
+            var pixel = [Int](repeating: 0, count: image.samplesPerPixel)
+            image.getPixel(&pixel, atX: x, y: y)
+            let rgb = Array((image.bitmapFormat.contains(.alphaFirst) ? pixel.dropFirst() : pixel[...]).prefix(3))
+            XCTAssertEqual(rgb, expected, "Spectrum pixel at \(x),\(y)")
+        }
+    }
+
     @MainActor func testReferenceControlColorsMatchCapturedWindowsThemes() throws {
         // Independent normal-state pixels: dark run 42370975807 and the prior
         // light runner capture 42369557174, both over the same #1C1E24 card.

@@ -160,3 +160,8 @@ Windows run42391456789 attempt2 captures hover/held-press clear states and succe
 ### Spectrum pointer sampling — November 7
 
 Fixed continuous pointer mapping to use Windows logical-pixel rounding and inclusive endpoint sampling. Passing Windows run42392328103 provides six independent interior/edge/outside color vectors; production standalone checks and actual native Mac drags match all six. Brightness endpoints and Cancel preservation pass. App/test bundles build; new hosted regressions await execution. This closes the inspected automated pointer-mapping discrepancy, while physical hand feel and complete raster acceptance remain separate.
+
+
+### Spectrum bitmap sampling — November 7
+
+Removed the512-to256 downsampling color shift by generating the same256 logical samples as Windows. Six native gradient RGB vectors pass the production-image renderer;50,157 of50,161 unobscured interior pixels match exactly and the other4 differ by one channel value. Native picker inspection, center selection and Cancel preservation pass; app/test bundles build. This covers the inspected1x gradient interior, not clipped edges, selection overlays, Retina interpolation or complete surface acceptance.
