@@ -423,7 +423,7 @@ final class DashboardUITests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: directory) }
         let app = XCUIApplication()
         app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
-        app.launchArguments = ["--demo", "--data-dir", directory.path]
+        app.launchArguments = ["--demo", "--reference-wide", "--data-dir", directory.path]
         app.launch()
         defer { app.terminate() }
 
@@ -439,6 +439,11 @@ final class DashboardUITests: XCTestCase {
             return
         }
         settings.click()
+        XCTAssertTrue(app.textFields["Account Name"].waitForExistence(timeout: 5))
+        let capture = XCTAttachment(screenshot: app.sheets.firstMatch.screenshot())
+        capture.name = "Wide account settings with Windows border inset"
+        capture.lifetime = .keepAlways
+        add(capture)
         app.buttons["Add Custom Line Color"].click()
         let hex = app.textFields.matching(NSPredicate(format: "placeholderValue == %@", "Hex Color")).firstMatch
         XCTAssertTrue(hex.waitForExistence(timeout: 5))

@@ -196,7 +196,8 @@ struct SettingsCard<Content: View>: View {
     var description: String? = nil
     @ViewBuilder var content: Content
     var body: some View {
-        ScroogeCard(inset: 16) {
+        // WinUI Border reserves its one-point stroke before the 16-point content padding.
+        ScroogeCard(inset: 17) {
             VStack(alignment: .leading, spacing: 8) {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {

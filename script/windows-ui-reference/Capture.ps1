@@ -210,7 +210,7 @@ try {
     }
     Invoke-ReferenceAction -Name 'Close' -Root $root
     Start-Sleep -Seconds 1
-    Invoke-ReferenceAction -Name 'Settings for OpenAI / Personal · Plus' -Root $root
+    Invoke-ReferenceAction -Name ('Settings for OpenAI / Personal ' + [char]0x00B7 + ' Plus') -Root $root
     Start-Sleep -Seconds 2
     $settings = Save-ReferenceView -Name 'account-settings' -Root $root -Handle $handle -Output $Output
     if (-not ($settings.Rows | Where-Object { $_.name -eq 'Account Name' }) -or
