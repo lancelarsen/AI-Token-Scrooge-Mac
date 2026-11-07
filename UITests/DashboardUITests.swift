@@ -484,6 +484,69 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(hex.waitForNonExistence(timeout: 3))
     }
 
+    @MainActor func testQuietHoursHandlesKeyboardAndDisabledInput() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", "--reference-wide"]
+        app.launch()
+        defer { app.terminate() }
+        let dashboard = app.windows["dashboard"]
+        if !dashboard.waitForExistence(timeout: 2) {
+            app.menuBars.menuBarItems["Window"].click()
+            app.menuBars.menuBarItems["Window"].menuItems["AI Token Scrooge"].click()
+        }
+        let running = try XCTUnwrap(NSRunningApplication.runningApplications(withBundleIdentifier: "com.lancelarsen.AITokenScrooge")
+            .max { ($0.launchDate ?? .distantPast) < ($1.launchDate ?? .distantPast) })
+        running.activate(options: [.activateIgnoringOtherApps])
+        dashboard.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.08)).click()
+        app.buttons["settingsButton"].click()
+        let panel = app.sheets.firstMatch
+        let start = panel.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Quiet Hours Start")).firstMatch
+        let end = panel.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Quiet Hours End")).firstMatch
+        XCTAssertTrue(start.waitForExistence(timeout: 5))
+        for _ in 0..<6 {
+            if start.frame.minY > panel.frame.minY + 90 && start.frame.maxY < panel.frame.maxY - 120 { break }
+            panel.scrollViews.firstMatch.scroll(byDeltaX: 0, deltaY: -200)
+        }
+        XCTAssertTrue(panel.frame.contains(start.frame))
+        let toggle = panel.switches["Quiet Hours"]
+        if !start.isEnabled { toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).click() }
+        let enabled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in start.isEnabled }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 3), .completed)
+        XCTAssertTrue(panel.staticTexts["12 AM – 8 AM · 8 hours"].exists)
+        let initialStart = start.frame.midX, initialEnd = end.frame.midX
+        let span = (initialEnd - initialStart) * 24 / 8
+        let startKnob = start.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).withOffset(CGVector(dx: 0, dy: 28))
+        startKnob.click(forDuration: 0.1, thenDragTo: startKnob.withOffset(CGVector(dx: -span * 4 / 24, dy: 0)))
+        XCTAssertTrue(panel.staticTexts["8 PM – 8 AM · 12 hours · Overnight"].waitForExistence(timeout: 3))
+        XCTAssertEqual(end.frame.midX, initialEnd, accuracy: 1, "Dragging Start must leave End unchanged")
+        let endKnob = end.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).withOffset(CGVector(dx: 0, dy: 28))
+        endKnob.click(forDuration: 0.1, thenDragTo: endKnob.withOffset(CGVector(dx: span * 2 / 24, dy: 0)))
+        XCTAssertTrue(panel.staticTexts["8 PM – 10 AM · 14 hours · Overnight"].waitForExistence(timeout: 3))
+        XCTAssertEqual(start.frame.midX, initialStart - span * 4 / 24, accuracy: 1)
+        start.click()
+        app.typeKey(.rightArrow, modifierFlags: [])
+        XCTAssertTrue(panel.staticTexts["9 PM – 10 AM · 13 hours · Overnight"].waitForExistence(timeout: 3))
+        app.typeKey(.leftArrow, modifierFlags: [])
+        XCTAssertTrue(panel.staticTexts["8 PM – 10 AM · 14 hours · Overnight"].waitForExistence(timeout: 3))
+        let capture = XCTAttachment(screenshot: panel.screenshot())
+        capture.name = "Quiet hours independent handles and keyboard focus"
+        capture.lifetime = .keepAlways
+        add(capture)
+        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).click()
+        let disabled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in !start.isEnabled }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [disabled], timeout: 3), .completed)
+        // Send the physical drag through panel coordinates; do not invoke a disabled AX control.
+        let point = start.frame
+        let disabledKnob = panel.coordinate(withNormalizedOffset: .zero).withOffset(
+            CGVector(dx: point.midX - panel.frame.minX, dy: point.midY + 28 - panel.frame.minY))
+        disabledKnob.click(forDuration: 0.1, thenDragTo: disabledKnob.withOffset(CGVector(dx: 60, dy: 0)))
+        app.typeKey(.rightArrow, modifierFlags: [])
+        XCTAssertTrue(panel.staticTexts["8 PM – 10 AM · 14 hours · Overnight"].exists,
+            "Disabled quiet hours reject pointer and key changes")
+        app.buttons["Close"].click()
+    }
+
     @MainActor func testThresholdReadoutTracksDragAndDismisses() throws {
         try verifyThresholdReadout(severity: "Warning", initialRemaining: 30)
     }
