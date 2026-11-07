@@ -50,6 +50,14 @@ final class MonitoringTests: XCTestCase {
         // only one follow-up for the account still doing its first read.
         var retries: [Task<Void, Never>] = []
         for count in 2...3 {
+            // Publishing the snapshot precedes releasing the provider's active read.
+            // Wait for the same availability gate that enables the Refresh button.
+            if !store.canRequestRefresh {
+                let available = expectation(description: "Retry refresh became available")
+                withObservationTracking { _ = store.canRequestRefresh } onChange: { available.fulfill() }
+                await fulfillment(of: [available], timeout: 3)
+            }
+            XCTAssertTrue(store.canRequestRefresh)
             let updated = expectation(description: "Fast account published reading \(count)")
             withObservationTracking { _ = store.state.snapshots[fast.id] } onChange: { updated.fulfill() }
             retries.append(Task { await store.refreshByUser() })
