@@ -160,12 +160,12 @@ struct DetailsDialog<Content: View>: View {
                 } else {
                     if let primaryTitle, let primaryAction {
                         Button(action: primaryAction) {
-                            DialogActionLabel(title: primaryTitle)
+                            DialogFooterLabel(title: primaryTitle)
                                 .frame(maxWidth: .infinity)
                         }.buttonStyle(ScroogeButtonStyle())
                     }
                     Button(action: close) {
-                        DialogActionLabel(title: closeTitle)
+                        DialogFooterLabel(title: closeTitle)
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(ScroogeButtonStyle())
@@ -259,6 +259,17 @@ private struct DialogFooterColumns: Layout {
     }
 }
 
+/// Native ContentDialog footer captures have plain white labels. The Windows
+/// action decorator does not replace these template-owned button contents.
+private struct DialogFooterLabel: View {
+    let title: String
+    var body: some View {
+        Text(title).font(Theme.dialogBodyFont)
+            .referenceNativeTextLineMetrics(size: 14)
+            .foregroundStyle(Color.white)
+    }
+}
+
 /// A native action stays in the same AppKit key-view loop as the color fields.
 /// SwiftUI supplies the visible label; the NSButton owns clicks, key presses and AX.
 private struct EditorFooterButton: View {
@@ -267,7 +278,7 @@ private struct EditorFooterButton: View {
     let action: () -> Void
     @State private var hovered = false
     var body: some View {
-        DialogActionLabel(title: title)
+        DialogFooterLabel(title: title)
             .foregroundStyle(hovered ? Color.white : Theme.primaryText)
             .environment(\.actionForeground, hovered ? .white : Theme.actionAccent)
             .padding(.horizontal, 16)
