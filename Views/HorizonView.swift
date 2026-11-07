@@ -19,7 +19,7 @@ struct HorizonView: View {
     private var earliestRecordedHistory: Date? { presentation.series.compactMap { $0.points.first?.at }.min() }
     private var timelineAccounts: [ProviderAccount] { AccountPolicy.ordered(store.state, mode: .custom).filter(\.enabled) }
     var body: some View {
-        ScroogeCard(inset: 0) {
+        ScroogeCard(inset: 1) {
             VStack(spacing: 16) {
                 HStack(alignment: .top, spacing: 8) {
                     HorizonHeaderFlow {
@@ -32,51 +32,53 @@ struct HorizonView: View {
                 }
                 .padding(.leading, 12)
                 Divider().overlay(Theme.border).padding(.horizontal, 12)
-                if store.state.accounts.isEmpty {
-                    emptyTimeline
-                } else {
-                HStack(alignment: .top, spacing: 10) {
-                    HStack(spacing: 0) {
-                        selectors
-                        Rectangle().fill(Theme.border).frame(width: 1).padding(.vertical, 6)
-                    }.frame(width: timelineWidth < 850 ? 95 : 112)
-                    HStack(spacing: 0) {
-                        historyAxis.frame(width: 40).opacity(store.state.settings.historyEnabled ? 1 : 0)
-                        GeometryReader { geometry in
-                            ScrollView(.horizontal) {
-                                timeline.frame(width: viewport.contentWidth, height: timelineHeight)
-                                    .background(HistoryPointerTracking(text: hoverText, pinned: historyPinned, anchor: historyPinned ? sampleAnchor : nil) { point in
-                                        if let point {
-                                            if !historyPinned { updateHistoryHover(point) }
-                                        } else {
-                                            clearHistorySample()
-                                        }
-                                    })
+                VStack(spacing: 12) {
+                    if store.state.accounts.isEmpty {
+                        emptyTimeline
+                    } else {
+                        HStack(alignment: .top, spacing: 10) {
+                            HStack(spacing: 0) {
+                                selectors
+                                Rectangle().fill(Theme.border).frame(width: 1).padding(.vertical, 6)
+                            }.frame(width: timelineWidth < 850 ? 95 : 112)
+                            HStack(spacing: 0) {
+                                historyAxis.frame(width: 40).opacity(store.state.settings.historyEnabled ? 1 : 0)
+                                GeometryReader { geometry in
+                                    ScrollView(.horizontal) {
+                                        timeline.frame(width: viewport.contentWidth, height: timelineHeight)
+                                            .background(HistoryPointerTracking(text: hoverText, pinned: historyPinned, anchor: historyPinned ? sampleAnchor : nil) { point in
+                                                if let point {
+                                                    if !historyPinned { updateHistoryHover(point) }
+                                                } else {
+                                                    clearHistorySample()
+                                                }
+                                            })
+                                    }
+                                    .scrollIndicators(.hidden).scrollPosition($position)
+                                    .onScrollGeometryChange(for: Double.self) { $0.contentOffset.x } action: { _, value in if position.isPositionedByUser { viewport.scroll(to: value) } }
+                                    .onAppear { update(width: geometry.size.width) }
+                                    .onChange(of: geometry.size.width) { _, width in update(width: width) }
+                                    .onChange(of: store.state.settings.historyEnabled) { _, _ in update(width: geometry.size.width) }
+                                    .onChange(of: store.state.settings.timeZoneID) { _, _ in update(width: geometry.size.width) }
+                                    .onChange(of: events.map(\.date)) { _, _ in update(width: geometry.size.width) }
+                                }
                             }
-                            .scrollIndicators(.hidden).scrollPosition($position)
-                            .onScrollGeometryChange(for: Double.self) { $0.contentOffset.x } action: { _, value in if position.isPositionedByUser { viewport.scroll(to: value) } }
-                            .onAppear { update(width: geometry.size.width) }
-                            .onChange(of: geometry.size.width) { _, width in update(width: width) }
-                            .onChange(of: store.state.settings.historyEnabled) { _, _ in update(width: geometry.size.width) }
-                            .onChange(of: store.state.settings.timeZoneID) { _, _ in update(width: geometry.size.width) }
-                            .onChange(of: events.map(\.date)) { _, _ in update(width: geometry.size.width) }
-                        }
+                            .overlay(alignment: .topLeading) { dateHeadings }
+                        }.frame(height: timelineHeight)
+                            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { timelineWidth = $0 }
                     }
-                    .overlay(alignment: .topLeading) { dateHeadings }
-                }.frame(height: timelineHeight)
-                    .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { timelineWidth = $0 }
-                }
-                if store.state.accounts.isEmpty {
-                    RoundedRectangle(cornerRadius: 5).fill(Theme.activeControl)
-                        .overlay(RoundedRectangle(cornerRadius: 5).stroke(Theme.accent))
-                        .overlay {
-                            Canvas { context, size in
-                                drawNavigatorGrip(in: &context, centerX: size.width / 2)
+                    if store.state.accounts.isEmpty {
+                        RoundedRectangle(cornerRadius: 5).fill(Theme.activeControl)
+                            .overlay(RoundedRectangle(cornerRadius: 5).stroke(Theme.accent))
+                            .overlay {
+                                Canvas { context, size in
+                                    drawNavigatorGrip(in: &context, centerX: size.width / 2)
+                                }
+                                .accessibilityHidden(true)
                             }
-                            .accessibilityHidden(true)
-                        }
-                        .frame(height: 22)
-                } else { navigator.frame(height: 22) }
+                            .frame(height: 22)
+                    } else { navigator.frame(height: 22) }
+                }
                 if let historyStatus {
                     Text(historyStatus).font(.reference(size: 13)).foregroundStyle(Theme.secondary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("historyStatus")
@@ -133,7 +135,7 @@ struct HorizonView: View {
         GeometryReader { geometry in
             let compact = geometry.size.width < 850
             let left: CGFloat = 40
-            let anchor = left + (compact ? 38 : 88)
+            let anchor = left + (compact ? 40 : 88)
             HStack(spacing: 10) {
                 HStack(spacing: 0) {
                     Color.clear
@@ -141,16 +143,16 @@ struct HorizonView: View {
                 }.frame(width: compact ? 95 : 112)
                 Canvas { context, size in
                     var rail = Path()
-                    rail.move(to: CGPoint(x: left, y: 56))
+                    rail.move(to: CGPoint(x: left, y: railY))
                     // Windows HistoryTimelineView reserves PlotRight = 12 beyond the rail.
-                    rail.addLine(to: CGPoint(x: max(left, size.width - 12), y: 56))
+                    rail.addLine(to: CGPoint(x: max(left, size.width - 12), y: railY))
                     context.stroke(rail, with: .color(Color(hex: "#8170B7")), lineWidth: 2)
-                    context.fill(Path(ellipseIn: CGRect(x: anchor - 8, y: 48, width: 16, height: 16)), with: .color(Color(hex: "#D1BEFF")))
+                    context.fill(Path(ellipseIn: CGRect(x: anchor - 8, y: railY - 8, width: 16, height: 16)), with: .color(Color(hex: "#D1BEFF")))
                     if store.state.settings.historyEnabled {
                         var boundary = Path()
-                        boundary.move(to: CGPoint(x: left, y: 88))
-                        boundary.addLine(to: CGPoint(x: left, y: size.height - 4))
-                        context.stroke(boundary, with: .color(Theme.accent), style: StrokeStyle(lineWidth: 2, dash: [5, 4]))
+                        boundary.move(to: CGPoint(x: left, y: plotTop))
+                        boundary.addLine(to: CGPoint(x: left, y: plotBottom))
+                        context.stroke(boundary, with: .color(Theme.actionAccent), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
                     }
                 }.overlay(alignment: .topLeading) {
                     dayHeading(now).frame(height: 40, alignment: .top)
@@ -158,9 +160,11 @@ struct HorizonView: View {
                         .allowsHitTesting(false).accessibilityHidden(true)
                 }.accessibilityLabel("Today. No connected accounts or upcoming events.")
             }
-        }.frame(height: 216)
+        }.frame(height: timelineHeight)
     }
-    private var plotTop: Double { 56 + 32 }
+    // Windows aligns the rail 18 points below the 40-point day/date heading.
+    private var railY: Double { 40 + 18 }
+    private var plotTop: Double { railY + 32 }
     private var plotBottom: Double { timelineHeight - 8 }
     private var plotHeight: Double { max(1, plotBottom - plotTop) }
     private var historyAxis: some View {
@@ -180,7 +184,7 @@ struct HorizonView: View {
         let groups = Dictionary(grouping: events, by: { calendar.startOfDay(for: $0.date) })
         let accounts = max(3, store.state.accounts.filter(\.enabled).count)
         let selectors = 16 + Double(accounts * 66 + (accounts - 1) * 6)
-        let future = 56 + 21 + Double(max(1, groups.values.map(\.count).max() ?? 0)) * 76
+        let future = railY + 21 + Double(max(1, groups.values.map(\.count).max() ?? 0)) * 76
         return max(selectors, future)
     }
     private var heading: some View { HStack(spacing: 12) { ActionIcon(symbol: "clock.arrow.circlepath", size: 30); Text("Reset Horizon").font(.reference(size: 26, weight: .semibold)).referenceFallbackLineMetrics(size: 26) } }
@@ -329,7 +333,7 @@ struct HorizonView: View {
     private var timeline: some View {
         ZStack(alignment: .topLeading) {
             Canvas { context, size in
-                var rail = Path(); rail.move(to: CGPoint(x: 0, y: 56)); rail.addLine(to: CGPoint(x: size.width, y: 56))
+                var rail = Path(); rail.move(to: CGPoint(x: 0, y: railY)); rail.addLine(to: CGPoint(x: size.width, y: railY))
                 context.stroke(rail, with: .color(Color(hex: "#8170B7")), lineWidth: 2)
                 if store.state.settings.historyEnabled { drawHistory(context: &context, size: size) }
             }
@@ -375,10 +379,11 @@ struct HorizonView: View {
                             Circle().strokeBorder(Theme.actionAccent, lineWidth: 2)
                         }
                     }
-                    .position(x: viewport.dayAnchor(date), y: 56)
+                    .position(x: viewport.dayAnchor(date), y: railY)
                 ForEach(Array((viewport.showsFutureEvents(on: date) ? dayEvents : []).enumerated()), id: \.element.id) { index, event in
                     let accent = Color(hex: event.expiration ? "#EAAA51" : "#B5A0F4")
                     let plan = Format.plan(event.account.provider, event.plan)
+                    let centerY = CGFloat(railY + 21 + 37) + CGFloat(index) * 76
                     Button { selectedEvent = event } label: {
                         VStack(spacing: 3) {
                             ZStack(alignment: .top) {
@@ -408,7 +413,7 @@ struct HorizonView: View {
                         .modifier(ImmediateResetTooltip(context: eventCountdownContext(event), date: event.date,
                             zone: store.state.settings.zone, accessibilityText: eventTooltip(event),
                             referenceDate: store.isDemo ? now : nil, isExpiry: event.expiration))
-                        .position(x: viewport.dayAnchor(date), y: CGFloat(114 + index * 76))
+                        .position(x: viewport.dayAnchor(date), y: centerY)
                 }
             }
             // Match Windows: historical markers paint over the day dots and rail.
@@ -426,7 +431,7 @@ struct HorizonView: View {
                             .frame(width: 22, height: 22).background(marker.expiration ? Theme.amber : Color(hex: "#B99AF8")).clipShape(Circle())
                     }.buttonStyle(.plain)
                         .modifier(ImmediateReferenceTooltip(text: historicalTooltip(marker)))
-                        .position(x: marker.x, y: Double(56 + marker.lane * 24))
+                        .position(x: marker.x, y: railY + Double(marker.lane * 24))
                 }
             }
         }.contentShape(Rectangle())

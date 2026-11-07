@@ -32,6 +32,44 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(app.buttons["exploreDemoButton"].waitForExistence(timeout: 5))
     }
 
+    @MainActor func testCompactEmptyDashboardControlsRemainReachable() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", "--compact", "--reference-date", "2026-11-04T16:16:00Z"]
+        app.launch()
+        defer { app.terminate() }
+        let dashboard = app.windows["dashboard"]
+        if !dashboard.waitForExistence(timeout: 2) {
+            app.menuBars.menuBarItems["Window"].click()
+            app.menuBars.menuBarItems["Window"].menuItems["AI Token Scrooge"].click()
+        }
+        XCTAssertTrue(app.buttons["addAccountButton"].waitForExistence(timeout: 10))
+        app.activate()
+        let running = try XCTUnwrap(NSRunningApplication.runningApplications(withBundleIdentifier: "com.lancelarsen.AITokenScrooge")
+            .max { ($0.launchDate ?? .distantPast) < ($1.launchDate ?? .distantPast) })
+        running.activate(options: [.activateIgnoringOtherApps])
+        let activated = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            NSWorkspace.shared.frontmostApplication?.processIdentifier == running.processIdentifier
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [activated], timeout: 3), .completed)
+        dashboard.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.12)).click()
+        if !app.buttons["addAccountButton"].isHittable {
+            dashboard.scrollBars.firstMatch.scroll(byDeltaX: 0, deltaY: -250)
+        }
+        XCTAssertEqual(app.buttons["addAccountButton"].label, "Exit Demo")
+        app.buttons["addAccountButton"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).click()
+        XCTAssertTrue(app.buttons["exploreDemoButton"].waitForExistence(timeout: 5))
+        // The empty fixture is isolated from connected accounts. Return to its top after Exit Demo.
+        dashboard.scrollBars.firstMatch.scroll(byDeltaX: 0, deltaY: 1600)
+        XCTAssertTrue(app.switches["historyToggle"].isHittable)
+        XCTAssertTrue(app.buttons["Earned Reset Alert Settings"].isHittable)
+        XCTAssertTrue(app.buttons["addAccountButton"].isHittable)
+        let capture = XCTAttachment(screenshot: dashboard.screenshot())
+        capture.name = "Compact empty horizon with corrected source spacing"
+        capture.lifetime = .keepAlways
+        add(capture)
+    }
+
     @MainActor func testAccountDragEdgeScrollAndOutsideCancellation() throws {
         let app = XCUIApplication()
         app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
