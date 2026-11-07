@@ -60,6 +60,9 @@ final class DashboardUITests: XCTestCase {
         settings.click()
         let history = app.buttons["Alert History"]
         XCTAssertTrue(history.waitForExistence(timeout: 5))
+        let testNotification = app.buttons["Send Test Notification"]
+        XCTAssertTrue(testNotification.exists, "The notification test must expose its action name")
+        XCTAssertTrue(testNotification.isEnabled)
         history.click()
         let emptyHistory = app.staticTexts["No alerts yet. Low capacity and expiring resets will appear here."]
         XCTAssertTrue(emptyHistory.waitForExistence(timeout: 5))
