@@ -71,6 +71,7 @@ struct HorizonView: View {
                             .onChange(of: events.map(\.date)) { _, _ in update(width: geometry.size.width) }
                         }
                     }
+                    .overlay(alignment: .topLeading) { dateHeadings }
                 }.frame(height: timelineHeight)
                     .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { timelineWidth = $0 }
                 }
@@ -310,6 +311,24 @@ struct HorizonView: View {
         let account = "\(event.account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : event.account.nickname) · \(Format.plan(event.account.provider, event.plan))"
         return event.expiration ? "Earned Reset Expires\n\(account)" : "\(account)\nQuota Refresh · \(event.title)"
     }
+    private var dateHeadings: some View {
+        GeometryReader { _ in
+            ZStack(alignment: .topLeading) {
+                ForEach(days.filter { $0 <= calendar.startOfDay(for: viewport.lastEventAt) }, id: \.self) { date in
+                    VStack(spacing: 7) {
+                        Text(dayName(date)).font(.reference(size: 14, weight: .semibold))
+                            .foregroundStyle(isToday(date) ? Color(hex: "#D1BEFF") : Theme.actionAccent)
+                        Text(date.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone))).font(.reference(size: 12)).foregroundStyle(Theme.dialogText)
+                    }.frame(width: viewport.pixelsPerDay, height: 40, alignment: .top)
+                        .position(x: 40 + viewport.dayAnchor(date) - viewport.scrollOffset, y: 20)
+                }
+            }
+        }
+        .frame(height: 40)
+        .clipped()
+        .allowsHitTesting(false)
+    }
+
     private var timeline: some View {
         ZStack(alignment: .topLeading) {
             Canvas { context, size in
@@ -350,12 +369,7 @@ struct HorizonView: View {
 
             ForEach(days.filter { $0 <= calendar.startOfDay(for: viewport.lastEventAt) }, id: \.self) { date in
                 let dayEvents = events.filter { calendar.isDate($0.date, inSameDayAs: date) }
-                VStack(spacing: 7) {
-                    Text(dayName(date)).font(.reference(size: 14, weight: .semibold))
-                        .foregroundStyle(isToday(date) ? Color(hex: "#D1BEFF") : Theme.actionAccent)
-                    Text(date.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone))).font(.reference(size: 12)).foregroundStyle(Theme.dialogText)
-                }.frame(width: viewport.pixelsPerDay, height: 40, alignment: .top)
-                    .position(x: viewport.dayAnchor(date), y: 20)
+
                 Circle()
                     .fill(isToday(date) ? Color(hex: "#D1BEFF") : dayEvents.isEmpty ? Color(hex: "#1C1E24") : Theme.actionAccent)
                     .frame(width: isToday(date) ? 16 : 10, height: isToday(date) ? 16 : 10)
