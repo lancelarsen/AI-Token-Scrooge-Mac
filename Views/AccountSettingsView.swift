@@ -76,6 +76,16 @@ struct AccountSettingsView: View {
                                                     }
                                                 }
                                             }.frame(height: 420)
+                                                .overlayPreferenceValue(ColorBrightnessFocusTarget.self) { target in
+                                                    if let target {
+                                                        GeometryReader { geometry in
+                                                            let frame = geometry[target]
+                                                            ColorBrightnessFocusOutline()
+                                                                .frame(width: frame.width + 14, height: frame.height)
+                                                                .position(x: frame.midX, y: frame.midY)
+                                                        }.allowsHitTesting(false).accessibilityHidden(true)
+                                                    }
+                                                }
                                         }
                                     }
                             }
@@ -337,16 +347,14 @@ struct InlineLineColorEditor: View {
                 ZStack(alignment: .leading) {
                     Capsule().fill(LinearGradient(colors: [.black, Color(hue: hue, saturation: saturation, brightness: 1)], startPoint: .leading, endPoint: .trailing)).frame(height: 12)
                     ColorBrightnessThumb()
-                        .overlay {
-                            if brightnessFocused && brightnessKeyboardFocus {
-                                Circle().stroke(Theme.accent, lineWidth: 2).frame(width: 22, height: 22)
-                            }
-                        }
                         .anchorPreference(key: ColorFocusTip.self, value: .bounds) { anchor in
                             brightnessFocused ? ColorFocusTip.Target(anchor: anchor, text: brightnessDescription) : nil
                         }
                         .offset(x: brightness * max(0, geometry.size.width - ColorBrightnessThumb.diameter))
                 }.frame(height: 32).contentShape(Rectangle())
+                    .anchorPreference(key: ColorBrightnessFocusTarget.self, value: .bounds) { anchor in
+                        brightnessFocused && brightnessKeyboardFocus ? anchor : nil
+                    }
                     .gesture(DragGesture(minimumDistance: 0).onChanged { value in
                         finishChannelEdit()
                         brightnessPressed = true; brightnessKeyboardFocus = false; brightnessFocused = true
@@ -673,6 +681,15 @@ struct ColorModelFieldSurface: View {
                     Capsule().fill(Color(hex: "#4CC2FF")).frame(width: 3, height: 16).padding(.leading, 1)
                 }
             }
+    }
+}
+
+/// Draw system-style focus above the scroll viewport so its horizontal
+/// overhang remains visible without changing the editor's layout or hit area.
+private enum ColorBrightnessFocusTarget: PreferenceKey {
+    static var defaultValue: Anchor<CGRect>? { nil }
+    static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) {
+        if let target = nextValue() { value = target }
     }
 }
 

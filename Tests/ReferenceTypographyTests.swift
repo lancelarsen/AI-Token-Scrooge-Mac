@@ -232,6 +232,13 @@ final class ReferenceTypographyTests: XCTestCase {
                 XCTAssertEqual(NSHostingView(rootView: ColorBrightnessThumb()).fittingSize, CGSize(width: 20, height: 20))
                 try check(ColorBrightnessThumb().background(Color(hex: "#222329")),
                           samples: [(10, 10, [255, 255, 255]), (3, 10, [69, 69, 69]), (10, 0, [34, 35, 41])])
+                // Native Tab focus at brightness, run42393295201. The full
+                //312-point track receives seven points of outline on each side.
+                try check(ColorBrightnessFocusOutline().frame(width: 326, height: 32)
+                    .background(Color(hex: "#222329")),
+                          samples: [(0, 16, [255, 255, 255]), (1, 16, [255, 255, 255]),
+                                    (2, 16, [10, 10, 12]), (3, 16, [34, 35, 41]),
+                                    (20, 0, [255, 255, 255]), (20, 2, [10, 10, 12])])
                 // Native off/disabled run 42373113228. Windows and CoreGraphics
                 // alpha rounding can differ by one eight-bit channel step.
                 try check(Toggle("", isOn: .constant(false)).toggleStyle(ScroogeSwitchStyle(showsLabel: false)),

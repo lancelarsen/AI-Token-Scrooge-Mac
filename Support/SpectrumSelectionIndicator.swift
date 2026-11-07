@@ -10,6 +10,15 @@ struct ColorBrightnessThumb: View {
     }
 }
 
+/// Native ColorPicker slider focus surrounds the full track, with a white
+/// two-point outline and a one-point dark inner contrast stroke.
+struct ColorBrightnessFocusOutline: View {
+    var body: some View {
+        Capsule().strokeBorder(.black.opacity(0.7), lineWidth: 3)
+            .overlay(Capsule().strokeBorder(.white, lineWidth: 2))
+    }
+}
+
 struct SpectrumSelectionIndicator: View {
     let light: Bool
     var hovered = false

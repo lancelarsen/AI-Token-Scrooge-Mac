@@ -92,3 +92,6 @@ Clear-button reference run42391456789 at0477f89: attempt1 captured Hex clear hov
 
 
 Spectrum pointer run42392328103 atff6a064 passed. The probe captures actual held-button movement from center to six positions, including outside the256x256 target, records Hex through UIA, then restores its original value. At brightness213/255:128,128 ->#6BD5D5;255,0 and268,-12 ->#D50004;0,255 and-12,268 ->#D5D5D5;64,64 ->#85D535. The trace supports logical-pixel sampling/clamping independently of keyboard or RGB entry. Native Mac drags after the mapping fix reproduce these values; no provider authorization is used.
+
+
+Brightness focus capture42393295201 at22665b6 records actual Shift+Tab entry from the model selector: Value (Brightness), Slider, keyboardFocused=true. Native focus surrounds the full312x32 track with326x32 white/dark outline bounds. The run later failed because a delayed, known disabled-notifications test dialog blocked the provider chooser. Harness c69830e handles only that exact result and retries the untouched chooser once. Full rerun42394008393 passed all provider forms and reproduced the focus samples. The delayed result did not recur in the passing run; its guarded recovery branch is not claimed exercised. No provider authorization or system notification policy changes occur.

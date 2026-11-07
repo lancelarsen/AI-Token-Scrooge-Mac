@@ -165,3 +165,8 @@ Fixed continuous pointer mapping to use Windows logical-pixel rounding and inclu
 ### Spectrum bitmap sampling — November 7
 
 Removed the512-to256 downsampling color shift by generating the same256 logical samples as Windows. Six native gradient RGB vectors pass the production-image renderer;50,157 of50,161 unobscured interior pixels match exactly and the other4 differ by one channel value. Native picker inspection, center selection and Cancel preservation pass; app/test bundles build. This covers the inspected1x gradient interior, not clipped edges, selection overlays, Retina interpolation or complete surface acceptance.
+
+
+### Brightness keyboard-focus bounds — November 7
+
+Actual Windows Shift+Tab capture shows a326x32 full-track white focus outline around the312-point brightness slider, including a dark inner contrast stroke. Replaced the Mac thumb-local lavender ring with that outline. Production pixel checks, app/test-bundle builds and native Tab/Shift+Tab, Home/End, pointer-exit and Cancel preservation pass. The complete horizontal overhang is visible; layout and pointer hit bounds are unchanged. Native XCTest remains authorization-gated and full picker raster acceptance stays open. Hosted180-test run42393282611 executes the preceding pointer/gradient fixes successfully, with two installed-CLI skips and zero failures.
