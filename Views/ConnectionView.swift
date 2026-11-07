@@ -206,7 +206,7 @@ private struct ConnectionForm: View {
             } label: { DialogActionLabel(title: "Cancel").frame(maxWidth: .infinity, alignment: .leading) }
                 .buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction).disabled(!phase.canCancel)
         }.font(.reference(size: 14)).frame(maxWidth: formContentWidth).padding(32).frame(maxWidth: .infinity, alignment: .top)
-        }.frame(width: panelSize.width, height: panelSize.height).referencePanelSurface().preferredColorScheme(.dark).tint(Theme.accent)
+        }.referencePanelFrame(size: panelSize).preferredColorScheme(.dark).tint(Theme.accent)
         .interactiveDismissDisabled(!phase.canCancel)
         .onDisappear { if phase.canCancel { connectionTask?.cancel() }; token = "" }
 

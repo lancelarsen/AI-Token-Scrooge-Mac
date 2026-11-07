@@ -143,14 +143,14 @@ struct SettingsView: View {
                             }
                         } label: { DialogActionLabel(title: "Send Test Notification").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle())
                     }
-                }.padding(.horizontal, 16).padding(.vertical, 12).frame(width: min(960, panelSize.width - 24)).frame(maxWidth: .infinity)
+                }.padding(.horizontal, 16).padding(.vertical, 12).frame(width: min(960, panelSize.width - 2 - 24)).frame(maxWidth: .infinity)
             }
             .disabled(isClosing)
             if let error = invalidReminderSections.isEmpty ? (store.settingsSaveError ?? store.errorMessage) : "Enter a Positive Whole Number for Each Reminder" { Text(error).foregroundStyle(Theme.amber)
                     .multilineTextAlignment(.trailing)
                     .frame(maxWidth: .infinity, alignment: .trailing).padding(.horizontal, 24)
                     .accessibilityIdentifier("settingsSaveStatus") }
-        }.font(.reference(size: 14)).foregroundStyle(Theme.primaryText).frame(width: panelSize.width, height: panelSize.height).referencePanelSurface().preferredColorScheme(.dark).tint(Theme.accent)
+        }.font(.reference(size: 14)).foregroundStyle(Theme.primaryText).referencePanelFrame(size: panelSize).preferredColorScheme(.dark).tint(Theme.accent)
         .interactiveDismissDisabled()
         .onAppear {
             store.refreshLoginItemStatus()

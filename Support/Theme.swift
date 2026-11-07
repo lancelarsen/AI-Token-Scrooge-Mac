@@ -96,6 +96,10 @@ struct ReferencePanelSurface: ViewModifier {
 }
 extension View {
     func referencePanelSurface() -> some View { modifier(ReferencePanelSurface()) }
+    /// AppPanels' one-point Border participates in layout inside its fixed outer size.
+    func referencePanelFrame(size: CGSize) -> some View {
+        padding(1).frame(width: size.width, height: size.height).referencePanelSurface()
+    }
 }
 extension Color {
     init(hex: String) {

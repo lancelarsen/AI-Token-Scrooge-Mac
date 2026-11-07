@@ -124,7 +124,7 @@ struct AccountSettingsView: View {
                             } label: { DialogActionLabel(title: "Sign In Again").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
                             Button(role: .destructive) { confirmRemove = true } label: { DialogActionLabel(title: "Remove Account").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
                         }
-                    }.padding(.horizontal, 16).padding(.vertical, 12).frame(width: min(960, panelSize.width - 24)).frame(maxWidth: .infinity)
+                    }.padding(.horizontal, 16).padding(.vertical, 12).frame(width: min(960, panelSize.width - 2 - 24)).frame(maxWidth: .infinity)
                 }
             }.disabled(isClosing)
             if let error = store.settingsSaveError {
@@ -133,7 +133,7 @@ struct AccountSettingsView: View {
                     .frame(maxWidth: .infinity, alignment: .trailing).padding(.horizontal, 24)
                     .accessibilityIdentifier("settingsSaveStatus")
             }
-        }.font(.reference(size: 14)).foregroundStyle(Theme.primaryText).frame(width: panelSize.width, height: panelSize.height).referencePanelSurface().preferredColorScheme(.dark).tint(Theme.accent)
+        }.font(.reference(size: 14)).foregroundStyle(Theme.primaryText).referencePanelFrame(size: panelSize).preferredColorScheme(.dark).tint(Theme.accent)
         .interactiveDismissDisabled()
         .onAppear {
             nicknameDraft = account?.nickname ?? ""

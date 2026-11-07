@@ -40,8 +40,7 @@ struct AlertHistoryView: View {
                 }.buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction)
             }.padding(28)
         }
-        .frame(width: panelSize.width, height: panelSize.height)
-        .referencePanelSurface().preferredColorScheme(.dark)
+        .referencePanelFrame(size: panelSize).preferredColorScheme(.dark)
         .sheet(item: $selectedAlert) { alert in
             AccountUsageDialog(accountID: alert.accountID, windowID: alert.windowID, close: { selectedAlert = nil })
         }
