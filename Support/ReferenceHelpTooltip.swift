@@ -37,12 +37,9 @@ struct ResetCountdownText: View {
             Text(Format.countdown(date, now: now))
                 .font(.reference(size: 20, weight: .semibold))
                 .foregroundStyle(Color(hex: isExpiry ? "#EAAA51" : "#BDA3F5"))
+                .referenceFallbackLineMetrics(size: 20)
             Text(Format.date(date, zone: zone))
                 .font(.reference(size: 12)).foregroundStyle(Theme.dialogText)
-                // Temporary older-gallery compensation. Fresh native Windows
-                // measurements show 16 points; reconcile the full countdown
-                // line boxes before removing this adjustment.
-                .frame(height: 14)
         }
     }
 }

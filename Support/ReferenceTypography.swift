@@ -77,3 +77,47 @@ extension Font {
         ReferenceTypography.font(size: size, weight: weight)
     }
 }
+
+/// The WinUI fallback family uses a .9 em baseline and 1.2 em line advance.
+/// These match the captured countdown: 20-point text in a 24-point line.
+/// Keep SwiftUI's full shaping/layout, then reposition each rendered line.
+private struct ReferenceFallbackTextRenderer: TextRenderer {
+    let size: CGFloat
+    func draw(layout: Text.Layout, in context: inout GraphicsContext) {
+        let top = layout.first?.typographicBounds.rect.minY ?? 0
+        for (index, line) in layout.enumerated() {
+            let baseline = size * 0.9 + CGFloat(index) * size * 1.2
+            var lineContext = context
+            lineContext.translateBy(x: 0, y: baseline - (line.origin.y - top))
+            lineContext.draw(line)
+        }
+    }
+}
+
+/// The text child retains its unconstrained natural height. Shrinking its own
+/// proposal would truncate wrapped lines before the renderer could draw them.
+private struct ReferenceFallbackLineBox: Layout {
+    let size: CGFloat
+    let naturalLineHeight: CGFloat
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let text = subviews.first else { return .zero }
+        let natural = text.sizeThatFits(.init(width: proposal.width, height: nil))
+        let lines = max(1, (natural.height / naturalLineHeight).rounded())
+        return CGSize(width: natural.width, height: ceil(lines * size * 1.2))
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, proposal: .init(width: bounds.width, height: nil))
+    }
+}
+
+extension View {
+    /// Use only for labels whose native Windows fallback metrics were measured;
+    /// regular Segoe and native dialog text retain their own line metrics.
+    func referenceFallbackLineMetrics(size: CGFloat, weight: NSFont.Weight = .semibold) -> some View {
+        let font = ReferenceTypography.measuringFont(ofSize: size, weight: weight)
+        let naturalLineHeight = ceil(font.ascender - font.descender + font.leading)
+        return ReferenceFallbackLineBox(size: size, naturalLineHeight: naturalLineHeight) {
+            self.textRenderer(ReferenceFallbackTextRenderer(size: size))
+        }
+    }
+}
