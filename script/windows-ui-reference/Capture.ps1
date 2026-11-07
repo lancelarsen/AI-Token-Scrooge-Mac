@@ -118,6 +118,8 @@ function Save-ReferenceView {
         if ($element.TryGetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern, [ref]$scroll)) {
             $row['verticalScrollable'] = $scroll.Current.VerticallyScrollable
             $row['horizontalScrollable'] = $scroll.Current.HorizontallyScrollable
+            $row['verticalScrollPercent'] = $scroll.Current.VerticalScrollPercent
+            $row['verticalViewSize'] = $scroll.Current.VerticalViewSize
         }
         $rows += $row
     }
@@ -370,8 +372,12 @@ try {
         }
         if ($candidates.Count -eq 0) { throw 'No visible panel scroll provider was exposed.' }
         $selected = $candidates | Sort-Object -Property Height -Descending | Select-Object -First 1
-        $selected.Pattern.SetScrollPercent([System.Windows.Automation.ScrollPattern]::NoScroll, $Percent)
-        Start-Sleep -Seconds 1
+        # MAUI updates the native extent after newly exposed content is laid
+        # out. Reapply the requested endpoint after those bounded layout turns.
+        for ($settle = 0; $settle -lt 4; $settle++) {
+            $selected.Pattern.SetScrollPercent([System.Windows.Automation.ScrollPattern]::NoScroll, $Percent)
+            Start-Sleep -Milliseconds 700
+        }
     }
     Scroll-ReferencePanel -Percent 100
     $connection = Save-ReferenceView -Name 'account-connection-actions' -Root $root -Handle $handle -Output $Output
