@@ -142,7 +142,7 @@ struct MenuBarContent: View {
         pathMonitor = monitor
         monitor.start(queue: DispatchQueue(label: "com.lancelarsen.AITokenScrooge.network"))
     }
-    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions { [.list] }
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions { [.banner, .list] }
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
         let id = response.notification.request.identifier
         let action = response.actionIdentifier
