@@ -78,3 +78,5 @@ The global-settings pass exports overlapping `global-settings-sweep-0` through `
 The account-settings pass opens Add Custom Line Color and captures both the initial native color picker and its scrolled numeric fields, then cancels. It never adds a color or edits a saved palette. Native geometry and font attributes accompany both views.
 
 The picker pass additionally captures the focused Hex input and records native brightness Home/End/Page Down/Page Up range values. Range metadata is numeric only, and all edits are cancelled. This checks inherited slider keyboard behavior without any provider or credential operation.
+
+The picker also records synthetic Red out-of-range/empty drafts and Hex clearing, then focus-loss restoration. The JSON contains only demo color values and brightness; no account/provider payloads are collected. All color changes are cancelled.

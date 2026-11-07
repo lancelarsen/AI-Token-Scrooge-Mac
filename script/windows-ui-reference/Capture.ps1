@@ -430,6 +430,36 @@ try {
     if ($keyTrace[0]['value'] -ne $brightnessRange.Current.Minimum -or $keyTrace[1]['value'] -ne $brightnessRange.Current.Maximum) {
         throw 'Native brightness Home/End did not reach the captured range bounds.'
     }
+    $redField = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,
+        [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, 'Red'))
+    $redValue = $null; $hexValue = $null
+    if ($null -eq $redField -or -not $redField.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern, [ref]$redValue) -or
+        -not $hexField.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern, [ref]$hexValue)) {
+        throw 'Native color input values were not exposed.'
+    }
+    $inputTrace = @()
+    function Record-ColorInput([string]$Step) {
+        [ordered]@{ step = $Step; red = $redValue.Current.Value; hex = $hexValue.Current.Value;
+            brightness = $brightnessRange.Current.Value }
+    }
+    $inputTrace += Record-ColorInput 'initial'
+    $redField.SetFocus(); $redValue.SetValue('999'); Start-Sleep -Milliseconds 300
+    $inputTrace += Record-ColorInput 'red-out-of-range'
+    $hexField.SetFocus(); Start-Sleep -Milliseconds 300
+    $inputTrace += Record-ColorInput 'red-after-blur'
+    $redField.SetFocus(); $redValue.SetValue(''); Start-Sleep -Milliseconds 300
+    $inputTrace += Record-ColorInput 'red-cleared'
+    $hexField.SetFocus(); Start-Sleep -Milliseconds 300
+    $inputTrace += Record-ColorInput 'red-clear-after-blur'
+    $hexValue.SetValue(''); Start-Sleep -Milliseconds 300
+    $inputTrace += Record-ColorInput 'hex-cleared'
+    $redField.SetFocus(); Start-Sleep -Milliseconds 300
+    $inputTrace += Record-ColorInput 'hex-clear-after-blur'
+    $inputTrace | ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $Output 'color-input-draft-trace.json')
+    if ($inputTrace[2]['red'] -ne $inputTrace[0]['red'] -or $inputTrace[4]['red'] -ne $inputTrace[0]['red'] -or
+        $inputTrace[6]['hex'] -ne $inputTrace[0]['hex']) {
+        throw 'Native color inputs did not restore their last valid values on blur.'
+    }
     Invoke-ReferenceAction -Name 'Cancel' -Root $root
     Start-Sleep -Seconds 1
     function Scroll-ReferencePanel {
