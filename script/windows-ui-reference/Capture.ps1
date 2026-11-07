@@ -810,6 +810,50 @@ try {
         Start-Sleep -Seconds 1
     }
 
+    # A long synthetic nickname exercises actual wrapped ContentDialog titles
+    # and mixed-weight body text. This is the last probe: its only account edit
+    # is confined to disposable demo state, never a provider profile.
+    Invoke-ReferenceAction -Name 'Explore with demo data' -Root $root
+    Start-Sleep -Seconds 2
+    Scroll-ReferencePanel -Percent 40
+    Invoke-ReferenceAction -Name ('Settings for OpenAI / Personal ' + [char]0x00B7 + ' Plus') -Root $root
+    Start-Sleep -Seconds 1
+    $nicknameField = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,
+        [System.Windows.Automation.AndCondition]::new(
+            [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, 'Account Name'),
+            [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty, [System.Windows.Automation.ControlType]::Edit)))
+    $nicknameValue = $null
+    if ($null -eq $nicknameField -or -not $nicknameField.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern, [ref]$nicknameValue)) {
+        throw 'Synthetic nickname edit was not exposed.'
+    }
+    $longNickname = 'Personal development and research across multiple workspaces with shared subscriptions, independent production environments, separate evaluation projects, and several collaborative engineering teams'
+    $nicknameField.SetFocus()
+    $nicknameValue.SetValue($longNickname)
+    Invoke-ReferenceAction -Name 'Close' -Root $root
+    Start-Sleep -Seconds 2
+    Scroll-ReferencePanel -Percent 40
+    $longRows = Save-ReferenceView -Name 'long-nickname-dashboard' -Root $root -Handle $handle -Output $Output
+    $longUsage = @($longRows.Rows | Where-Object { $_.type -eq 'ControlType.Button' -and $_.name -match '38%' -and -not $_.offscreen })
+    if ($longUsage.Count -ne 1) { throw 'Long-nickname quota action was not uniquely visible.' }
+    Invoke-ReferenceAction -Name $longUsage[0].name -Root $root
+    Start-Sleep -Seconds 1
+    $longTitle = Save-ReferenceView -Name 'usage-details-long-title' -Root $root -Handle $handle -Output $Output
+    if (-not ($longTitle.Rows | Where-Object { $_.type -eq 'ControlType.Text' -and $_.name.Contains($longNickname) -and $_.FontSize -eq 22 -and $_.height -gt 30 })) {
+        throw 'Wrapped native dialog title was not exposed.'
+    }
+    Invoke-ReferenceAction -Name 'Close' -Root $root
+    Scroll-ReferencePanel -Percent 0
+    $longTimeline = Save-ReferenceView -Name 'long-nickname-timeline' -Root $root -Handle $handle -Output $Output
+    $longExpiry = @($longTimeline.Rows | Where-Object { $_.type -eq 'ControlType.Button' -and $_.name.StartsWith('Earned Reset Expires') -and -not $_.offscreen })
+    if ($longExpiry.Count -ne 1) { throw 'Long-nickname expiry action was not uniquely visible.' }
+    Invoke-ReferenceAction -Name $longExpiry[0].name -Root $root
+    Start-Sleep -Seconds 1
+    $longBody = Save-ReferenceView -Name 'earned-resets-long-body' -Root $root -Handle $handle -Output $Output
+    if (-not ($longBody.Rows | Where-Object { $_.type -eq 'ControlType.Text' -and $_.name.Contains($longNickname) -and $_.FontSize -eq 14 -and $_.height -gt 38 })) {
+        throw 'Wrapped native mixed-weight paragraph was not exposed.'
+    }
+    Invoke-ReferenceAction -Name 'Close' -Root $root
+
 } catch {
     [ordered]@{ message = $_.Exception.Message; stack = $_.ScriptStackTrace;
         position = $_.InvocationInfo.PositionMessage } | ConvertTo-Json |
