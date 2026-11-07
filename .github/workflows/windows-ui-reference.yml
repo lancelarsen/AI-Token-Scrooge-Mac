@@ -1,0 +1,34 @@
+name: Windows UI reference
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: windows-2025
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Download pinned Windows reference
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP 'reference.zip'
+          gh release download v2026.11.6.006 --repo lancelarsen/AI-Token-Scrooge --pattern '*.zip' --output $archive
+          if ($LASTEXITCODE -ne 0) { throw 'Release download failed.' }
+          if ((Get-FileHash $archive).Hash -ne '46617A06BE5095F51222697DA69D45395E5818453782D343216F7074E89BA406') { throw 'Windows reference checksum mismatch.' }
+          [System.IO.Compression.ZipFile]::ExtractToDirectory($archive, (Join-Path $env:RUNNER_TEMP 'reference'))
+      - name: Capture native demo and text metrics
+        shell: powershell
+        run: ./script/windows-ui-reference/Capture.ps1 -Release "$env:RUNNER_TEMP/reference" -Output "$env:RUNNER_TEMP/ui-reference"
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v7
+        if: always()
+        with:
+          name: windows-ui-reference
+          path: |
+            ${{ runner.temp }}/ui-reference/*.png
+            ${{ runner.temp }}/ui-reference/*.json
+          if-no-files-found: warn
