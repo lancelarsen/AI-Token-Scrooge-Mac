@@ -72,3 +72,5 @@ The workflow now explicitly selects the dark app theme in the disposable Windows
 The quiet-hours pass also captures `global-settings-quiet-hours-off` after switching off the isolated demo control through its native TogglePattern. It records exposed toggle states, requires both time handles to become disabled, then restores the on state before continuing. This supplies off-state palette and disabled-control evidence without changing a real account or invoking a provider.
 
 After the demo checks, the isolated probe exits demo and captures the empty dashboard, four-provider chooser and untouched Codex, GitHub browser/token, Claude and Devin forms at the same compact host size. Only navigation and Cancel are invoked; no sign-in, credentials or provider request is initiated.
+
+The global-settings pass exports overlapping `global-settings-sweep-0` through `-100` captures with UIA geometry every ten percent. Compare controls relative to each visible card; equal percentages do not imply equal platform scroll extents. This covers thresholds and both reminder sections without changing their values.

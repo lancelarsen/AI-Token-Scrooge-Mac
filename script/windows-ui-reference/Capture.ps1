@@ -399,6 +399,13 @@ try {
     if (-not ($global.Rows | Where-Object { $_.type -eq 'ControlType.Text' -and $_.name -eq 'App Updates' })) {
         throw 'Global settings top was not exposed.'
     }
+    # Cover the remaining settings cards at overlapping positions. Export all
+    # text/control bounds with each image so comparisons can use card-relative
+    # coordinates rather than assuming the same total platform scroll extent.
+    foreach ($percent in @(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100)) {
+        Scroll-ReferencePanel -Percent $percent
+        $sweep = Save-ReferenceView -Name ('global-settings-sweep-' + $percent) -Root $root -Handle $handle -Output $Output
+    }
     # Find the middle control by its exposed role/name rather than assuming
     # a fixed content offset; compact wrapping changes total scroll extent.
     $quietCaptured = $false
