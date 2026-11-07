@@ -178,10 +178,11 @@ struct SettingsView: View {
         }.buttonStyle(.plain).accessibilityLabel(title).accessibilityAddTraits(selected ? .isSelected : [])
     }
     private func settingsSwitch(_ title: String, isOn: Binding<Bool>) -> some View {
+        // The Windows native Switch measures 40 high despite its row's 36-point minimum.
         Toggle(title, isOn: isOn)
             .font(.reference(size: 14))
             .toggleStyle(ScroogeSwitchStyle())
-            .frame(minHeight: 36)
+            .frame(minHeight: 40)
     }
     private func binding<T>(_ path: WritableKeyPath<RadarSettings,T>) -> Binding<T> {
         Binding(get: { store.state.settings[keyPath: path] }, set: { value in store.edit { $0.settings[keyPath: path] = value } })
@@ -208,7 +209,7 @@ struct SettingsCard<Content: View>: View {
                         }.foregroundStyle(Theme.accent)
                         if let headerToggle {
                             Spacer()
-                            Toggle(title, isOn: headerToggle).toggleStyle(ScroogeSwitchStyle(showsLabel: false, onColor: Color(hex: "#8170CF"))).frame(width: 40, height: 20).accessibilityLabel(title)
+                            Toggle(title, isOn: headerToggle).toggleStyle(ScroogeSwitchStyle(showsLabel: false, onColor: Color(hex: "#8170CF"))).frame(width: 40, height: 40).accessibilityLabel(title)
                         }
                     }
                     if let description {
