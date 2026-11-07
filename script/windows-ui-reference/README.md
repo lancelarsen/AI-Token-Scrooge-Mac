@@ -80,3 +80,5 @@ The account-settings pass opens Add Custom Line Color and captures both the init
 The picker pass additionally captures the focused Hex input and records native brightness Home/End/Page Down/Page Up range values. Range metadata is numeric only, and all edits are cancelled. This checks inherited slider keyboard behavior without any provider or credential operation.
 
 The picker also records synthetic Red out-of-range/empty drafts and Hex clearing, then focus-loss restoration. The JSON contains only demo color values and brightness; no account/provider payloads are collected. All color changes are cancelled.
+
+The probe also captures the in-app notification-test banner after sending one test in its disposable demo. If Windows popup delivery is disabled, it dismisses only the known Notification test result action (excluding32-point native window chrome), then verifies and captures Show Info, Snooze1Hour and Dismiss. It dismisses the banner before continuing. This checks layout and demo presentation, not OS delivery or provider authentication.

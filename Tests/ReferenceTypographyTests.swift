@@ -239,6 +239,28 @@ final class ReferenceTypographyTests: XCTestCase {
         XCTAssertEqual(capped.fittingSize.height, 300, accuracy: 0.5)
     }
 
+    @MainActor func testNotificationBannerMatchesCurrentNativeWindowsBounds() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = AppStore(database: try LocalStore(url: directory.appendingPathComponent("banner.db")))
+        store.enterDemo()
+        await store.waitForPendingMutations()
+        let account = try XCTUnwrap(store.state.accounts.first)
+        let alert = AlertEvent(id: "banner-layout", accountID: account.id, windowID: nil,
+                               title: "Scrooge Notification Test",
+                               detail: "This is a test. Your account usage has not changed.", createdAt: .now)
+        let host = NSHostingView(rootView: AlertBannerView(alert: alert).environment(store))
+        // Native run42383175231:440×154 banner plus20-point margins on all sides.
+        XCTAssertEqual(host.fittingSize.width, 480, accuracy: 0.5)
+        XCTAssertEqual(host.fittingSize.height, 194, accuracy: 0.5)
+        for (title, width) in [("Show Info", 125.0), ("Snooze 1 Hour", 153.0), ("Dismiss", 110.0)] {
+            let button = NSHostingView(rootView: Button {} label: { DialogActionLabel(title: title) }
+                .buttonStyle(ScroogeButtonStyle()))
+            XCTAssertEqual(button.fittingSize.width, width, accuracy: 0.5)
+            XCTAssertEqual(button.fittingSize.height, 44, accuracy: 0.5)
+        }
+    }
+
     @MainActor func testActionButtonsMatchCapturedWindowsBounds() {
         for (title, symbol, width) in [("Settings", "gearshape", 113.0), ("Refresh", "arrow.clockwise", 109.0)] {
             let host = NSHostingView(rootView: Button {} label: { ActionLabel(title: title, symbol: symbol) }
