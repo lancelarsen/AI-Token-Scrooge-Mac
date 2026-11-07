@@ -32,6 +32,59 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(app.buttons["exploreDemoButton"].waitForExistence(timeout: 5))
     }
 
+    @MainActor func testAccountDragEdgeScrollAndOutsideCancellation() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", "--compact", "--reference-date", "2026-11-04T16:16:00Z"]
+        app.launch()
+        defer { app.terminate() }
+        let dashboard = app.windows["dashboard"]
+        if !dashboard.waitForExistence(timeout: 2) {
+            app.menuBars.menuBarItems["Window"].click()
+            app.menuBars.menuBarItems["Window"].menuItems["AI Token Scrooge"].click()
+        }
+        app.activate()
+        let labels = ["OpenAI / Personal", "GitHub Copilot / Work", "OpenAI / Work", "Claude / Personal"]
+        func grip(_ account: String) -> XCUIElement {
+            dashboard.descendants(matching: .any).matching(NSPredicate(format: "label == %@",
+                "Drag \(account) to Reorder Accounts")).firstMatch
+        }
+        func order() -> [String] { labels.sorted { grip($0).frame.minY < grip($1).frame.minY } }
+        let source = grip(labels[0])
+        XCTAssertTrue(source.waitForExistence(timeout: 5))
+        // Scroll on the vertical scrollbar, outside the horizon's horizontal-wheel routing.
+        let scrollbar = dashboard.scrollBars.firstMatch
+        for _ in 0..<4 where source.frame.midY > dashboard.frame.maxY - 180 {
+            scrollbar.scroll(byDeltaX: 0, deltaY: -250)
+        }
+        XCTAssertTrue(source.isHittable)
+        XCTAssertLessThan(source.frame.midY, dashboard.frame.maxY - 180)
+        XCTAssertEqual(order(), labels)
+        let startingTop = grip(labels[1]).frame.minY
+        let bottom = dashboard.coordinate(withNormalizedOffset: CGVector(dx: 0.09, dy: 0.985))
+        source.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            .click(forDuration: 0.1, thenDragTo: bottom, withVelocity: .slow, thenHoldForDuration: 1.5)
+        let expected = Array(labels.dropFirst()) + [labels[0]]
+        let moved = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in order() == expected }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [moved], timeout: 5), .completed)
+        XCTAssertLessThan(grip(labels[1]).frame.minY, startingTop - 50,
+            "Holding the dragged card at the bottom edge must scroll the actual dashboard")
+        let capture = XCTAttachment(screenshot: dashboard.screenshot())
+        capture.name = "Compact account order after bottom-edge drag"
+        capture.lifetime = .keepAlways
+        add(capture)
+        // A release over the fixed header cancels and restores the original scroll position.
+        let last = grip(labels[0])
+        XCTAssertTrue(last.isHittable)
+        let beforeCancel = last.frame
+        last.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            .click(forDuration: 0.1, thenDragTo: dashboard.coordinate(withNormalizedOffset: CGVector(dx: 0.09, dy: 0.12)))
+        let restored = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            order() == expected && abs(last.frame.minY - beforeCancel.minY) < 1
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [restored], timeout: 5), .completed)
+    }
+
     @MainActor func testAccountIdentityBlankAreaOpensDetails() throws {
         let app = XCUIApplication()
         app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
