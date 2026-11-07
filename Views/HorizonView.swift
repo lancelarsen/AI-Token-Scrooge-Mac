@@ -214,9 +214,7 @@ struct HorizonView: View {
     @ViewBuilder private var legends: some View {
         let visible = timelineAccounts.filter { !store.state.settings.hiddenHistoryAccounts.contains($0.id) }
         let partialRefresh = visible.contains { account in
-            guard account.provider == .codex || account.provider == .claude else { return false }
-            guard let snapshot = store.state.snapshots[account.id], snapshot.belongs(to: account) else { return true }
-            return !snapshot.missingWindowNames(for: account.provider).isEmpty || snapshot.windows.contains { $0.resetsAt == nil }
+            HorizonEvent.refreshCoverageIncomplete(account: account, snapshot: store.state.snapshots[account.id])
         }
         let partialExpiry = visible.contains { account in
             guard account.provider == .codex || account.provider == .claude else { return false }

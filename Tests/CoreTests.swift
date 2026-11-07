@@ -3,6 +3,29 @@ import struct SwiftUI.Color
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testRefreshCoverageDistinguishesMissingDatesFromZeroUsageForEveryProvider() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        for provider in Provider.allCases {
+            let account = ProviderAccount(provider: provider, nickname: "Test", subject: "test", scope: "scope")
+            let periods = provider.hasMonthlyHistory ? [43200] : [300, 10080]
+            let windows = periods.map { minutes in
+                QuotaWindow(id: String(minutes), name: "Limit", unit: .percent, used: 0, limit: 100,
+                            resetsAt: now.addingTimeInterval(Double(minutes * 60)), durationMinutes: minutes)
+            }
+            var snapshot = QuotaSnapshot(accountID: account.id, subject: account.subject, scope: account.scope,
+                                         observedAt: now, windows: windows, health: .healthy)
+            XCTAssertFalse(HorizonEvent.refreshCoverageIncomplete(account: account, snapshot: snapshot), provider.rawValue)
+            snapshot.windows[0].resetsAt = nil
+            XCTAssertTrue(HorizonEvent.refreshCoverageIncomplete(account: account, snapshot: snapshot), provider.rawValue)
+            snapshot.windows = []
+            XCTAssertTrue(HorizonEvent.refreshCoverageIncomplete(account: account, snapshot: snapshot), provider.rawValue)
+            snapshot.windows = windows
+            snapshot.subject = "other"
+            XCTAssertTrue(HorizonEvent.refreshCoverageIncomplete(account: account, snapshot: snapshot), provider.rawValue)
+            XCTAssertTrue(HorizonEvent.refreshCoverageIncomplete(account: account, snapshot: nil), provider.rawValue)
+        }
+    }
+
     func testStatusDemoScenariosReachInfoAndWarningWithoutImminentResetAlerts() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
         for (scenario, severity) in [(DemoData.Scenario.statusInfo, ReminderSeverity.info), (.statusWarning, .warning)] {

@@ -103,6 +103,13 @@ extension QuotaSnapshot {
 }
 
 extension HorizonEvent {
+    static func refreshCoverageIncomplete(account: ProviderAccount, snapshot: QuotaSnapshot?) -> Bool {
+        guard let snapshot, snapshot.belongs(to: account) else { return true }
+        return snapshot.windows.isEmpty
+            || !snapshot.missingWindowNames(for: account.provider).isEmpty
+            || snapshot.windows.contains { $0.resetsAt == nil }
+    }
+
     static func legendCount(_ count: Int, incomplete: Bool) -> String {
         if !incomplete { return String(count) }
         return count == 0 ? "Not reported" : "\(count) reported"
