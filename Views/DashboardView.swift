@@ -235,7 +235,7 @@ struct AccountCard: View {
                         .font(.reference(size: 12)).foregroundStyle(Theme.accent).padding(.horizontal, 11).padding(.vertical, 3)
                         .background(Color(hex: "#2C293E")).clipShape(Capsule()).overlay(Capsule().stroke(Color(hex: "#51476D")))
                 }
-            }
+            }.contentShape(Rectangle())
         }.buttonStyle(.plain)
             .accessibilityLabel("\(account.provider.rawValue), \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot?.planType)). Open details.")
     }

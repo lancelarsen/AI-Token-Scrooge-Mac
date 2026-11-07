@@ -33,6 +33,10 @@ final class DashboardUITests: XCTestCase {
         allowance.click()
         let overage = app.staticTexts["1,250 Used · 250 Over"].firstMatch
         XCTAssertTrue(overage.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Available Resets"].exists)
+        app.buttons["Close"].click()
+        app.buttons["OpenAI, Personal · Plus. Open details."].firstMatch.click()
+        XCTAssertTrue(overage.waitForExistence(timeout: 5), "Account identity opens the first quota even when earned resets exist")
         let sheet = app.sheets.firstMatch
         XCTAssertTrue(sheet.frame.contains(overage.frame), "Count details must fit within their popup")
         app.buttons["Close"].click()
