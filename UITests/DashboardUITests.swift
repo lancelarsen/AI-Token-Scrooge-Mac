@@ -6,17 +6,28 @@ final class DashboardUITests: XCTestCase {
     @MainActor func testDemoHistoryToggleAndExit() throws {
         let app = XCUIApplication()
         app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
-        app.launchArguments = ["--demo"]
+        app.launchArguments = ["--demo", "--reference-wide"]
         app.launch()
         defer { app.terminate() }
+        if !app.windows["dashboard"].waitForExistence(timeout: 2) {
+            let windowMenu = app.menuBars.menuBarItems["Window"]
+            windowMenu.click()
+            windowMenu.menuItems["AI Token Scrooge"].click()
+        }
+        app.activate()
         let exit = app.buttons["addAccountButton"]
         XCTAssertTrue(exit.waitForExistence(timeout: 10))
         XCTAssertEqual(exit.label, "Exit Demo")
         let history = app.switches["historyToggle"]
         XCTAssertTrue(history.exists)
-        history.click()
+        history.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).click()
         XCTAssertTrue(app.buttons["Hide OpenAI / Personal · Plus · Timeline"].exists, "Selectors must stay visible with history off")
-        history.click()
+        history.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).click()
+        let selector = app.buttons["timelineAccount-demo-0"]
+        selector.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.5)).click()
+        XCTAssertTrue(app.buttons["Show OpenAI / Personal · Plus · Timeline"].exists, "The selector margin must toggle account history")
+        selector.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.5)).click()
+        XCTAssertTrue(app.buttons["Hide OpenAI / Personal · Plus · Timeline"].exists)
         exit.click()
         XCTAssertTrue(app.buttons["exploreDemoButton"].waitForExistence(timeout: 5))
     }

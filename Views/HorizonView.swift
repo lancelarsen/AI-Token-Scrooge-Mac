@@ -284,7 +284,7 @@ struct HorizonView: View {
                                         .overlay(RoundedRectangle(cornerRadius: 5).stroke(accent, lineWidth: 1.5))
                                 }
                             }
-                        }.frame(width: 82, height: 66)
+                        }.frame(width: 82, height: 66).contentShape(Rectangle())
                     }.buttonStyle(.plain)
                         .accessibilityIdentifier("timelineAccount-\(account.id)")
                         .accessibilityLabel("\(store.state.settings.hiddenHistoryAccounts.contains(account.id) ? "Show" : "Hide") \(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, store.state.snapshots[account.id]?.planType)) · Timeline")
