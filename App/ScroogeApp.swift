@@ -145,10 +145,10 @@ struct MenuBarContent: View {
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
         let id = response.notification.request.identifier
         let action = response.actionIdentifier
-        await handleNotification(id: id, action: action)
+        await Self.handleNotification(id: id, action: action, store: store)
     }
 
-    private func handleNotification(id: String, action: String) async {
+    static func handleNotification(id: String, action: String, store: AppStore) async {
         await store.load()
         guard let alert = store.state.alerts.first(where: { $0.id == id }) else { return }
         switch action {

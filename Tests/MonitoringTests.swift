@@ -328,6 +328,30 @@ final class MonitoringTests: XCTestCase {
     }
 
     @MainActor
+    func testNotificationOpenLoadsSavedAlertAndRequestsItsAccount() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("alerts.db"))
+        let account = ProviderAccount(provider: .codex, nickname: "Personal", subject: "test", scope: "personal")
+        let alert = AlertEvent(id: "saved", accountID: account.id, title: "Test", detail: "Test", createdAt: .now)
+        var state = PersistedState()
+        state.accounts = [account]
+        state.alerts = [alert]
+        try await database.save(state)
+        let store = AppStore(database: database)
+
+        for action in ["show-info", UNNotificationDefaultActionIdentifier] {
+            let previousRequest = store.dashboardOpenRequest
+            await ScroogeAppDelegate.handleNotification(id: alert.id, action: action, store: store)
+            XCTAssertEqual(store.highlightedAccountID, account.id)
+            XCTAssertNotEqual(store.dashboardOpenRequest, previousRequest)
+        }
+        let lastRequest = store.dashboardOpenRequest
+        await ScroogeAppDelegate.handleNotification(id: "expired", action: "show-info", store: store)
+        XCTAssertEqual(store.dashboardOpenRequest, lastRequest)
+    }
+
+    @MainActor
     func testFailedAlertActionSavePreservesBannerAndStoredState() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
