@@ -21,6 +21,7 @@ enum DemoData {
         case longDetails = "long-details"
         case missingPlan = "missing-plan"
         case emptyWindows = "empty-windows"
+        case statusInfo = "status-info", statusWarning = "status-warning"
     }
 
     static func make(now: Date, scenario: Scenario = .standard) -> (PersistedState, [HistoryRun]) {
@@ -84,6 +85,16 @@ enum DemoData {
                 snapshot.health = .offline
                 snapshot.message = String(repeating: "This is a long provider status message used to verify that usage details wrap at the popup width limit without shrinking or clipping text. ", count: 3)
             case .healthy: snapshot.health = .healthy
+            case .statusInfo, .statusWarning:
+                snapshot.health = .healthy
+                snapshot.reserve = ResetReserve(availableCount: 0, credits: [])
+                snapshot.windows = snapshot.windows.map { original in
+                    var window = original
+                    let usedPercent: Decimal = scenario == .statusInfo ? 60 : 80
+                    window.used = (window.limit ?? 100) * usedPercent / 100
+                    window.resetsAt = nil
+                    return window
+                }
             case .offline:
                 snapshot.health = .offline
                 snapshot.message = "Demo: network unavailable; last successful values retained."

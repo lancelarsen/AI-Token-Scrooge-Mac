@@ -3,6 +3,21 @@ import struct SwiftUI.Color
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testStatusDemoScenariosReachInfoAndWarningWithoutImminentResetAlerts() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        for (scenario, severity) in [(DemoData.Scenario.statusInfo, ReminderSeverity.info), (.statusWarning, .warning)] {
+            let (state, _) = DemoData.make(now: now, scenario: scenario)
+            XCTAssertFalse(MonitorAvailability.evaluate(state).needsAttention)
+            XCTAssertEqual(IconAlertPolicy.evaluate(state: state, now: now)?.severity, severity)
+            let alerts = state.accounts.flatMap { account in
+                AlertEvaluator.evaluate(account: account, previous: nil,
+                    current: state.snapshots[account.id]!, settings: state.settings, now: now)
+            }
+            XCTAssertFalse(alerts.isEmpty)
+            XCTAssertTrue(alerts.allSatisfy { $0.severity == severity && $0.reminderID == nil })
+        }
+    }
+
     func testGitHubFallbackAllowanceRequiresTheEntireNumber() throws {
         XCTAssertNil(try GitHubAllowanceInput.parse("  "))
         XCTAssertEqual(try GitHubAllowanceInput.parse(" 125.50 "), Decimal(string: "125.5"))
