@@ -17,6 +17,7 @@
 		1005FCA7612EB48F234A93A0 /* alarm_on.svg in Resources */ = {isa = PBXBuildFile; fileRef = F3FECAF4E9864E84728EB3B7 /* alarm_on.svg */; };
 		10751175C197D93643B8316F /* AccountDragLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85BEB2E04CDA1C8B4CC06916 /* AccountDragLayout.swift */; };
 		14BD82C05C34322DC20750BB /* CoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBEAC2441D10EEB12366B40 /* CoreTests.swift */; };
+		173BA377E9FFB639D31CAC3C /* HistoryCurveDrawing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC2091377C1205CB1EE8605 /* HistoryCurveDrawing.swift */; };
 		1868CE7FE20C60CA878DA1C3 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 457D641C15D4D7CF6FF175CA /* Sparkle */; };
 		188D171FC37573946B2BA8D0 /* PackedHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6776DC2D13E8CFEBDB135206 /* PackedHistoryTests.swift */; };
 		1A747D95FFF2A23A5868D6C8 /* HistoryEventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E5184BDAC856DAAC20AFC19 /* HistoryEventTests.swift */; };
@@ -91,6 +92,7 @@
 		CA209A1227DC66EEAE612DFD /* SegoeUI.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 897EBC93EE1D68A23502ED59 /* SegoeUI.ttf */; };
 		CB6C6D05ADC1F4FFFF65658E /* LocalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC048AAA6E4767EF18709FD0 /* LocalStore.swift */; };
 		CB8C70F7AFCBA83C135105F9 /* SegoeUIVariable-EULA.txt in Resources */ = {isa = PBXBuildFile; fileRef = 24581CFA900CBB96F831DCDC /* SegoeUIVariable-EULA.txt */; };
+		CFC8A20BC1082E1282A0AAD8 /* HistoryCurveDrawingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70B7084A99B2E162E5FB4160 /* HistoryCurveDrawingTests.swift */; };
 		D2180C29BA6C8EC1BB99B32A /* classic-info.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1CE84E17CBE82C4DB3B77B2D /* classic-info.wav */; };
 		D287C435D2D9D3E6D6954906 /* devin.svg in Resources */ = {isa = PBXBuildFile; fileRef = 38C6082F2EA80A8484F2B2AC /* devin.svg */; };
 		D62E139AF9F68B8411B2E9DE /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36386F305B5106D36AA5C9A /* Theme.swift */; };
@@ -174,6 +176,7 @@
 		3C69B60006F7E2D89ACCAE6B /* SecretStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecretStore.swift; sourceTree = "<group>"; };
 		3CECC381968D27063EFC9A5B /* github.svg */ = {isa = PBXFileReference; path = github.svg; sourceTree = "<group>"; };
 		3D30E984DB7C2ADE83A5210B /* UsageHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageHistory.swift; sourceTree = "<group>"; };
+		3DC2091377C1205CB1EE8605 /* HistoryCurveDrawing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryCurveDrawing.swift; sourceTree = "<group>"; };
 		417578CF1EEB75FB014934AB /* HorizonEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HorizonEvent.swift; sourceTree = "<group>"; };
 		43069C166CF6A81926722053 /* ScroogeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScroogeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		464C6C599D303DAEF44E73B1 /* DemoReferenceWindowFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoReferenceWindowFrame.swift; sourceTree = "<group>"; };
@@ -200,6 +203,7 @@
 		6776DC2D13E8CFEBDB135206 /* PackedHistoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackedHistoryTests.swift; sourceTree = "<group>"; };
 		6FE31F36657B650759A144CB /* SpectrumSelectionContrast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrumSelectionContrast.swift; sourceTree = "<group>"; };
 		7077D27B546EE40D7B52E094 /* SOUND-CREDITS.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "SOUND-CREDITS.txt"; sourceTree = "<group>"; };
+		70B7084A99B2E162E5FB4160 /* HistoryCurveDrawingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryCurveDrawingTests.swift; sourceTree = "<group>"; };
 		7568B7A102C54AE3CF72E102 /* HorizonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HorizonView.swift; sourceTree = "<group>"; };
 		76176BFD681D3CDB853D8895 /* AccountSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountSettingsView.swift; sourceTree = "<group>"; };
 		762A319808F8C17BAC31D1B3 /* HorizonPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HorizonPresentation.swift; sourceTree = "<group>"; };
@@ -281,6 +285,7 @@
 				EBB11BD3744DF6917A2FD40D /* DevinTests.swift */,
 				6198B0FB13827BFE52953049 /* GitHubAuthTests.swift */,
 				EDEF58C3513F89FF61BBFE6F /* HistoryCacheTests.swift */,
+				70B7084A99B2E162E5FB4160 /* HistoryCurveDrawingTests.swift */,
 				2E5184BDAC856DAAC20AFC19 /* HistoryEventTests.swift */,
 				E02114ECC4D16CF3A54239D6 /* HistoryLabelTests.swift */,
 				00DD87EC6F7F3FE070518237 /* HorizonPerformanceTests.swift */,
@@ -406,6 +411,7 @@
 				E72561E2E530FB3712D65E03 /* BundledColorNames.swift */,
 				464C6C599D303DAEF44E73B1 /* DemoReferenceWindowFrame.swift */,
 				1EFFB3B427B1675530260BA6 /* Format.swift */,
+				3DC2091377C1205CB1EE8605 /* HistoryCurveDrawing.swift */,
 				2C3B0557D8B55197325FE987 /* HorizonInteraction.swift */,
 				F5A5186F536026FDE9E8A856 /* ReferenceHelpTooltip.swift */,
 				9114E87C76735510A121AC43 /* ReferenceTypography.swift */,
@@ -665,6 +671,7 @@
 				F556A9A65085FEFB873E9F46 /* DevinTests.swift in Sources */,
 				4DFE91E5F5B40488B73E88FC /* GitHubAuthTests.swift in Sources */,
 				98E5054E339A39BF500A514A /* HistoryCacheTests.swift in Sources */,
+				CFC8A20BC1082E1282A0AAD8 /* HistoryCurveDrawingTests.swift in Sources */,
 				1A747D95FFF2A23A5868D6C8 /* HistoryEventTests.swift in Sources */,
 				838FF1A122E172B3A00B2418 /* HistoryLabelTests.swift in Sources */,
 				43944D356D6CFCE69269F7DA /* HorizonPerformanceTests.swift in Sources */,
@@ -720,6 +727,7 @@
 				8688AE12D05956EF0DD490BD /* GitHubCredentialManager.swift in Sources */,
 				E832C910247EFF595387C409 /* GitHubDeviceFlow.swift in Sources */,
 				0720E09DAFAAC38FF83BD768 /* GitHubTransport.swift in Sources */,
+				173BA377E9FFB639D31CAC3C /* HistoryCurveDrawing.swift in Sources */,
 				2C3407ACE0BB111FC71C5CE1 /* HistoryLabelLayout.swift in Sources */,
 				5F1EA3ED4792544C5A19B48E /* HistoryRun.swift in Sources */,
 				77D449CBA567817A8DB4FBD1 /* HistoryRunCache.swift in Sources */,

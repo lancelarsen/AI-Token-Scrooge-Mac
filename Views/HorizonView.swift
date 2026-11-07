@@ -10,6 +10,7 @@ struct HorizonView: View {
     @State private var selectedHistoricalMarker: HistoricalEventMarker?
     @State private var presentation = HorizonPresentation()
     @State private var dayGeometry = HorizonDayGeometry()
+    @State private var curveDrawing = HistoryCurveDrawing()
     @State private var future = HorizonFuturePresentation()
     @State private var historyPinned = false
     @FocusState private var historyFocused: Bool
@@ -105,6 +106,7 @@ struct HorizonView: View {
         .onChange(of: timelineAccounts) { _, _ in prepareHistory() }
         .onChange(of: viewport.startCoordinate) { _, _ in prepareHistory() }
         .onChange(of: viewport.pixelsPerDay) { _, _ in prepareHistory() }
+        .onChange(of: plotHeight) { _, _ in prepareCurves() }
         .onChange(of: store.state.settings.timeZoneID) { _, _ in prepareHistory() }
         .sheet(item: $selectedEvent) { event in
             if event.reportedAt == nil {
@@ -619,30 +621,15 @@ struct HorizonView: View {
             line.addLine(to: CGPoint(x: x, y: plotTop + chartHeight))
             context.stroke(line, with: .color(Color(hex: "#30333C")), lineWidth: 2)
         }
+        let drawing = curveDrawing.matches(top: plotTop, height: chartHeight) ? curveDrawing
+            : HistoryCurveDrawing(points: presentation.renderPoints, top: plotTop, height: chartHeight, project: historyX)
         for series in historySeries {
-            let points = presentation.renderPoints[series.account.id] ?? []
             let color = Color(hex: series.account.resolvedLineColor(plan: store.state.snapshots[series.account.id]?.planType))
-            var segment: [CGPoint] = []
-            func flush() {
-                guard let first = segment.first, let last = segment.last else { return }
-                var path = Path(); path.addLines(segment)
-                var fill = Path(); fill.move(to: CGPoint(x: first.x, y: plotTop + chartHeight))
-                for point in segment { fill.addLine(to: point) }
-                fill.addLine(to: CGPoint(x: last.x, y: plotTop + chartHeight)); fill.closeSubpath()
-                context.fill(fill, with: .color(color.opacity(0.09)))
-                context.stroke(path, with: .color(color), lineWidth: 2)
-                if segment.count == 1 { context.fill(Path(ellipseIn: CGRect(x: first.x - 2.5, y: first.y - 2.5, width: 5, height: 5)), with: .color(color)) }
-                segment.removeAll()
+            for segment in drawing.segments[series.account.id] ?? [] {
+                context.fill(segment.fill, with: .color(color.opacity(0.09)))
+                context.stroke(segment.line, with: .color(color), lineWidth: 2)
+                if let dot = segment.singlePoint { context.fill(dot, with: .color(color)) }
             }
-            for point in points {
-                if point.startsSegment { flush() }
-                let x = historyX(point.at)
-                if let before = point.replenishedFrom, !segment.isEmpty {
-                    segment.append(CGPoint(x: x, y: plotTop + NSDecimalNumber(decimal: before).doubleValue / 100 * chartHeight))
-                }
-                segment.append(CGPoint(x: x, y: plotTop + NSDecimalNumber(decimal: point.remaining).doubleValue / 100 * chartHeight))
-            }
-            flush()
         }
         for event in historicalEvents {
             let x = historyX(event.date)
@@ -697,6 +684,10 @@ struct HorizonView: View {
     private func prepareHistory() {
         prepareDayGeometry()
         presentation = HorizonPresentation(accounts: timelineAccounts, runs: store.history, viewport: viewport, now: now)
+        prepareCurves()
+    }
+    private func prepareCurves() {
+        curveDrawing = HistoryCurveDrawing(points: presentation.renderPoints, top: plotTop, height: plotHeight, project: historyX)
     }
     private func prepareDayGeometry() {
         if !dayGeometry.matches(viewport) { dayGeometry = HorizonDayGeometry(viewport: viewport) }
