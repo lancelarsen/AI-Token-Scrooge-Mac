@@ -128,18 +128,24 @@ struct DashboardView: View {
     private var toolbar: some View {
         HStack(spacing: 12) {
             HStack(spacing: 0) {
-                ForEach(AccountSort.allCases, id: \.self) { sort in
+                ForEach(Array(AccountSort.allCases.enumerated()), id: \.element) { index, sort in
+                    if index > 0 { Rectangle().fill(Color(hex: "#45464D")).frame(width: 1, height: 44) }
                     Button { store.edit { AccountPolicy.selectSort(sort, state: &$0) } } label: {
                         HStack(spacing: 9) {
                             ActionIcon(symbol: icon(sort), size: 20)
                             Text(sort.rawValue).font(ReferenceTypography.nativeTextFont(size: 13))
                                 .multilineTextAlignment(.center)
-                        }.padding(.horizontal, 8).frame(maxWidth: .infinity, minHeight: 44)
+                        }.padding(.horizontal, 8).frame(minWidth: 0, maxWidth: .infinity, minHeight: 44)
                     }.buttonStyle(ScroogeButtonStyle(selected: store.state.settings.accountSort == sort, segmented: true))
+                        .clipShape(UnevenRoundedRectangle(
+                            topLeadingRadius: index == 0 ? 9 : 0,
+                            bottomLeadingRadius: index == 0 ? 9 : 0,
+                            bottomTrailingRadius: index == AccountSort.allCases.count - 1 ? 9 : 0,
+                            topTrailingRadius: index == AccountSort.allCases.count - 1 ? 9 : 0))
                         .accessibilityAddTraits(store.state.settings.accountSort == sort ? .isSelected : [])
-                        .overlay(alignment: .trailing) { if sort != AccountSort.allCases.last { Rectangle().fill(Color(hex: "#45464D")).frame(width: 1) } }
                 }
-            }.clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#45464D")))
+            }.padding(1).background(Theme.control).clipShape(RoundedRectangle(cornerRadius: 10))
+                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color(hex: "#45464D"), lineWidth: 1))
             Button { if store.isDemo { store.exitDemo() } else { sheet = .connection(original: nil) } } label: {
                 ActionLabel(title: store.isDemo ? "Exit Demo" : "Add Account", symbol: store.isDemo ? "arrow.up.right.square" : "plus")
             }.buttonStyle(ScroogeButtonStyle()).accessibilityIdentifier("addAccountButton")

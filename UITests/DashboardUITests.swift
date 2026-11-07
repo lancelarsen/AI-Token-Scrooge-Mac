@@ -3,6 +3,90 @@ import Vision
 import XCTest
 
 final class DashboardUITests: XCTestCase {
+    @MainActor func testCompactSortSegmentsAndRenderedAccountOrder() throws {
+        try verifySortSegmentsAndRenderedAccountOrder(compact: true)
+    }
+
+    @MainActor func testWideSortSegmentsAndRenderedAccountOrder() throws {
+        try verifySortSegmentsAndRenderedAccountOrder(compact: false)
+    }
+
+    @MainActor private func verifySortSegmentsAndRenderedAccountOrder(compact: Bool) throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", compact ? "--compact" : "--reference-wide", "--reference-date", "2026-11-04T16:16:00Z"]
+        app.launch()
+        defer { app.terminate() }
+        let dashboard = app.windows["dashboard"]
+        if !dashboard.waitForExistence(timeout: 2) {
+            let menu = app.menuBars.menuBarItems["Window"]
+            menu.click(); menu.menuItems["AI Token Scrooge"].click()
+        }
+        let running = try XCTUnwrap(NSRunningApplication.runningApplications(withBundleIdentifier: "com.lancelarsen.AITokenScrooge")
+            .max { ($0.launchDate ?? .distantPast) < ($1.launchDate ?? .distantPast) })
+        running.activate(options: [.activateIgnoringOtherApps])
+        dashboard.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.08)).click()
+        let names = ["Custom Order", "Most Remaining", "Least Remaining", "Next Reset"]
+        let segments = names.map { dashboard.buttons[$0] }
+        XCTAssertTrue(segments[0].waitForExistence(timeout: 5))
+        XCTAssertEqual(dashboard.frame.width, compact ? 789 : 1463, accuracy: 1)
+        let offset = segments[0].frame.minY - (dashboard.frame.minY + 200)
+        let scrollbar = dashboard.scrollBars.firstMatch
+        scrollbar.hover()
+        scrollbar.scroll(byDeltaX: 0, deltaY: -offset)
+        for (index, segment) in segments.enumerated() {
+            XCTAssertTrue(segment.isHittable)
+            XCTAssertEqual(segment.frame.height, 44, accuracy: 0.5)
+            XCTAssertEqual(segment.frame.width, segments[0].frame.width, accuracy: 0.5)
+            if index > 0 {
+                XCTAssertEqual(segment.frame.minX - segments[index - 1].frame.maxX, 1, accuracy: 0.5,
+                    "Windows separators occupy their own one-point columns")
+            }
+        }
+        let grip = dashboard.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Drag OpenAI / Personal to Reorder Accounts")).firstMatch
+        XCTAssertEqual(segments[0].frame.minX, grip.frame.minX, accuracy: 0.5,
+            "The first segment and card grip both start inside their outer one-point borders")
+        XCTAssertEqual(segments[0].frame.minY, dashboard.buttons["addAccountButton"].frame.minY, accuracy: 0.5)
+        dashboard.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.08)).hover()
+        let screen = CGDisplayBounds(CGMainDisplayID())
+        guard screen.contains(dashboard.frame) else { throw XCTSkip("Owned dashboard must be on the main display for the composite capture") }
+        XCTAssertEqual(NSWorkspace.shared.frontmostApplication?.processIdentifier, running.processIdentifier)
+        let screenImage = XCUIScreen.main.screenshot().image
+        let pixels = try XCTUnwrap(screenImage.cgImage(forProposedRect: nil, context: nil, hints: nil))
+        let scale = CGFloat(pixels.width) / screen.width
+        let bounds = dashboard.frame.offsetBy(dx: -screen.minX, dy: -screen.minY)
+            .applying(CGAffineTransform(scaleX: scale, y: scale))
+        let owned = try XCTUnwrap(pixels.cropping(to: bounds.integral))
+        let header = try XCTUnwrap(owned.cropping(to: CGRect(x: 0, y: 32 * scale,
+            width: CGFloat(owned.width), height: 120 * scale)))
+        let recognition = VNRecognizeTextRequest()
+        recognition.recognitionLevel = .accurate
+        try VNImageRequestHandler(cgImage: header).perform([recognition])
+        let headerText = recognition.results?.compactMap { $0.topCandidates(1).first?.string }.joined(separator: " ") ?? ""
+        XCTAssertTrue(headerText.contains("Token Scrooge") && headerText.contains("Never Waste a Token"),
+            "The fixed header must remain visible after page scrolling: \(headerText)")
+        let capture = XCTAttachment(image: NSImage(cgImage: owned, size: dashboard.frame.size))
+        capture.name = "\(compact ? "Compact" : "Wide") sort segments with reserved borders"
+        capture.lifetime = .keepAlways
+        add(capture)
+        let accounts = ["OpenAI, Personal · Plus. Open details.", "GitHub Copilot, Work · Max. Open details.",
+            "OpenAI, Work · Pro. Open details.", "Claude, Personal · Pro. Open details."]
+        let expected = [[0, 1, 2, 3], [2, 0, 1, 3], [3, 1, 0, 2], [0, 3, 2, 1]]
+        for index in [1, 2, 3, 0] {
+            segments[index].click()
+            let changed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                let order = accounts.indices.sorted {
+                    dashboard.buttons[accounts[$0]].frame.minY < dashboard.buttons[accounts[$1]].frame.minY
+                }
+                return segments[index].isSelected && order == expected[index]
+            }, object: nil)
+            XCTAssertEqual(XCTWaiter.wait(for: [changed], timeout: 5), .completed,
+                "\(names[index]) must select and render the expected account order")
+            for other in names.indices where other != index { XCTAssertFalse(segments[other].isSelected) }
+        }
+        XCTAssertTrue(grip.exists, "Returning to Custom Order restores reorder handles")
+    }
+
     @MainActor func testUnavailableStatusIndicatorAndPrivacy() throws {
         try verifyStatusIndicator(scenario: "permission", summary: "Some Current Usage Data Is Unavailable")
     }
@@ -103,12 +187,14 @@ final class DashboardUITests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for: [activated], timeout: 3), .completed)
         dashboard.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.12)).click()
         if !app.buttons["addAccountButton"].isHittable {
+            dashboard.scrollBars.firstMatch.hover()
             dashboard.scrollBars.firstMatch.scroll(byDeltaX: 0, deltaY: -250)
         }
         XCTAssertEqual(app.buttons["addAccountButton"].label, "Exit Demo")
         app.buttons["addAccountButton"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).click()
         XCTAssertTrue(app.buttons["exploreDemoButton"].waitForExistence(timeout: 5))
         // The empty fixture is isolated from connected accounts. Return to its top after Exit Demo.
+        dashboard.scrollBars.firstMatch.hover()
         dashboard.scrollBars.firstMatch.scroll(byDeltaX: 0, deltaY: 1600)
         XCTAssertTrue(app.switches["historyToggle"].isHittable)
         XCTAssertTrue(app.buttons["Earned Reset Alert Settings"].isHittable)
@@ -141,6 +227,7 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(source.waitForExistence(timeout: 5))
         // Scroll on the vertical scrollbar, outside the horizon's horizontal-wheel routing.
         let scrollbar = dashboard.scrollBars.firstMatch
+        scrollbar.hover()
         for _ in 0..<4 where source.frame.midY > dashboard.frame.maxY - 180 {
             scrollbar.scroll(byDeltaX: 0, deltaY: -250)
         }
@@ -627,6 +714,7 @@ final class DashboardUITests: XCTestCase {
         if compact {
             let sort = dashboard.buttons["Custom Order"]
             let offset = sort.frame.minY - (dashboard.frame.minY + 200)
+            dashboard.scrollBars.firstMatch.hover()
             dashboard.scrollBars.firstMatch.scroll(byDeltaX: 0, deltaY: -offset)
             let mute = dashboard.buttons["Disable Alerts for Codex · 5-Hour"].firstMatch
             XCTAssertTrue(mute.isHittable)
@@ -634,7 +722,10 @@ final class DashboardUITests: XCTestCase {
         }
         let marker = dashboard.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "\(severity) Alert Threshold")).firstMatch
         XCTAssertTrue(marker.waitForExistence(timeout: 5))
-        if !marker.isHittable { dashboard.scrollBars.firstMatch.scroll(byDeltaX: 0, deltaY: -250) }
+        if !marker.isHittable {
+            dashboard.scrollBars.firstMatch.hover()
+            dashboard.scrollBars.firstMatch.scroll(byDeltaX: 0, deltaY: -250)
+        }
         XCTAssertTrue(marker.isHittable)
         let info = dashboard.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Info Alert Threshold")).firstMatch
         let critical = dashboard.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Critical Alert Threshold")).firstMatch
