@@ -591,7 +591,26 @@ try {
     if (-not ($footer.Rows | Where-Object { $_.type -eq 'ControlType.Button' -and $_.name -eq 'Send Test Notification' -and -not $_.offscreen })) {
         throw 'Global settings footer was not exposed.'
     }
-    Invoke-ReferenceAction -Name 'Close' -Root $root
+    # One test alert in this disposable demo; no provider request or real account.
+    Invoke-ReferenceAction -Name 'Send Test Notification' -Root $root
+    Start-Sleep -Seconds 2
+    $testResult = Save-ReferenceView -Name 'notification-test-result' -Root $root -Handle $handle -Output $Output
+    if ($testResult.Rows | Where-Object { $_.type -eq 'ControlType.Text' -and $_.name -match '^Notification test$' }) {
+        # Unpackaged runner delivery may fail. Close only its known test-result
+        # dialog, preserving the in-app banner for layout verification.
+        $resultAction = @($testResult.Rows | Where-Object { $_.type -eq 'ControlType.Button' -and
+            $_.name -in @('OK', 'Close') -and -not $_.offscreen })
+        if ($resultAction.Count -ne 1) { throw 'Test-result dismissal was not uniquely exposed.' }
+        Invoke-ReferenceAction -Name $resultAction[0].name -Root $root
+        Start-Sleep -Seconds 1
+    }
+    $bannerView = Save-ReferenceView -Name 'notification-banner' -Root $root -Handle $handle -Output $Output
+    foreach ($action in @('Show Info', 'Snooze 1 Hour', 'Dismiss')) {
+        if (-not ($bannerView.Rows | Where-Object { $_.type -eq 'ControlType.Button' -and $_.name -eq $action -and -not $_.offscreen })) {
+            throw "Test banner action was not exposed: $action"
+        }
+    }
+    Invoke-ReferenceAction -Name 'Dismiss' -Root $root
     Start-Sleep -Seconds 1
     Scroll-ReferencePanel -Percent 40
     Invoke-ReferenceAction -Name 'Exit demo' -Root $root
