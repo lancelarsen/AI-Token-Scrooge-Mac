@@ -341,6 +341,57 @@ try {
     if (-not ($pollingTip.Rows | Where-Object {
         $_.type -eq 'ControlType.ToolTip' -and $_.name -like 'How often Scrooge automatically checks*'
     })) { throw 'Polling pointer entry did not expose its long help tooltip.' }
+    [ReferenceWindowNative]::MovePointer($away.X, $away.Y)
+    # Match the Mac reference host's logical size before comparing panels.
+    # Native window chrome adds to the outer rectangle; use exported host-pane
+    # bounds to calculate that delta instead of guessing the frame thickness.
+    $hostPane = @($settings.Rows | Where-Object { $_.type -eq 'ControlType.Pane' } |
+        Sort-Object -Property width, height -Descending)[0]
+    if ($hostPane.width -lt 600 -or $hostPane.height -lt 400) { throw 'Reference host pane is unavailable.' }
+    $matchedRect = New-Object ReferenceWindowNative+Rect
+    [ReferenceWindowNative]::GetWindowRect($handle, [ref]$matchedRect) | Out-Null
+    if (-not [ReferenceWindowNative]::MoveWindow($handle, $matchedRect.Left, $matchedRect.Top,
+        [int]($matchedRect.Right - $matchedRect.Left + 789 - $hostPane.width),
+        [int]($matchedRect.Bottom - $matchedRect.Top + 694 - $hostPane.height), $true)) {
+        throw 'Cannot size the reference host for panel comparison.'
+    }
+    Start-Sleep -Seconds 2
+    $matched = Save-ReferenceView -Name 'account-settings-matched-size' -Root $root -Handle $handle -Output $Output
+    function Scroll-ReferencePanel {
+        param([double]$Percent)
+        $candidates = @()
+        foreach ($element in $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)) {
+            $pattern = $null
+            if (-not $element.Current.IsOffscreen -and $element.Current.BoundingRectangle.Width -ge 600 -and
+                $element.TryGetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern, [ref]$pattern) -and
+                $pattern.Current.VerticallyScrollable -and -not $pattern.Current.HorizontallyScrollable) {
+                $candidates += [pscustomobject]@{ Pattern = $pattern; Height = $element.Current.BoundingRectangle.Height }
+            }
+        }
+        if ($candidates.Count -eq 0) { throw 'No visible panel scroll provider was exposed.' }
+        $selected = $candidates | Sort-Object -Property Height -Descending | Select-Object -First 1
+        $selected.Pattern.SetScrollPercent([System.Windows.Automation.ScrollPattern]::NoScroll, $Percent)
+        Start-Sleep -Seconds 1
+    }
+    Scroll-ReferencePanel -Percent 100
+    $connection = Save-ReferenceView -Name 'account-connection-actions' -Root $root -Handle $handle -Output $Output
+    foreach ($name in @('Sign In Again', 'Remove Account')) {
+        $action = @($connection.Rows | Where-Object { $_.type -eq 'ControlType.Button' -and $_.name -eq $name -and -not $_.offscreen })
+        if ($action.Count -ne 1 -or $action[0].enabled) { throw "Demo connection action not visible and disabled: $name" }
+    }
+    Invoke-ReferenceAction -Name 'Close' -Root $root
+    Start-Sleep -Seconds 1
+    Invoke-ReferenceAction -Name 'Settings' -Root $root
+    Start-Sleep -Seconds 2
+    $global = Save-ReferenceView -Name 'global-settings-matched-size' -Root $root -Handle $handle -Output $Output
+    if (-not ($global.Rows | Where-Object { $_.type -eq 'ControlType.Text' -and $_.name -eq 'App Updates' })) {
+        throw 'Global settings top was not exposed.'
+    }
+    Scroll-ReferencePanel -Percent 100
+    $footer = Save-ReferenceView -Name 'global-settings-footer' -Root $root -Handle $handle -Output $Output
+    if (-not ($footer.Rows | Where-Object { $_.type -eq 'ControlType.Button' -and $_.name -eq 'Send Test Notification' -and -not $_.offscreen })) {
+        throw 'Global settings footer was not exposed.'
+    }
 
 } catch {
     [ordered]@{ message = $_.Exception.Message; stack = $_.ScriptStackTrace;

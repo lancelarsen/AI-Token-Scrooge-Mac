@@ -53,3 +53,6 @@ The probe also captures `polling-tooltip.png` and its UIA export after opening a
 
 
 Polling-tooltip run [42366495646](https://github.com/lancelarsen/AI-Token-Scrooge-Mac/actions/runs/42366495646) passed at harness `45ab25d`. Current Windows measures the long polling help at314×109, with284×87 classic Segoe UI13 text over five lines. The text's widest wrapped line determines the desired width rather than always filling the320-point surface cap. The older322×118 gallery image does not represent this current source layout. The Mac's shared help sizing was corrected from320×109 to314×109; short278×57 selector help remains unchanged.
+
+
+Panel comparison captures resize the exported native host pane to789×694 logical points, accounting for outer window chrome separately. `account-settings-matched-size`, `account-connection-actions`, `global-settings-matched-size` and `global-settings-footer` include screenshots and UIA exports. The probe scrolls visible panels, requires both connection actions to remain disabled in demo, and never activates authentication, removal, updates or notification actions.
