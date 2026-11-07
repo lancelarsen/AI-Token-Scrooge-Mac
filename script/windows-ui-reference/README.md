@@ -74,3 +74,5 @@ The quiet-hours pass also captures `global-settings-quiet-hours-off` after switc
 After the demo checks, the isolated probe exits demo and captures the empty dashboard, four-provider chooser and untouched Codex, GitHub browser/token, Claude and Devin forms at the same compact host size. Only navigation and Cancel are invoked; no sign-in, credentials or provider request is initiated.
 
 The global-settings pass exports overlapping `global-settings-sweep-0` through `-100` captures with UIA geometry every ten percent. Compare controls relative to each visible card; equal percentages do not imply equal platform scroll extents. This covers thresholds and both reminder sections without changing their values.
+
+The account-settings pass opens Add Custom Line Color and captures both the initial native color picker and its scrolled numeric fields, then cancels. It never adds a color or edits a saved palette. Native geometry and font attributes accompany both views.

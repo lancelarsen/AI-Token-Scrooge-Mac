@@ -151,12 +151,12 @@ function Save-ReferenceView {
 }
 
 function Invoke-ReferenceAction {
-    param([string]$Name, [System.Windows.Automation.AutomationElement]$Root)
+    param([string]$Name, [System.Windows.Automation.AutomationElement]$Root, [double]$MinimumHeight = 40)
     $condition = [System.Windows.Automation.AndCondition]::new(
         [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, $Name),
         [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button))
     $targets = @($Root.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condition) | Where-Object {
-        -not $_.Current.IsOffscreen -and $_.Current.BoundingRectangle.Height -ge 40
+        -not $_.Current.IsOffscreen -and $_.Current.BoundingRectangle.Height -ge $MinimumHeight
     })
     if ($targets.Count -ne 1) { throw "Reference action not uniquely visible: $Name" }
     $invoke = $null
@@ -365,6 +365,33 @@ try {
     }
     Start-Sleep -Seconds 2
     $matched = Save-ReferenceView -Name 'account-settings-matched-size' -Root $root -Handle $handle -Output $Output
+    Invoke-ReferenceAction -Name 'Add Custom Line Color' -Root $root -MinimumHeight 32
+    Start-Sleep -Seconds 1
+    $colorPicker = Save-ReferenceView -Name 'custom-color-picker' -Root $root -Handle $handle -Output $Output
+    if (-not ($colorPicker.Rows | Where-Object { $_.type -eq 'ControlType.Button' -and $_.name -eq 'Add Color' -and -not $_.offscreen })) {
+        throw 'Custom color picker did not expose its Add Color action.'
+    }
+    # Only inspect both ends of the native picker; Cancel leaves the palette
+    # unchanged. Its bounded dialog scroll is narrower than the settings form.
+    $colorScrolls = @()
+    foreach ($element in $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)) {
+        $scroll = $null
+        $bounds = $element.Current.BoundingRectangle
+        if (-not $element.Current.IsOffscreen -and $bounds.Width -ge 200 -and $bounds.Width -lt 600 -and
+            $element.TryGetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern, [ref]$scroll) -and
+            $scroll.Current.VerticallyScrollable) {
+            $colorScrolls += [pscustomobject]@{ Pattern = $scroll; Height = $bounds.Height }
+        }
+    }
+    if ($colorScrolls.Count -eq 0) { throw 'Custom color picker did not expose its bounded scroll area.' }
+    $colorScroll = $colorScrolls | Sort-Object -Property Height -Descending | Select-Object -First 1
+    for ($settle = 0; $settle -lt 4; $settle++) {
+        $colorScroll.Pattern.SetScrollPercent([System.Windows.Automation.ScrollPattern]::NoScroll, 100)
+        Start-Sleep -Milliseconds 500
+    }
+    $colorFields = Save-ReferenceView -Name 'custom-color-picker-fields' -Root $root -Handle $handle -Output $Output
+    Invoke-ReferenceAction -Name 'Cancel' -Root $root
+    Start-Sleep -Seconds 1
     function Scroll-ReferencePanel {
         param([double]$Percent)
         $candidates = @()
