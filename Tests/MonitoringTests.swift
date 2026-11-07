@@ -286,6 +286,47 @@ final class MonitoringTests: XCTestCase {
     }
 
     @MainActor
+    func testWindowResizeAndEscapeCancelAccountDragWithoutSaving() async throws {
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 500, height: 400),
+                              styleMask: [.titled, .resizable], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        defer { window.close() }
+        let scroll = NSScrollView(frame: window.contentView!.bounds)
+        window.contentView = scroll
+        let document = NSView(frame: NSRect(x: 0, y: 0, width: 500, height: 800))
+        scroll.documentView = document
+        let markers = (0..<2).map { index in
+            NSView(frame: NSRect(x: 0, y: index * 120, width: 400, height: 100))
+        }
+        let dragging = AccountDragging()
+        for (index, marker) in markers.enumerated() {
+            document.addSubview(marker)
+            dragging.register(marker, id: String(index))
+        }
+        let event = try XCTUnwrap(NSEvent.mouseEvent(with: .leftMouseDown,
+            location: CGPoint(x: 30, y: 30), modifierFlags: [], timestamp: 0,
+            windowNumber: window.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1))
+        var savedSlots: [Int] = []
+        dragging.begin(id: "0", ids: ["0", "1"], event: event) { savedSlots.append($0) }
+        XCTAssertEqual(dragging.activeID, "0")
+        window.setContentSize(NSSize(width: 520, height: 420))
+        try await Task.sleep(for: .milliseconds(250))
+        XCTAssertNil(dragging.activeID)
+        XCTAssertTrue(dragging.offsets.isEmpty)
+        XCTAssertTrue(savedSlots.isEmpty)
+        dragging.begin(id: "1", ids: ["0", "1"], event: event) { savedSlots.append($0) }
+        XCTAssertEqual(dragging.activeID, "1", "Cancellation must release the input monitor for a fresh drag")
+        let escape = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero,
+            modifierFlags: [], timestamp: 0, windowNumber: window.windowNumber,
+            context: nil, characters: "\u{1b}", charactersIgnoringModifiers: "\u{1b}",
+            isARepeat: false, keyCode: 53))
+        NSApp.postEvent(escape, atStart: true)
+        try await Task.sleep(for: .milliseconds(250))
+        XCTAssertNil(dragging.activeID)
+        XCTAssertTrue(savedSlots.isEmpty)
+    }
+
+    @MainActor
     func testHistoryPointerCoordinatesAndTrackingLifecycle() throws {
         let window = TooltipTestWindow(contentRect: NSRect(x: 0, y: 0, width: 800, height: 400),
                                        styleMask: [.borderless], backing: .buffered, defer: true)
