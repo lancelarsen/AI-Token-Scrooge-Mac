@@ -65,3 +65,6 @@ Matched-panel run [42367678432](https://github.com/lancelarsen/AI-Token-Scrooge-
 
 
 Quiet-hours run [42369557174](https://github.com/lancelarsen/AI-Token-Scrooge-Mac/actions/runs/42369557174) passed at `3382e87`. The native start/end targets are80×32 inside106-point positioning slots. The classic Segoe16 summary is22 points high;94-point range plus4-point gap plus summary yields120. Time-label normal ink widths are42/35 for12AM/8AM at1x. Native button UIA does not provide resolved physical-font attributes, and the canvas has no separate text nodes; keep those limits distinct from the exposed summary font and control geometry.
+
+
+The workflow now explicitly selects the dark app theme in the disposable Windows runner before starting Scrooge, matching the supplied gallery. It broadcasts the theme refresh and records AppsUseLightTheme/appTheme in capture.json. This changes no setting on the user's Mac. Earlier captures used the runner's light-control theme inside the app's fixed dark panels; their geometry/font evidence remains separate from dark-theme color acceptance. In particular, the earlier white switch-thumb correction must be reconsidered against the dark reference rather than treating the light runner as the gallery palette.

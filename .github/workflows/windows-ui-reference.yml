@@ -21,6 +21,28 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Release download failed.' }
           if ((Get-FileHash $archive).Hash -ne '46617A06BE5095F51222697DA69D45395E5818453782D343216F7074E89BA406') { throw 'Windows reference checksum mismatch.' }
           [System.IO.Compression.ZipFile]::ExtractToDirectory($archive, (Join-Path $env:RUNNER_TEMP 'reference'))
+      - name: Match the supplied dark app reference
+        shell: powershell
+        run: |
+          # This is the disposable runner's user hive, never the user's Mac.
+          $themePath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize'
+          New-Item -Path $themePath -Force | Out-Null
+          New-ItemProperty -Path $themePath -Name AppsUseLightTheme -PropertyType DWord -Value 0 -Force | Out-Null
+          Add-Type @'
+          using System;
+          using System.Runtime.InteropServices;
+          public static class ReferenceThemeBroadcast {
+              [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+              static extern IntPtr SendMessageTimeout(IntPtr window, uint message, UIntPtr wParam,
+                  string lParam, uint flags, uint timeout, out UIntPtr result);
+              public static void Refresh() {
+                  UIntPtr result;
+                  SendMessageTimeout(new IntPtr(0xffff), 0x001a, UIntPtr.Zero, "ImmersiveColorSet", 2, 5000, out result);
+              }
+          }
+          '@
+          [ReferenceThemeBroadcast]::Refresh()
+          if ((Get-ItemPropertyValue -Path $themePath -Name AppsUseLightTheme) -ne 0) { throw 'Dark reference app theme was not set.' }
       - name: Capture native demo and text metrics
         shell: powershell
         run: ./script/windows-ui-reference/Capture.ps1 -Release "$env:RUNNER_TEMP/reference" -Output "$env:RUNNER_TEMP/ui-reference"

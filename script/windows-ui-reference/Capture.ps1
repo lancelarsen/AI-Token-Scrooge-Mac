@@ -203,7 +203,9 @@ try {
     $width = $dashboard.Width
     $height = $dashboard.Height
     if (-not ($rows | Where-Object { $_.name -match 'Reset Horizon|Reset horizon' })) { throw 'The captured window did not expose the demo dashboard.' }
+    $appTheme = (Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' -Name AppsUseLightTheme -ErrorAction SilentlyContinue).AppsUseLightTheme
     [ordered]@{ release = 'v2026.11.6.006'; source = 'eb042cb1fd9f44e896c2126738121ae8c80d80b0';
+        appsUseLightTheme = $appTheme; appTheme = $(if ($appTheme -eq 0) { 'Dark' } elseif ($appTheme -eq 1) { 'Light' } else { 'System default' });
         width = $width; height = $height; elements = $rows.Count; session = $app.SessionId;
         scope = 'Isolated demo rendering only; no live provider or authentication verification.' } |
         ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $Output 'capture.json')
