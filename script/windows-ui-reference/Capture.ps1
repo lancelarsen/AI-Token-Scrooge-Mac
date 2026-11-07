@@ -430,6 +430,16 @@ try {
     if ($keyTrace[0]['value'] -ne $brightnessRange.Current.Minimum -or $keyTrace[1]['value'] -ne $brightnessRange.Current.Maximum) {
         throw 'Native brightness Home/End did not reach the captured range bounds.'
     }
+    # Programmatic UIA focus does not establish keyboard focus visuals.
+    # Enter the model selector through the actual tab sequence and record its owner.
+    $brightnessSlider.SetFocus()
+    [System.Windows.Forms.SendKeys]::SendWait('{TAB}')
+    Start-Sleep -Milliseconds 500
+    $keyboardFocus = [System.Windows.Automation.AutomationElement]::FocusedElement
+    [ordered]@{ name = $keyboardFocus.Current.Name; type = $keyboardFocus.Current.ControlType.ProgrammaticName;
+        keyboardFocused = $keyboardFocus.Current.HasKeyboardFocus } |
+        ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $Output 'color-model-keyboard-focus.json')
+    Save-ReferenceView -Name 'custom-color-picker-model-keyboard' -Root $root -Handle $handle -Output $Output | Out-Null
     $redField = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,
         [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, 'Red'))
     $redValue = $null; $hexValue = $null
