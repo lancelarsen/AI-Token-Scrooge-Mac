@@ -169,6 +169,14 @@ final class DashboardUITests: XCTestCase {
     }
 
     @MainActor func testHistoryHoverShowsDetailsAndDismissesOnExit() throws {
+        try verifyHistoryInteraction(keyboardEntry: false)
+    }
+
+    @MainActor func testHistoryTabEntryFromLaunch() throws {
+        try verifyHistoryInteraction(keyboardEntry: true)
+    }
+
+    @MainActor private func verifyHistoryInteraction(keyboardEntry: Bool) throws {
         let app = XCUIApplication()
         app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
         app.launchArguments = ["--demo", "--compact", "--reference-date", "2026-11-04T16:16:00Z"]
@@ -184,25 +192,45 @@ final class DashboardUITests: XCTestCase {
         let axis = elements.matching(NSPredicate(format: "label BEGINSWITH %@", "History axis:")).firstMatch
         XCTAssertTrue(axis.waitForExistence(timeout: 5))
         app.activate()
-        dashboard.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.12)).click()
+        if !keyboardEntry { dashboard.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.12)).click() }
         // The first few points after midnight are in the plotted past,
         // left of today's stacked event badges (which have their own tooltip).
         let sample = axis.coordinate(withNormalizedOffset: CGVector(dx: 1, dy: 0.57))
             .withOffset(CGVector(dx: 3, dy: 0))
-        let owner = try XCTUnwrap(NSWorkspace.shared.frontmostApplication?.processIdentifier)
+        let running = try XCTUnwrap(NSRunningApplication.runningApplications(withBundleIdentifier: "com.lancelarsen.AITokenScrooge")
+            .max { ($0.launchDate ?? .distantPast) < ($1.launchDate ?? .distantPast) })
+        let owner = running.processIdentifier
+        running.activate(options: [.activateIgnoringOtherApps])
+        let activated = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            NSWorkspace.shared.frontmostApplication?.processIdentifier == owner
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [activated], timeout: 3), .completed)
         let header = dashboard.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.12))
         let initialWindows = Set(Self.visibleWindows(for: owner).keys)
         func tooltipFrame() -> CGRect? {
-            Self.visibleWindows(for: owner).first { !initialWindows.contains($0.key) }?.value
+            if keyboardEntry {
+                return Self.visibleWindows(for: owner).values.first {
+                    $0.height >= 60 && $0.width <= 450 && dashboard.frame.contains($0)
+                }
+            }
+            return Self.visibleWindows(for: owner).first { !initialWindows.contains($0.key) }?.value
         }
         func waitForPopup() throws -> CGRect {
             let appeared = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-                Self.visibleWindows(for: owner).keys.contains { !initialWindows.contains($0) }
+                tooltipFrame() != nil
             }, object: nil)
             XCTAssertEqual(XCTWaiter.wait(for: [appeared], timeout: 3), .completed)
             return try XCTUnwrap(tooltipFrame())
         }
-        sample.hover()
+        if keyboardEntry {
+            header.hover()
+            for _ in 0..<40 {
+                if let frame = tooltipFrame(), frame.height >= 60, dashboard.frame.contains(frame) { break }
+                app.typeKey(.tab, modifierFlags: [])
+                RunLoop.current.run(until: Date().addingTimeInterval(0.15))
+                if let frame = tooltipFrame(), frame.height >= 60, dashboard.frame.contains(frame) { break }
+            }
+        } else { sample.hover() }
         let panel = try waitForPopup()
         XCTAssertTrue(dashboard.frame.contains(panel))
 
@@ -220,12 +248,13 @@ final class DashboardUITests: XCTestCase {
         recognition.recognitionLanguages = ["en-US"]
         try VNImageRequestHandler(cgImage: crop).perform([recognition])
         let text = recognition.results?.compactMap { $0.topCandidates(1).first?.string }.joined(separator: " ") ?? ""
-        XCTAssertTrue(text.contains("OpenAI") && text.contains("Weekly") && text.contains("% Used"), text)
+        XCTAssertTrue((text.contains("OpenAI") || (keyboardEntry && text.contains("Claude"))) && text.contains("Weekly") && text.contains("% Used"), text)
         let screenshot = XCTAttachment(image: NSImage(cgImage: crop, size: panel.size))
-        screenshot.name = "History sample at pointer"
+        screenshot.name = keyboardEntry ? "History sample reached with Tab" : "History sample at pointer"
         screenshot.lifetime = .keepAlways
         add(screenshot)
 
+        if keyboardEntry { app.typeKey(.escape, modifierFlags: []) }
         header.hover()
         XCTAssertNil(tooltipFrame())
         sample.click()
