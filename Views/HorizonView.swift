@@ -13,6 +13,7 @@ struct HorizonView: View {
     @State private var curveDrawing = HistoryCurveDrawing()
     @State private var future = HorizonFuturePresentation()
     @State private var historyPinned = false
+    @State private var keyboardHistoryInspection = false
     @FocusState private var historyFocused: Bool
     @State private var navigatorDragOffset: Double?
     @State private var hoverText: String?
@@ -353,6 +354,7 @@ struct HorizonView: View {
             }
             .contentShape(Rectangle())
             .onTapGesture { location in
+                keyboardHistoryInspection = false
                 historyPinned = false
                 updateHistoryHover(location)
                 historyPinned = hoverText != nil
@@ -458,10 +460,16 @@ struct HorizonView: View {
     }
     private var sampleAnchor: CGPoint? {
         guard let sample = hoveredSample else { return nil }
+        if keyboardHistoryInspection {
+            // Windows KeyboardAnchor centers over the visible chart, including
+            // its 40-point axis. This tracking view starts after that gutter.
+            return CGPoint(x: viewport.scrollOffset + (viewport.viewportWidth - 40) / 2, y: 0)
+        }
         return CGPoint(x: historyX(sample.point.at), y: plotTop + NSDecimalNumber(decimal: sample.point.remaining).doubleValue / 100 * plotHeight)
     }
     private func clearHistorySample() {
         historyPinned = false
+        keyboardHistoryInspection = false
         hoverText = nil
         hoveredSample = nil
     }
@@ -492,6 +500,7 @@ struct HorizonView: View {
         let index = current.map { min(samples.count - 1, max(0, $0 + direction)) } ?? (direction > 0 ? 0 : samples.count - 1)
         let sample = samples[index]
         showHistorySample(account: sample.0, point: sample.1)
+        keyboardHistoryInspection = true
         historyPinned = true
     }
     private func updateHistoryHover(_ location: CGPoint?) {

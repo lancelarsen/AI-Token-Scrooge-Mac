@@ -1094,6 +1094,13 @@ final class DashboardUITests: XCTestCase {
         } else { sample.hover() }
         let panel = try waitForPopup()
         XCTAssertTrue(dashboard.frame.contains(panel))
+        if keyboardEntry {
+            // Windows HistoryChartInput.KeyboardAnchor is the center/top of
+            // the visible chart (including the axis), not the sample position.
+            let chartRight = dashboard.frame.maxX - 45 // 32 outer + 12 card + 1 border
+            XCTAssertEqual(panel.midX, (axis.frame.minX + chartRight) / 2, accuracy: 2)
+            XCTAssertEqual(panel.maxY + 14, axis.frame.minY, accuracy: 2)
+        }
 
         // Borderless, nonactivating panels aren't in XCTest's window tree.
         // Verify their visible content and attach only the demo panel's pixels.
