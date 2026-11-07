@@ -83,6 +83,7 @@ struct UsageBar: View {
                 // Keep labels above the draggable markers without intercepting input.
                 HStack {
                     Text(labels.used).font(.reference(size: 16, weight: .semibold))
+                        .referenceFallbackLineMetrics(size: 16)
                     Spacer()
                     Text(labels.left)
                 }

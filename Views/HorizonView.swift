@@ -132,22 +132,19 @@ struct HorizonView: View {
     private var emptyTimeline: some View {
         GeometryReader { geometry in
             let compact = geometry.size.width < 850
+            let left: CGFloat = 40
+            let anchor = left + (compact ? 38 : 88)
             HStack(spacing: 10) {
                 HStack(spacing: 0) {
                     Color.clear
                     Rectangle().fill(Theme.border).frame(width: 1).padding(.vertical, 6)
                 }.frame(width: compact ? 95 : 112)
                 Canvas { context, size in
-                    let left: CGFloat = 40
-                    let anchor = left + (compact ? 38 : 88)
                     var rail = Path()
                     rail.move(to: CGPoint(x: left, y: 56))
                     // Windows HistoryTimelineView reserves PlotRight = 12 beyond the rail.
                     rail.addLine(to: CGPoint(x: max(left, size.width - 12), y: 56))
                     context.stroke(rail, with: .color(Color(hex: "#8170B7")), lineWidth: 2)
-                    context.draw(Text("Today").font(.reference(size: 14, weight: .semibold)).foregroundStyle(Color(hex: "#D1BEFF")), at: CGPoint(x: anchor, y: 7))
-                    let date = now.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone))
-                    context.draw(Text(date).font(.reference(size: 12)).foregroundStyle(Theme.dialogText), at: CGPoint(x: anchor, y: 31))
                     context.fill(Path(ellipseIn: CGRect(x: anchor - 8, y: 48, width: 16, height: 16)), with: .color(Color(hex: "#D1BEFF")))
                     if store.state.settings.historyEnabled {
                         var boundary = Path()
@@ -155,6 +152,10 @@ struct HorizonView: View {
                         boundary.addLine(to: CGPoint(x: left, y: size.height - 4))
                         context.stroke(boundary, with: .color(Theme.accent), style: StrokeStyle(lineWidth: 2, dash: [5, 4]))
                     }
+                }.overlay(alignment: .topLeading) {
+                    dayHeading(now).frame(height: 40, alignment: .top)
+                        .position(x: anchor, y: 20)
+                        .allowsHitTesting(false).accessibilityHidden(true)
                 }.accessibilityLabel("Today. No connected accounts or upcoming events.")
             }
         }.frame(height: 216)
@@ -182,7 +183,7 @@ struct HorizonView: View {
         let future = 56 + 21 + Double(max(1, groups.values.map(\.count).max() ?? 0)) * 76
         return max(selectors, future)
     }
-    private var heading: some View { HStack(spacing: 12) { ActionIcon(symbol: "clock.arrow.circlepath", size: 30); Text("Reset Horizon").font(.reference(size: 26, weight: .semibold)) } }
+    private var heading: some View { HStack(spacing: 12) { ActionIcon(symbol: "clock.arrow.circlepath", size: 30); Text("Reset Horizon").font(.reference(size: 26, weight: .semibold)).referenceFallbackLineMetrics(size: 26) } }
     private var historyStatus: String? {
         guard !store.state.accounts.isEmpty else { return nil }
         if !store.state.settings.historyEnabled { return events.isEmpty ? "No Upcoming Events Reported" : nil }
@@ -298,6 +299,15 @@ struct HorizonView: View {
         let account = "\(event.account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : event.account.nickname) · \(Format.plan(event.account.provider, event.plan))"
         return event.expiration ? "Earned Reset Expires\n\(account)" : "\(account)\nQuota Refresh · \(event.title)"
     }
+    private func dayHeading(_ date: Date) -> some View {
+        VStack(spacing: 7) {
+            Text(dayName(date)).font(.reference(size: 14, weight: .semibold))
+                .foregroundStyle(isToday(date) ? Color(hex: "#D1BEFF") : Theme.actionAccent)
+                .referenceFallbackLineMetrics(size: 14)
+            Text(date.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone)))
+                .font(.reference(size: 12)).foregroundStyle(Theme.dialogText)
+        }
+    }
     private var dateHeadings: some View {
         GeometryReader { _ in
             ZStack(alignment: .topLeading) {
@@ -306,11 +316,7 @@ struct HorizonView: View {
                     return date <= calendar.startOfDay(for: viewport.lastEventAt) &&
                         anchor >= 0 && anchor <= viewport.viewportWidth
                 }, id: \.self) { date in
-                    VStack(spacing: 7) {
-                        Text(dayName(date)).font(.reference(size: 14, weight: .semibold))
-                            .foregroundStyle(isToday(date) ? Color(hex: "#D1BEFF") : Theme.actionAccent)
-                        Text(date.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone))).font(.reference(size: 12)).foregroundStyle(Theme.dialogText)
-                    }.frame(width: viewport.pixelsPerDay, height: 40, alignment: .top)
+                    dayHeading(date).frame(width: viewport.pixelsPerDay, height: 40, alignment: .top)
                         .position(x: 40 + viewport.dayAnchor(date) - viewport.scrollOffset, y: 20)
                 }
             }

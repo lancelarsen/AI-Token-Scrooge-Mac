@@ -24,10 +24,18 @@ final class ReferenceTypographyTests: XCTestCase {
         XCTAssertLessThan(try XCTUnwrap(rows.last), 48)
     }
 
-    @MainActor private func render(_ text: String) throws -> NSBitmapImageRep {
+    @MainActor func testCapturedDashboardLabelLineHeights() throws {
+        for (size, height) in [(14.0, 17), (16.0, 20), (20.0, 24), (26.0, 32), (32.0, 39)] {
+            let image = try render("Hg", size: size)
+            XCTAssertEqual(image.pixelsHigh, height, "Captured Windows line height at \(size) points")
+            XCTAssertFalse(inkRows(image).isEmpty)
+        }
+    }
+
+    @MainActor private func render(_ text: String, size: CGFloat = 20) throws -> NSBitmapImageRep {
         let renderer = ImageRenderer(content:
-            Text(verbatim: text).font(.reference(size: 20, weight: .semibold))
-                .foregroundStyle(.white).referenceFallbackLineMetrics(size: 20)
+            Text(verbatim: text).font(.reference(size: size, weight: .semibold))
+                .foregroundStyle(.white).referenceFallbackLineMetrics(size: size)
                 .frame(width: 163, alignment: .leading).background(.black))
         renderer.scale = 1
         return NSBitmapImageRep(cgImage: try XCTUnwrap(renderer.cgImage))

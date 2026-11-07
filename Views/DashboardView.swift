@@ -31,7 +31,7 @@ struct DashboardView: View {
                             toolbar
                             if store.accounts.isEmpty { emptyState }
                             ForEach(store.accounts) { account in
-                                AccountCard(account: account, wide: geometry.size.width - 64 - (store.state.settings.accountSort == .custom ? 57 : 0) - 56 > 1050,
+                                AccountCard(account: account, wide: geometry.size.width - 64 - (store.state.settings.accountSort == .custom ? 57 : 0) - 56 - 2 > 1050,
                                             openSettings: { sheet = .accountSettings(account.id) })
                                     .id(account.id)
                                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.accent, lineWidth: store.highlightedAccountID == account.id ? 3 : 0))
@@ -94,7 +94,8 @@ struct DashboardView: View {
                     Image(nsImage: mascot).resizable().scaledToFit().frame(width: 66, height: 66)
                 }
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("AI Token Scrooge").font(.reference(size: 32, weight: .semibold)).frame(height: 40)
+                    Text("AI Token Scrooge").font(.reference(size: 32, weight: .semibold))
+                        .referenceFallbackLineMetrics(size: 32).frame(height: 40)
                     Text("Never Waste a Token! Never Miss a Reset!").font(.reference(size: 16)).foregroundStyle(Theme.accent).frame(height: 26)
                 }
                 Spacer(minLength: 0)
@@ -201,8 +202,8 @@ struct AccountCard: View {
             Button(action: openSettings) { ActionIcon(symbol: "gearshape", size: 20).frame(width: 44, height: 44) }.buttonStyle(ScroogeButtonStyle(segmented: true)).clipShape(RoundedRectangle(cornerRadius: 10)).overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(hex: "#45464D"))).modifier(ImmediateReferenceTooltip(text: settingsDescription))
                 .accessibilityLabel(settingsDescription)
                 .padding(.top, 14).padding(.trailing, 12).frame(maxHeight: .infinity, alignment: .top)
-        }.background(Theme.card)
-            .clipShape(RoundedRectangle(cornerRadius: 13)).overlay(RoundedRectangle(cornerRadius: 13).stroke(Theme.border))
+        }.padding(1).background(Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 13)).overlay(RoundedRectangle(cornerRadius: 13).strokeBorder(Theme.border, lineWidth: 1))
             .sheet(isPresented: $showIdentityDetails) {
                 AccountUsageDialog(accountID: account.id, windowID: snapshot?.windows.first?.id, close: { showIdentityDetails = false })
             }
@@ -228,9 +229,10 @@ struct AccountCard: View {
                 ProviderIcon(provider: account.provider, size: 44)
                 VStack(alignment: .leading, spacing: 5) {
                     Text(account.provider.rawValue).font(.reference(size: 20, weight: .semibold))
+                        .referenceFallbackLineMetrics(size: 20)
                     Text("\(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot?.planType))")
-                        .font(.reference(size: 12)).foregroundStyle(Theme.accent).padding(.horizontal, 11).padding(.vertical, 3)
-                        .background(Color(hex: "#2C293E")).clipShape(Capsule()).overlay(Capsule().stroke(Color(hex: "#51476D")))
+                        .font(.reference(size: 12)).foregroundStyle(Theme.accent).padding(.horizontal, 11).padding(.vertical, 3).padding(1)
+                        .background(Color(hex: "#2C293E")).clipShape(Capsule()).overlay(Capsule().strokeBorder(Color(hex: "#51476D"), lineWidth: 1))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
