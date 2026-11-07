@@ -19,6 +19,7 @@ Outputs:
 - `usage-details.png` / `usage-details-elements.json`: first demo quota popup, opened through UI Automation.
 - `earned-resets.png` / `earned-resets-elements.json`: earned-reset expiry popup, including the mixed-weight count line, title/body text bounds and Close action. Capture fails if the visible expiry is ambiguous or the expected title/count is absent.
 - `history-keyboard.png` / `history-keyboard-elements.json`: a sample readout opened with native focus and Right-arrow input, including its heading/body bounds. Capture fails if no Weekly / percent-used sample is exposed; Escape dismisses it before continuing.
+- `selector-tooltip.png` / `selector-tooltip-elements.json` and `reset-tooltip.png` / `reset-tooltip-elements.json`: ordinary help and styled countdown tooltips after pointer entry at UIA-derived target bounds. Each capture requires the expected tooltip text; the pointer leaves before the next check.
 - `account-settings.png` / `account-settings-elements.json`: first demo account settings, including regular-label and reserve-count measurements.
 - `capture.json`: pinned release/source and measured window dimensions.
 - `startup.json`: session/window diagnostics if no visible window appears.
