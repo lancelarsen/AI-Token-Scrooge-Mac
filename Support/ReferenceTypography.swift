@@ -32,6 +32,13 @@ enum ReferenceTypography {
         return .custom(name, fixedSize: size)
     }
 
+    /// AppKit menus need an NSFont; use the same face/size as their SwiftUI owner.
+    static func nativeMenuFont(size: CGFloat = 14) -> NSFont {
+        _ = nativeTextRegistered
+        return NSFont(name: "SegoeUIVariableStatic-1900000-a8000", size: size)
+            ?? measuringFont(ofSize: size)
+    }
+
     private static let iconsRegistered: Bool = {
         guard let url = Bundle.main.url(forResource: "SegoeFluentIcons", withExtension: "ttf") else { return false }
         return CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)

@@ -84,6 +84,14 @@ final class ReferenceTypographyTests: XCTestCase {
     }
 
     @MainActor func testColorEditorMatchesNativeWindowsContentExtent() {
+        // Native open-menu run42386108887: 14-point Variable Text yields
+        // RGB26×19 and HSV27×19, unlike AppKit's13-point system-menu default.
+        let menuFont = ReferenceTypography.nativeMenuFont()
+        for (text, width) in [("RGB", 26.0), ("HSV", 27.0)] {
+            let size = (text as NSString).size(withAttributes: [.font: menuFont])
+            XCTAssertEqual(ceil(size.width), width)
+            XCTAssertEqual(size.height, 19, accuracy: 0.5)
+        }
         let host = NSHostingView(rootView: InlineLineColorEditor(color: .constant(Color(hex: "#D587A5")), reveal: { _ in })
             .frame(width: 312))
         // Run42376211522: 312×420 scroll viewport with 85.02024291497976%

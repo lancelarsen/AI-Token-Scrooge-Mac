@@ -616,6 +616,8 @@ private struct ColorModelPopup: NSViewRepresentable {
     func makeNSView(context: Context) -> Control {
         let control = Control(frame: .zero, pullsDown: false)
         control.addItems(withTitles: ["RGB", "HSV"])
+        control.font = ReferenceTypography.nativeMenuFont()
+        control.menu?.font = ReferenceTypography.nativeMenuFont()
         control.setAccessibilityLabel("Color Model")
         control.focusRingType = .none
         control.target = control

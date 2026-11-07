@@ -289,3 +289,6 @@ November7 current test-banner geometry: native Windows run42383175231 passes wit
 
 
 November7 pointer palette: passing native Windows run42384048338 supplies model/field hover, held-model-press and stroke samples. Mac production surfaces match them in independent renders; app/test-bundle builds and native selection, edit, direct-pointer keyboard ownership, Tab and Cancel checks passed. Physical hover/held-press delivery and remaining variants stay open. Preceding banner regression explicitly passed hosted42384048628:176 tests, two installed-CLI skips, zero failures.
+
+
+November7 open-menu typography: passing Windows run42386108887 exposes14-point Segoe UI Variable and RGB26×19 / HSV27×19 text. Mac's inherited13-point system menu font is replaced with the bundled Variable Text face at14. Production-factory measurements match, app/test-bundle builds and native open/select/keyboard/Tab/Cancel checks passed. Native menu chrome is an intentional Mac adaptation; other physical/raster acceptance stays open. Prior pointer-palette hosted run42385518606 passed176 tests with two installed-CLI skips and zero failures.
