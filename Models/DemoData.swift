@@ -13,6 +13,7 @@ enum DemoData {
         case standard, offline, auth, permission, unknown, exhausted, due, partial
         case historyLong = "history-long"
         case manyResets = "many-resets"
+        case edgeTooltips = "edge-tooltips"
         case reserveOnly = "reserve-only"
         case healthy, noReset = "no-reset"
         case alertHistory = "alert-history"
@@ -54,6 +55,12 @@ enum DemoData {
             var snapshot = QuotaSnapshot(accountID: account.id, subject: account.subject, scope: account.scope, observedAt: now, windows: windows, reserve: reserve, health: .demo, planType: config.2)
             switch scenario {
             case .standard, .alertHistory: break
+            case .edgeTooltips:
+                if index == 0 {
+                    snapshot.reserve = ResetReserve(availableCount: 1, credits: [
+                        .init(id: "demo-edge-expiry", status: "available", expiresAt: now.addingTimeInterval(6 * 86400))
+                    ])
+                }
             case .manyResets:
                 if index == 0 {
                     snapshot.reserve = ResetReserve(availableCount: 30, credits: (1...30).map { day in

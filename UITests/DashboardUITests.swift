@@ -444,9 +444,18 @@ final class DashboardUITests: XCTestCase {
     }
 
     @MainActor func testTimelineResetTooltipContentPlacementAndClickThrough() throws {
+        try verifyTimelineTooltip(expiry: false)
+    }
+
+    @MainActor func testTimelineExpiryTooltipClampsToEdgeAndOpensAvailableResets() throws {
+        try verifyTimelineTooltip(expiry: true)
+    }
+
+    @MainActor private func verifyTimelineTooltip(expiry: Bool) throws {
         let app = XCUIApplication()
         app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
         app.launchArguments = ["--demo", "--compact", "--reference-date", "2026-11-04T16:16:00Z"]
+        if expiry { app.launchArguments += ["--scenario", "edge-tooltips"] }
         app.launch()
         defer { app.terminate() }
         let dashboard = app.windows["dashboard"]
@@ -462,7 +471,8 @@ final class DashboardUITests: XCTestCase {
         let owner = try XCTUnwrap(NSRunningApplication.runningApplications(withBundleIdentifier: "com.lancelarsen.AITokenScrooge")
             .max { ($0.launchDate ?? .distantPast) < ($1.launchDate ?? .distantPast) }).processIdentifier
         let initialWindows = Set(Self.visibleWindows(for: owner).keys)
-        let candidates = dashboard.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "OpenAI,")).allElementsBoundByIndex
+        let candidates = dashboard.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@ AND label BEGINSWITH %@",
+            expiry ? "timeline-expiry-" : "timeline-refresh-", "OpenAI,")).allElementsBoundByIndex
             .filter { $0.isHittable && $0.frame.width < 70 && $0.frame.height >= 70 && dashboard.frame.contains($0.frame) }
         let event = try XCTUnwrap(candidates.max { $0.frame.maxX < $1.frame.maxX }, "A visible right-side reset event is required")
         event.hover()
@@ -474,6 +484,11 @@ final class DashboardUITests: XCTestCase {
         let panel = try XCTUnwrap(floatingPanel())
         XCTAssertTrue(dashboard.frame.contains(panel.value))
         XCTAssertLessThanOrEqual(panel.value.width, 320)
+        if expiry {
+            XCTAssertGreaterThan(event.frame.midX + panel.value.width / 2, dashboard.frame.maxX - 8,
+                "The fixture must actually force right-edge clamping")
+            XCTAssertEqual(panel.value.maxX, dashboard.frame.maxX - 8, accuracy: 1)
+        }
         let screen = CGDisplayBounds(CGMainDisplayID())
         let image = XCUIScreen.main.screenshot().image
         let pixels = try XCTUnwrap(image.cgImage(forProposedRect: nil, context: nil, hints: nil))
@@ -486,10 +501,10 @@ final class DashboardUITests: XCTestCase {
         try VNImageRequestHandler(cgImage: crop).perform([recognition])
         let text = recognition.results?.compactMap { $0.topCandidates(1).first?.string }.joined(separator: " ") ?? ""
         XCTAssertTrue((text.contains("OpenAI") || text.contains("OpenAl")) && text.contains("Nov"), text)
-        XCTAssertTrue(text.contains("Quota Refresh") || text.contains("Expires"), text)
+        XCTAssertTrue(text.contains(expiry ? "Earned Reset Expires" : "Quota Refresh"), text)
         XCTAssertNotNil(text.range(of: #"[0-9]+[dhm]"#, options: .regularExpression), "A styled remaining-time label must be visible: \(text)")
         let attachment = XCTAttachment(image: NSImage(cgImage: crop, size: panel.value.size))
-        attachment.name = "Reset event tooltip at compact right side"
+        attachment.name = expiry ? "Expiry tooltip clamped at compact right edge" : "Reset event tooltip at compact right side"
         attachment.lifetime = .keepAlways
         add(attachment)
         header.hover()
@@ -500,8 +515,10 @@ final class DashboardUITests: XCTestCase {
         let reopenedPanel = try XCTUnwrap(floatingPanel())
         event.click()
         XCTAssertTrue(app.buttons["Close"].waitForExistence(timeout: 5), "The tooltip must not intercept the reset event's details action")
-        if text.contains("Expires") {
+        if expiry {
             XCTAssertTrue(app.staticTexts["Available Resets"].exists)
+            XCTAssertTrue(app.staticTexts["resetCredit-demo-edge-expiry"].exists,
+                "The expiry must open the same account's reported reset credit")
         } else {
             let work = event.label.contains(", Pro,")
             let account = work ? "OpenAI / Work · Pro" : "OpenAI / Personal · Plus"

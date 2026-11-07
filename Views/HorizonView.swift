@@ -404,6 +404,7 @@ struct HorizonView: View {
                         }.foregroundStyle(accent).frame(width: 62, height: 74, alignment: .top)
                             .contentShape(Rectangle())
                     }.buttonStyle(.plain)
+                        .accessibilityIdentifier("timeline-\(event.expiration ? "expiry" : "refresh")-\(event.id)")
                         .modifier(ImmediateResetTooltip(context: eventCountdownContext(event), date: event.date,
                             zone: store.state.settings.zone, accessibilityText: eventTooltip(event),
                             referenceDate: store.isDemo ? now : nil, isExpiry: event.expiration))
