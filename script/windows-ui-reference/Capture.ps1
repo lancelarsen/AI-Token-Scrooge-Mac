@@ -345,11 +345,11 @@ try {
     # Match the Mac reference host's logical size before comparing panels.
     # Native window chrome adds to the outer rectangle; use exported host-pane
     # bounds to calculate that delta instead of guessing the frame thickness.
-    $hostPane = @($settings.Rows | Where-Object { $_.type -eq 'ControlType.Pane' } |
-        Sort-Object -Property width, height -Descending)[0]
+    $hostPane = @($settings.Rows | Where-Object { $_.type -eq 'ControlType.Pane' -and $_.height -ge 400 } |
+        Sort-Object -Property { [double]$_['width'] * [double]$_['height'] } -Descending)[0]
     if ($hostPane.width -lt 600 -or $hostPane.height -lt 400) { throw 'Reference host pane is unavailable.' }
     $matchedRect = New-Object ReferenceWindowNative+Rect
-    [ReferenceWindowNative]::GetWindowRect($handle, [ref]$matchedRect) | Out-Null
+    if (-not [ReferenceWindowNative]::GetWindowRect($handle, [ref]$matchedRect)) { throw 'Cannot retain the panel comparison window bounds.' }
     if (-not [ReferenceWindowNative]::MoveWindow($handle, $matchedRect.Left, $matchedRect.Top,
         [int]($matchedRect.Right - $matchedRect.Left + 789 - $hostPane.width),
         [int]($matchedRect.Bottom - $matchedRect.Top + 694 - $hostPane.height), $true)) {
