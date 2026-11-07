@@ -370,7 +370,7 @@ struct ScroogeSwitchStyle: ToggleStyle {
                 Capsule().fill(configuration.isOn ? onColor : Theme.control)
                     .overlay(Capsule().stroke(configuration.isOn ? Color.clear : Theme.secondary, lineWidth: 1))
                     .overlay(alignment: configuration.isOn ? .trailing : .leading) {
-                        Circle().fill(thumbColor ?? (configuration.isOn ? Color(hex: "#141519") : Theme.secondary))
+                        Circle().fill(thumbColor ?? (configuration.isOn ? Color.white : Theme.secondary))
                             .frame(width: 12, height: 12).padding(4)
                     }
                     .frame(width: 40, height: 20)
