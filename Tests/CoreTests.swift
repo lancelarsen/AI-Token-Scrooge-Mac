@@ -251,6 +251,25 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(ColorPickerChannel.stepped(0, maximum: 100, increasing: false, wraps: false), 0)
     }
 
+    func testColorPickerDraftParsingMatchesNativeInputTrace() {
+        for text in ["", "999", "-1", "1.5", "abc", "12 "] {
+            XCTAssertNil(ColorPickerChannel.inputValue(text, maximum: 255))
+        }
+        XCTAssertEqual(ColorPickerChannel.inputValue(" 12", maximum: 255), 12)
+        XCTAssertEqual(ColorPickerChannel.inputValue("255", maximum: 255), 255)
+        XCTAssertEqual(ColorPickerChannel.inputValue("359", maximum: 359), 359)
+        XCTAssertNil(ColorPickerChannel.inputValue("360", maximum: 359))
+        XCTAssertEqual(ColorPickerChannel.inputValue("100", maximum: 100), 100)
+        XCTAssertNil(ColorPickerChannel.inputValue("101", maximum: 100))
+        XCTAssertEqual(ColorPickerChannel.hexInput(""), "#")
+        XCTAssertEqual(ColorPickerChannel.hexInput("1234567"), "#123456")
+        // Native trace: clearing Hex sets black; #12 is an integer, not CSS shorthand.
+        XCTAssertEqual(ColorPickerChannel.hexColor("#"), "#000000")
+        XCTAssertEqual(ColorPickerChannel.hexColor("#12"), "#000012")
+        XCTAssertEqual(ColorPickerChannel.hexColor("#GG"), "#000000")
+        XCTAssertEqual(ColorPickerChannel.hexColor("#abcdef"), "#ABCDEF")
+    }
+
     func testSpectrumSelectionContrastsWithDisplayedHueAndSaturation() {
         XCTAssertTrue(SpectrumSelectionContrast.usesLightStroke(hue: 0, saturation: 1))
         XCTAssertFalse(SpectrumSelectionContrast.usesLightStroke(hue: 1 / 3, saturation: 1))

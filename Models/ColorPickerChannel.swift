@@ -4,6 +4,31 @@ import Foundation
 /// Spectrum channels wrap only after reaching an endpoint; the brightness
 /// slider clamps. Adapted from Microsoft UI XAML ColorHelpers (MIT).
 enum ColorPickerChannel {
+    /// TextBox edits are drafts: reject invalid values rather than clamping
+    /// them into a different color. WinUI restores the accepted value on blur.
+    static func inputValue(_ text: String, maximum: Int) -> Int? {
+        guard let value = Int(text.drop(while: { $0.isWhitespace })),
+              (0...maximum).contains(value) else { return nil }
+        return value
+    }
+
+    static func hexInput(_ text: String) -> String {
+        let digits = text.hasPrefix("#") ? text.dropFirst() : text[...]
+        return "#" + digits.prefix(6)
+    }
+
+    /// WinUI's opaque picker reads short Hex input as an integer (not CSS
+    /// shorthand). An empty or malformed Hex input resolves to black.
+    static func hexColor(_ text: String) -> String {
+        var digits = String(hexInput(text).dropFirst().drop(while: { $0.isWhitespace }))
+        let negative = digits.first == "-"
+        if digits.first == "+" || negative { digits.removeFirst() }
+        if digits.lowercased().hasPrefix("0x") { digits.removeFirst(2) }
+        let parsed = UInt64(digits, radix: 16) ?? 0
+        let value = (negative ? 0 &- parsed : parsed) & 0xFFFFFF
+        return String(format: "#%06X", UInt32(value))
+    }
+
     static func stepped(_ value: Double, maximum: Double, increasing: Bool, wraps: Bool) -> Double {
         let current = value.isFinite ? min(maximum, max(0, value)) : 0
         let next = current + (increasing ? 1 : -1)

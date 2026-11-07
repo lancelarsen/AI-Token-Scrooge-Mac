@@ -661,15 +661,14 @@ final class DashboardUITests: XCTestCase {
         XCTAssertEqual(hex.value as? String, "#000000")
         brightness.typeKey(.end, modifierFlags: [])
         XCTAssertTrue((brightness.value as? String)?.contains("Value 100") == true)
-        let beforeClear = hex.value as? String
         hex.click()
         let clear = app.buttons["Clear Hex Color"]
         XCTAssertTrue(clear.waitForExistence(timeout: 3))
         clear.click()
-        XCTAssertEqual(hex.value as? String, "")
+        XCTAssertEqual(hex.value as? String, "#")
         let selected = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Selected Color")).firstMatch
-        XCTAssertEqual(selected.value as? String, beforeClear, "Clearing the input must not invent a new color")
-        hex.typeText("#123456")
+        XCTAssertEqual(selected.value as? String, "#000000", "The captured Windows opaque picker clears Hex to black")
+        hex.typeText("123456")
         XCTAssertEqual(selected.value as? String, "#123456")
         app.buttons["Cancel"].click()
         app.buttons["Add Custom Line Color"].click()
@@ -677,6 +676,52 @@ final class DashboardUITests: XCTestCase {
         XCTAssertEqual(hex.value as? String, original)
         app.buttons["Cancel"].click()
         app.buttons["Close"].click()
+    }
+
+    @MainActor func testColorPickerNumericDraftsRestoreAcceptedValues() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", "--reference-wide"]
+        app.launch()
+        defer { app.terminate() }
+        if !app.windows["dashboard"].waitForExistence(timeout: 2) {
+            let menu = app.menuBars.menuBarItems["Window"]
+            menu.click(); menu.menuItems["AI Token Scrooge"].click()
+        }
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Settings for OpenAI / Personal")).firstMatch.click()
+        app.buttons["Add Custom Line Color"].click()
+        let hex = app.textFields["Hex Color"], red = app.textFields["Red"]
+        XCTAssertTrue(hex.waitForExistence(timeout: 5))
+        let original = hex.value as? String
+        red.click(); red.typeKey("a", modifierFlags: .command); red.typeText("99")
+        let valid = hex.value as? String
+        red.typeText("9")
+        XCTAssertEqual(red.value as? String, "999")
+        XCTAssertEqual(hex.value as? String, valid, "Invalid numeric drafts must not clamp the accepted color")
+        hex.click()
+        XCTAssertEqual(red.value as? String, "99")
+        red.click(); app.buttons["Clear Red"].click()
+        XCTAssertEqual(red.value as? String, "")
+        XCTAssertEqual(hex.value as? String, valid)
+        hex.click()
+        XCTAssertEqual(red.value as? String, "99")
+        hex.typeKey("a", modifierFlags: .command); hex.typeText("#000012")
+        app.popUpButtons["Color Model"].click(); app.menuItems["HSV"].click()
+        let hue = app.textFields["Hue"]
+        XCTAssertTrue(hue.waitForExistence(timeout: 3))
+        hue.click(); hue.typeKey("a", modifierFlags: .command); hue.typeText("36")
+        let hsvColor = hex.value as? String
+        hue.typeText("0")
+        XCTAssertEqual(hue.value as? String, "360")
+        XCTAssertEqual(hex.value as? String, hsvColor)
+        hex.click()
+        XCTAssertEqual(hue.value as? String, "36", "Moving focus must not re-decode rounded Hex into a different hue")
+        XCTAssertEqual(hex.value as? String, hsvColor)
+        app.buttons["Cancel"].click()
+        app.buttons["Add Custom Line Color"].click()
+        XCTAssertTrue(hex.waitForExistence(timeout: 5))
+        XCTAssertEqual(hex.value as? String, original)
+        app.buttons["Cancel"].click(); app.buttons["Close"].click()
     }
 
     @MainActor func testColorPickerKeyboardModeAndExactSwatch() throws {

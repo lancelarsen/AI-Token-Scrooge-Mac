@@ -259,6 +259,7 @@ struct InlineLineColorEditor: View {
     @State private var saturation = 0.0
     @State private var brightness = 1.0
     @State private var hexDraft = ""
+    @State private var channelDrafts: [Int: String] = [:]
     @State private var mode = "RGB"
     @FocusState private var hexFocused: Bool
     @FocusState private var spectrumFocused: Bool
@@ -298,6 +299,7 @@ struct InlineLineColorEditor: View {
                             .position(x: spectrumX * geometry.size.width, y: (1 - saturation) * geometry.size.height)
                     }.clipShape(RoundedRectangle(cornerRadius: 10)).contentShape(Rectangle())
                         .gesture(DragGesture(minimumDistance: 0).onChanged { value in
+                            finishChannelEdit()
                             spectrumPressed = true; spectrumKeyboardFocus = false; spectrumFocused = true
                             hue = min(1, max(0, value.location.x / geometry.size.width)) * 359 / 360
                             saturation = 1 - min(1, max(0, value.location.y / geometry.size.height))
@@ -340,6 +342,7 @@ struct InlineLineColorEditor: View {
                         .offset(x: brightness * max(0, geometry.size.width - ColorBrightnessThumb.diameter))
                 }.frame(height: 32).contentShape(Rectangle())
                     .gesture(DragGesture(minimumDistance: 0).onChanged { value in
+                        finishChannelEdit()
                         brightnessPressed = true; brightnessKeyboardFocus = false; brightnessFocused = true
                         brightness = min(1, max(0, (value.location.x - ColorBrightnessThumb.diameter / 2) / max(1, geometry.size.width - ColorBrightnessThumb.diameter)))
                         publish()
@@ -377,32 +380,32 @@ struct InlineLineColorEditor: View {
                     .accessibilityHidden(true)
                     .overlay { ColorModelPopup(selection: $mode) }
                 Spacer()
-                TextField("Hex Color", text: $hexDraft)
-                    .onChange(of: hexDraft) { _, value in
-                        let digits = value.hasPrefix("#") ? String(value.dropFirst()) : value
-                        if digits.count == 6, UInt64(digits, radix: 16) != nil,
-                           "#" + digits.uppercased() != color.hex {
-                            // Only external hex edits should replace HSV coordinates.
-                            // Re-decoding our own black/gray output would discard hue.
-                            let nextColor = Color(hex: digits)
-                            color = nextColor; loadComponents(nextColor)
-                        }
-                    }.modifier(ColorEntryStyle(focused: hexFocused, clear: hexDraft.isEmpty ? nil : { hexDraft = ""; hexFocused = true }))
+                TextField("Hex Color", text: Binding(get: { hexDraft }, set: { editHex($0) }))
+                    .modifier(ColorEntryStyle(focused: hexFocused, clear: hexDraft.isEmpty ? nil : { editHex("#"); hexFocused = true }))
                     .focused($hexFocused).frame(width: 132)
+                    .onChange(of: hexFocused) { _, focused in
+                        if focused { finishChannelEdit() } else { hexDraft = color.hex }
+                    }
             }.padding(.bottom, 12)
             VStack(spacing: 12) {
                 ForEach(0..<3) { index in
                     HStack(spacing: 8) {
-                        TextField(channelName(index), value: channel(index), format: .number)
-                            .modifier(ColorEntryStyle(focused: focusedChannel == index)).frame(width: 120)
+                        TextField(channelName(index), text: channelText(index))
+                            .modifier(ColorEntryStyle(focused: focusedChannel == index,
+                                                      clear: channelText(index).wrappedValue.isEmpty ? nil : {
+                                channelDrafts[index] = ""; focusedChannel = index
+                            }, clearLabel: "Clear \(channelName(index))")).frame(width: 120)
                             .focused($focusedChannel, equals: index)
                         Text(channelName(index)).font(ReferenceTypography.nativeTextFont())
                         Spacer()
                     }
                 }
             }.id(ColorEditorSection.channels)
-                .onChange(of: focusedChannel) { _, index in
-                    if index != nil { reveal(.channels) }
+                .onChange(of: focusedChannel) { previous, index in
+                    if let previous { channelDrafts.removeValue(forKey: previous) }
+                    if index != nil {
+                        reveal(.channels)
+                    }
                 }
         }.textFieldStyle(.plain).font(ReferenceTypography.nativeTextFont()).foregroundStyle(Theme.primaryText)
             .textSelection(.disabled)
@@ -430,9 +433,13 @@ struct InlineLineColorEditor: View {
                 }
             }
             .onAppear { loadComponents(); hexDraft = color.hex }
+            .onChange(of: mode) { _, _ in
+                finishChannelEdit(); focusedChannel = nil
+            }
     }
     private enum HSVChannel { case hue, saturation, value }
     private func adjust(_ channel: HSVChannel, increasing: Bool, byName: Bool) {
+        finishChannelEdit()
         let isHue = channel == .hue
         let scale = isHue ? 360.0 : 100.0
         let maximum = isHue ? 359.0 : 100.0
@@ -466,30 +473,54 @@ struct InlineLineColorEditor: View {
     private func channelName(_ index: Int) -> String {
         (mode == "RGB" ? ["Red", "Green", "Blue"] : ["Hue", "Saturation", "Value"])[index]
     }
-    private func displayedChannel(_ index: Int) -> Int {
-        if mode == "HSV" { return Int(([hue * 360, saturation * 100, brightness * 100][index]).rounded()) }
+    private func displayedChannel(_ index: Int, model: String? = nil) -> Int {
+        let selectedModel = model ?? mode
+        if selectedModel == "HSV" { return Int(([hue * 360, saturation * 100, brightness * 100][index]).rounded()) }
         let rgb = NSColor(color).usingColorSpace(.sRGB) ?? .black
         return Int(([rgb.redComponent, rgb.greenComponent, rgb.blueComponent][index] * 255).rounded())
     }
 
-    private func channel(_ index: Int) -> Binding<Int> {
-        Binding(get: { displayedChannel(index) }, set: { value in
-            // TextField commits its rounded representation on blur, even if the
-            // user only pressed Tab. Keep the original color until an edit.
-            guard value != displayedChannel(index) else { return }
-            if mode == "HSV" {
-                let fraction = Double(max(0, min(index == 0 ? 359 : 100, value))) / (index == 0 ? 360 : 100)
-                if index == 0 { hue = fraction } else if index == 1 { saturation = fraction } else { brightness = fraction }
-                publish()
-            } else {
-                let rgb = NSColor(color).usingColorSpace(.sRGB) ?? .black
-                var channels = [rgb.redComponent, rgb.greenComponent, rgb.blueComponent]
-                channels[index] = Double(max(0, min(255, value))) / 255
-                let nextColor = Color(red: channels[0], green: channels[1], blue: channels[2])
-                color = nextColor
-                loadComponents(nextColor); hexDraft = nextColor.hex
-            }
+    private func channelText(_ index: Int) -> Binding<String> {
+        Binding(get: { channelDrafts[index] ?? String(displayedChannel(index)) }, set: { text in
+            let draft = String(text.prefix(3))
+            guard draft != (channelDrafts[index] ?? String(displayedChannel(index))) else { return }
+            channelDrafts[index] = draft
+            let maximum = mode == "RGB" ? 255 : index == 0 ? 359 : 100
+            guard let value = ColorPickerChannel.inputValue(draft, maximum: maximum) else { return }
+            applyChannel(index, value: value, model: mode)
         })
+    }
+    private func finishChannelEdit() {
+        channelDrafts.removeAll()
+    }
+    private func editHex(_ text: String) {
+        let normalized = ColorPickerChannel.hexInput(text)
+        // AppKit may write the displayed text back when focus changes. Only
+        // a real input change should re-decode rounded RGB and alter HSV.
+        guard normalized != hexDraft else { return }
+        finishChannelEdit()
+        hexDraft = normalized
+        let nextColor = Color(hex: ColorPickerChannel.hexColor(hexDraft))
+        color = nextColor; loadComponents(nextColor)
+    }
+    private func applyChannel(_ index: Int, value: Int, model: String) {
+        // Native numeric editing reads the visible integer fields as a
+        // group. Untouched fields are not re-encoded merely by tabbing.
+        if model == "HSV" {
+            hue = Double(displayedChannel(0, model: model)) / 360
+            saturation = Double(displayedChannel(1, model: model)) / 100
+            brightness = Double(displayedChannel(2, model: model)) / 100
+            let fraction = Double(max(0, min(index == 0 ? 359 : 100, value))) / (index == 0 ? 360 : 100)
+            if index == 0 { hue = fraction } else if index == 1 { saturation = fraction } else { brightness = fraction }
+            publish()
+        } else {
+            let rgb = NSColor(color).usingColorSpace(.sRGB) ?? .black
+            var channels = [rgb.redComponent, rgb.greenComponent, rgb.blueComponent].map { ($0 * 255).rounded() / 255 }
+            channels[index] = Double(max(0, min(255, value))) / 255
+            let nextColor = Color(red: channels[0], green: channels[1], blue: channels[2])
+            color = nextColor
+            loadComponents(nextColor); hexDraft = nextColor.hex
+        }
     }
     private func publish() {
         let nextColor = Color(hue: hue, saturation: saturation, brightness: brightness)
@@ -591,6 +622,7 @@ private enum ColorFocusTip: PreferenceKey {
 struct ColorEntryStyle: ViewModifier {
     var focused = false
     var clear: (() -> Void)? = nil
+    var clearLabel = "Clear Hex Color"
     func body(content: Content) -> some View {
         content.padding(.leading, 12).padding(.trailing, focused && clear != nil ? 36 : 12).frame(height: 32)
             .background(Color(hex: focused ? "#1F1F21" : "#2F3036"), in: RoundedRectangle(cornerRadius: 10))
@@ -603,7 +635,7 @@ struct ColorEntryStyle: ViewModifier {
                     Button(action: clear) {
                         Text("\u{E711}").font(ReferenceTypography.iconFont(size: 10)).foregroundStyle(Theme.secondary)
                             .frame(width: 28, height: 32).contentShape(Rectangle())
-                    }.buttonStyle(.plain).focusable(false).accessibilityLabel("Clear Hex Color")
+                    }.buttonStyle(.plain).focusable(false).accessibilityLabel(clearLabel)
                 }
             }
     }

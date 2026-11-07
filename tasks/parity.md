@@ -271,3 +271,9 @@ An optimized executable compiled the production model/parser sources and passed 
 ### Reminder choices during validation — November 7
 
 Matched Windows' draft behavior: severity and unit choices remain visible while the amount is temporarily invalid, then join the accepted update once it is valid. Native isolated0/Hours/Warning ->2/Hours/Warning trace, invalid Close rejection, sorted-row identity and Close/reopen retention passed. Build and UI-test-bundle compilation passed; the added native regression remains execution-gated by macOS authorization.
+
+### Normal scrolling confirmation and color-input drafts — November 7
+
+User confirmed Reset Horizon scrolling is “Smooth now.” Normal perceived scrolling is accepted; unrelated hover/reorder/long-session checks remain separately tracked.
+
+Color numeric inputs now retain invalid/empty drafts without clamping the accepted color and restore the last valid displayed value on blur. RGB/HSV clear actions and three-character numeric limits match the native control. Corrected opaque Hex behavior from the earlier last-color assumption: Windows keeps the # prefix, resolves cleared/malformed Hex to black, and interprets short Hex as an integer (#12 -> #000012). Native trace and source conversion helper establish this behavior. Focus changes no longer re-decode unchanged rounded strings and shift HSV coordinates.
