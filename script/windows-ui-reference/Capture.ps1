@@ -126,7 +126,7 @@ function Invoke-ReferenceAction {
         [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, $Name),
         [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button))
     $targets = @($Root.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condition) | Where-Object {
-        -not $_.Current.IsOffscreen -and $_.Current.BoundingRectangle.Height -ge 32
+        -not $_.Current.IsOffscreen -and $_.Current.BoundingRectangle.Height -ge 40
     })
     if ($targets.Count -ne 1) { throw "Reference action not uniquely visible: $Name" }
     $invoke = $null
