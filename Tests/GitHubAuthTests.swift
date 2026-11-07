@@ -33,13 +33,15 @@ final class GitHubAuthTests: XCTestCase {
 private actor RenewalFixture {
     var data: Data?
     var saves = 0
+    var interactions: [Bool] = []
     var refreshes = 0
     var failSave: Int?
     var failRefresh = false
     func configure(save: Int? = nil, refresh: Bool = false) { failSave = save; failRefresh = refresh }
     func read() -> Data? { data }
-    func save(_ value: Data) throws {
+    func save(_ value: Data, interaction: Bool) throws {
         saves += 1
+        interactions.append(interaction)
         if saves == failSave { throw SecretStoreError.unavailable }
         data = value
     }
@@ -53,7 +55,7 @@ private actor RenewalFixture {
     }
     func count() -> Int { refreshes }
     var dependencies: GitHubCredentialManager.Dependencies {
-        .init(read: { _ in await self.read() }, save: { value, _ in try await self.save(value) },
+        .init(read: { _ in await self.read() }, save: { value, _, interaction in try await self.save(value, interaction: interaction) },
               remove: { _ in await self.remove() }, refresh: { try await self.refresh($0) }, identify: { _ in "subject" })
     }
 }
@@ -77,6 +79,9 @@ extension GitHubAuthTests {
         let reopened = GitHubCredentialManager(dependencies: await fixture.dependencies)
         let restored = try await reopened.accessToken(for: account)
         XCTAssertEqual(restored, token)
+        let interactions = await fixture.interactions
+        XCTAssertEqual(interactions.first, true, "Explicit sign-in may request Keychain authorization")
+        XCTAssertTrue(interactions.dropFirst().allSatisfy { !$0 }, "Renewal writes must never request authentication UI")
     }
     func testAmbiguousNetworkFailureLeavesDurableReconnectMarker() async throws {
         let fixture = RenewalFixture()

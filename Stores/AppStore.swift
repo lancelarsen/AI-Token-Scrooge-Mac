@@ -582,7 +582,7 @@ import AppKit
         try await stageCredential(provider: .copilot, id: account.credentialID)
         defer { endCredentialAttempt(account.credentialID) }
         if let appTokens { try await githubCredentials.saveApp(id: account.credentialID, subject: account.subject, tokens: appTokens) }
-        else { try await secrets.save(Data(token.utf8), id: account.credentialID) }
+        else { try await secrets.save(Data(token.utf8), id: account.credentialID, allowInteraction: true) }
         do {
             try Task.checkCancellation()
             try await acceptConnection(account, snapshot: snapshot, replacing: original)

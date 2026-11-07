@@ -7,13 +7,13 @@ enum SecretStoreError: LocalizedError {
 }
 actor SecretStore {
     // The legacy login Keychain's interaction policy is process-wide. Keep every
-    // credential operation on this shared queue so a background read cannot
-    // disable interaction during an explicit sign-in save or removal.
+    // credential operation on this shared queue so background maintenance cannot
+    // disable interaction during an explicit sign-in save.
     private static let queue = DispatchQueue(label: "scrooge.keychain", qos: .utility)
     private static let service = "com.lancelarsen.AITokenScrooge.credentials"
 
     private func perform<Value: Sendable>(
-        _ id: String, _ operation: @escaping @Sendable ([String: Any]) throws -> Value
+        _ id: String, allowInteraction: Bool = false, _ operation: @escaping @Sendable ([String: Any]) throws -> Value
     ) async throws -> Value {
         guard UUID(uuidString: id) != nil else { throw SecretStoreError.invalidID }
         return try await withCheckedThrowingContinuation { continuation in
@@ -23,7 +23,17 @@ actor SecretStore {
                     kSecAttrService as String: Self.service,
                     kSecAttrAccount as String: id
                 ]
-                continuation.resume(with: Result { try operation(query) })
+                continuation.resume(with: Result {
+                    // Legacy login-Keychain policy is process-wide. Scope it to
+                    // this serialized operation, including background writes.
+                    var previous = DarwinBoolean(false)
+                    guard SecKeychainGetUserInteractionAllowed(&previous) == errSecSuccess,
+                          SecKeychainSetUserInteractionAllowed(allowInteraction) == errSecSuccess else {
+                        throw SecretStoreError.unavailable
+                    }
+                    defer { _ = SecKeychainSetUserInteractionAllowed(previous.boolValue) }
+                    return try operation(query)
+                })
             }
         }
     }
@@ -31,15 +41,6 @@ actor SecretStore {
     func read(_ id: String) async throws -> Data? {
         try await perform(id) { query in
             var request = query
-            // These credentials live in the legacy login Keychain, which ignores
-            // SecItem's modern LAContext interaction policy. Restore its previous
-            // policy before the next queued credential operation.
-            var interactionAllowed = DarwinBoolean(false)
-            guard SecKeychainGetUserInteractionAllowed(&interactionAllowed) == errSecSuccess,
-                  SecKeychainSetUserInteractionAllowed(false) == errSecSuccess else {
-                throw SecretStoreError.unavailable
-            }
-            defer { _ = SecKeychainSetUserInteractionAllowed(interactionAllowed.boolValue) }
             request[kSecReturnData as String] = true; request[kSecMatchLimit as String] = kSecMatchLimitOne
             var value: CFTypeRef?
             let result = SecItemCopyMatching(request as CFDictionary, &value)
@@ -49,8 +50,8 @@ actor SecretStore {
         }
     }
 
-    func save(_ data: Data, id: String) async throws {
-        try await perform(id) { query in
+    func save(_ data: Data, id: String, allowInteraction: Bool = false) async throws {
+        try await perform(id, allowInteraction: allowInteraction) { query in
             let result = SecItemUpdate(query as CFDictionary, [kSecValueData as String: data] as CFDictionary)
             if result == errSecItemNotFound {
                 var request = query

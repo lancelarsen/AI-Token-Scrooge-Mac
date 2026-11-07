@@ -32,7 +32,7 @@ import WebKit
         if !interactive && previous == nil { throw expired }
         let result = try await DevinClient().observe(account: account, session: previous, interactive: interactive)
         try Task.checkCancellation()
-        try await secrets.save(result.session, id: account.credentialID)
+        try await secrets.save(result.session, id: account.credentialID, allowInteraction: interactive)
         return result.snapshot
     }
 

@@ -11,7 +11,7 @@ actor GitHubCredentialManager {
     private static let prefix = "github-app:v1:"
     struct Dependencies: Sendable {
         var read: @Sendable (String) async throws -> Data?
-        var save: @Sendable (Data, String) async throws -> Void
+        var save: @Sendable (Data, String, Bool) async throws -> Void
         var remove: @Sendable (String) async throws -> Void
         var refresh: @Sendable (GitHubAppTokens) async throws -> GitHubAppTokens
         var identify: @Sendable (String) async throws -> String
@@ -22,14 +22,14 @@ actor GitHubCredentialManager {
     init(secrets: SecretStore, usage: GitHubClient) {
         let flow = GitHubDeviceFlow()
         dependencies = Dependencies(read: { try await secrets.read($0) },
-            save: { try await secrets.save($0, id: $1) }, remove: { try await secrets.remove($0) },
+            save: { try await secrets.save($0, id: $1, allowInteraction: $2) }, remove: { try await secrets.remove($0) },
             refresh: { try await flow.refresh($0) }, identify: { try await usage.identify(token: $0).subject })
     }
     init(dependencies: Dependencies) { self.dependencies = dependencies }
     func saveApp(id: String, subject: String, tokens: GitHubAppTokens) async throws {
         let record = Envelope(subject: subject, tokens: tokens)
         try validate(record)
-        try await dependencies.save(encode(record), id)
+        try await dependencies.save(encode(record), id, true)
     }
     func accessToken(for account: ProviderAccount) async throws -> String {
         let prior = gates[account.credentialID]
@@ -55,7 +55,7 @@ actor GitHubCredentialManager {
         if record.tokens.expiresAt <= Date.now.addingTimeInterval(120) {
             guard record.tokens.refreshExpiresAt > .now else { throw GitHubDeviceFlow.reconnect() }
             var intent = record; intent.renewalStarted = true
-            try await dependencies.save(encode(intent), id)
+            try await dependencies.save(encode(intent), id, false)
             let tokens = try await dependencies.refresh(record.tokens)
             record.tokens = tokens; record.needsVerification = true; record.renewalStarted = false
             pending[id] = record
@@ -65,7 +65,7 @@ actor GitHubCredentialManager {
             let identity = try await dependencies.identify(record.tokens.accessToken)
             guard identity == account.subject else { throw GitHubDeviceFlow.reconnect() }
             record.needsVerification = false
-            try await dependencies.save(encode(record), id)
+            try await dependencies.save(encode(record), id, false)
         }
         return record.tokens.accessToken
     }
@@ -80,7 +80,7 @@ actor GitHubCredentialManager {
         try await work.value
     }
     private func persistReplacement(_ record: Envelope, id: String) async throws {
-        do { try await dependencies.save(encode(record), id); pending.removeValue(forKey: id) }
+        do { try await dependencies.save(encode(record), id, false); pending.removeValue(forKey: id) }
         catch { throw ProviderFailure(message: "macOS could not save the renewed GitHub sign-in. Retry refresh before closing Scrooge.", health: .stale) }
     }
     private func encode(_ record: Envelope) throws -> Data {
