@@ -82,18 +82,19 @@ private struct ConnectionForm: View {
     private var connectionDescription: String {
         switch provider {
         case .codex: "Sign in through OpenAI in your browser. Scrooge keeps this account in its own protected Codex profile and only reads usage limits."
-        case .devin: "Sign in to Devin with your work email. If Devin opens your Enterprise workspace, Scrooge will detect it and read your monthly ACUs. If it stays on the public site, close the sign-in window and enter your workspace URL below."
+        case .devin: "Paste your usual Devin Enterprise workspace URL and sign in. Scrooge reads your personal monthly ACUs and reset time from My Analytics."
         case .claude: "Sign in through Claude in your browser. Scrooge uses a separate Claude Code profile to read your session and weekly limits. Requires Claude Code 2.1.310 or later."
         case .copilot: (advanced || organizationReconnect) ? "Advanced connection: use a fine-grained token with Plan read permission for personal billing. Organization billing requires authorized administration access. Your token stays protected in macOS Keychain." : "Sign in through GitHub in your browser. Scrooge reads your personal Copilot usage and protects this account’s sign-in in macOS Keychain."
         }
     }
-    // Match the rendered form widths in reference images21–25 while allowing
+    // Match the native Windows form widths (run 42374233894), while allowing
     // the surrounding scroll view to constrain them on smaller windows.
     private var formContentWidth: CGFloat {
         switch provider {
         case .codex: 550
         case .copilot: (advanced || organizationReconnect) ? 534 : 544
-        case .claude, .devin: 576
+        case .claude: 574
+        case .devin: 558
         }
     }
     var body: some View {
@@ -150,9 +151,8 @@ private struct ConnectionForm: View {
                     .buttonStyle(ScroogeButtonStyle(processing: connecting)).disabled(connecting || token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             } else if provider == .devin {
-                Text(original == nil ? "Company workspace URL (optional)" : "Company workspace URL").font(.reference(size: 14))
-                TextField("https://your-company.devinenterprise.com", text: $workspace,
-                          prompt: Text(verbatim: "https://your-company.devinenterprise.com").foregroundStyle(Color(hex: "#B6B8C8")))
+                TextField("Company Devin Workspace URL", text: $workspace,
+                          prompt: Text("Company Devin Workspace URL").foregroundStyle(Color(hex: "#B6B8C8")))
                     .focused($devinFocus, equals: .workspace)
                     .accessibilityLabel("Company Devin Workspace URL")
                     .modifier(ConnectionFieldStyle()).disabled(original != nil || connecting)
