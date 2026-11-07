@@ -911,8 +911,10 @@ final class DashboardUITests: XCTestCase {
         let appeared = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in popup() != nil }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [appeared], timeout: 3), .completed)
         let panel = try XCTUnwrap(popup())
-        XCTAssertTrue(dashboard.frame.contains(panel))
         let screen = CGDisplayBounds(CGMainDisplayID())
+        XCTAssertTrue(screen.contains(panel))
+        XCTAssertEqual(panel.maxY, warning.frame.minY, accuracy: 1,
+                       "Service-message help follows native Top placement")
         let image = XCUIScreen.main.screenshot().image
         let pixels = try XCTUnwrap(image.cgImage(forProposedRect: nil, context: nil, hints: nil))
         let bounds = panel.offsetBy(dx: -screen.minX, dy: -screen.minY)
@@ -944,7 +946,7 @@ final class DashboardUITests: XCTestCase {
         try verifyTimelineTooltip(expiry: false)
     }
 
-    @MainActor func testTimelineExpiryTooltipClampsToEdgeAndOpensAvailableResets() throws {
+    @MainActor func testTimelineExpiryTooltipUsesScreenBoundsAndOpensAvailableResets() throws {
         try verifyTimelineTooltip(expiry: true)
     }
 
@@ -979,14 +981,16 @@ final class DashboardUITests: XCTestCase {
         let appeared = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in floatingPanel() != nil }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [appeared], timeout: 3), .completed)
         let panel = try XCTUnwrap(floatingPanel())
-        XCTAssertTrue(dashboard.frame.contains(panel.value))
+        let screen = CGDisplayBounds(CGMainDisplayID())
+        XCTAssertTrue(screen.contains(panel.value))
         XCTAssertLessThanOrEqual(panel.value.width, 320)
+        XCTAssertEqual(panel.value.maxY, event.frame.minY, accuracy: 1, "Native ToolTip touches its target without the history readout's gap")
         if expiry {
             XCTAssertGreaterThan(event.frame.midX + panel.value.width / 2, dashboard.frame.maxX - 8,
-                "The fixture must actually force right-edge clamping")
-            XCTAssertEqual(panel.value.maxX, dashboard.frame.maxX - 8, accuracy: 1)
+                "The fixture must require space beyond the owner window")
+            XCTAssertEqual(panel.value.midX, event.frame.midX, accuracy: 1,
+                "A native tooltip may extend past the owner when the display has room")
         }
-        let screen = CGDisplayBounds(CGMainDisplayID())
         let image = XCUIScreen.main.screenshot().image
         let pixels = try XCTUnwrap(image.cgImage(forProposedRect: nil, context: nil, hints: nil))
         let cropBounds = panel.value.offsetBy(dx: -screen.minX, dy: -screen.minY)
@@ -1001,7 +1005,7 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(text.contains(expiry ? "Earned Reset Expires" : "Quota Refresh"), text)
         XCTAssertNotNil(text.range(of: #"[0-9]+[dhm]"#, options: .regularExpression), "A styled remaining-time label must be visible: \(text)")
         let attachment = XCTAttachment(image: NSImage(cgImage: crop, size: panel.value.size))
-        attachment.name = expiry ? "Expiry tooltip clamped at compact right edge" : "Reset event tooltip at compact right side"
+        attachment.name = expiry ? "Expiry tooltip near compact owner edge" : "Reset event tooltip at compact right side"
         attachment.lifetime = .keepAlways
         add(attachment)
         header.hover()

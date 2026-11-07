@@ -71,9 +71,12 @@ struct HistoryPointerTracking: NSViewRepresentable {
             }
             panel.hasShadow = severity == nil
             panel.title = severity != nil ? "Alert Threshold Details" : plainText ? "Help Details" : "Usage History Details"
-            // Keep details within the owning app, including when it occupies only part of a screen.
             let contentBounds = window.convertToScreen(window.contentLayoutRect)
-            let visible = contentBounds.intersection(screen.visibleFrame).insetBy(dx: severity == nil ? 8 : 4, dy: severity == nil ? 8 : 0)
+            let nativeTooltip = plainText || resetContent != nil
+            // Ordinary ToolTips use the screen, while history and threshold
+            // overlays follow their source's custom owner-contained rules.
+            let visible = nativeTooltip ? screen.visibleFrame :
+                contentBounds.intersection(screen.visibleFrame).insetBy(dx: severity == nil ? 8 : 4, dy: severity == nil ? 8 : 0)
             guard visible.width > 0, visible.height > 0 else { hidePopup(); return }
             let lines = text.split(separator: "\n", maxSplits: 1).map(String.init)
             let lineWidths = text.components(separatedBy: "\n").enumerated().map { index, line in
@@ -115,8 +118,15 @@ struct HistoryPointerTracking: NSViewRepresentable {
             let x = min(max(visible.minX, anchor.x - size.width / 2), visible.maxX - size.width)
             let above = anchor.y + (severity == nil ? 14 : 2)
             let y = min(max(visible.minY, above + size.height <= visible.maxY ? above : anchor.y - size.height - 18), visible.maxY - size.height)
-            let frame = severity == nil ? NSRect(origin: NSPoint(x: x, y: y), size: size) :
-                thresholdPlacement.frame(anchor: anchor, size: size, contentBounds: contentBounds.intersection(screen.visibleFrame))
+            let frame: NSRect
+            if nativeTooltip {
+                let target = window.convertToScreen(convert(bounds, to: nil))
+                frame = NativeTooltipPlacement.frame(target: target, size: size, screen: screen.visibleFrame)
+            } else if severity == nil {
+                frame = NSRect(origin: NSPoint(x: x, y: y), size: size)
+            } else {
+                frame = thresholdPlacement.frame(anchor: anchor, size: size, contentBounds: contentBounds.intersection(screen.visibleFrame))
+            }
             panel.setFrame(frame, display: true)
             panel.orderFront(nil)
         }
