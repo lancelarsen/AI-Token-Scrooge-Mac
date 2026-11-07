@@ -14,36 +14,19 @@ struct ConnectionView: View {
     }
 
     private var providerChooser: some View {
-        VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Connect Account").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
-                    .frame(minHeight: 32, alignment: .leading)
-                VStack(spacing: 10) {
-                    ForEach(Provider.allCases) { choice in
-                        Button { selectedProvider = choice } label: {
-                            HStack(spacing: 16) {
-                                ProviderIcon(provider: choice, size: 28).accessibilityHidden(true)
-                                Text(choice == .codex ? "OpenAI Codex" : choice.rawValue)
-                                    .font(.reference(size: 16))
-                            }.frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
-                        }.buttonStyle(ScroogeButtonStyle())
-                    }
+        DetailsDialog(title: "Connect Account", width: 320, closeTitle: "Cancel", close: { dismiss() }) {
+            VStack(spacing: 10) {
+                ForEach(Provider.allCases) { choice in
+                    Button { selectedProvider = choice } label: {
+                        HStack(spacing: 16) {
+                            ProviderIcon(provider: choice, size: 28).accessibilityHidden(true)
+                            Text(choice == .codex ? "OpenAI Codex" : choice.rawValue)
+                                .font(ReferenceTypography.nativeTextFont(size: 16))
+                        }.frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
+                    }.buttonStyle(ScroogeButtonStyle())
                 }
-            }.padding(24)
-            Rectangle().fill(Color(hex: "#3B3D47")).frame(height: 1)
-            HStack {
-                Spacer()
-                Button { dismiss() } label: { DialogActionLabel(title: "Cancel").frame(minWidth: 98) }
-                    .buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction)
-            }.padding(24)
-        }.frame(width: 320).background(Theme.dialogBackground)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay {
-                RoundedRectangle(cornerRadius: 16).strokeBorder(Color(hex: "#65577F"), lineWidth: 1)
-                    .allowsHitTesting(false)
-            }
-            .presentationCornerRadius(16)
-            .preferredColorScheme(.dark)
+            }.textSelection(.disabled)
+        }
     }
 }
 
@@ -117,7 +100,7 @@ private struct ConnectionForm: View {
         ScrollView {
         VStack(alignment: .leading, spacing: 18) {
             Text("Connect \(provider == .codex ? "OpenAI Codex" : provider.rawValue)").font(.reference(size: 26, weight: .semibold))
-                .frame(minHeight: 35, alignment: .topLeading)
+                .referenceFallbackLineMetrics(size: 26)
             Text(connectionDescription).font(.reference(size: 14)).foregroundStyle(Theme.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             TextField("Account nickname (Personal, Work…)", text: $nickname, prompt: Text("Account nickname (Personal, Work…)").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle())
@@ -167,7 +150,8 @@ private struct ConnectionForm: View {
                 }
             } else if provider == .devin {
                 Text(original == nil ? "Company workspace URL (optional)" : "Company workspace URL").font(.reference(size: 14))
-                TextField("https://your-company.devinenterprise.com", text: $workspace)
+                TextField("https://your-company.devinenterprise.com", text: $workspace,
+                          prompt: Text(verbatim: "https://your-company.devinenterprise.com").foregroundStyle(Color(hex: "#B6B8C8")))
                     .focused($devinFocus, equals: .workspace)
                     .accessibilityLabel("Company Devin Workspace URL")
                     .modifier(ConnectionFieldStyle()).disabled(original != nil || connecting)

@@ -13,7 +13,7 @@ struct AlertHistoryView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Alert History").font(.reference(size: 26, weight: .semibold))
+                Text("Alert History").font(.reference(size: 26, weight: .semibold)).referenceFallbackLineMetrics(size: 26)
                 if store.state.alerts.isEmpty {
                     Text("No alerts yet. Low capacity and expiring resets will appear here.")
                         .font(.reference(size: 14)).foregroundStyle(Theme.secondary)

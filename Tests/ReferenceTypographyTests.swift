@@ -32,6 +32,16 @@ final class ReferenceTypographyTests: XCTestCase {
         }
     }
 
+    @MainActor func testPageAndBannerHeadingMetricsKeepDescenders() throws {
+        for (size, height) in [(15.0, 18), (21.0, 26), (24.0, 29)] {
+            let image = try render("Hg", size: size)
+            XCTAssertEqual(image.pixelsHigh, height)
+            let rows = inkRows(image)
+            XCTAssertGreaterThan(try XCTUnwrap(rows.first), 0)
+            XCTAssertLessThan(try XCTUnwrap(rows.last), height - 1)
+        }
+    }
+
     @MainActor private func render(_ text: String, size: CGFloat = 20) throws -> NSBitmapImageRep {
         let renderer = ImageRenderer(content:
             Text(verbatim: text).font(.reference(size: size, weight: .semibold))

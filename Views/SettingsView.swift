@@ -23,7 +23,7 @@ struct SettingsView: View {
     }
     var body: some View {
         VStack(spacing: 0) {
-            HStack { HStack(spacing: 10) { ActionIcon(symbol: "gearshape", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text("Settings").font(.reference(size: 26, weight: .semibold)) }; Spacer(); SettingsCloseButton(isClosing: $isClosing, canClose: invalidReminderSections.isEmpty) }.padding(.horizontal, 20).padding(.vertical, 12)
+            HStack { HStack(spacing: 10) { ActionIcon(symbol: "gearshape", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text("Settings").font(.reference(size: 26, weight: .semibold)).referenceFallbackLineMetrics(size: 26) }; Spacer(); SettingsCloseButton(isClosing: $isClosing, canClose: invalidReminderSections.isEmpty) }.padding(.horizontal, 20).padding(.vertical, 12)
             SettingsScrollView {
                 VStack(spacing: 12) {
                     if store.isDemo { Text("Demo changes stay in this preview. Notification test uses macOS.").font(.reference(size: 14)).foregroundStyle(Theme.actionAccent).frame(maxWidth: .infinity, alignment: .leading) }
@@ -203,7 +203,7 @@ struct SettingsCard<Content: View>: View {
                         if let text = help ?? SettingsHelpCopy.values[title] { SettingsInfoIcon(text: text) }
                         HStack(spacing: 10) {
                             ActionIcon(symbol: symbol, size: 21).frame(width: 24).environment(\.actionForeground, Theme.accent)
-                            Text(title).font(.reference(size: 21, weight: .semibold))
+                            Text(title).font(.reference(size: 21, weight: .semibold)).referenceFallbackLineMetrics(size: 21)
                         }.foregroundStyle(Theme.accent)
                         if let headerToggle {
                             Spacer()

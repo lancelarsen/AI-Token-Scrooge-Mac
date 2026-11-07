@@ -24,6 +24,7 @@ struct AlertBannerView: View {
                         Text(provider == .codex ? "OpenAI Codex" : provider?.rawValue ?? "Scrooge")
                             .font(.reference(size: 12)).foregroundStyle(Theme.accent)
                         Text(alert.title).font(.reference(size: 15, weight: .semibold)).foregroundStyle(severityColor)
+                            .referenceFallbackLineMetrics(size: 15)
                     }
                 }
                 Text(store.state.settings.privacy ? "Account Details Hidden" : alert.detail).font(.reference(size: 12)).foregroundStyle(Theme.secondary)

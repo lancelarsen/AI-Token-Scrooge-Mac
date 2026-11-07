@@ -29,7 +29,7 @@ struct AccountSettingsView: View {
     }
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 10) { ActionIcon(symbol: "person", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text(accountTitle).font(.reference(size: 26, weight: .semibold)).foregroundStyle(Theme.primaryText); Spacer(); SettingsCloseButton(isClosing: $isClosing, flushDraft: saveNickname) }.padding(.horizontal, 20).padding(.vertical, 12)
+            HStack(spacing: 10) { ActionIcon(symbol: "person", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text(accountTitle).font(.reference(size: 26, weight: .semibold)).foregroundStyle(Theme.primaryText).referenceFallbackLineMetrics(size: 26); Spacer(); SettingsCloseButton(isClosing: $isClosing, flushDraft: saveNickname) }.padding(.horizontal, 20).padding(.vertical, 12)
             SettingsScrollView {
                 if let account {
                     VStack(spacing: 12) {
