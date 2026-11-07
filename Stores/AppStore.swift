@@ -8,6 +8,8 @@ import AppKit
     private(set) var history: [HistoryRun] = [] { didSet { historyRevision &+= 1 } }
     private(set) var historyLoading = false
     private(set) var historyError: String?
+    private(set) var settingsSaveError: String?
+    private var realSettingsSaveError: String?
     private var historyRequest = UUID()
     private var historyCache: [String: HistoryRunCache] = [:]
     private(set) var isDemo = false
@@ -83,6 +85,14 @@ import AppKit
         self.refreshAccount = refreshAccount
     }
     func waitForPendingMutations() async { await mutationTail?.value }
+    func finishSettingsEdits() async -> Bool {
+        await waitForPendingMutations()
+        return settingsSaveError == nil
+    }
+    private func clearSettingsSaveError() {
+        if let settingsSaveError, errorMessage == settingsSaveError { errorMessage = nil }
+        settingsSaveError = nil
+    }
 
     @discardableResult
     private func enqueueMutation(_ operation: @escaping @MainActor () async -> Void) -> Task<Void, Never> {
@@ -144,6 +154,7 @@ import AppKit
     func edit(_ mutation: @escaping @MainActor (inout PersistedState) -> Void) {
         enqueueMutation { [self] in
             var candidate = state; mutation(&candidate)
+            let changesSettings = candidate.settings != state.settings || candidate.accounts != state.accounts
             do {
                 try candidate.validate()
                 if !isDemo {
@@ -153,8 +164,12 @@ import AppKit
                 if candidate.settings.historyRetentionDays != state.settings.historyRetentionDays { lastPruned = .distantPast }
                 let zoneChanged = candidate.settings.timeZoneID != state.settings.timeZoneID
                 state = candidate
+                if changesSettings { clearSettingsSaveError() }
                 if zoneChanged && !isDemo { historyCache.removeAll(); await reloadHistory() }
-            } catch { errorMessage = error.localizedDescription }
+            } catch {
+                errorMessage = error.localizedDescription
+                if changesSettings { settingsSaveError = error.localizedDescription }
+            }
         }
     }
     func enterDemo() {
@@ -165,6 +180,8 @@ import AppKit
         guard !isDemo else { return }
         monitoringEpoch = UUID(); activeAlert = nil
         realState = state
+        realSettingsSaveError = settingsSaveError
+        settingsSaveError = nil
         let arguments = ProcessInfo.processInfo.arguments
         let scenario = arguments.firstIndex(of: "--scenario").flatMap { index in
             arguments.indices.contains(index + 1) ? DemoData.Scenario(rawValue: arguments[index + 1]) : nil
@@ -178,6 +195,8 @@ import AppKit
             guard isDemo else { return }
             monitoringEpoch = UUID(); activeAlert = nil
             state = realState; history = []; isDemo = false; schedule.reset()
+            settingsSaveError = realSettingsSaveError
+            realSettingsSaveError = nil
             await reloadHistory()
         }
     }
@@ -410,18 +429,21 @@ import AppKit
         enqueueMutation { [self] in
             var candidate = state
             candidate.settings.launchAtSignIn = enabled
-            if isDemo { state = candidate; return }
+            if isDemo { state = candidate; clearSettingsSaveError(); return }
             guard localStateReady, let database else {
                 errorMessage = StoreError.operation.localizedDescription
+                settingsSaveError = StoreError.operation.localizedDescription
                 return
             }
             do {
                 if !isTestLaunch { try await LoginItemService.apply(enabled) }
                 try await database.save(candidate)
                 state = candidate
+                clearSettingsSaveError()
             } catch {
                 if !isTestLaunch { try? await LoginItemService.apply(state.settings.launchAtSignIn) }
                 errorMessage = error.localizedDescription
+                settingsSaveError = error.localizedDescription
             }
             refreshLoginItemStatus()
         }
@@ -489,9 +511,9 @@ import AppKit
                     guard let database else { throw StoreError.operation }
                     try await database.removeAccount(id, state: candidate)
                 }
-                state = candidate; history.removeAll { $0.snapshot.accountID == id }
+                state = candidate; clearSettingsSaveError(); history.removeAll { $0.snapshot.accountID == id }
                 lastCredentialCleanup = .distantPast
-            } catch { errorMessage = error.localizedDescription }
+            } catch { errorMessage = error.localizedDescription; settingsSaveError = error.localizedDescription }
         }.value
     }
     /// Persist cleanup intent before a provider can write credentials. Reuse the durable

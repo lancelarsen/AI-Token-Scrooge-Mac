@@ -112,6 +112,50 @@ final class MonitoringTests: XCTestCase {
     }
 
     @MainActor
+    func testSettingsCloseWaitsForEditsAndKeepsFailedSavesVisible() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("settings-close.db")
+        let database = try LocalStore(url: url)
+        let original = PersistedState()
+        try await database.save(original)
+        let store = AppStore(database: database)
+        await store.load()
+        var connection: OpaquePointer?
+        XCTAssertEqual(sqlite3_open(url.path, &connection), SQLITE_OK)
+        defer { sqlite3_close(connection) }
+        XCTAssertEqual(sqlite3_exec(connection, "CREATE TRIGGER reject_settings BEFORE UPDATE ON state BEGIN SELECT RAISE(ABORT, 'injected save failure'); END;", nil, nil, nil), SQLITE_OK)
+        store.edit { $0.settings.sound.toggle() }
+        let canCloseAfterFailure = await store.finishSettingsEdits()
+        XCTAssertFalse(canCloseAfterFailure)
+        XCTAssertNotNil(store.settingsSaveError)
+        XCTAssertEqual(store.state.settings, original.settings)
+        let failed = try await database.load()
+        XCTAssertEqual(failed.settings, original.settings)
+
+        // Preview changes must not clear or inherit the failed real save.
+        store.enterDemo()
+        let demoCanClose = await store.finishSettingsEdits()
+        XCTAssertTrue(demoCanClose)
+        store.edit { $0.settings.sound.toggle() }
+        await store.waitForPendingMutations()
+        store.exitDemo()
+        let realCanClose = await store.finishSettingsEdits()
+        XCTAssertFalse(realCanClose)
+
+        XCTAssertEqual(sqlite3_exec(connection, "DROP TRIGGER reject_settings", nil, nil, nil), SQLITE_OK)
+        store.errorMessage = "Unrelated provider notice"
+        store.edit { $0.settings.sound.toggle() }
+        let canCloseAfterRecovery = await store.finishSettingsEdits()
+        XCTAssertTrue(canCloseAfterRecovery)
+        XCTAssertNil(store.settingsSaveError)
+        XCTAssertEqual(store.errorMessage, "Unrelated provider notice")
+        let saved = try await database.load()
+        XCTAssertEqual(saved.settings.sound, !original.settings.sound)
+        XCTAssertEqual(saved.settings, store.state.settings)
+    }
+
+    @MainActor
     func testKeychainReadFailurePreservesQuotaAndReportsPermission() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

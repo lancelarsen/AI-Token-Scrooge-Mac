@@ -8,6 +8,7 @@ struct AccountSettingsView: View {
     let reconnect: (ProviderAccount) -> Void
     @State private var newColor = Color(hex: "#B5A0F4")
     @State private var showColor = false
+    @State private var isClosing = false
     @State private var confirmRemove = false
     @State private var nicknameDraft = ""
     private let pollingHelp = "How often Scrooge automatically checks this account for updated usage, from 1 to 30 minutes. Shorter intervals show changes sooner; longer intervals make fewer requests. Changes save automatically."
@@ -28,7 +29,7 @@ struct AccountSettingsView: View {
     }
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 10) { ActionIcon(symbol: "person", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text(accountTitle).font(.reference(size: 26, weight: .semibold)).foregroundStyle(Theme.primaryText); Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close") }.buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction) }.padding(.horizontal, 20).padding(.vertical, 12)
+            HStack(spacing: 10) { ActionIcon(symbol: "person", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text(accountTitle).font(.reference(size: 26, weight: .semibold)).foregroundStyle(Theme.primaryText); Spacer(); SettingsCloseButton(isClosing: $isClosing, flushDraft: saveNickname) }.padding(.horizontal, 20).padding(.vertical, 12)
             SettingsScrollView {
                 if let account {
                     VStack(spacing: 12) {
@@ -112,13 +113,28 @@ struct AccountSettingsView: View {
                         }
                         SettingsCard(title: "Connection", symbol: "link", help: "Sign in again to renew the connection while keeping settings. Removing the connection only removes it from Scrooge; your provider account is unaffected.") {
                             Text("Sign in again only if this account needs a new connection. Your saved settings stay in place.").font(.reference(size: 13)).foregroundStyle(Theme.secondary)
-                            Button { reconnect(account) } label: { DialogActionLabel(title: "Sign In Again").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
+                            Button {
+                                guard !isClosing else { return }
+                                isClosing = true
+                                saveNickname()
+                                Task {
+                                    if await store.finishSettingsEdits(), let current = self.account { reconnect(current) }
+                                    isClosing = false
+                                }
+                            } label: { DialogActionLabel(title: "Sign In Again").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
                             Button(role: .destructive) { confirmRemove = true } label: { DialogActionLabel(title: "Remove Account").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle()).disabled(store.isDemo)
                         }
                     }.padding(.horizontal, 16).padding(.vertical, 12).frame(width: min(960, panelSize.width - 24)).frame(maxWidth: .infinity)
                 }
+            }.disabled(isClosing)
+            if let error = store.settingsSaveError {
+                Text(error).foregroundStyle(Theme.amber)
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: .infinity, alignment: .trailing).padding(.horizontal, 24)
+                    .accessibilityIdentifier("settingsSaveStatus")
             }
         }.font(.reference(size: 14)).foregroundStyle(Theme.primaryText).frame(width: panelSize.width, height: panelSize.height).referencePanelSurface().preferredColorScheme(.dark).tint(Theme.accent)
+        .interactiveDismissDisabled()
         .onAppear {
             nicknameDraft = account?.nickname ?? ""
 
@@ -129,7 +145,10 @@ struct AccountSettingsView: View {
                 message: "This removes its local history and Scrooge-owned connection. Your other apps stay signed in.",
                 actionTitle: "Remove Account", cancel: { confirmRemove = false }) {
                     confirmRemove = false
-                    Task { await store.removeAccount(accountID); dismiss() }
+                    Task {
+                        await store.removeAccount(accountID)
+                        if account == nil { dismiss() }
+                    }
                 }
         }
     }

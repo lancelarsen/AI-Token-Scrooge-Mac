@@ -159,6 +159,82 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(history.waitForNonExistence(timeout: 5))
     }
 
+    @MainActor func testAccountSettingsCloseSavesFocusedNickname() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        seedPausedAccount(at: directory.appendingPathComponent("scrooge.db"))
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--data-dir", directory.path]
+        app.launch()
+        defer { app.terminate() }
+        if !app.windows["dashboard"].waitForExistence(timeout: 2) {
+            let windowMenu = app.menuBars.menuBarItems["Window"]
+            windowMenu.click()
+            windowMenu.menuItems["AI Token Scrooge"].click()
+        }
+        let settings = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Settings for GitHub Copilot / Work")).firstMatch
+        XCTAssertTrue(settings.waitForExistence(timeout: 10))
+        settings.click()
+        let name = app.textFields["Account Name"]
+        XCTAssertTrue(name.waitForExistence(timeout: 5))
+        name.click()
+        name.typeKey("a", modifierFlags: .command)
+        name.typeText("Business")
+        var database: OpaquePointer?
+        XCTAssertEqual(sqlite3_open(directory.appendingPathComponent("scrooge.db").path, &database), SQLITE_OK)
+        defer { sqlite3_close(database) }
+        XCTAssertEqual(sqlite3_exec(database, "CREATE TRIGGER reject_name BEFORE UPDATE ON state BEGIN SELECT RAISE(ABORT, 'injected save failure'); END;", nil, nil, nil), SQLITE_OK)
+        // Do not submit or leave the field before pressing Close.
+        app.buttons["Close"].click()
+        XCTAssertTrue(app.staticTexts["settingsSaveStatus"].waitForExistence(timeout: 5))
+        XCTAssertTrue(name.exists, "A failed save must leave account settings open")
+        XCTAssertEqual(name.value as? String, "Business", "Retain the unsaved draft for retry")
+        XCTAssertEqual(sqlite3_exec(database, "DROP TRIGGER reject_name", nil, nil, nil), SQLITE_OK)
+        app.buttons["Close"].click()
+        XCTAssertTrue(name.waitForNonExistence(timeout: 5))
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Settings for GitHub Copilot / Business")).firstMatch.exists)
+        var statement: OpaquePointer?
+        XCTAssertEqual(sqlite3_prepare_v2(database, "SELECT payload FROM state WHERE id=1", -1, &statement, nil), SQLITE_OK)
+        defer { sqlite3_finalize(statement) }
+        XCTAssertEqual(sqlite3_step(statement), SQLITE_ROW)
+        let bytes = try XCTUnwrap(sqlite3_column_blob(statement, 0))
+        let data = Data(bytes: bytes, count: Int(sqlite3_column_bytes(statement, 0)))
+        let state = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let accounts = try XCTUnwrap(state["accounts"] as? [[String: Any]])
+        XCTAssertEqual(accounts.first?["nickname"] as? String, "Business")
+    }
+
+    @MainActor func testSettingsCloseKeepsInvalidReminderDraftOpen() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", "--reference-wide"]
+        app.launch()
+        defer { app.terminate() }
+        if !app.windows["dashboard"].waitForExistence(timeout: 2) {
+            let windowMenu = app.menuBars.menuBarItems["Window"]
+            windowMenu.click()
+            windowMenu.menuItems["AI Token Scrooge"].click()
+        }
+        app.buttons["settingsButton"].click()
+        let amount = app.textFields["Time Before Event"].firstMatch
+        XCTAssertTrue(amount.waitForExistence(timeout: 5))
+        amount.click()
+        amount.typeKey("a", modifierFlags: .command)
+        amount.typeText("0")
+        app.buttons["Close"].click()
+        XCTAssertTrue(app.staticTexts["settingsSaveStatus"].waitForExistence(timeout: 3))
+        XCTAssertTrue(amount.exists)
+        XCTAssertEqual(amount.value as? String, "0")
+        amount.click()
+        amount.typeKey("a", modifierFlags: .command)
+        amount.typeText("2")
+        XCTAssertTrue(app.staticTexts["settingsSaveStatus"].waitForNonExistence(timeout: 3))
+        app.buttons["Close"].click()
+        XCTAssertTrue(amount.waitForNonExistence(timeout: 5))
+    }
+
     @MainActor func testColorPickerKeyboardModeAndExactSwatch() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

@@ -5,11 +5,17 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @ObservedObject private var updater = AppUpdater.shared
+    @State private var isClosing = false
+    @State private var invalidReminderSections: Set<String> = []
     @State private var showAlertHistory = false
     @State private var pendingRetention: Int?
     @State private var demoAutomaticChecks = true
     @State private var soundPreviewStatus: String?
     @Environment(\.dashboardHostSize) private var hostSize
+    private func setReminderValidation(_ section: String, invalid: Bool) {
+        if invalid { invalidReminderSections.insert(section) }
+        else { invalidReminderSections.remove(section) }
+    }
     private var panelSize: CGSize {
         guard let hostSize else { return CGSize(width: 1000, height: 800) }
         return CGSize(width: min(1000, max(640, hostSize.width - 48)),
@@ -17,7 +23,7 @@ struct SettingsView: View {
     }
     var body: some View {
         VStack(spacing: 0) {
-            HStack { HStack(spacing: 10) { ActionIcon(symbol: "gearshape", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text("Settings").font(.reference(size: 26, weight: .semibold)) }; Spacer(); Button { dismiss() } label: { DialogActionLabel(title: "Close") }.buttonStyle(ScroogeButtonStyle()) }.padding(.horizontal, 20).padding(.vertical, 12)
+            HStack { HStack(spacing: 10) { ActionIcon(symbol: "gearshape", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text("Settings").font(.reference(size: 26, weight: .semibold)) }; Spacer(); SettingsCloseButton(isClosing: $isClosing, canClose: invalidReminderSections.isEmpty) }.padding(.horizontal, 20).padding(.vertical, 12)
             SettingsScrollView {
                 VStack(spacing: 12) {
                     if store.isDemo { Text("Demo changes stay in this preview. Notification test uses macOS.").font(.reference(size: 14)).foregroundStyle(Theme.actionAccent).frame(maxWidth: .infinity, alignment: .leading) }
@@ -113,10 +119,10 @@ struct SettingsView: View {
                         }
                     }
                     SettingsCard(title: "Earned Reset Expiration Alerts", symbol: "clock") {
-                        ReminderEditor(reminders: binding(\.resetExpiryReminders))
+                        ReminderEditor(reminders: binding(\.resetExpiryReminders), onValidationChange: { setReminderValidation("expiry", invalid: $0) })
                     }
                     SettingsCard(title: "Quota Refresh Alerts", symbol: "arrow.clockwise") {
-                        ReminderEditor(reminders: binding(\.quotaRefreshReminders))
+                        ReminderEditor(reminders: binding(\.quotaRefreshReminders), onValidationChange: { setReminderValidation("refresh", invalid: $0) })
                     }
                     SettingsCard(title: "App Behavior", symbol: "gearshape") {
                         settingsSwitch("Keep Monitoring When Window Closes", isOn: binding(\.closeToMenuBar))
@@ -125,12 +131,27 @@ struct SettingsView: View {
                         if let message = store.loginItemMessage { Text(message).font(.reference(size: 12)).foregroundStyle(Theme.secondary) }
                         if store.loginItemNeedsApproval { Button("Open Login Items") { LoginItemService.openSettings() }.buttonStyle(ScroogeButtonStyle()) }
                         Button { showAlertHistory = true } label: { DialogActionLabel(title: "Alert History").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle())
-                        Button { dismiss(); Task { await store.sendTestNotification() } } label: { DialogActionLabel(title: "Send Test Notification").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle())
+                        Button {
+                            guard !isClosing, invalidReminderSections.isEmpty else { return }
+                            isClosing = true
+                            Task {
+                                if await store.finishSettingsEdits() {
+                                    dismiss()
+                                    await store.sendTestNotification()
+                                }
+                                isClosing = false
+                            }
+                        } label: { DialogActionLabel(title: "Send Test Notification").frame(maxWidth: .infinity, alignment: .leading) }.buttonStyle(ScroogeButtonStyle())
                     }
                 }.padding(.horizontal, 16).padding(.vertical, 12).frame(width: min(960, panelSize.width - 24)).frame(maxWidth: .infinity)
             }
-            if let error = store.errorMessage { Text(error).foregroundStyle(Theme.amber).padding() }
+            .disabled(isClosing)
+            if let error = invalidReminderSections.isEmpty ? (store.settingsSaveError ?? store.errorMessage) : "Enter a Positive Whole Number for Each Reminder" { Text(error).foregroundStyle(Theme.amber)
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: .infinity, alignment: .trailing).padding(.horizontal, 24)
+                    .accessibilityIdentifier("settingsSaveStatus") }
         }.font(.reference(size: 14)).foregroundStyle(Theme.primaryText).frame(width: panelSize.width, height: panelSize.height).referencePanelSurface().preferredColorScheme(.dark).tint(Theme.accent)
+        .interactiveDismissDisabled()
         .onAppear {
             store.refreshLoginItemStatus()
             demoAutomaticChecks = updater.automaticChecks
@@ -220,8 +241,14 @@ struct ThresholdSetting: View {
 }
 struct ReminderEditor: View {
     @Binding var reminders: [TimedReminder]
+    var onValidationChange: (Bool) -> Void = { _ in }
     @State private var amountDrafts: [String: String] = [:]
-    @State private var amountError = false
+    private var amountError: Bool {
+        reminders.contains { reminder in
+            guard let draft = amountDrafts[reminder.id] else { return false }
+            return Int32(draft.trimmingCharacters(in: .whitespacesAndNewlines)).map { $0 <= 0 } ?? true
+        }
+    }
     private var orderedReminders: [TimedReminder] {
         reminders.enumerated().sorted { left, right in
             left.element.hours == right.element.hours
@@ -257,7 +284,6 @@ struct ReminderEditor: View {
                         Button {
                             reminders.removeAll { $0.id == reminder.id }
                             amountDrafts.removeValue(forKey: reminder.id)
-                            amountError = false
                         } label: {
                             ActionIcon(symbol: "trash", size: 20)
                         }.buttonStyle(ScroogeButtonStyle(horizontalPadding: 12))
@@ -272,6 +298,7 @@ struct ReminderEditor: View {
             }
             Button { reminders.append(TimedReminder(amount: 1, unit: "Days", severity: .info)) } label: { ActionLabel(title: "Add Reminder", symbol: "plus") }.buttonStyle(ScroogeButtonStyle())
         }
+        .onChange(of: amountError, initial: true) { _, invalid in onValidationChange(invalid) }
     }
     private func menuLabel(_ title: String, color: Color = .white) -> some View {
         HStack {
@@ -294,10 +321,8 @@ struct ReminderEditor: View {
         guard let index = copy.firstIndex(where: { $0.id == id }) else { return }
         let draft = amountDrafts[id] ?? String(copy[index].amount)
         guard let amount = Int32(draft.trimmingCharacters(in: .whitespacesAndNewlines)), amount > 0 else {
-            amountError = true
             return
         }
-        amountError = false
         copy[index].amount = Int(amount)
         change(&copy[index])
         reminders = copy

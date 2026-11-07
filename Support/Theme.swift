@@ -474,3 +474,36 @@ struct ImmediateResetTooltip: ViewModifier {
             .onDisappear { visible = false }
     }
 }
+
+
+/// Settings Close must drain autosaves before dismissing its panel.
+struct SettingsCloseButton: View {
+    @Environment(AppStore.self) private var store
+    @Environment(\.dismiss) private var dismiss
+    @Binding var isClosing: Bool
+    var flushDraft: () -> Void = {}
+    var canClose = true
+
+    var body: some View {
+        Button {
+            guard !isClosing, canClose else { return }
+            isClosing = true
+            flushDraft()
+            Task {
+                if await store.finishSettingsEdits() { dismiss() }
+                isClosing = false
+            }
+        } label: {
+            if isClosing {
+                HStack(spacing: 9) {
+                    ProgressView().controlSize(.small).tint(.white).frame(width: 20, height: 20)
+                    Text("Closing…")
+                }
+            } else { DialogActionLabel(title: "Close") }
+        }
+        .buttonStyle(ScroogeButtonStyle(processing: isClosing))
+        .disabled(isClosing)
+        .keyboardShortcut(.cancelAction)
+        .accessibilityLabel(isClosing ? "Closing Settings" : "Close")
+    }
+}
