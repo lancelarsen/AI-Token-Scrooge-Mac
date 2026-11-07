@@ -16,9 +16,16 @@ running_pids() {
 }
 
 if [[ "$MODE" != --build ]]; then
+  SCROOGE_INSTANCE_PIDS="$(/usr/bin/swift -e '
+    import AppKit
+    for app in NSRunningApplication.runningApplications(withBundleIdentifier: "com.lancelarsen.AITokenScrooge") {
+      print(app.processIdentifier)
+    }
+  ')"
   while read -r pid; do
+    [[ -n "$pid" ]] || continue
     kill "$pid" 2>/dev/null || true
-  done < <(running_pids)
+  done <<< "$SCROOGE_INSTANCE_PIDS"
 fi
 cd "$ROOT_DIR"
 BUILD_NUMBER="$((1000 + $(git rev-list --count HEAD)))"
