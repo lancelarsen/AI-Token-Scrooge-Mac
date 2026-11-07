@@ -71,6 +71,25 @@ public static class ReferenceWindowNative {
     }
     [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr handle, int command);
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr handle);
+    [StructLayout(LayoutKind.Sequential)]
+    struct MouseInput { public int X, Y; public uint Data, Flags, Time; public IntPtr Extra; }
+    [StructLayout(LayoutKind.Sequential)]
+    struct Input { public uint Type; public MouseInput Mouse; }
+    [DllImport("user32.dll")] static extern int GetSystemMetrics(int index);
+    [DllImport("user32.dll", SetLastError = true)]
+    static extern uint SendInput(uint count, Input[] inputs, int size);
+    public static void MovePointer(int x, int y) {
+        int left = GetSystemMetrics(76), top = GetSystemMetrics(77);
+        int width = GetSystemMetrics(78), height = GetSystemMetrics(79);
+        if (width <= 1 || height <= 1) throw new InvalidOperationException("No virtual input desktop.");
+        var input = new Input { Mouse = new MouseInput {
+            X = (int)Math.Round((x - left) * 65535.0 / (width - 1)),
+            Y = (int)Math.Round((y - top) * 65535.0 / (height - 1)),
+            Flags = 0xC001 // MOVE | ABSOLUTE | VIRTUALDESK
+        }};
+        if (SendInput(1, new[] { input }, Marshal.SizeOf(typeof(Input))) != 1)
+            throw new InvalidOperationException("Pointer input was not accepted: " + Marshal.GetLastWin32Error());
+    }
 }
 '@
 [ReferenceWindowNative]::SetProcessDPIAware() | Out-Null
@@ -102,6 +121,9 @@ function Save-ReferenceView {
         $rows += $row
     }
     $rows | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 (Join-Path $Output ($Name + '-elements.json'))
+    $pointer = [System.Windows.Forms.Cursor]::Position
+    [ordered]@{ x = $pointer.X; y = $pointer.Y } | ConvertTo-Json |
+        Set-Content -Encoding UTF8 (Join-Path $Output ($Name + '-pointer.json'))
     $rect = New-Object ReferenceWindowNative+Rect
     if (-not [ReferenceWindowNative]::GetWindowRect($handle, [ref]$rect)) { throw 'Could not read native window bounds.' }
     $width = $rect.Right - $rect.Left
@@ -199,19 +221,19 @@ try {
     # Exercise the application's actual immediate-hover tooltips in the fresh
     # runner session. Locate targets through UIA bounds rather than fixed pixels.
     $away = [System.Drawing.Point]::new([int]($root.Current.BoundingRectangle.X + 20), [int]($root.Current.BoundingRectangle.Y + 16))
-    [System.Windows.Forms.Cursor]::Position = $away
+    [ReferenceWindowNative]::MovePointer($away.X, $away.Y)
     $plainTargets = @($rows | Where-Object {
         $_.type -eq 'ControlType.Button' -and $_.name.StartsWith('Hide OpenAI / Personal') -and -not $_.offscreen
     })
     if ($plainTargets.Count -ne 1) { throw 'The selector help target was not uniquely visible.' }
     $plainTarget = $plainTargets[0]
-    [System.Windows.Forms.Cursor]::Position = [System.Drawing.Point]::new([int]($plainTarget.x + $plainTarget.width / 2), [int]($plainTarget.y + $plainTarget.height / 2))
+    [ReferenceWindowNative]::MovePointer([int]($plainTarget.x + $plainTarget.width / 2), [int]($plainTarget.y + $plainTarget.height / 2))
     Start-Sleep -Seconds 1
     $plain = Save-ReferenceView -Name 'selector-tooltip' -Root $root -Handle $handle -Output $Output
     if (-not ($plain.Rows | Where-Object { $_.type -eq 'ControlType.Text' -and $_.name -match 'Show or Hide History' })) {
         throw 'Selector pointer entry did not expose its help tooltip.'
     }
-    [System.Windows.Forms.Cursor]::Position = $away
+    [ReferenceWindowNative]::MovePointer($away.X, $away.Y)
     Start-Sleep -Seconds 1
     $resetTargets = @($rows | Where-Object {
         $_.type -eq 'ControlType.Button' -and $_.name.StartsWith('OpenAI / Personal') -and
@@ -219,13 +241,13 @@ try {
     })
     if ($resetTargets.Count -ne 1) { throw 'The reset tooltip target was not uniquely visible.' }
     $resetTarget = $resetTargets[0]
-    [System.Windows.Forms.Cursor]::Position = [System.Drawing.Point]::new([int]($resetTarget.x + $resetTarget.width / 2), [int]($resetTarget.y + $resetTarget.height / 2))
+    [ReferenceWindowNative]::MovePointer([int]($resetTarget.x + $resetTarget.width / 2), [int]($resetTarget.y + $resetTarget.height / 2))
     Start-Sleep -Seconds 1
     $resetTip = Save-ReferenceView -Name 'reset-tooltip' -Root $root -Handle $handle -Output $Output
     if (-not ($resetTip.Rows | Where-Object { $_.type -eq 'ControlType.Text' -and $_.name -match 'Quota Refresh' })) {
         throw 'Reset pointer entry did not expose its styled tooltip.'
     }
-    [System.Windows.Forms.Cursor]::Position = $away
+    [ReferenceWindowNative]::MovePointer($away.X, $away.Y)
     Start-Sleep -Seconds 1
     # Measure the earned-reset dialog separately: its mixed-weight first line
     # and four short paragraphs expose line-height differences hidden by the
