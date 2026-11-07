@@ -393,6 +393,22 @@ try {
     if (-not ($global.Rows | Where-Object { $_.type -eq 'ControlType.Text' -and $_.name -eq 'App Updates' })) {
         throw 'Global settings top was not exposed.'
     }
+    # Find the middle control by its exposed role/name rather than assuming
+    # a fixed content offset; compact wrapping changes total scroll extent.
+    $quietCaptured = $false
+    foreach ($percent in @(20, 25, 30, 35, 40, 45, 50, 55)) {
+        Scroll-ReferencePanel -Percent $percent
+        $visibleElements = @($root.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition) |
+            Where-Object { -not $_.Current.IsOffscreen })
+        $startTime = @($visibleElements | Where-Object { $_.Current.ControlType -eq [System.Windows.Automation.ControlType]::Button -and $_.Current.Name -like 'Quiet Hours Start Time:*' })
+        $endTime = @($visibleElements | Where-Object { $_.Current.ControlType -eq [System.Windows.Automation.ControlType]::Button -and $_.Current.Name -like 'Quiet Hours End Time:*' })
+        $summary = @($visibleElements | Where-Object { $_.Current.ControlType -eq [System.Windows.Automation.ControlType]::Text -and $_.Current.Name -match '^\d.*[0-9]+ hours' })
+        if ($startTime.Count -eq 1 -and $endTime.Count -eq 1 -and $summary.Count -eq 1) {
+            $quiet = Save-ReferenceView -Name 'global-settings-quiet-hours' -Root $root -Handle $handle -Output $Output
+            $quietCaptured = $true; break
+        }
+    }
+    if (-not $quietCaptured) { throw 'Quiet-hours time buttons and summary were not simultaneously exposed.' }
     Scroll-ReferencePanel -Percent 100
     $footer = Save-ReferenceView -Name 'global-settings-footer' -Root $root -Handle $handle -Output $Output
     if (-not ($footer.Rows | Where-Object { $_.type -eq 'ControlType.Button' -and $_.name -eq 'Send Test Notification' -and -not $_.offscreen })) {

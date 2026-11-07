@@ -59,3 +59,6 @@ Panel comparison captures resize the exported native host pane to789×694 logica
 
 
 Matched-panel run [42367678432](https://github.com/lancelarsen/AI-Token-Scrooge-Mac/actions/runs/42367678432) passed at `5703a86`: host789×694, secondary panels741×630, connection and global-footer actions649×44 with8-point gaps. Both demo connection actions are disabled. Caption-input panes must be excluded when finding host bounds; native scroll extents may update after newly visible content is laid out, so the probe reapplies the endpoint over bounded layout turns and exports percent/view-size diagnostics. Prior runs42367327733/42367468386 failed those checks and are not accepted footer evidence.
+
+
+`global-settings-quiet-hours` locates the middle control with bounded scroll positions and requires both native time buttons plus its visible duration summary. The screenshot covers canvas ticks too; UIA font attributes distinguish the native button text from the classic summary label. Capturing it does not toggle quiet hours, change times or preview sounds.
