@@ -360,9 +360,12 @@ struct ActionIcon: View {
 enum ReferenceControlColors {
     static func onThumb(_ scheme: ColorScheme) -> Color { scheme == .dark ? .black : .white }
     static func sliderThumb(_ scheme: ColorScheme) -> Color { scheme == .dark ? Color(hex: "#454545") : .white }
-    static func radioFill(_ scheme: ColorScheme) -> Color { .black.opacity(scheme == .dark ? 25.0 / 255 : 6.0 / 255) }
-    static func radioStroke(_ scheme: ColorScheme) -> Color {
+    static func offControlFill(_ scheme: ColorScheme) -> Color { .black.opacity(scheme == .dark ? 25.0 / 255 : 6.0 / 255) }
+    static func offControlStroke(_ scheme: ColorScheme) -> Color {
         scheme == .dark ? .white.opacity(139.0 / 255) : .black.opacity(114.0 / 255)
+    }
+    static func offSwitchThumb(_ scheme: ColorScheme) -> Color {
+        scheme == .dark ? .white.opacity(197.0 / 255) : .black.opacity(158.0 / 255)
     }
 }
 
@@ -371,11 +374,11 @@ struct ReferenceRadioIndicator: View {
     @Environment(\.colorScheme) private var colorScheme
     var body: some View {
         ZStack {
-            Circle().fill(selected ? Color(hex: "#A990ED") : ReferenceControlColors.radioFill(colorScheme))
+            Circle().fill(selected ? Color(hex: "#A990ED") : ReferenceControlColors.offControlFill(colorScheme))
             if selected {
                 Circle().fill(ReferenceControlColors.onThumb(colorScheme)).frame(width: 10, height: 10)
             } else {
-                Circle().strokeBorder(ReferenceControlColors.radioStroke(colorScheme), lineWidth: 1)
+                Circle().strokeBorder(ReferenceControlColors.offControlStroke(colorScheme), lineWidth: 1)
             }
         }.frame(width: 20, height: 20).accessibilityHidden(true)
     }
@@ -418,10 +421,10 @@ private struct ReferenceSwitchSurface: View {
                 Spacer(minLength: 12)
             }
             Button { configuration.isOn.toggle() } label: {
-                Capsule().fill(configuration.isOn ? onColor : Theme.control)
-                    .overlay(Capsule().stroke(configuration.isOn ? Color.clear : Theme.secondary, lineWidth: 1))
+                Capsule().fill(configuration.isOn ? onColor : ReferenceControlColors.offControlFill(colorScheme))
+                    .overlay(Capsule().strokeBorder(configuration.isOn ? Color.clear : ReferenceControlColors.offControlStroke(colorScheme), lineWidth: 1))
                     .overlay(alignment: configuration.isOn ? .trailing : .leading) {
-                        Circle().fill(thumbColor ?? (configuration.isOn ? ReferenceControlColors.onThumb(colorScheme) : Theme.secondary))
+                        Circle().fill(thumbColor ?? (configuration.isOn ? ReferenceControlColors.onThumb(colorScheme) : ReferenceControlColors.offSwitchThumb(colorScheme)))
                             .frame(width: 12, height: 12).padding(4)
                     }
                     .frame(width: 40, height: 20)

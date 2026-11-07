@@ -88,6 +88,29 @@ final class ReferenceTypographyTests: XCTestCase {
         }
     }
 
+    @MainActor func testQuietHoursDisabledTimeTextMatchesWindows() throws {
+        for enabled in [true, false] {
+            let renderer = ImageRenderer(content: QuietHoursControl(start: .constant(0), end: .constant(8))
+                .frame(width: 649).disabled(!enabled).opacity(enabled ? 1 : 0.5)
+                .background(Color(hex: "#1C1E24")).environment(\.colorScheme, .dark))
+            renderer.scale = 1
+            let image = NSBitmapImageRep(cgImage: try XCTUnwrap(renderer.cgImage))
+            var brightest = [0, 0, 0]
+            // Independent native 12 AM label rectangle, translated to the range.
+            for y in 0..<32 { for x in 284..<364 {
+                var pixel = [Int](repeating: 0, count: image.samplesPerPixel)
+                image.getPixel(&pixel, atX: x, y: y)
+                let rgb = Array((image.bitmapFormat.contains(.alphaFirst) ? pixel.dropFirst() : pixel[...]).prefix(3))
+                if rgb.reduce(0, +) > brightest.reduce(0, +) { brightest = rgb }
+            } }
+            let expected = enabled ? [242, 241, 245] : [135, 135, 140]
+            for channel in 0..<3 {
+                XCTAssertEqual(brightest[channel], expected[channel], accuracy: 1,
+                               "Native time-label ink must receive one disabled fade, not two")
+            }
+        }
+    }
+
     @MainActor func testReferenceControlColorsMatchCapturedWindowsThemes() throws {
         // Independent normal-state pixels: dark run 42370975807 and the prior
         // light runner capture 42369557174, both over the same #1C1E24 card.
@@ -120,6 +143,17 @@ final class ReferenceTypographyTests: XCTestCase {
                       samples: [(330, 16, sliderRing), (338, 16, [195, 173, 248])])
             try check(Toggle("", isOn: .constant(true)).toggleStyle(ScroogeSwitchStyle(showsLabel: false, thumbColor: Color(hex: "#D1BEFF"))),
                       samples: [(30, 10, [209, 190, 255])])
+            if scheme == .dark {
+                // Native off/disabled run 42373113228. Windows and CoreGraphics
+                // alpha rounding can differ by one eight-bit channel step.
+                try check(Toggle("", isOn: .constant(false)).toggleStyle(ScroogeSwitchStyle(showsLabel: false)),
+                          samples: [(10, 10, [203, 203, 204]), (30, 10, [25, 27, 32]), (20, 0, [151, 152, 154])])
+                let quiet = QuietHoursControl(start: .constant(0), end: .constant(8)).frame(width: 649)
+                try check(quiet, samples: [(40, 44, [65, 67, 79]), (420, 44, [169, 144, 237]), (324, 44, [195, 173, 248])])
+                // SettingsView already applies this dimming outside the range.
+                try check(quiet.disabled(true).opacity(0.5),
+                          samples: [(40, 44, [47, 49, 58]), (420, 44, [99, 87, 137]), (324, 44, [112, 102, 142])])
+            }
         }
     }
 

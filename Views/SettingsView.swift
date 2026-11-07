@@ -412,7 +412,7 @@ struct QuietHoursControl: View {
             Text(hour(value.wrappedValue)).font(ReferenceTypography.nativeTextFont(size: 16))
                 .foregroundStyle(Theme.primaryText).frame(width: 80, height: 32)
                 .contentShape(Rectangle())
-        }.buttonStyle(.plain)
+        }.buttonStyle(QuietHoursTimeButtonStyle())
         .focusable().focused($focusedBoundary, equals: label).focusEffectDisabled()
         .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { press in
             guard isEnabled else { return .ignored }
@@ -428,6 +428,12 @@ struct QuietHoursControl: View {
         .position(x: min(max(x, 53), width - 53), y: labelY)
     }
     private func hour(_ value: Int) -> String { "\(value % 12 == 0 ? 12 : value % 12) \(value < 12 ? "AM" : "PM")" }
+}
+
+/// The surrounding range owns disabled dimming, as in Windows. PlainButtonStyle
+/// adds a second disabled fade on macOS, making only the time labels too dark.
+private struct QuietHoursTimeButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View { configuration.label }
 }
 
 private struct SettingsInfoIcon: View {
