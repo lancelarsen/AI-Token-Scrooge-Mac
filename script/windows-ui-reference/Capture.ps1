@@ -455,10 +455,22 @@ try {
     $inputTrace += Record-ColorInput 'hex-cleared'
     $redField.SetFocus(); Start-Sleep -Milliseconds 300
     $inputTrace += Record-ColorInput 'hex-clear-after-blur'
+    $hexField.SetFocus(); $hexValue.SetValue($inputTrace[0]['hex']); Start-Sleep -Milliseconds 300
+    $redField.SetFocus(); $redValue.SetValue('12'); Start-Sleep -Milliseconds 300
+    $inputTrace += Record-ColorInput 'red-valid-intermediate'
+    $redValue.SetValue('999'); Start-Sleep -Milliseconds 300
+    $inputTrace += Record-ColorInput 'red-invalid-after-valid'
+    $hexField.SetFocus(); Start-Sleep -Milliseconds 300
+    $inputTrace += Record-ColorInput 'red-invalid-after-valid-blurred'
+    $hexValue.SetValue('#12'); Start-Sleep -Milliseconds 300
+    $inputTrace += Record-ColorInput 'short-hex'
+    $redField.SetFocus(); Start-Sleep -Milliseconds 300
+    $inputTrace += Record-ColorInput 'short-hex-after-blur'
     $inputTrace | ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $Output 'color-input-draft-trace.json')
     if ($inputTrace[2]['red'] -ne $inputTrace[0]['red'] -or $inputTrace[4]['red'] -ne $inputTrace[0]['red'] -or
-        $inputTrace[6]['hex'] -ne $inputTrace[0]['hex']) {
-        throw 'Native color inputs did not restore their last valid values on blur.'
+        $inputTrace[6]['hex'] -ne '#000000' -or $inputTrace[6]['brightness'] -ne 0 -or
+        $inputTrace[9]['red'] -ne $inputTrace[0]['red'] -or $inputTrace[11]['hex'] -ne '#000012') {
+        throw 'Native color input draft trace did not match the captured blur and short-Hex behavior.'
     }
     Invoke-ReferenceAction -Name 'Cancel' -Root $root
     Start-Sleep -Seconds 1
