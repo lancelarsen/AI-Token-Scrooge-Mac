@@ -63,7 +63,7 @@ struct AccountUsageDialog: View {
               let snapshot = store.state.snapshots[account.id], snapshot.belongs(to: account) else {
             return "Usage Details Unavailable"
         }
-        if windowID == nil, snapshot.reserve != nil { return "Available Resets" }
+        if windowID == nil, snapshot.reserve != nil { return "Available resets" }
         guard snapshot.windows.contains(where: { windowID == nil || $0.id == windowID }) else {
             return "Usage Details Unavailable"
         }

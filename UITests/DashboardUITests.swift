@@ -304,7 +304,7 @@ final class DashboardUITests: XCTestCase {
         allowance.click()
         let overage = app.staticTexts["1,250 used · 250 over"].firstMatch
         XCTAssertTrue(overage.waitForExistence(timeout: 5))
-        XCTAssertFalse(app.staticTexts["Available Resets"].exists)
+        XCTAssertFalse(app.staticTexts["Available resets"].exists)
         app.buttons["Close"].click()
         app.buttons["OpenAI, Personal · Plus. Open details."].firstMatch.click()
         XCTAssertTrue(overage.waitForExistence(timeout: 5), "Account identity opens the first quota even when earned resets exist")
@@ -365,7 +365,7 @@ final class DashboardUITests: XCTestCase {
         let reset = app.buttons["Reset for Codex · Weekly. Open Details"].firstMatch
         XCTAssertTrue(reset.waitForExistence(timeout: 10))
         reset.click()
-        let title = app.staticTexts["Available Resets"].firstMatch
+        let title = app.staticTexts["Available resets"].firstMatch
         XCTAssertTrue(title.waitForExistence(timeout: 5))
         let titleFrame = title.frame
         let sheet = app.sheets.firstMatch
@@ -996,7 +996,7 @@ final class DashboardUITests: XCTestCase {
         event.click()
         XCTAssertTrue(app.buttons["Close"].waitForExistence(timeout: 5), "The tooltip must not intercept the reset event's details action")
         if expiry {
-            XCTAssertTrue(app.staticTexts["Available Resets"].exists)
+            XCTAssertTrue(app.staticTexts["Available resets"].exists)
             XCTAssertTrue(app.staticTexts["resetCredit-demo-edge-expiry"].exists,
                 "The expiry must open the same account's reported reset credit")
         } else {
