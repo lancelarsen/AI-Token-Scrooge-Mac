@@ -105,6 +105,10 @@ function Save-ReferenceView {
         $row = [ordered]@{ name = $current.Name; type = $current.ControlType.ProgrammaticName;
             x = $bounds.X; y = $bounds.Y; width = $bounds.Width; height = $bounds.Height;
             enabled = $current.IsEnabled; offscreen = $current.IsOffscreen }
+        $toggle = $null
+        if ($element.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern, [ref]$toggle)) {
+            $row['toggleState'] = $toggle.Current.ToggleState.ToString()
+        }
         $pattern = $null
         if ($element.TryGetCurrentPattern([System.Windows.Automation.TextPattern]::Pattern, [ref]$pattern) -and $null -ne $pattern) {
             $range = $pattern.DocumentRange
@@ -411,6 +415,30 @@ try {
         }
     }
     if (-not $quietCaptured) { throw 'Quiet-hours time buttons and summary were not simultaneously exposed.' }
+    # Capture the actual off palette and disabled time handles in the fresh demo.
+    # A native ToggleSwitch exposes TogglePattern rather than InvokePattern.
+    $quietSwitch = @($root.FindAll([System.Windows.Automation.TreeScope]::Descendants,
+        [System.Windows.Automation.Condition]::TrueCondition) | Where-Object {
+        $_.Current.Name -eq 'Enable Quiet Hours' -and -not $_.Current.IsOffscreen
+    })
+    if ($quietSwitch.Count -ne 1) { throw 'Quiet-hours switch was not uniquely visible.' }
+    $quietToggle = $null
+    if (-not $quietSwitch[0].TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern, [ref]$quietToggle)) {
+        throw 'Quiet-hours switch did not expose TogglePattern.'
+    }
+    if ($quietToggle.Current.ToggleState -ne [System.Windows.Automation.ToggleState]::On) { throw 'Expected demo quiet hours to start enabled.' }
+    $quietToggle.Toggle()
+    [ReferenceWindowNative]::MovePointer($away.X, $away.Y)
+    Start-Sleep -Seconds 1
+    if ($quietToggle.Current.ToggleState -ne [System.Windows.Automation.ToggleState]::Off) { throw 'Quiet hours did not turn off.' }
+    $quietOff = Save-ReferenceView -Name 'global-settings-quiet-hours-off' -Root $root -Handle $handle -Output $Output
+    foreach ($timeName in @('Quiet Hours Start Time:*', 'Quiet Hours End Time:*')) {
+        $disabledTime = @($quietOff.Rows | Where-Object { $_.name -like $timeName -and -not $_.offscreen })
+        if ($disabledTime.Count -ne 1 -or $disabledTime[0].enabled) { throw "Expected disabled quiet-hours time target: $timeName" }
+    }
+    $quietToggle.Toggle()
+    Start-Sleep -Milliseconds 500
+    if ($quietToggle.Current.ToggleState -ne [System.Windows.Automation.ToggleState]::On) { throw 'Quiet hours did not restore.' }
     Scroll-ReferencePanel -Percent 100
     $footer = Save-ReferenceView -Name 'global-settings-footer' -Root $root -Handle $handle -Output $Output
     if (-not ($footer.Rows | Where-Object { $_.type -eq 'ControlType.Button' -and $_.name -eq 'Send Test Notification' -and -not $_.offscreen })) {

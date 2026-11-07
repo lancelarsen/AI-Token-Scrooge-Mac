@@ -68,3 +68,5 @@ Quiet-hours run [42369557174](https://github.com/lancelarsen/AI-Token-Scrooge-Ma
 
 
 The workflow now explicitly selects the dark app theme in the disposable Windows runner before starting Scrooge, matching the supplied gallery. It broadcasts the theme refresh and records AppsUseLightTheme/appTheme in capture.json. This changes no setting on the user's Mac. Earlier captures used the runner's light-control theme inside the app's fixed dark panels; their geometry/font evidence remains separate from dark-theme color acceptance. In particular, the earlier white switch-thumb correction must be reconsidered against the dark reference rather than treating the light runner as the gallery palette.
+
+The quiet-hours pass also captures `global-settings-quiet-hours-off` after switching off the isolated demo control through its native TogglePattern. It records exposed toggle states, requires both time handles to become disabled, then restores the on state before continuing. This supplies off-state palette and disabled-control evidence without changing a real account or invoking a provider.
