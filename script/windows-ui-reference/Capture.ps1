@@ -412,6 +412,28 @@ try {
     [ReferenceWindowNative]::MovePointer($away.X, $away.Y)
     Start-Sleep -Milliseconds 500
     $hexFocused = Save-ReferenceView -Name 'custom-color-picker-hex-focused' -Root $root -Handle $handle -Output $Output
+    # Inspect the built-in TextBox clear affordance without clearing the color.
+    # Releasing outside the button cancels its press; assert the value survives.
+    $clearValue = $null
+    if (-not $hexField.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern, [ref]$clearValue)) {
+        throw 'Native hex value was unavailable for clear-button verification.'
+    }
+    $beforeClearProbe = $clearValue.Current.Value
+    $clearBounds = $hexField.Current.BoundingRectangle
+    [ReferenceWindowNative]::MovePointer([int]($clearBounds.Right - 18), [int]($clearBounds.Y + $clearBounds.Height / 2))
+    Start-Sleep -Milliseconds 500
+    Save-ReferenceView -Name 'custom-color-picker-clear-hovered' -Root $root -Handle $handle -Output $Output | Out-Null
+    try {
+        [ReferenceWindowNative]::SetLeftButton($true)
+        Start-Sleep -Milliseconds 250
+        Save-ReferenceView -Name 'custom-color-picker-clear-pressed' -Root $root -Handle $handle -Output $Output | Out-Null
+    } finally {
+        [ReferenceWindowNative]::MovePointer($away.X, $away.Y)
+        [ReferenceWindowNative]::SetLeftButton($false)
+    }
+    Start-Sleep -Milliseconds 300
+    if ($clearValue.Current.Value -ne $beforeClearProbe) { throw 'Cancelled clear-button probe changed the color.' }
+    Save-ReferenceView -Name 'custom-color-picker-clear-cancelled' -Root $root -Handle $handle -Output $Output | Out-Null
     $colorModel = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,
         [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, 'Color model'))
     if ($null -eq $colorModel) { throw 'Native color-model selector was not exposed.' }
