@@ -120,6 +120,22 @@ function Save-ReferenceView {
     return [pscustomobject]@{ Rows = $rows; Width = $width; Height = $height }
 }
 
+function Invoke-ReferenceAction {
+    param([string]$Name, [System.Windows.Automation.AutomationElement]$Root)
+    $condition = [System.Windows.Automation.AndCondition]::new(
+        [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, $Name),
+        [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button))
+    $targets = @($Root.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condition) | Where-Object {
+        -not $_.Current.IsOffscreen -and $_.Current.BoundingRectangle.Height -ge 32
+    })
+    if ($targets.Count -ne 1) { throw "Reference action not uniquely visible: $Name" }
+    $invoke = $null
+    if (-not $targets[0].TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern, [ref]$invoke)) {
+        throw "Reference action did not expose Invoke: $Name"
+    }
+    $invoke.Invoke()
+}
+
 $data = Join-Path $Output 'isolated-demo-state'
 $app = $null
 try {
@@ -192,6 +208,16 @@ try {
     if (-not ($details.Rows | Where-Object { $_.name -match 'Last successful fetch' })) {
         throw 'The usage popup body was not exposed after invoking the quota.'
     }
+    Invoke-ReferenceAction -Name 'Close' -Root $root
+    Start-Sleep -Seconds 1
+    Invoke-ReferenceAction -Name 'Settings for OpenAI / Personal · Plus' -Root $root
+    Start-Sleep -Seconds 2
+    $settings = Save-ReferenceView -Name 'account-settings' -Root $root -Handle $handle -Output $Output
+    if (-not ($settings.Rows | Where-Object { $_.name -eq 'Account Name' }) -or
+        -not ($settings.Rows | Where-Object { $_.name -eq '2 Available' })) {
+        throw 'The account settings form and reserve count were not exposed.'
+    }
+
 } finally {
     if ($null -ne $app -and -not $app.HasExited) { $app.Kill(); $app.WaitForExit() }
     # Only screenshots/geometry leave this fresh runner, never its generated state.

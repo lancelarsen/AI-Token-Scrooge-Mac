@@ -17,6 +17,7 @@ Outputs:
 - `dashboard-elements.json`: element names, rectangles, enabled/offscreen states and available font attributes.
 - `account-rows.png` / `account-rows-elements.json`: scrolled demo account rows and their measured controls.
 - `usage-details.png` / `usage-details-elements.json`: first demo quota popup, opened through UI Automation.
+- `account-settings.png` / `account-settings-elements.json`: first demo account settings, including regular-label and reserve-count measurements.
 - `capture.json`: pinned release/source and measured window dimensions.
 - `startup.json`: session/window diagnostics if no visible window appears.
 - `resolved-fonts.json` and `font-*.ttf`: installed classic Segoe UI faces resolved independently through WPF, with hashes and family metrics. This identifies installed files for comparison; it does not establish WinUI fallback resolution on its own.
