@@ -39,6 +39,9 @@ struct ResetCountdownText: View {
                 .foregroundStyle(Color(hex: isExpiry ? "#EAAA51" : "#BDA3F5"))
             Text(Format.date(date, zone: zone))
                 .font(.reference(size: 12)).foregroundStyle(Theme.dialogText)
+                // Match the 14-point date line box in the Windows countdown;
+                // the same face otherwise reserves 16 points in SwiftUI.
+                .frame(height: 14)
         }
     }
 }
