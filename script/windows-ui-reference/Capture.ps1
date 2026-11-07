@@ -25,6 +25,23 @@ foreach ($name in @('Segoe UI', 'Segoe UI Semibold')) {
         sha256 = (Get-FileHash -LiteralPath $fontPath -Algorithm SHA256).Hash;
         familyLineSpacing = $typeface.FontFamily.LineSpacing; baseline = $glyph.Baseline }
 }
+# Preserve the installed variable face too. A WPF family lookup is evidence
+# about the installed file, not proof of the XAML control's final optical axes.
+foreach ($name in @('Segoe UI Variable', 'Segoe UI Variable Text')) {
+    $typeface = [System.Windows.Media.Typeface]::new($name)
+    $glyph = $null
+    if (-not $typeface.TryGetGlyphTypeface([ref]$glyph)) {
+        $fontRows += [ordered]@{ requestedFamily = $name; resolved = $false }
+        continue
+    }
+    $fontPath = $glyph.FontUri.LocalPath
+    $file = 'font-' + [System.IO.Path]::GetFileName($fontPath)
+    Copy-Item -LiteralPath $fontPath -Destination (Join-Path $Output $file)
+    $fontRows += [ordered]@{ requestedFamily = $name; resolved = $true; file = $file;
+        familyNames = @($glyph.FamilyNames.Values); faceNames = @($glyph.FaceNames.Values);
+        version = $glyph.Version; sha256 = (Get-FileHash -LiteralPath $fontPath -Algorithm SHA256).Hash;
+        familyLineSpacing = $typeface.FontFamily.LineSpacing; baseline = $glyph.Baseline }
+}
 $fontRows | ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $Output 'resolved-fonts.json')
 Add-Type @'
 using System;
