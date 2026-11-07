@@ -261,6 +261,7 @@ struct InlineLineColorEditor: View {
     @State private var hexDraft = ""
     @State private var channelDrafts: [Int: String] = [:]
     @State private var mode = "RGB"
+    @State private var modelKeyboardFocus = false
     @FocusState private var hexFocused: Bool
     @FocusState private var spectrumFocused: Bool
     @State private var spectrumHovered = false
@@ -376,9 +377,9 @@ struct InlineLineColorEditor: View {
                     Spacer()
                     ReferenceDropdownChevron()
                 }.padding(.horizontal, 12).frame(width: 120, height: 32)
-                    .background(Color(hex: "#2F3036"), in: RoundedRectangle(cornerRadius: 10))
+                    .background(ColorModelFieldSurface(focused: modelKeyboardFocus))
                     .accessibilityHidden(true)
-                    .overlay { ColorModelPopup(selection: $mode) }
+                    .overlay { ColorModelPopup(selection: $mode, focusChanged: { modelKeyboardFocus = $0 }) }
                 Spacer()
                 TextField("Hex Color", text: Binding(get: { hexDraft }, set: { editHex($0) }))
                     .modifier(ColorEntryStyle(focused: hexFocused, clear: hexDraft.isEmpty ? nil : { editHex("#"); hexFocused = true }))
@@ -555,9 +556,11 @@ struct InlineLineColorEditor: View {
 /// editing controls. SwiftUI supplies the visible label and owns the selection.
 private struct ColorModelPopup: NSViewRepresentable {
     @Binding var selection: String
+    var focusChanged: (Bool) -> Void
 
     final class Control: NSPopUpButton {
         var didSelect: ((String) -> Void)?
+        var didFocus: ((Bool) -> Void)?
         override var canBecomeKeyView: Bool { isEnabled && !isHiddenOrHasHiddenAncestor }
         override var acceptsFirstResponder: Bool { isEnabled }
 
@@ -566,6 +569,7 @@ private struct ColorModelPopup: NSViewRepresentable {
         }
 
         override func keyDown(with event: NSEvent) {
+            didFocus?(true)
             switch event.keyCode {
             case 36, 49, 76, 125, 126: performClick(nil) // Return, Space, Enter, Down, Up
             case 123, 124:
@@ -577,23 +581,22 @@ private struct ColorModelPopup: NSViewRepresentable {
 
         override func becomeFirstResponder() -> Bool {
             let accepted = super.becomeFirstResponder()
-            needsDisplay = true
+            didFocus?(accepted && NSApp.currentEvent?.type == .keyDown)
             return accepted
         }
 
         override func resignFirstResponder() -> Bool {
             let resigned = super.resignFirstResponder()
-            needsDisplay = true
+            didFocus?(false)
             return resigned
         }
 
-        override func draw(_ dirtyRect: NSRect) {
-            guard window?.firstResponder === self else { return }
-            NSColor(Theme.accent).setStroke()
-            let ring = NSBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), xRadius: 9, yRadius: 9)
-            ring.lineWidth = 2
-            ring.stroke()
+        override func mouseDown(with event: NSEvent) {
+            didFocus?(false)
+            super.mouseDown(with: event)
         }
+
+        override func draw(_ dirtyRect: NSRect) {} // SwiftUI owns the visible surface.
     }
 
     func makeNSView(context: Context) -> Control {
@@ -612,7 +615,28 @@ private struct ColorModelPopup: NSViewRepresentable {
 
     func updateNSView(_ control: Control, context: Context) {
         control.didSelect = { selection = $0 }
+        control.didFocus = focusChanged
         control.selectItem(withTitle: selection)
+    }
+}
+
+/// Captured WinUI ComboBox keyboard focus: four-point outer margin, white
+/// two-point outline and the default blue three-by-sixteen selection marker.
+struct ColorModelFieldSurface: View {
+    var focused: Bool
+    var body: some View {
+        RoundedRectangle(cornerRadius: 10).fill(Color(hex: focused ? "#3B3C42" : "#2F3036"))
+            .overlay {
+                if focused {
+                    RoundedRectangle(cornerRadius: 10).strokeBorder(Color(hex: "#434349"), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 8).strokeBorder(.white, lineWidth: 2).padding(-4)
+                }
+            }
+            .overlay(alignment: .leading) {
+                if focused {
+                    Capsule().fill(Color(hex: "#4CC2FF")).frame(width: 3, height: 16).padding(.leading, 1)
+                }
+            }
     }
 }
 

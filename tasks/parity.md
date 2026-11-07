@@ -280,3 +280,6 @@ Color numeric inputs now retain invalid/empty drafts without clamping the accept
 
 
 November7 RGB/Hex input constraint: pinned Windows run42381576873 confirms #FF0001 and RGB255,0,1 resolve to#FF0004 after the default359-degree HSV bound. Mac now applies that same edit-time constraint and retains fractional HSV through byte rounding. Seven captured edge/primary/gray model vectors, canonical app/test-bundle builds and actual isolated native Hex/Blue/HSV/Cancel checks passed. Native XCTest execution remains OS-auth-gated; see visual-parity-audit.md for scope and remaining picker states.
+
+
+November7 actual model-selector focus: Windows run42382119965 verifies Tab reaches Color model and exposes its keyboard-focused white outer outline, dark fill and blue left marker. Mac replaced the lavender inner ring with that captured surface through its existing narrow AppKit focus bridge. Production-render pixel checks, app/test-bundle builds and native keyboard entry/switch/exit, pointer selection and Cancel passed; canonical app restored. Native XCTest authorization and the remaining picker raster/drag/hover acceptance gaps stay open. Prior hue-bound hosted regression passed in Mac Preview42382119763:175 tests, two installed-CLI skips, zero failures.

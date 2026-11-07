@@ -155,6 +155,14 @@ final class ReferenceTypographyTests: XCTestCase {
             try check(Toggle("", isOn: .constant(true)).toggleStyle(ScroogeSwitchStyle(showsLabel: false, thumbColor: Color(hex: "#D1BEFF"))),
                       samples: [(30, 10, [209, 190, 255])])
             if scheme == .dark {
+                // Actual Tab focus in pinned Windows run42382119965. The
+                // outer focus outline adds four points around the32-point body.
+                try check(ColorModelFieldSurface(focused: true).frame(width: 120, height: 32).padding(4),
+                          samples: [(20, 20, [59, 60, 66]), (6, 20, [76, 194, 255]),
+                                    (126, 20, [255, 255, 255]), (64, 0, [255, 255, 255]),
+                                    (64, 4, [67, 67, 73])])
+                try check(ColorModelFieldSurface(focused: false).frame(width: 120, height: 32).padding(4),
+                          samples: [(20, 20, [47, 48, 54]), (6, 20, [47, 48, 54]), (126, 20, [28, 30, 36])])
                 // Focused native Hex input, run42377781813. The captured
                 // Windows default focus accent is independent of app lavender.
                 try check(Text("").frame(maxWidth: .infinity).modifier(ColorEntryStyle(focused: true)).frame(width: 132),
