@@ -50,3 +50,9 @@ Repeated the failure, restored transport and supplied no further UI input. A rea
 ### Hosted validation refresh — November 7
 
 Run 42350980125 at `ff29fc8327dad2868537430cc6ef52ee3665e60c` succeeded: 149 hosted tests, two installed-CLI skips, zero failures. This includes the test-notification snooze safeguard and lowercase quota-format assertions. It does not rerun the native UI selectors or cover the later Available resets title change.
+
+### Native UI runner startup diagnosis — November 7
+
+A targeted native UI test (testCountUsageDetailsShowOverageAndMissingLimit) again exited 65 before execution. Exported diagnostics show test-process authorization succeeded, then testmanagerd blocked in XAMLocalAuthenticationProvider → LAContext.evaluatePolicy while enabling automation mode. Direct native computer-use inspection found the actual coreautha window: “XCTest is trying to Enable UI Automation. Touch ID or enter your password to continue with XCTest.” Its controls are Use Password… and Cancel. User authentication was requested; no password was entered or requested in chat. Developer security policy was inspected but not changed. This is a macOS authentication gate, not a failing app assertion. The user must authorize the OS prompt before another native UI run. Diagnostics and samples remain in /tmp/scrooge-ui-startup-diagnostics, /tmp/scrooge-ui-testmanager-sample.txt and /tmp/scrooge-ui-runner-sample.txt. Hosted testing remains available.
+
+CI run 42353026911 at `1dfe634042f4891e59bd459e14ff7fa187e71c4c` passed build and preview publication. Hosted tests executed 151 cases with two installed-CLI skips and zero failures; this covers the new status scenarios. It does not cover native UI execution or the pending authentication gate.
