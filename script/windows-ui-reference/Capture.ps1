@@ -106,9 +106,9 @@ function Save-ReferenceView {
             x = $bounds.X; y = $bounds.Y; width = $bounds.Width; height = $bounds.Height;
             enabled = $current.IsEnabled; offscreen = $current.IsOffscreen }
         $pattern = $null
-        if ($element.TryGetCurrentPattern([System.Windows.Automation.TextPattern]::Pattern, [ref]$pattern)) {
+        if ($element.TryGetCurrentPattern([System.Windows.Automation.TextPattern]::Pattern, [ref]$pattern) -and $null -ne $pattern) {
             $range = $pattern.DocumentRange
-            foreach ($attribute in @('FontName', 'FontSize', 'FontWeight')) {
+            foreach ($attribute in @('FontName', 'FontSize', 'FontWeight') | Where-Object { $null -ne $range }) {
                 $field = [System.Windows.Automation.TextPattern].GetField($attribute + 'Attribute')
                 $value = $range.GetAttributeValue($field.GetValue($null))
                 if ($value -is [string] -or $value -is [double] -or $value -is [int]) { $row[$attribute] = $value }
@@ -224,7 +224,7 @@ try {
     $away = [System.Drawing.Point]::new([int]($root.Current.BoundingRectangle.X + 20), [int]($root.Current.BoundingRectangle.Y + 16))
     [ReferenceWindowNative]::MovePointer($away.X, $away.Y)
     $plainTargets = @($rows | Where-Object {
-        $_.type -eq 'ControlType.Button' -and $_.name.StartsWith('Hide OpenAI / Personal') -and -not $_.offscreen
+        $_.type -eq 'ControlType.Button' -and $_.name -like 'Hide OpenAI / Personal*' -and -not $_.offscreen
     })
     if ($plainTargets.Count -ne 1) { throw 'The selector help target was not uniquely visible.' }
     $plainTarget = $plainTargets[0]
@@ -245,7 +245,7 @@ try {
     Start-Sleep -Seconds 1
     $edgeDashboard = Save-ReferenceView -Name 'tooltip-edge-targets' -Root $root -Handle $handle -Output $Output
     $edgeTargets = @($edgeDashboard.Rows | Where-Object {
-        $_.type -eq 'ControlType.Button' -and $_.name.StartsWith('Hide OpenAI / Personal') -and -not $_.offscreen
+        $_.type -eq 'ControlType.Button' -and $_.name -like 'Hide OpenAI / Personal*' -and -not $_.offscreen
     })
     if ($edgeTargets.Count -ne 1) { throw 'The screen-edge selector target was not uniquely visible.' }
     $edgeTarget = $edgeTargets[0]
@@ -329,6 +329,11 @@ try {
         throw 'The account settings form and reserve count were not exposed.'
     }
 
+} catch {
+    [ordered]@{ message = $_.Exception.Message; stack = $_.ScriptStackTrace;
+        position = $_.InvocationInfo.PositionMessage } | ConvertTo-Json |
+        Set-Content -Encoding UTF8 (Join-Path $Output 'failure.json')
+    throw
 } finally {
     if ($null -ne $app -and -not $app.HasExited) { $app.Kill(); $app.WaitForExit() }
     # Only screenshots/geometry leave this fresh runner, never its generated state.
