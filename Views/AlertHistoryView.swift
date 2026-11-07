@@ -132,9 +132,10 @@ struct DetailsDialog<Content: View>: View {
     private var hasPrimaryAction: Bool { primaryTitle != nil && primaryAction != nil }
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 8) {
+            // WinUI ContentDialogTitleMargin is 12 points below the natural
+            // title line box; body paragraphs keep their own eight-point gaps.
+            VStack(alignment: .leading, spacing: 12) {
                 Text(title).font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
-                    .frame(minHeight: 32, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
                 ViewThatFits(in: .vertical) {
                     content().fixedSize(horizontal: false, vertical: true)

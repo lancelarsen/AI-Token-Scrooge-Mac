@@ -53,7 +53,7 @@ struct DashboardWindowSizeReader: NSViewRepresentable {
 }
 
 enum Theme {
-    static let dialogTitleFont = Font.reference(size: 22, weight: .semibold)
+    static let dialogTitleFont = ReferenceTypography.nativeTextFont(size: 22, semibold: true)
     // Native WinUI dialog TextBlocks use the Segoe UI Variable Text face.
     static let dialogBodyFont = ReferenceTypography.nativeTextFont()
     static let primaryText = Color(hex: "#F2F1F5")
