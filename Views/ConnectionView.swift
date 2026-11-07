@@ -220,6 +220,8 @@ struct ConnectionStatusLine: View {
     let text: String
     var body: some View {
         Text(text.isEmpty ? " " : text)
+            .font(.reference(size: 14))
+            .referenceClassicLineMetrics(size: 14)
             .foregroundStyle(Theme.secondary)
             .frame(minHeight: 19, alignment: .leading)
             .fixedSize(horizontal: false, vertical: true)

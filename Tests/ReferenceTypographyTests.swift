@@ -112,6 +112,20 @@ final class ReferenceTypographyTests: XCTestCase {
         }
     }
 
+    @MainActor func testConnectionStatusRetainsNativeMultilineMetricsAndEmptyRow() {
+        // Native run42396166221: the advanced connection's three-line classic
+        // Segoe14 Label is534x56. Status and explanation share that Label style.
+        let text = "Advanced connection: use a fine-grained token with Plan read permission for personal billing. Organization billing requires authorized administration access. Your token stays protected on this PC."
+        let wrapped = NSHostingView(rootView: ConnectionStatusLine(text: text).frame(width: 534))
+        XCTAssertEqual(wrapped.fittingSize, CGSize(width: 534, height: 56))
+        for (message, height) in [("", 19.0), ("Waiting for sign-in", 19.0),
+                                  ("One line\nAnother line", 38.0),
+                                  ("One line\nAnother line\nThird line\nFourth line", 75.0)] {
+            let host = NSHostingView(rootView: ConnectionStatusLine(text: message).frame(width: 534))
+            XCTAssertEqual(host.fittingSize.height, height, accuracy: 0.5)
+        }
+    }
+
     @MainActor func testSoundChoicesMatchCapturedWindowsRadioTargets() {
         for title in ["Duck Sounds", "Classic Chimes"] {
             let host = NSHostingView(rootView: ReferenceRadioChoice(title: title, selected: false, select: {}))
