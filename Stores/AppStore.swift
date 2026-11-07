@@ -290,7 +290,10 @@ import AppKit
             guard let index = state.alerts.firstIndex(where: { $0.id == id }) else { return }
             var candidate = state
             mutation(&candidate.alerts[index])
-            if cue == "snooze", let until = candidate.alerts[index].snoozedUntil {
+            // Test notifications can link to an account for Show Info, but must
+            // never suppress that account's real capacity alerts.
+            let snoozesAccount = cue == "snooze" && !id.hasPrefix("test/")
+            if snoozesAccount, let until = candidate.alerts[index].snoozedUntil {
                 candidate.snoozedAccounts[candidate.alerts[index].accountID] = until
             }
             do {
@@ -300,7 +303,7 @@ import AppKit
                 }
                 state = candidate
                 if activeAlert?.id == bannerID,
-                   (activeAlert?.id == id || (cue == "snooze" && activeAlert?.accountID == candidate.alerts[index].accountID)) {
+                   (activeAlert?.id == id || (snoozesAccount && activeAlert?.accountID == candidate.alerts[index].accountID)) {
                     activeAlert = nil
                 }
                 await notifications.cancel(id)

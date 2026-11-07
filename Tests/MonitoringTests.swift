@@ -602,6 +602,33 @@ final class MonitoringTests: XCTestCase {
     }
 
     @MainActor
+    func testSnoozingTestNotificationPreservesRealAccountAlerts() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("test-snooze.db"))
+        let account = ProviderAccount(provider: .codex, nickname: "Personal", subject: "test", scope: "personal")
+        var state = PersistedState()
+        state.accounts = [account]
+        state.settings.soundVolume = 0
+        let existingDeadline = Date.now.addingTimeInterval(900)
+        state.snoozedAccounts[account.id] = existingDeadline
+        state.alerts = [AlertEvent(id: "test/legacy", accountID: account.id,
+            title: "Scrooge Notification Test", detail: "Test", createdAt: .now),
+            AlertEvent(id: "real-capacity", accountID: account.id,
+            title: "Low capacity", detail: "Real alert", createdAt: .now)]
+        try await database.save(state)
+        let store = AppStore(database: database)
+        await store.load()
+        store.activeAlert = state.alerts[1]
+        await ScroogeAppDelegate.handleNotification(id: "test/legacy", action: "snooze", store: store)
+        let saved = try await database.load()
+        XCTAssertNotNil(saved.alerts[0].snoozedUntil)
+        XCTAssertEqual(saved.snoozedAccounts[account.id], existingDeadline)
+        XCTAssertEqual(saved.alerts[1], state.alerts[1])
+        XCTAssertEqual(store.activeAlert?.id, "real-capacity")
+    }
+
+    @MainActor
     func testNotificationResponseWaitsForSavedActionAndCleanup() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
