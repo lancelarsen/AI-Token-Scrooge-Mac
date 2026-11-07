@@ -47,6 +47,12 @@ struct ConnectionView: View {
     }
 }
 
+enum ConnectionPhase {
+    case idle, authorizing, committing
+    var isBusy: Bool { self != .idle }
+    var canCancel: Bool { self != .committing }
+}
+
 private struct ConnectionForm: View {
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
@@ -63,7 +69,8 @@ private struct ConnectionForm: View {
     @State private var allowance: String
     @State private var unit: UsageUnit
     @State private var advanced = false
-    @State private var connecting = false
+    @State private var phase = ConnectionPhase.idle
+    private var connecting: Bool { phase.isBusy }
     @State private var connectionTask: Task<Void, Never>?
     @State private var error: String?
 
@@ -114,9 +121,9 @@ private struct ConnectionForm: View {
             Text(connectionDescription).font(.reference(size: 14)).foregroundStyle(Theme.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             TextField("Account nickname (Personal, Work…)", text: $nickname, prompt: Text("Account nickname (Personal, Work…)").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle())
-                .focused($devinFocus, equals: .nickname)
+                .focused($devinFocus, equals: .nickname).disabled(connecting)
             if provider == .codex {
-                CodexConnectView(nickname: nickname, original: original)
+                CodexConnectView(nickname: nickname, original: original, phase: $phase)
             } else if provider == .copilot {
                 Menu {
                     Button("AI Credits") { unit = .credits }
@@ -131,26 +138,27 @@ private struct ConnectionForm: View {
                         .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
                 }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
                     .accessibilityLabel("Billing Unit").accessibilityValue(unit == .credits ? "AI Credits" : "Legacy Premium Requests")
-                    .disabled(original != nil)
-                TextField("Fallback allowance (optional; detected automatically when available)", text: $allowance, prompt: Text("Fallback allowance (optional; detected automatically when available)").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle())
+                    .disabled(original != nil || connecting)
+                TextField("Fallback allowance (optional; detected automatically when available)", text: $allowance, prompt: Text("Fallback allowance (optional; detected automatically when available)").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle()).disabled(connecting)
                 if !organizationReconnect {
                 Button { token = ""; error = nil; advanced.toggle() } label: {
                     DialogActionLabel(title: advanced ? "Use Browser Sign-In Instead" : "Use an Access Token Instead")
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }.buttonStyle(ScroogeButtonStyle()).disabled(connecting)
                 }
-                if !advanced && !organizationReconnect { GitHubConnectView(nickname: nickname, unit: unit, allowance: allowance, original: original) } else {
-                SecureField("Fine-grained personal access token", text: $token, prompt: Text("Fine-grained personal access token").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle())
+                if !advanced && !organizationReconnect { GitHubConnectView(nickname: nickname, unit: unit, allowance: allowance, original: original, phase: $phase) } else {
+                SecureField("Fine-grained personal access token", text: $token, prompt: Text("Fine-grained personal access token").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle()).disabled(connecting)
                 TextField("Organization billing owner (optional)", text: $organization, prompt: Text("Organization billing owner (optional)").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle())
-                    .disabled(original != nil)
+                    .disabled(original != nil || connecting)
                 ConnectionStatusLine(text: error ?? "")
                 Button {
-                    connecting = true; error = nil
+                    guard !connecting else { return }
+                    phase = .authorizing; error = nil
                     connectionTask = Task {
-                        defer { connecting = false }
+                        defer { phase = .idle }
                         do {
                             let amount = try GitHubAllowanceInput.parse(allowance)
-                            try await store.connectGitHub(nickname: nickname.trimmingCharacters(in: .whitespacesAndNewlines), token: token.trimmingCharacters(in: .whitespacesAndNewlines), allowance: amount, unit: unit, organization: organization.trimmingCharacters(in: .whitespacesAndNewlines), replacing: original)
+                            try await store.connectGitHub(nickname: nickname.trimmingCharacters(in: .whitespacesAndNewlines), token: token.trimmingCharacters(in: .whitespacesAndNewlines), allowance: amount, unit: unit, organization: organization.trimmingCharacters(in: .whitespacesAndNewlines), replacing: original, onCommitting: { phase = .committing })
                             token = ""; dismiss()
                         } catch { self.error = error.localizedDescription }
                     }
@@ -165,6 +173,7 @@ private struct ConnectionForm: View {
                     .modifier(ConnectionFieldStyle()).disabled(original != nil || connecting)
                 ConnectionStatusLine(text: error ?? "")
                 Button {
+                    guard !connecting else { return }
                     guard workspace.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || DevinUsage.workspace(workspace) != nil else {
                         error = "Enter your company’s Devin workspace URL, such as https://your-company.devinenterprise.com."
                         devinFocus = .workspace
@@ -175,12 +184,12 @@ private struct ConnectionForm: View {
                         devinFocus = .nickname
                         return
                     }
-                    connecting = true
+                    phase = .authorizing
                     error = "Complete sign-in in the Devin window."
                     connectionTask = Task {
-                        defer { connecting = false }
+                        defer { phase = .idle }
                         do {
-                            try await store.connectDevin(nickname: nickname, workspace: workspace, replacing: original)
+                            try await store.connectDevin(nickname: nickname, workspace: workspace, replacing: original, onCommitting: { phase = .committing })
                             dismiss()
                         } catch is CancellationError { self.error = "Sign-in canceled." }
                         catch { self.error = (error as? ProviderFailure)?.message ?? (error is AccountError ? error.localizedDescription : "Devin sign-in could not be saved. Try again.") }
@@ -188,13 +197,18 @@ private struct ConnectionForm: View {
                 } label: { DialogActionLabel(title: connecting ? "Signing In with Devin…" : "Sign In with Devin", processing: connecting).frame(maxWidth: .infinity, alignment: .leading) }
                     .buttonStyle(ScroogeButtonStyle(processing: connecting)).disabled(connecting)
             } else {
-                ClaudeConnectView(nickname: nickname, original: original)
+                ClaudeConnectView(nickname: nickname, original: original, phase: $phase)
             }
-            Button { dismiss() } label: { DialogActionLabel(title: "Cancel").frame(maxWidth: .infinity, alignment: .leading) }
-                .buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction).disabled(connecting)
+            Button {
+                guard phase.canCancel else { return }
+                connectionTask?.cancel()
+                dismiss()
+            } label: { DialogActionLabel(title: "Cancel").frame(maxWidth: .infinity, alignment: .leading) }
+                .buttonStyle(ScroogeButtonStyle()).keyboardShortcut(.cancelAction).disabled(!phase.canCancel)
         }.font(.reference(size: 14)).frame(maxWidth: formContentWidth).padding(32).frame(maxWidth: .infinity, alignment: .top)
         }.frame(width: panelSize.width, height: panelSize.height).referencePanelSurface().preferredColorScheme(.dark).tint(Theme.accent)
-        .onDisappear { connectionTask?.cancel(); token = "" }
+        .interactiveDismissDisabled(!phase.canCancel)
+        .onDisappear { if phase.canCancel { connectionTask?.cancel() }; token = "" }
 
     }
 }

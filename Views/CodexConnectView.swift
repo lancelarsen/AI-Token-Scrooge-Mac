@@ -9,42 +9,47 @@ struct CodexConnectView: View {
     @State private var credentialID: String?
     @State private var loginID: String?
     @State private var status = ""
-    @State private var busy = false
-    @State private var actionRequested = false
+    @Binding var phase: ConnectionPhase
+    private var busy: Bool { phase.isBusy }
+    @State private var operation: Task<Void, Never>?
     @State private var busyTitle = "Signing In with OpenAI…"
     @State private var committed = false
-    @State private var committing = false
     @State private var closed = false
     @State private var listener: Task<Void, Never>?
-    private var working: Bool { busy || actionRequested }
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             ConnectionStatusLine(text: status)
             Button {
-                guard !working, !closed else { return }
-                busyTitle = connection == nil ? "Signing In with OpenAI…" : "Checking Sign-In…"
-                actionRequested = true
-                Task {
-                    defer { actionRequested = false }
-                    if connection == nil { await start() } else { await finish() }
-                }
+                begin(checking: connection != nil)
             } label: {
-                DialogActionLabel(title: working ? busyTitle : connection == nil ? "Sign In with OpenAI" : "Check Sign-In", processing: working)
+                DialogActionLabel(title: busy ? busyTitle : connection == nil ? "Sign In with OpenAI" : "Check Sign-In", processing: busy)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .buttonStyle(ScroogeButtonStyle(processing: working)).disabled(working || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .buttonStyle(ScroogeButtonStyle(processing: busy)).disabled(busy || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
-        .onDisappear { closed = true; listener?.cancel(); if !committing && !busy { Task { await cleanup() } } }
+        .onDisappear {
+            closed = true
+            listener?.cancel()
+            if phase.canCancel { operation?.cancel() }
+            if !busy { Task { await cleanup() } }
+        }
+    }
+    private func begin(checking: Bool) {
+        guard !busy, !closed else { return }
+        busyTitle = checking ? "Checking Sign-In…" : "Signing In with OpenAI…"
+        phase = .authorizing
+        operation = Task {
+            defer { phase = .idle; if closed { Task { await cleanup() } } }
+            if checking { await finish() } else { await start() }
+        }
     }
     private func start() async {
-        guard !busy, !closed else { return }
+        guard !closed else { return }
         let credentialID = UUID().uuidString
         self.credentialID = credentialID
-        busyTitle = "Signing In with OpenAI…"
-        busy = true
-        defer { busy = false; if closed { Task { await cleanup() } } }
         do {
             try await store.stageCredential(provider: .codex, id: credentialID)
+            try Task.checkCancellation()
             let opened = try await CodexConnection.start(credentialID: credentialID)
             guard !closed else { await opened.close(); return }
             connection = opened
@@ -60,17 +65,14 @@ struct CodexConnectView: View {
                 for await event in opened.notifications {
                     guard !Task.isCancelled, !closed else { return }
                     if event["method"].string == "account/login/completed" {
-                        await finish()
+                        begin(checking: true)
                     }
                 }
             }
         } catch { status = safeMessage(error); await cleanup() }
     }
     private func finish() async {
-        guard !busy, !closed, let connection, let credentialID else { return }
-        busyTitle = "Checking Sign-In…"
-        busy = true
-        defer { busy = false; if closed { Task { await cleanup() } } }
+        guard !closed, let connection, let credentialID else { return }
         do {
             let identity = try await connection.call("account/read", parameters: .object(["refreshToken": .bool(false)]))
             guard let email = identity["account"]["email"].string, !email.isEmpty else {
@@ -85,9 +87,9 @@ struct CodexConnectView: View {
             }
             var snapshot = try ProviderMapping.codex(account: account, response: limits, observed: .now)
             snapshot.planType = identity["account"]["planType"].string
+            try Task.checkCancellation()
             guard !closed else { return }
-            committing = true
-            defer { committing = false }
+            phase = .committing
             try await store.acceptConnection(account, snapshot: snapshot, replacing: original)
             committed = true
             await cleanup(); dismiss()

@@ -7,8 +7,8 @@ struct ClaudeConnectView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var operation: Task<Void, Never>?
     @State private var status = ""
-    @State private var busy = false
-    @State private var committing = false
+    @Binding var phase: ConnectionPhase
+    private var busy: Bool { phase.isBusy }
     @State private var closed = false
     private let client = ClaudeClient()
     var body: some View {
@@ -17,16 +17,15 @@ struct ClaudeConnectView: View {
             Button {
                 guard !busy else { return }
                 let credentialID = UUID().uuidString
-                busy = true
+                phase = .authorizing
                 operation = Task {
-                    defer { busy = false; store.endCredentialAttempt(credentialID) }
+                    defer { phase = .idle; store.endCredentialAttempt(credentialID) }
                     do {
                         try await store.stageCredential(provider: .claude, id: credentialID)
                         let (account, snapshot) = try await client.connect(credentialID: credentialID, nickname: nickname.trimmingCharacters(in: .whitespacesAndNewlines), original: original)
                         try Task.checkCancellation()
                         guard !closed else { return }
-                        committing = true
-                        defer { committing = false }
+                        phase = .committing
                         try await store.acceptConnection(account, snapshot: snapshot, replacing: original)
                         dismiss()
                     } catch {
@@ -37,7 +36,7 @@ struct ClaudeConnectView: View {
             .buttonStyle(ScroogeButtonStyle(processing: busy)).disabled(busy || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }.onDisappear {
             closed = true
-            if !committing { operation?.cancel() }
+            if phase.canCancel { operation?.cancel() }
         }
     }
 }

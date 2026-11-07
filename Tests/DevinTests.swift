@@ -49,6 +49,28 @@ final class DevinTests: XCTestCase {
         XCTAssertNil(DevinClient.responseFailure(200))
     }
 
+    @MainActor func testCancellingPendingSignInClosesOwnedBrowser() async throws {
+        let navigated = expectation(description: "Isolated sign-in browser opened")
+        var signInWindow: NSWindow?
+        let client = DevinClient { view, _ in
+            signInWindow = view.window
+            navigated.fulfill()
+            // Hold the browser on an unfinished sign-in without contacting a provider.
+        }
+        let pending = ProviderAccount(provider: .devin, nickname: "Work", subject: "", scope: "")
+        let operation = Task { try await client.observe(account: pending, session: nil, interactive: true) }
+        await fulfillment(of: [navigated], timeout: 3)
+        XCTAssertEqual(signInWindow?.isVisible, true)
+        operation.cancel()
+        do {
+            _ = try await operation.value
+            XCTFail("Canceled sign-in must not return an authenticated session")
+        } catch is CancellationError {
+            // Cancellation must also tear down the owned browser window.
+        } catch { XCTFail("Unexpected sign-in failure: \(error)") }
+        XCTAssertEqual(signInWindow?.isVisible, false)
+    }
+
     @MainActor func testEmailFirstSignInBindsVerifiedTenant() async throws {
         var requests: [URL] = []
         let tenant = "fixture.devinenterprise.com"

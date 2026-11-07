@@ -9,8 +9,8 @@ struct GitHubConnectView: View {
     let original: ProviderAccount?
     @State private var challenge: GitHubChallenge?
     @State private var task: Task<Void, Never>?
-    @State private var busy = false
-    @State private var committing = false
+    @Binding var phase: ConnectionPhase
+    private var busy: Bool { phase.isBusy }
     @State private var status = ""
     private let flow = GitHubDeviceFlow()
     var body: some View {
@@ -46,14 +46,14 @@ struct GitHubConnectView: View {
                 }.buttonStyle(ScroogeButtonStyle())
             }
 
-        }.onDisappear { if !committing { task?.cancel() }; challenge = nil }
+        }.onDisappear { if phase.canCancel { task?.cancel() }; challenge = nil }
 
     }
     private func begin() {
         guard !busy else { return }
-        busy = true
+        phase = .authorizing
         task = Task {
-            defer { busy = false; challenge = nil }
+            defer { phase = .idle; challenge = nil }
             do {
                 let amount = try GitHubAllowanceInput.parse(allowance)
                 let code = try await flow.begin()
@@ -63,9 +63,7 @@ struct GitHubConnectView: View {
                 NSWorkspace.shared.open(code.verificationURL)
                 let tokens = try await flow.wait(code)
                 try Task.checkCancellation()
-                committing = true
-                defer { committing = false }
-                try await store.connectGitHub(nickname: nickname.trimmingCharacters(in: .whitespacesAndNewlines), token: tokens.accessToken, allowance: amount, unit: unit, organization: "", appTokens: tokens, replacing: original)
+                try await store.connectGitHub(nickname: nickname.trimmingCharacters(in: .whitespacesAndNewlines), token: tokens.accessToken, allowance: amount, unit: unit, organization: "", appTokens: tokens, replacing: original, onCommitting: { phase = .committing })
                 dismiss()
             } catch {
                 status = (error as? ProviderFailure)?.message ?? (error is AccountError || error is StoreError ? error.localizedDescription : "GitHub sign-in could not be completed. Please try again.")

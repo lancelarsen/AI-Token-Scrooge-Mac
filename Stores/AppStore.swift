@@ -574,7 +574,7 @@ import AppKit
         }
         await reloadHistory()
     }
-    func connectDevin(nickname: String, workspace: String, replacing original: ProviderAccount?) async throws {
+    func connectDevin(nickname: String, workspace: String, replacing original: ProviderAccount?, onCommitting: @MainActor () -> Void = {}) async throws {
         let input = (original?.scope ?? workspace).trimmingCharacters(in: .whitespacesAndNewlines)
         let host = DevinUsage.workspace(input)?.host
         guard host != nil || (input.isEmpty && original == nil) else {
@@ -589,10 +589,11 @@ import AppKit
         account.subject = snapshot.subject
         account.scope = snapshot.scope
         try Task.checkCancellation()
+        onCommitting()
         try await acceptConnection(account, snapshot: snapshot, replacing: original)
     }
 
-    func connectGitHub(nickname: String, token: String, allowance: Decimal?, unit: UsageUnit, organization: String, appTokens: GitHubAppTokens? = nil, replacing original: ProviderAccount?) async throws {
+    func connectGitHub(nickname: String, token: String, allowance: Decimal?, unit: UsageUnit, organization: String, appTokens: GitHubAppTokens? = nil, replacing original: ProviderAccount?, onCommitting: @MainActor () -> Void = {}) async throws {
         let identity = try await github.identify(token: token)
         var account = ProviderAccount(provider: .copilot, nickname: nickname, subject: identity.subject,
             scope: organization.isEmpty ? "personal" : "organization:" + organization.lowercased(), allowance: allowance, unit: unit, login: identity.login)
@@ -612,6 +613,7 @@ import AppKit
         else { try await secrets.save(Data(token.utf8), id: account.credentialID, allowInteraction: true) }
         do {
             try Task.checkCancellation()
+            onCommitting()
             try await acceptConnection(account, snapshot: snapshot, replacing: original)
         }
         catch { try? await secrets.remove(account.credentialID); throw error }
