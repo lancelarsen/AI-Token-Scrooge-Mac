@@ -540,6 +540,53 @@ final class MonitoringTests: XCTestCase {
     }
 
     @MainActor
+    func testHistoryPopupDismissalClearsSelectionAndDetachesOwnerObserver() throws {
+        let window = TooltipTestWindow(contentRect: NSRect(x: 0, y: 0, width: 800, height: 400),
+                                       styleMask: [.borderless], backing: .buffered, defer: true)
+        window.isReleasedWhenClosed = false
+        defer { window.close() }
+        let root = NSView(frame: NSRect(x: 0, y: 0, width: 800, height: 400))
+        window.contentView = root
+        let tracker = HistoryPointerTracking.TrackingView(frame: NSRect(x: 40, y: 50, width: 600, height: 300))
+        root.addSubview(tracker)
+        window.testIsKey = true
+        let text = "OpenAI / Personal · Plus\nWeekly · 74% Used\nSat, Nov 7 12:03 AM"
+        var selection: String? = text
+        var dismissals = 0
+        tracker.onMove = { [weak tracker] point in
+            if point == nil {
+                selection = nil
+                tracker?.popupText = nil
+                dismissals += 1
+            }
+        }
+        tracker.pinned = true
+        tracker.popupText = text
+        tracker.showPopup(text)
+        let popup = try XCTUnwrap(NSApp.windows.first { $0.title == "Usage History Details" && $0.isVisible })
+
+        window.testIsKey = false
+        NotificationCenter.default.post(name: NSWindow.didResignKeyNotification, object: window)
+        XCTAssertFalse(popup.isVisible, "Owner focus loss dismisses even pinned details")
+        XCTAssertNil(selection)
+        XCTAssertNil(tracker.popupText)
+        XCTAssertEqual(dismissals, 1)
+
+        window.testIsKey = true
+        tracker.updateTrackingAreas()
+        tracker.showPopup(tracker.popupText)
+        XCTAssertFalse(popup.isVisible, "Returning to the owner must not replay cleared details")
+        tracker.popupText = text
+        tracker.showPopup(text)
+        XCTAssertTrue(popup.isVisible, "A fresh selection can show details again")
+
+        tracker.removeFromSuperview()
+        XCTAssertFalse(popup.isVisible)
+        NotificationCenter.default.post(name: NSWindow.didResignKeyNotification, object: window)
+        XCTAssertEqual(dismissals, 1, "Detached tracking surfaces must release their owner observer")
+    }
+
+    @MainActor
     func testNotificationOpenLoadsSavedAlertAndRequestsItsAccount() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
