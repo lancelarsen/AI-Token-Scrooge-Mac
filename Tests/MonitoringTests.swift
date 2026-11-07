@@ -306,9 +306,19 @@ final class MonitoringTests: XCTestCase {
         let event = try XCTUnwrap(NSEvent.mouseEvent(with: .leftMouseDown,
             location: CGPoint(x: 30, y: 30), modifierFlags: [], timestamp: 0,
             windowNumber: window.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1))
+        func displaceDrag() async throws {
+            let movement = try XCTUnwrap(NSEvent.mouseEvent(with: .leftMouseDragged,
+                location: CGPoint(x: 30, y: 180), modifierFlags: [], timestamp: 0,
+                windowNumber: window.windowNumber, context: nil, eventNumber: 1, clickCount: 1, pressure: 1))
+            NSApp.postEvent(movement, atStart: true)
+            try await Task.sleep(for: .milliseconds(80))
+            XCTAssertTrue(dragging.moving)
+            XCTAssertFalse(dragging.offsets.isEmpty, "Cancellation must be tested after the card has moved")
+        }
         var savedSlots: [Int] = []
         dragging.begin(id: "0", ids: ["0", "1"], event: event) { savedSlots.append($0) }
         XCTAssertEqual(dragging.activeID, "0")
+        try await displaceDrag()
         window.setContentSize(NSSize(width: 520, height: 420))
         try await Task.sleep(for: .milliseconds(250))
         XCTAssertNil(dragging.activeID)
@@ -316,6 +326,7 @@ final class MonitoringTests: XCTestCase {
         XCTAssertTrue(savedSlots.isEmpty)
         dragging.begin(id: "1", ids: ["0", "1"], event: event) { savedSlots.append($0) }
         XCTAssertEqual(dragging.activeID, "1", "Cancellation must release the input monitor for a fresh drag")
+        try await displaceDrag()
         let escape = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero,
             modifierFlags: [], timestamp: 0, windowNumber: window.windowNumber,
             context: nil, characters: "\u{1b}", charactersIgnoringModifiers: "\u{1b}",
@@ -323,6 +334,7 @@ final class MonitoringTests: XCTestCase {
         NSApp.postEvent(escape, atStart: true)
         try await Task.sleep(for: .milliseconds(250))
         XCTAssertNil(dragging.activeID)
+        XCTAssertTrue(dragging.offsets.isEmpty)
         XCTAssertTrue(savedSlots.isEmpty)
     }
 
