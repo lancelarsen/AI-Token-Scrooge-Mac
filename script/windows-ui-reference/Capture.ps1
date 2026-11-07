@@ -541,6 +541,16 @@ try {
         keyboardFocused = $keyboardFocus.Current.HasKeyboardFocus } |
         ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $Output 'color-model-keyboard-focus.json')
     Save-ReferenceView -Name 'custom-color-picker-model-keyboard' -Root $root -Handle $handle -Output $Output | Out-Null
+    [System.Windows.Forms.SendKeys]::SendWait('+{TAB}')
+    Start-Sleep -Milliseconds 500
+    $brightnessKeyboardFocus = [System.Windows.Automation.AutomationElement]::FocusedElement
+    [ordered]@{ name = $brightnessKeyboardFocus.Current.Name;
+        type = $brightnessKeyboardFocus.Current.ControlType.ProgrammaticName;
+        keyboardFocused = $brightnessKeyboardFocus.Current.HasKeyboardFocus } |
+        ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $Output 'color-brightness-keyboard-focus.json')
+    Save-ReferenceView -Name 'custom-color-picker-brightness-keyboard' -Root $root -Handle $handle -Output $Output | Out-Null
+    [System.Windows.Forms.SendKeys]::SendWait('{TAB}')
+    Start-Sleep -Milliseconds 300
     $redField = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,
         [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, 'Red'))
     $redValue = $null; $hexValue = $null
