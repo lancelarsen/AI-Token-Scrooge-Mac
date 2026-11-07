@@ -56,6 +56,15 @@ ZIP_PATH="$OUTPUT_DIR/AI-Token-Scrooge-Mac-$DISPLAY_VERSION-arm64-preview.zip"
 if [[ -n "${SCROOGE_SIGNING_IDENTITY:-}" ]]; then
   /usr/bin/codesign --force --options runtime --timestamp --sign "$SCROOGE_SIGNING_IDENTITY" "$APP_BUNDLE"
 fi
+# Never publish a release that allows another process to attach a debugger.
+# Debug builds retain Xcode's normal development entitlements.
+/usr/bin/codesign -d --entitlements - --xml "$APP_BUNDLE" 2>/dev/null | python3 -c '
+import plistlib, sys
+payload = sys.stdin.buffer.read()
+entitlements = plistlib.loads(payload) if payload.strip() else {}
+if entitlements.get("com.apple.security.get-task-allow", False):
+    sys.exit("Release package contains the get-task-allow debugger entitlement.")
+'
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
 /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$APP_BUNDLE" "$ZIP_PATH"
 if [[ -n "${SCROOGE_NOTARY_PROFILE:-}" ]]; then

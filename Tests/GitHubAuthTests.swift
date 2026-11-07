@@ -37,7 +37,10 @@ private actor RenewalFixture {
     var refreshes = 0
     var failSave: Int?
     var failRefresh = false
+    var identity = "subject"
     func configure(save: Int? = nil, refresh: Bool = false) { failSave = save; failRefresh = refresh }
+    func setIdentity(_ value: String) { identity = value }
+    func identify() -> String { identity }
     func read() -> Data? { data }
     func save(_ value: Data, interaction: Bool) throws {
         saves += 1
@@ -56,7 +59,7 @@ private actor RenewalFixture {
     func count() -> Int { refreshes }
     var dependencies: GitHubCredentialManager.Dependencies {
         .init(read: { _ in await self.read() }, save: { value, _, interaction in try await self.save(value, interaction: interaction) },
-              remove: { _ in await self.remove() }, refresh: { try await self.refresh($0) }, identify: { _ in "subject" })
+              remove: { _ in await self.remove() }, refresh: { try await self.refresh($0) }, identify: { _ in await self.identify() })
     }
 }
 
@@ -65,6 +68,41 @@ extension GitHubAuthTests {
         .init(clientID: "fixture", accessToken: "old-fixture", refreshToken: "refresh-fixture",
               expiresAt: .now, refreshExpiresAt: .now.addingTimeInterval(86400))
     }
+    func testExpiredRefreshCredentialRequiresReconnectWithoutRotation() async throws {
+        let fixture = RenewalFixture()
+        let manager = GitHubCredentialManager(dependencies: await fixture.dependencies)
+        let account = ProviderAccount(provider: .copilot, nickname: "Test", subject: "subject", scope: "scope")
+        var tokens = expiringTokens()
+        tokens.refreshExpiresAt = .now.addingTimeInterval(-60)
+        try await manager.saveApp(id: account.credentialID, subject: account.subject, tokens: tokens)
+        do {
+            _ = try await manager.accessToken(for: account)
+            XCTFail("Expired refresh credentials must require sign-in")
+        } catch let failure as ProviderFailure {
+            XCTAssertEqual(failure.health, .authenticationRequired)
+        }
+        let count = await fixture.count()
+        XCTAssertEqual(count, 0, "Do not attempt rotation with an expired refresh credential")
+    }
+
+    func testRenewedIdentityMismatchNeverReturnsTokenAndSurvivesReopen() async throws {
+        let fixture = RenewalFixture()
+        let manager = GitHubCredentialManager(dependencies: await fixture.dependencies)
+        let account = ProviderAccount(provider: .copilot, nickname: "Test", subject: "subject", scope: "scope")
+        try await manager.saveApp(id: account.credentialID, subject: account.subject, tokens: expiringTokens())
+        await fixture.setIdentity("other-subject")
+        for reader in [manager, GitHubCredentialManager(dependencies: await fixture.dependencies)] {
+            do {
+                _ = try await reader.accessToken(for: account)
+                XCTFail("Renewed credentials for another identity must never be returned")
+            } catch let failure as ProviderFailure {
+                XCTAssertEqual(failure.health, .authenticationRequired)
+            }
+        }
+        let count = await fixture.count()
+        XCTAssertEqual(count, 1, "Reopening must verify the saved replacement without rotating it again")
+    }
+
     func testRenewedTokenSurvivesWriteFailureWithoutSecondRotation() async throws {
         let fixture = RenewalFixture()
         let manager = GitHubCredentialManager(dependencies: await fixture.dependencies)
