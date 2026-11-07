@@ -63,7 +63,7 @@ struct AccountSettingsView: View {
                                     .modifier(ImmediateReferenceTooltip(text: "Add Custom Line Color"))
                                     .accessibilityLabel("Add Custom Line Color")
                                     .sheet(isPresented: $showColor) {
-                                        DetailsDialog(title: "Add Line Color", width: 360, maximumHeight: 640, closeTitle: "Cancel", tabToFooter: true, primaryTitle: "Add Color", primaryAction: {
+                                        DetailsDialog(title: "Add Line Color", width: 362, maximumHeight: 640, closeTitle: "Cancel", tabToFooter: true, primaryTitle: "Add Color", primaryAction: {
                                             let hex = newColor.hex; store.edit { state in
                                                 if !state.settings.customColors.contains(hex) { state.settings.customColors.append(hex) }
                                                 if let i = state.accounts.firstIndex(where: { $0.id == accountID }) { state.accounts[i].lineColor = hex }
@@ -248,9 +248,9 @@ struct MinuteSlider: View {
 
 
 /// Inline opaque-color editor matching the Windows color dialog's control arrangement.
-private enum ColorEditorSection: Hashable { case spectrum, channels }
+enum ColorEditorSection: Hashable { case spectrum, channels }
 
-private struct InlineLineColorEditor: View {
+struct InlineLineColorEditor: View {
     @Binding var color: Color
     let reveal: (ColorEditorSection) -> Void
     @FocusState private var focusedChannel: Int?
@@ -321,12 +321,13 @@ private struct InlineLineColorEditor: View {
                 }.frame(height: 256)
                 RoundedRectangle(cornerRadius: 10).fill(color).frame(width: 44, height: 256)
                     .accessibilityLabel("Selected Color").accessibilityValue(color.hex)
-            }.padding(.bottom, 16).id(ColorEditorSection.spectrum)
+            // Include the root's top inset in the reveal target, so initial
+            // spectrum focus does not scroll away four points of content.
+            }.padding(.top, 4).padding(.bottom, 16).id(ColorEditorSection.spectrum)
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     Capsule().fill(LinearGradient(colors: [.black, Color(hue: hue, saturation: saturation, brightness: 1)], startPoint: .leading, endPoint: .trailing)).frame(height: 12)
-                    Circle().fill(.white).overlay(Circle().stroke(Color(hex: "#45464D"), lineWidth: 2))
-                        .frame(width: 14, height: 14)
+                    ColorBrightnessThumb()
                         .overlay {
                             if brightnessFocused && brightnessKeyboardFocus {
                                 Circle().stroke(Theme.accent, lineWidth: 2).frame(width: 22, height: 22)
@@ -335,11 +336,11 @@ private struct InlineLineColorEditor: View {
                         .anchorPreference(key: ColorFocusTip.self, value: .bounds) { anchor in
                             brightnessFocused ? ColorFocusTip.Target(anchor: anchor, text: brightnessDescription) : nil
                         }
-                        .offset(x: brightness * max(0, geometry.size.width - 14))
+                        .offset(x: brightness * max(0, geometry.size.width - ColorBrightnessThumb.diameter))
                 }.frame(height: 32).contentShape(Rectangle())
                     .gesture(DragGesture(minimumDistance: 0).onChanged { value in
                         brightnessPressed = true; brightnessKeyboardFocus = false; brightnessFocused = true
-                        brightness = min(1, max(0, (value.location.x - 7) / max(1, geometry.size.width - 14)))
+                        brightness = min(1, max(0, (value.location.x - ColorBrightnessThumb.diameter / 2) / max(1, geometry.size.width - ColorBrightnessThumb.diameter)))
                         publish()
                     }.onEnded { _ in brightnessPressed = false })
                     .focusable().focused($brightnessFocused).focusEffectDisabled()
@@ -365,7 +366,7 @@ private struct InlineLineColorEditor: View {
                     Spacer()
                     ReferenceDropdownChevron()
                 }.padding(.horizontal, 12).frame(width: 120, height: 32)
-                    .background(Color(hex: "#303138"), in: RoundedRectangle(cornerRadius: 10))
+                    .background(Color(hex: "#2F3036"), in: RoundedRectangle(cornerRadius: 10))
                     .accessibilityHidden(true)
                     .overlay { ColorModelPopup(selection: $mode) }
                 Spacer()
@@ -397,7 +398,9 @@ private struct InlineLineColorEditor: View {
                 }
         }.textFieldStyle(.plain).font(ReferenceTypography.nativeTextFont()).foregroundStyle(Theme.primaryText)
             .textSelection(.disabled)
-            .padding(.vertical, 4)
+            // WinUI's root has four points of padding and its input panel
+            // retains a further twelve-point bottom margin.
+            .padding(.bottom, 16)
             .overlayPreferenceValue(ColorFocusTip.self) { target in
                 if let target, appearsActive {
                     GeometryReader { geometry in
@@ -580,8 +583,8 @@ private enum ColorFocusTip: PreferenceKey {
 private struct ColorEntryStyle: ViewModifier {
     func body(content: Content) -> some View {
         content.padding(.horizontal, 12).frame(height: 32)
-            .background(Color(hex: "#303138"), in: RoundedRectangle(cornerRadius: 10))
-            .overlay(alignment: .bottom) { Rectangle().fill(Theme.secondary).frame(height: 1).padding(.horizontal, 10) }
+            .background(Color(hex: "#2F3036"), in: RoundedRectangle(cornerRadius: 10))
+            .overlay(alignment: .bottom) { Rectangle().fill(Color(hex: "#9A9B9E")).frame(height: 1).padding(.horizontal, 10) }
     }
 }
 

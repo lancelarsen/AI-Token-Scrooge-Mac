@@ -83,6 +83,14 @@ final class ReferenceTypographyTests: XCTestCase {
         XCTAssertEqual(host.fittingSize.height, 120)
     }
 
+    @MainActor func testColorEditorMatchesNativeWindowsContentExtent() {
+        let host = NSHostingView(rootView: InlineLineColorEditor(color: .constant(Color(hex: "#D587A5")), reveal: { _ in })
+            .frame(width: 312))
+        // Run42376211522: 312×420 scroll viewport with 85.02024291497976%
+        // vertical view size, independently establishing 494 points of content.
+        XCTAssertEqual(host.fittingSize, CGSize(width: 312, height: 494))
+    }
+
     @MainActor func testSoundChoicesMatchCapturedWindowsRadioTargets() {
         for title in ["Duck Sounds", "Classic Chimes"] {
             let host = NSHostingView(rootView: ReferenceRadioChoice(title: title, selected: false, select: {}))
@@ -147,6 +155,11 @@ final class ReferenceTypographyTests: XCTestCase {
             try check(Toggle("", isOn: .constant(true)).toggleStyle(ScroogeSwitchStyle(showsLabel: false, thumbColor: Color(hex: "#D1BEFF"))),
                       samples: [(30, 10, [209, 190, 255])])
             if scheme == .dark {
+                // Native color-picker run42376211522: 20-point thumb, white
+                // ten-point center and #454545 outer ring.
+                XCTAssertEqual(NSHostingView(rootView: ColorBrightnessThumb()).fittingSize, CGSize(width: 20, height: 20))
+                try check(ColorBrightnessThumb().background(Color(hex: "#222329")),
+                          samples: [(10, 10, [255, 255, 255]), (3, 10, [69, 69, 69]), (10, 0, [34, 35, 41])])
                 // Native off/disabled run 42373113228. Windows and CoreGraphics
                 // alpha rounding can differ by one eight-bit channel step.
                 try check(Toggle("", isOn: .constant(false)).toggleStyle(ScroogeSwitchStyle(showsLabel: false)),

@@ -1,5 +1,15 @@
 import SwiftUI
 
+/// Normal dark-theme ColorPicker slider thumb, measured in Windows run42376211522.
+struct ColorBrightnessThumb: View {
+    static let diameter: CGFloat = 20
+    var body: some View {
+        Circle().fill(Color(hex: "#454545")).padding(1)
+            .overlay(Circle().fill(.white).frame(width: 10, height: 10))
+            .frame(width: Self.diameter, height: Self.diameter)
+    }
+}
+
 struct SpectrumSelectionIndicator: View {
     let light: Bool
     var hovered = false
