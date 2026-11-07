@@ -96,7 +96,7 @@ struct DashboardView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("AI Token Scrooge").font(.reference(size: 32, weight: .semibold))
                         .referenceFallbackLineMetrics(size: 32).frame(height: 40)
-                    Text("Never Waste a Token! Never Miss a Reset!").font(.reference(size: 16)).foregroundStyle(Theme.accent).frame(height: 26)
+                    Text("Never Waste a Token! Never Miss a Reset!").font(.reference(size: 16)).referenceClassicLineMetrics(size: 16).foregroundStyle(Theme.accent).frame(height: 26)
                 }
                 Spacer(minLength: 0)
             }

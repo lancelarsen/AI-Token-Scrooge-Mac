@@ -84,7 +84,7 @@ struct HorizonView: View {
                     } else { navigator.frame(height: 22) }
                 }
                 if let historyStatus {
-                    Text(historyStatus).font(.reference(size: 13)).foregroundStyle(Theme.secondary)
+                    Text(historyStatus).font(.reference(size: 13)).referenceClassicLineMetrics(size: 13).foregroundStyle(Theme.secondary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("historyStatus")
                 }
             }.padding(.horizontal, 12).padding(.vertical, 18)
@@ -235,21 +235,21 @@ struct HorizonView: View {
         }
         let refresh = HorizonEvent.legendCount(events.filter { !$0.expiration }.count, incomplete: partialRefresh)
         let expiry = HorizonEvent.legendCount(events.filter(\.expiration).count, incomplete: partialExpiry)
-        HStack(spacing: 7) { Circle().fill(Theme.actionAccent).frame(width: 10, height: 10); Text("Quota Refresh (\(refresh))") }
+        HStack(spacing: 7) { Circle().fill(Theme.actionAccent).frame(width: 10, height: 10); Text("Quota Refresh (\(refresh))").referenceClassicLineMetrics(size: 13) }
             .font(.reference(size: 13)).foregroundStyle(Theme.dialogText).padding(.trailing, 40)
-        HStack(spacing: 7) { Circle().fill(Theme.amber).frame(width: 10, height: 10); Text("Reset Expires (\(expiry))") }
+        HStack(spacing: 7) { Circle().fill(Theme.amber).frame(width: 10, height: 10); Text("Reset Expires (\(expiry))").referenceClassicLineMetrics(size: 13) }
             .font(.reference(size: 13)).foregroundStyle(Theme.dialogText).padding(.trailing, 40)
     }
     private var historyHint: some View {
         Text(store.state.settings.historyEnabled ? "Scroll Left for History" : "Select Services to Filter Timeline")
-            .font(.reference(size: 13)).foregroundStyle(Theme.dialogText)
+            .font(.reference(size: 13)).referenceClassicLineMetrics(size: 13).foregroundStyle(Theme.dialogText)
             .padding(.vertical, 8)
     }
     private var historyToggle: some View {
         HStack(spacing: 7) {
             Toggle("History", isOn: Binding(get: { store.state.settings.historyEnabled }, set: { store.setHistory($0) }))
                 .toggleStyle(ScroogeSwitchStyle(showsLabel: false, onColor: Color(hex: "#8670CC"), thumbColor: Color(hex: "#D1BEFF"))).frame(width: 40, height: 20).accessibilityLabel("History").accessibilityIdentifier("historyToggle")
-            Text("History").font(.reference(size: 13))
+            Text("History").font(.reference(size: 13)).referenceClassicLineMetrics(size: 13)
         }
     }
     private var settingsButton: some View { Button(action: openSettings) { ActionLabel(title: "", symbol: "gearshape") }.buttonStyle(ScroogeButtonStyle(horizontalPadding: 11)).modifier(ImmediateReferenceTooltip(text: "Earned Reset Alert Settings"))

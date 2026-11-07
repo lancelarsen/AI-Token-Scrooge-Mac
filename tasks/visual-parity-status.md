@@ -126,3 +126,8 @@ Windows run 42365234171 confirms ordinary ToolTip surfaces clamp to the screen e
 ### Settings viewport/footer status row — November 7
 
 Matched Windows panel geometry revealed a missing empty19-point status row in both Mac settings panels. Restoring it moves maximum-scroll account/global footer actions from504/556 to485/537 points within the741×630 panel, matching native Windows measurements. Button widths649, heights44 and gaps8 are retained. Native invalid-reminder status display, clearing and Close were verified with isolated demo data. Account/global captures and detailed source/coordinate evidence are in visual-parity-audit.md. This closes that inspected footer-position gap, not full raster, physical hover or live provider acceptance.
+
+
+### Regular classic label metrics — November 7
+
+Current native Windows captures measure classic13-point labels in18-point lines,16-point regular labels in22-point lines and a two-line13-point settings description in35 points. The Mac now reuses its verified fractional tooltip renderer for these measured regular dashboard/settings/timeline/quota labels. Captured bounds and16-point multiline/descender standalone checks pass; app/native test bundles build. Native compact descriptions gain the missing one-point height while footer actions keep485/537-point positions and the two-quota card retains its measured height. Native Variable controls, Semibold fallback, unmeasured canvas/control typography and exact glyph rasterization remain separate; this is not full font/pixel sign-off.

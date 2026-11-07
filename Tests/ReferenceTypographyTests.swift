@@ -43,6 +43,37 @@ final class ReferenceTypographyTests: XCTestCase {
         }
     }
 
+    @MainActor func testClassicLabelsMatchCapturedWindowsLineBlocks() throws {
+        // Native Windows run 42367678432: settings description 13/18,
+        // dashboard tagline 16/22, and a 649-wide two-line description 13/35.
+        for (text, size, width, height) in [
+            ("Warning and critical levels are adjusted directly on the dashboard bars.", 13.0, 649.0, 18.0),
+            ("Never Waste a Token! Never Miss a Reset!", 16.0, 600.0, 22.0),
+            ("Choose how long to keep recorded usage and alerts. Shortening this period removes older records; increasing it cannot restore deleted records.", 13.0, 649.0, 35.0)
+        ] {
+            let host = NSHostingView(rootView: Text(text).font(.reference(size: size))
+                .referenceClassicLineMetrics(size: size).frame(width: width)
+                .fixedSize(horizontal: false, vertical: true))
+            XCTAssertEqual(host.fittingSize.height, height)
+        }
+    }
+
+    @MainActor func testClassicSixteenPointMultilineRenderingRetainsDescenders() throws {
+        for (count, height) in [(1, 22), (2, 43), (4, 86), (12, 256)] {
+            let text = Array(repeating: "Hg", count: count).joined(separator: "\n")
+            let renderer = ImageRenderer(content: Text(text).font(.reference(size: 16))
+                .referenceClassicLineMetrics(size: 16).foregroundStyle(.white)
+                .frame(width: 100, alignment: .leading).background(.black))
+            renderer.scale = 1
+            let image = NSBitmapImageRep(cgImage: try XCTUnwrap(renderer.cgImage))
+            XCTAssertEqual(image.pixelsHigh, height)
+            let rows = inkRows(image)
+            XCTAssertEqual(rows.filter { !rows.contains($0 - 1) }.count, count)
+            XCTAssertGreaterThan(try XCTUnwrap(rows.last), height - 6)
+            XCTAssertLessThan(try XCTUnwrap(rows.last), height)
+        }
+    }
+
     @MainActor func testHistoryReadoutMatchesCapturedWindowsBounds() {
         let host = NSHostingView(rootView: ReferenceHistoryTooltip(
             text: "OpenAI / Personal · Plus\nWeekly · 74% Used\nSat, Nov 7 12:03 AM", width: 183))

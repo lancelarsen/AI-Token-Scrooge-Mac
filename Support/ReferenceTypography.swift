@@ -121,3 +121,44 @@ extension View {
         }
     }
 }
+
+
+/// Classic Segoe Label/TextBlock rounds the complete line block upward in
+/// WinUI; SwiftUI otherwise rounds each individual line to the nearest point.
+private struct ReferenceClassicTextRenderer: TextRenderer {
+    let baseline: CGFloat
+    let advance: CGFloat
+    func draw(layout: Text.Layout, in context: inout GraphicsContext) {
+        let top = layout.first?.typographicBounds.rect.minY ?? 0
+        for (index, line) in layout.enumerated() {
+            var lineContext = context
+            lineContext.translateBy(x: 0, y: baseline + CGFloat(index) * advance - (line.origin.y - top))
+            lineContext.draw(line)
+        }
+    }
+}
+
+private struct ReferenceClassicLineBox: Layout {
+    let advance: CGFloat
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let text = subviews.first else { return .zero }
+        let natural = text.sizeThatFits(.init(width: proposal.width, height: nil))
+        let lines = max(1, (natural.height / advance.rounded()).rounded())
+        return CGSize(width: natural.width, height: ceil(lines * advance))
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, proposal: .init(width: bounds.width, height: nil))
+    }
+}
+
+extension View {
+    /// Apply to a Text with the matching classic font. Native Variable text and
+    /// the measured Semibold fallback keep their separate line-box policies.
+    func referenceClassicLineMetrics(size: CGFloat) -> some View {
+        let font = ReferenceTypography.measuringFont(ofSize: size)
+        let advance = font.ascender - font.descender + font.leading
+        return ReferenceClassicLineBox(advance: advance) {
+            self.textRenderer(ReferenceClassicTextRenderer(baseline: font.ascender, advance: advance))
+        }
+    }
+}
