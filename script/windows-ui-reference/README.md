@@ -17,6 +17,7 @@ Outputs:
 - `dashboard-elements.json`: element names, rectangles, enabled/offscreen states and available font attributes.
 - `account-rows.png` / `account-rows-elements.json`: scrolled demo account rows and their measured controls.
 - `usage-details.png` / `usage-details-elements.json`: first demo quota popup, opened through UI Automation.
+- `earned-resets.png` / `earned-resets-elements.json`: earned-reset expiry popup, including the mixed-weight count line, title/body text bounds and Close action. Capture fails if the visible expiry is ambiguous or the expected title/count is absent.
 - `account-settings.png` / `account-settings-elements.json`: first demo account settings, including regular-label and reserve-count measurements.
 - `capture.json`: pinned release/source and measured window dimensions.
 - `startup.json`: session/window diagnostics if no visible window appears.

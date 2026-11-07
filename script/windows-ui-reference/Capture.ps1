@@ -181,6 +181,22 @@ try {
         width = $width; height = $height; elements = $rows.Count; session = $app.SessionId;
         scope = 'Isolated demo rendering only; no live provider or authentication verification.' } |
         ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $Output 'capture.json')
+    # Measure the earned-reset dialog separately: its mixed-weight first line
+    # and four short paragraphs expose line-height differences hidden by the
+    # longer quota popup. Use the real visible expiry action, never a coordinate.
+    $expiry = @($rows | Where-Object {
+        $_.type -eq 'ControlType.Button' -and $_.name.StartsWith('Earned Reset Expires') -and -not $_.offscreen
+    })
+    if ($expiry.Count -ne 1) { throw 'The expected earned-reset expiry action was not uniquely visible.' }
+    Invoke-ReferenceAction -Name $expiry[0].name -Root $root
+    Start-Sleep -Seconds 2
+    $resets = Save-ReferenceView -Name 'earned-resets' -Root $root -Handle $handle -Output $Output
+    if (-not ($resets.Rows | Where-Object { $_.type -eq 'ControlType.Text' -and $_.name -eq 'Available resets' }) -or
+        -not ($resets.Rows | Where-Object { $_.type -eq 'ControlType.Text' -and $_.name -match '2 reported available' })) {
+        throw 'The earned-reset popup title and reported count were not exposed.'
+    }
+    Invoke-ReferenceAction -Name 'Close' -Root $root
+    Start-Sleep -Seconds 1
     $scrollTarget = $null
     foreach ($element in $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)) {
         $pattern = $null
