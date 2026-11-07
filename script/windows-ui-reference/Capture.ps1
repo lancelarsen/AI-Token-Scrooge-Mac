@@ -328,6 +328,19 @@ try {
         -not ($settings.Rows | Where-Object { $_.name -eq '2 Available' })) {
         throw 'The account settings form and reserve count were not exposed.'
     }
+    # Measure the long ordinary tooltip independently of the short selector.
+    # The gallery predates later source/typography changes; capture current
+    # wrapping and the surface limit rather than assuming the old dimensions.
+    $polling = @($settings.Rows | Where-Object {
+        $_.type -eq 'ControlType.Text' -and $_.name -like 'Polling Interval: *' -and -not $_.offscreen
+    })
+    if ($polling.Count -ne 1) { throw 'Polling tooltip label was not uniquely visible.' }
+    [ReferenceWindowNative]::MovePointer([int]($polling[0].x + $polling[0].width / 2), [int]($polling[0].y + $polling[0].height / 2))
+    Start-Sleep -Seconds 2
+    $pollingTip = Save-ReferenceView -Name 'polling-tooltip' -Root $root -Handle $handle -Output $Output
+    if (-not ($pollingTip.Rows | Where-Object {
+        $_.type -eq 'ControlType.ToolTip' -and $_.name -like 'How often Scrooge automatically checks*'
+    })) { throw 'Polling pointer entry did not expose its long help tooltip.' }
 
 } catch {
     [ordered]@{ message = $_.Exception.Message; stack = $_.ScriptStackTrace;
