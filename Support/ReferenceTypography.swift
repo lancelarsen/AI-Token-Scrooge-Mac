@@ -4,6 +4,8 @@ import SwiftUI
 
 /// Use the reference face for both rendering and tooltip measurements.
 enum ReferenceTypography {
+    // Classic faces match the 5.71 installed fonts from the pinned Windows
+    // reference runner; see script/windows-ui-reference/README.md for hashes.
     private static let registered: Bool = {
         var loaded = true
         for resource in ["SegoeUI", "SegoeUI-Semibold"] {
@@ -52,7 +54,7 @@ enum ReferenceTypography {
 
     static func measuringFont(ofSize size: CGFloat, weight: NSFont.Weight = .regular) -> NSFont {
         _ = registered
-        if weight == .semibold, let font = NSFont(name: "SegoeUI-SemiBold", size: size) { return font }
+        if weight == .semibold, let font = NSFont(name: "SegoeUI-Semibold", size: size) { return font }
         guard let font = NSFont(name: "SegoeUI", size: size) else {
             return .systemFont(ofSize: size, weight: weight)
         }
@@ -62,8 +64,8 @@ enum ReferenceTypography {
 
     static func font(size: CGFloat, weight: Font.Weight) -> Font {
         _ = registered
-        if weight == .semibold, NSFont(name: "SegoeUI-SemiBold", size: size) != nil {
-            return .custom("SegoeUI-SemiBold", fixedSize: size)
+        if weight == .semibold, NSFont(name: "SegoeUI-Semibold", size: size) != nil {
+            return .custom("SegoeUI-Semibold", fixedSize: size)
         }
         guard NSFont(name: "SegoeUI", size: size) != nil else { return .system(size: size, weight: weight) }
         return .custom("SegoeUI", fixedSize: size).weight(weight)
