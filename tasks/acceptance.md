@@ -33,3 +33,9 @@ On November 6, the native Codex dashboard showed one weekly quota and three avai
 - Record the tested commit, environment, steps and concrete result for native/live checks.
 - Demo checks establish synthetic UI behavior only. They do not establish provider correctness or background monitoring.
 - The project is not ready to be marked feature-complete while any required acceptance evidence remains missing.
+
+## Live Codex transport failure and restart recovery — November 6
+
+Verified in the running native app without disabling the Mac's network. Launched only Scrooge with HTTP/HTTPS/ALL proxy variables pointing to a temporary loopback server that rejects requests with 503 and does not log requests. The actual quota read failed: SQLite marked the Codex snapshot offline while preserving its 5% used / 95% left window and 9:14:54 PM CST last-successful-fetch time. The native quota-details popup displayed the retained values and an Offline message.
+
+Stopped that temporary server and relaunched through the canonical build/run script without proxy variables. The actual Codex quota read returned healthy at 9:16:31 PM CST, advanced the saved fetch time, retained the reported 5% usage, and removed Offline from the native details popup. Closed the popup and left the normal dashboard running. No inference, credential edit, or system network-setting change was used. This proves live Codex transport-failure retention and recovery across app restart. It does not establish same-process network reconnection, sleep/wake, or recovery of Devin/Copilot/Claude; those remain open.
