@@ -15,28 +15,52 @@ enum ReferenceTypography {
         return loaded
     }()
 
-    private static let nativeTextRegistered: Bool = {
-        var loaded = true
-        for name in ["SegoeUIVariable-Text", "SegoeUIVariable-Text-Semibold"] {
-            guard let url = Bundle.main.url(forResource: name, withExtension: "ttf") else { loaded = false; continue }
-            loaded = CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil) && loaded
+    // The pinned Windows runner uses Segoe UI Variable2.03. Keep its full
+    // positioning/variation tables instead of flattening them into older faces.
+    // CGFont/CTFont are immutable; NSCache serializes its own mutations.
+    // A cache miss may create equivalent immutable faces concurrently.
+    private final class NativeTextFontCache: @unchecked Sendable {
+        private let graphicsFont: CGFont? = {
+            guard let url = Bundle.main.url(forResource: "SegoeUIVariable", withExtension: "ttf"),
+                  let provider = CGDataProvider(url: url as CFURL) else { return nil }
+            return CGFont(provider)
+        }()
+        private let fonts: NSCache<NSString, CTFont> = {
+            let cache = NSCache<NSString, CTFont>()
+            cache.countLimit = 32
+            return cache
+        }()
+
+        func font(size: CGFloat, semibold: Bool) -> CTFont? {
+            let key = "\(size)-\(semibold)" as NSString
+            if let cached = fonts.object(forKey: key) { return cached }
+            guard let graphicsFont else { return nil }
+            // XAML optical sizing follows the requested size in typographic
+            // points (DIPs *72/96), rather than fixing every label at Text10.5.
+            let axes: [NSNumber: Double] = [0x77676874: semibold ? 600 : 400, // wght
+                                           0x6F70737A: Double(size) * 0.75] // opsz
+            let descriptor = CTFontDescriptorCreateWithAttributes([kCTFontVariationAttribute: axes] as CFDictionary)
+            let font = CTFontCreateWithGraphicsFont(graphicsFont, size, nil, descriptor)
+            fonts.setObject(font, forKey: key)
+            return font
         }
-        return loaded
-    }()
+    }
+    private static let nativeTextFonts = NativeTextFontCache()
 
     /// WinUI TextBlock's default Text face differs metrically from classic Segoe UI.
     static func nativeTextFont(size: CGFloat = 14, semibold: Bool = false) -> Font {
-        _ = nativeTextRegistered
-        let name = semibold ? "SegoeUIVariableStatic-2580000-a8000" : "SegoeUIVariableStatic-1900000-a8000"
-        guard NSFont(name: name, size: size) != nil else { return font(size: size, weight: semibold ? .semibold : .regular) }
-        return .custom(name, fixedSize: size)
+        guard let native = nativeTextFonts.font(size: size, semibold: semibold) else {
+            return font(size: size, weight: semibold ? .semibold : .regular)
+        }
+        return Font(native)
     }
 
-    /// AppKit menus need an NSFont; use the same face/size as their SwiftUI owner.
+    /// AppKit menus share the same immutable font face and axes as SwiftUI text.
     static func nativeMenuFont(size: CGFloat = 14) -> NSFont {
-        _ = nativeTextRegistered
-        return NSFont(name: "SegoeUIVariableStatic-1900000-a8000", size: size)
-            ?? measuringFont(ofSize: size)
+        guard let native = nativeTextFonts.font(size: size, semibold: false) else {
+            return measuringFont(ofSize: size)
+        }
+        return native as NSFont
     }
 
     private static let iconsRegistered: Bool = {

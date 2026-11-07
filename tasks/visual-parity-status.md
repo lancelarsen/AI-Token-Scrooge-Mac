@@ -170,3 +170,8 @@ Removed the512-to256 downsampling color shift by generating the same256 logical 
 ### Brightness keyboard-focus bounds — November 7
 
 Actual Windows Shift+Tab capture shows a326x32 full-track white focus outline around the312-point brightness slider, including a dark inner contrast stroke. Replaced the Mac thumb-local lavender ring with that outline. Production pixel checks, app/test-bundle builds and native Tab/Shift+Tab, Home/End, pointer-exit and Cancel preservation pass. The complete horizontal overhang is visible; layout and pointer hit bounds are unchanged. Native XCTest remains authorization-gated and full picker raster acceptance stays open. Hosted180-test run42393282611 executes the preceding pointer/gradient fixes successfully, with two installed-CLI skips and zero failures.
+
+
+### Installed Variable font2.03 and optical sizing — November 7
+
+Passing Windows run42396166221 resolves the actual installed Text face to2.03; the Mac's static faces were2.02. The app now loads the byte-identical full variable font with cached immutable CoreText faces, shared with SwiftUI/AppKit, and XAML-equivalent optical sizing. Eleven captured label/menu/title extents, the239x30 usage title and same-datum297x19 rich line pass standalone production checks. Native matching347x421 usage popup,320x431 chooser, model-menu selection and all four untouched provider form/Cancel paths pass. App/test bundles build; the new hosted font regression awaits execution. Older static Variable-name registrations are superseded; classic/icon fonts are unchanged. Exact glyph rasterization and the remaining quiet-hours row difference stay open.

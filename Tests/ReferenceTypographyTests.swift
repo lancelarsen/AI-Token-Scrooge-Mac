@@ -1,4 +1,5 @@
 import AppKit
+import CoreText
 import SwiftUI
 import XCTest
 @testable import AITokenScrooge
@@ -140,6 +141,22 @@ final class ReferenceTypographyTests: XCTestCase {
                                "Native time-label ink must receive one disabled fade, not two")
             }
         }
+    }
+
+    @MainActor func testNativeVariableFontMatchesCapturedWindowsVersionAndAxes() throws {
+        let font = ReferenceTypography.nativeMenuFont()
+        // Installed file from Windows run42396166221; captured22-point title.
+        XCTAssertEqual(CTFontCopyName(font as CTFont, kCTFontVersionNameKey) as String?, "Version 2.03")
+        XCTAssertEqual(font.pointSize, 14)
+        let large = ReferenceTypography.nativeMenuFont(size: 16)
+        let axes = try XCTUnwrap(CTFontCopyVariation(large as CTFont) as? [NSNumber: NSNumber])
+        XCTAssertEqual(axes[0x6F70737A]?.doubleValue, 12)
+        let title = NSHostingView(rootView: Text("Connect Account")
+            .font(ReferenceTypography.nativeTextFont(size: 22, semibold: true)))
+        XCTAssertEqual(title.fittingSize, CGSize(width: 172, height: 30))
+        let detail = NSHostingView(rootView: DetailLine(label: "Last successful fetch", value: "2026-11-07 11:25:04 -06:00")
+            .font(Theme.dialogBodyFont))
+        XCTAssertEqual(detail.fittingSize, CGSize(width: 297, height: 19))
     }
 
     @MainActor func testProviderChoiceTextMatchesNativeWindowsLineBoxes() {
