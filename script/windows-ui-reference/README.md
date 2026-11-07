@@ -86,3 +86,6 @@ The probe also captures the in-app notification-test banner after sending one te
 Color-editor pointer captures include unfocused Hex hover, model hover and held model press. Synthetic mouse release is guaranteed in finally; afterward only an actually expanded model menu is collapsed through its UIA pattern. History retains its separate Escape dismissal. These are isolated Windows pointer-state samples, not proof of the corresponding physical Mac event delivery.
 
 The reference capture exports SelectionItemPattern.IsSelected where available and opens the severity, unit, retention and time-zone ComboBoxes. Targets must lie within the current window bounds; WinUI can report IsOffscreen=false for clipped settings rows. Every opened menu is collapsed in finally without selecting a new value.
+
+
+Clear-button reference run42391456789 at0477f89: attempt1 captured Hex clear hover/press/cancel but failed later at an unrelated provider lookup; attempt2 passed the complete workflow. The new capture holds left press, moves outside before release and asserts the Hex value is unchanged. Focused-input samples: normal31/31/33, hover44/44/46, pressed40/40/42; the inset is26x24 within the30x32 target. No account authorization is invoked. This provides native Windows interaction-state evidence, not Mac physical-hover or full-raster acceptance.

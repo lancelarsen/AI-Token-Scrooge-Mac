@@ -194,6 +194,16 @@ final class ReferenceTypographyTests: XCTestCase {
                           samples: [(110, 10, [52, 53, 59]), (50, 0, [50, 51, 56]), (50, 31, [154, 155, 158])])
                 try check(ColorEntryFieldSurface(focused: true, hovered: true).frame(width: 132, height: 32),
                           samples: [(110, 10, [31, 31, 33]), (50, 0, [50, 51, 56]), (50, 31, [76, 194, 255])])
+                // Native clear-button run42391456789: a26x24 inset within
+                // the30x32 target; no fill outside it or in the normal state.
+                for (hovered, pressed, expected) in [(false, false, [31, 31, 33]),
+                                                       (true, false, [44, 44, 46]),
+                                                       (true, true, [40, 40, 42])] {
+                    try check(ColorEntryClearSurface(hovered: hovered, pressed: pressed)
+                        .frame(width: 30, height: 32).background(Color(hex: "#1F1F21")),
+                              samples: [(6, 12, expected), (13, 4, expected),
+                                        (13, 3, [31, 31, 33]), (27, 16, [31, 31, 33])])
+                }
                 // Focused native Hex input, run42377781813. The captured
                 // Windows default focus accent is independent of app lavender.
                 try check(Text("").frame(maxWidth: .infinity).modifier(ColorEntryStyle(focused: true)).frame(width: 132),

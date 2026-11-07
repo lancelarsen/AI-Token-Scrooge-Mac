@@ -698,11 +698,36 @@ struct ColorEntryStyle: ViewModifier {
             .overlay(alignment: .trailing) {
                 if focused, let clear {
                     Button(action: clear) {
-                        Text("\u{E711}").font(ReferenceTypography.iconFont(size: 10)).foregroundStyle(Theme.secondary)
-                            .frame(width: 28, height: 32).contentShape(Rectangle())
-                    }.buttonStyle(.plain).focusable(false).accessibilityLabel(clearLabel)
+                        Text("\u{E894}").font(ReferenceTypography.iconFont(size: 12))
+                            .frame(width: 26, height: 24)
+                            .padding(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 4))
+                            .contentShape(Rectangle())
+                    }.buttonStyle(ColorEntryClearButtonStyle()).focusable(false).accessibilityLabel(clearLabel)
+                        .padding(.trailing, 1)
                 }
             }
+    }
+}
+
+/// WinUI TextBox DeleteButton: a thirty-point target with an inset surface.
+/// The source symbol and pressed foreground differ from a generic Cancel action.
+private struct ColorEntryClearButtonStyle: ButtonStyle {
+    @State private var hovered = false
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(.white.opacity(configuration.isPressed ? 135.0 / 255 : 197.0 / 255))
+            .background(ColorEntryClearSurface(hovered: hovered, pressed: configuration.isPressed))
+            .onHover { hovered = $0 }
+    }
+}
+
+struct ColorEntryClearSurface: View {
+    var hovered = false
+    var pressed = false
+    var body: some View {
+        RoundedRectangle(cornerRadius: 10)
+            .fill(.white.opacity(pressed ? 10.0 / 255 : hovered ? 15.0 / 255 : 0))
+            .padding(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 4))
     }
 }
 
