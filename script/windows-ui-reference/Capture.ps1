@@ -79,6 +79,11 @@ public static class ReferenceWindowNative {
     [DllImport("user32.dll")] static extern int GetSystemMetrics(int index);
     [DllImport("user32.dll", SetLastError = true)]
     static extern uint SendInput(uint count, Input[] inputs, int size);
+    public static void SetLeftButton(bool pressed) {
+        var input = new Input { Mouse = new MouseInput { Flags = pressed ? 0x0002u : 0x0004u } };
+        if (SendInput(1, new[] { input }, Marshal.SizeOf(typeof(Input))) != 1)
+            throw new InvalidOperationException("Button input was not accepted: " + Marshal.GetLastWin32Error());
+    }
     public static void MovePointer(int x, int y) {
         int left = GetSystemMetrics(76), top = GetSystemMetrics(77);
         int width = GetSystemMetrics(78), height = GetSystemMetrics(79);
@@ -409,6 +414,23 @@ try {
     $colorModel.SetFocus()
     Start-Sleep -Milliseconds 500
     $modelFocused = Save-ReferenceView -Name 'custom-color-picker-model-focused' -Root $root -Handle $handle -Output $Output
+    $hexBounds = $hexField.Current.BoundingRectangle
+    [ReferenceWindowNative]::MovePointer([int]($hexBounds.X + $hexBounds.Width / 2), [int]($hexBounds.Y + $hexBounds.Height / 2))
+    Start-Sleep -Milliseconds 500
+    Save-ReferenceView -Name 'custom-color-picker-hex-hovered' -Root $root -Handle $handle -Output $Output | Out-Null
+    $hexField.SetFocus()
+    $modelBounds = $colorModel.Current.BoundingRectangle
+    [ReferenceWindowNative]::MovePointer([int]($modelBounds.X + $modelBounds.Width / 2), [int]($modelBounds.Y + $modelBounds.Height / 2))
+    Start-Sleep -Milliseconds 500
+    Save-ReferenceView -Name 'custom-color-picker-model-hovered' -Root $root -Handle $handle -Output $Output | Out-Null
+    try {
+        [ReferenceWindowNative]::SetLeftButton($true)
+        Start-Sleep -Milliseconds 250
+        Save-ReferenceView -Name 'custom-color-picker-model-pressed' -Root $root -Handle $handle -Output $Output | Out-Null
+    } finally { [ReferenceWindowNative]::SetLeftButton($false) }
+    [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
+    [ReferenceWindowNative]::MovePointer($away.X, $away.Y)
+    Start-Sleep -Milliseconds 300
     $brightnessSlider = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,
         [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, 'Value (Brightness)'))
     $brightnessRange = $null
