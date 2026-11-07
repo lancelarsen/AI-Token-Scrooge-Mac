@@ -78,6 +78,40 @@ final class MonitoringTests: XCTestCase {
     }
 
     @MainActor
+    func testAccountRefreshDeadlineCancelsSlowReadAndKeepsOtherAccountFresh() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("deadline.db"))
+        let slow = ProviderAccount(provider: .codex, nickname: "Slow", subject: "slow", scope: "personal")
+        let fast = ProviderAccount(provider: .copilot, nickname: "Fast", subject: "fast", scope: "personal")
+        var initial = PersistedState()
+        initial.accounts = [slow, fast]
+        initial.snapshots[slow.id] = QuotaSnapshot(accountID: slow.id, subject: slow.subject,
+            scope: slow.scope, observedAt: .now,
+            windows: [QuotaWindow(id: "weekly", name: "Weekly", unit: .percent, used: 40, limit: 100)])
+        try await database.save(initial)
+        let canceled = expectation(description: "Timed-out provider read canceled")
+        let store = AppStore(database: database, refreshTimeout: .milliseconds(100), refreshAccount: { account in
+            if account.id == slow.id {
+                do { try await Task.sleep(for: .seconds(30)) }
+                catch { canceled.fulfill(); throw error }
+            }
+            return QuotaSnapshot(accountID: account.id, subject: account.subject, scope: account.scope,
+                observedAt: .now, windows: [QuotaWindow(id: "monthly", name: "Monthly", unit: .percent, used: 10, limit: 100)])
+        })
+        await store.load()
+        await store.refreshByUser()
+        await fulfillment(of: [canceled], timeout: 2)
+        XCTAssertFalse(store.isRefreshing)
+        XCTAssertEqual(store.state.snapshots[slow.id]?.health, .offline)
+        XCTAssertTrue(store.state.snapshots[slow.id]?.message?.contains("timed out") == true)
+        XCTAssertEqual(store.state.snapshots[slow.id]?.windows, initial.snapshots[slow.id]?.windows)
+        XCTAssertEqual(store.state.snapshots[fast.id]?.health, .healthy)
+        let saved = try await database.load()
+        XCTAssertEqual(saved.snapshots, store.state.snapshots)
+    }
+
+    @MainActor
     func testKeychainReadFailurePreservesQuotaAndReportsPermission() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

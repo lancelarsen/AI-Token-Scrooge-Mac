@@ -4,7 +4,7 @@ Native SwiftUI port of [AI Token Scrooge](https://github.com/lancelarsen/AI-Toke
 
 **Status: in development.** Live Codex, GitHub Copilot, and Devin accounts have returned quota on this Mac. The Codex desktop CLI also supplied three earned-reset expirations. Claude Code requires version 2.1.310 or later; parser and isolated signed-out tests pass, and signed-in usage still needs verification. See the [acceptance checklist](tasks/acceptance.md) for remaining connection, alert delivery, and UI checks.
 
-The Windows reference baseline is commit `3d0330bc528196e583160d587465ea8b9bc5e979`. Its source is authoritative for behavior and defaults. Later Windows changes have been reviewed through `c80de39` (Devin Enterprise and provider icons); detailed port evidence and remaining gaps are recorded in `tasks/visual-parity-audit.md`. macOS uses native window controls, dialogs, Keychain, notifications, login items, and a menu bar companion.
+The Windows reference baseline is commit `3d0330bc528196e583160d587465ea8b9bc5e979`. Its source is authoritative for behavior and defaults. Later Windows changes have been reviewed through `eb042cb` (Devin Enterprise, provider icons, and independent account refreshes); detailed port evidence and remaining gaps are recorded in `tasks/visual-parity-audit.md`. macOS uses native window controls, dialogs, Keychain, notifications, login items, and a menu bar companion.
 
 ## Devin Enterprise
 

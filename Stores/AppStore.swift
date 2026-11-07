@@ -65,6 +65,7 @@ import AppKit
     private var lastCredentialCleanup: Date = .distantPast
     let database: LocalStore?
     private let notifications: any NotificationDelivering
+    private let refreshTimeout: Duration
     private let refreshAccount: (@Sendable (ProviderAccount) async throws -> QuotaSnapshot)?
     private var realState = PersistedState()
     // Serialize state edits through one queue so awaited writes cannot lose intervening changes.
@@ -74,9 +75,11 @@ import AppKit
     var accounts: [ProviderAccount] { AccountPolicy.ordered(state) }
     private var isTestLaunch: Bool { ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] == "1" }
     init(database: LocalStore, notifications: any NotificationDelivering = NotificationService.shared,
+         refreshTimeout: Duration = .seconds(45),
          refreshAccount: (@Sendable (ProviderAccount) async throws -> QuotaSnapshot)? = nil) {
         self.database = database
         self.notifications = notifications
+        self.refreshTimeout = refreshTimeout
         self.refreshAccount = refreshAccount
     }
     func waitForPendingMutations() async { await mutationTail?.value }
@@ -110,6 +113,7 @@ import AppKit
 
     init() {
         notifications = NotificationService.shared
+        refreshTimeout = .seconds(45)
         refreshAccount = nil
         let args = ProcessInfo.processInfo.arguments
         let override = args.firstIndex(of: "--data-dir").flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil }
@@ -654,11 +658,27 @@ import AppKit
         }
     }
 
+    // One deadline covers credential renewal plus all provider requests, rather
+    // than restarting the timeout for each step of an account refresh.
+    private func readQuotaBeforeDeadline(_ account: ProviderAccount) async throws -> QuotaSnapshot {
+        let timeout = refreshTimeout
+        return try await withThrowingTaskGroup(of: QuotaSnapshot.self) { group in
+            group.addTask { try await self.readQuota(account) }
+            group.addTask {
+                try await Task.sleep(for: timeout)
+                throw ProviderFailure(message: "Refresh timed out. Last known values are retained.")
+            }
+            defer { group.cancelAll() }
+            guard let result = try await group.next() else { throw CancellationError() }
+            return result
+        }
+    }
+
     private func refresh(_ account: ProviderAccount, epoch: UUID) async {
         guard currentAccount(account, epoch: epoch) != nil else { return }
         let response: Result<QuotaSnapshot, Error>
         do {
-            let snapshot = try await readQuota(account)
+            let snapshot = try await readQuotaBeforeDeadline(account)
             guard snapshot.belongs(to: account) else { throw AccountError.differentIdentity }
             response = .success(snapshot)
         } catch { response = .failure(error) }
