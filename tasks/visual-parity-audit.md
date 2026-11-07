@@ -1676,3 +1676,25 @@ Canonical build and normal launch passed. Four hosted typography regressions and
 Expanded reference workflow [42342870134](https://github.com/lancelarsen/AI-Token-Scrooge-Mac/actions/runs/42342870134) completed successfully at harness 8277f95. Downloaded to ignored `artifacts/windows-ui-reference-8277f95`; inspected the account-settings screenshot and UIA export. Regular Segoe UI labels explicitly measure 19 points at font 14 (Account Name, Line Color and both expiry dates), 27 points at font 20 (2 Available), and 18 points at font 13 (Other Alerts description). Semibold section labels measure 26 points at font 21. This supports retaining regular-text natural metrics while using the existing correction only for measured fallback labels. Requested-family UIA strings remain distinct from physical-font proof.
 
 The runner viewport remains 800×680 including its invisible frame margins; its settings panel is compact, whereas the Mac attachment above is a 1000×800-point sheet. Both forms and their labels render, but this evidence does not establish whole-image equality across those different viewport sizes. The initial expanded run was cancelled after a selector-height correction; the next run failed because Windows PowerShell decoded a literal middle dot as ANSI. The successful run uses an explicit Unicode code point and uniquely selects the actual application action. Neither failed attempt is counted as account-settings verification.
+
+### Measured horizon scrolling: prepare future schedules outside viewport redraws
+
+Used the code-first SwiftUI performance-audit workflow and Apple’s [Instruments guidance](https://developer.apple.com/documentation/xcode/understanding-and-improving-swiftui-performance). A usable paired capture attaches to a single already-visible isolated demo process, avoiding launch-time window/target ambiguity. Baseline PID 33979 (`artifacts/horizon-scroll-attached.trace`) and changed PID 38648 (`artifacts/horizon-scroll-prepared.trace`) each had one Scrooge instance, the same canonical Debug build settings, 1463×866 reference window, fixed 2026-11-04T16:16:00Z demo clock and twelve half-page vertical-wheel inputs on the horizon header: three back/three forward, repeated twice. Native AX navigator dates advanced through Nov 3/Nov 2 and returned to Nov 4 midnight. No live provider or credentials were included. Earlier launch-based captures did not expose scrolling updates adequately and are excluded from this comparison.
+
+The baseline identified DynamicBody<ViewBodyAccessor<HorizonView>> rebuilds at each gesture. Future events were regenerated, sorted and compared through Calendar separately for each rendered day and other consumers. Added pure HorizonFuturePresentation: saved schedules and calendar-day buckets prepare when persisted view inputs change; scrolling reads the prepared buckets. Clock filtering stays dynamic, so an event still expires at its deadline without another provider snapshot. Account/snapshot/visibility/order/time-zone changes rebuild the presentation. Identity rejection, reported-zero reserves and missing-date behavior continue through the existing HorizonEvent event builder.
+
+Paired Instruments exports (nanoseconds converted to milliseconds):
+
+| Measurement | Before | After |
+| --- | ---: | ---: |
+| Larger HorizonView rebuilds (>1 ms), count | 12 | 12 |
+| Mean of those rebuilds | 7.425 ms | 6.544 ms |
+| Worst HorizonView rebuild | 11.140 ms | 7.578 ms |
+| All HorizonView rebuilds, count | 16 | 42 |
+| Mean across all rebuilds | 5.577 ms | 1.904 ms |
+| Worst app frame-update interval during the gesture window | 42.739 ms | 36.117 ms |
+| Unique update intervals above 30 ms | 10 | 6 |
+
+All-update sample counts differ (25 before, 551 after), so their means are not used as a like-for-like FPS comparison. Duplicate nested update records with identical start/duration are counted once. This is one paired Debug/demo measurement under instrumentation, not a release-build or physical-wheel smoothness certification. Residual multi-millisecond rebuilds and long update intervals remain; do not close the smoothness requirement.
+
+Canonical build and normal launch passed. Seven hosted horizon tests and four native UI tests passed together (history/filter/demo exit, history hover, refresh details and expiry edge clamping). Added a regression comparing prepared schedules with the existing builder across clock advances, exact deadline removal, DST/time-zone day buckets, hidden/disabled accounts and changed identities. Extended and reran the native filter test: hiding OpenAI Personal removes its reset tile, showing it restores the tile. Restored the normal non-demo app after profiling.

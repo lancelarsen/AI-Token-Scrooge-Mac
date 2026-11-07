@@ -30,6 +30,27 @@ struct HorizonPresentation {
     }
 }
 
+/// Saved schedules and calendar-day buckets do not change while the viewport pans.
+/// Keep the clock cutoff dynamic so a cached reset disappears at its actual deadline.
+struct HorizonFuturePresentation {
+    private var schedules: [HorizonEvent] = []
+    private var days: [Date: [HorizonEvent]] = [:]
+    init() {}
+    init(state: PersistedState) {
+        schedules = HorizonEvent.events(state: state, now: .distantPast)
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = state.settings.zone
+        days = Dictionary(grouping: schedules) { calendar.startOfDay(for: $0.date) }
+    }
+    func events(after now: Date) -> [HorizonEvent] { schedules.filter { $0.date > now } }
+    func events(on day: Date, after now: Date) -> [HorizonEvent] {
+        (days[day] ?? []).filter { $0.date > now }
+    }
+    func maximumRows(after now: Date) -> Int {
+        days.values.map { $0.count(where: { $0.date > now }) }.max() ?? 0
+    }
+}
+
 /// Smooth discrete wheel notches without synthesizing additional trackpad inertia.
 struct HorizonWheelMotion {
     private(set) var remaining = 0.0

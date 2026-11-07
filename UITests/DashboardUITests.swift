@@ -24,10 +24,14 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Hide OpenAI / Personal · Plus · Timeline"].exists, "Selectors must stay visible with history off")
         history.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).click()
         let selector = app.buttons["timelineAccount-demo-0"]
+        let refresh = app.buttons["timeline-refresh-demo-0/codex/secondary"]
+        XCTAssertTrue(refresh.exists)
         selector.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.5)).click()
         XCTAssertTrue(app.buttons["Show OpenAI / Personal · Plus · Timeline"].exists, "The selector margin must toggle account history")
+        XCTAssertTrue(refresh.waitForNonExistence(timeout: 3), "Hidden-account changes invalidate prepared future events")
         selector.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.5)).click()
         XCTAssertTrue(app.buttons["Hide OpenAI / Personal · Plus · Timeline"].exists)
+        XCTAssertTrue(refresh.waitForExistence(timeout: 3), "Showing the account restores its reset events")
         exit.click()
         XCTAssertTrue(app.buttons["exploreDemoButton"].waitForExistence(timeout: 5))
     }

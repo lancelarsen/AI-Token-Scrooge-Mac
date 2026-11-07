@@ -9,13 +9,14 @@ struct HorizonView: View {
     @State private var selectedEvent: HorizonEvent?
     @State private var selectedHistoricalMarker: HistoricalEventMarker?
     @State private var presentation = HorizonPresentation()
+    @State private var future = HorizonFuturePresentation()
     @State private var historyPinned = false
     @FocusState private var historyFocused: Bool
     @State private var navigatorDragOffset: Double?
     @State private var hoverText: String?
     @State private var hoveredSample: (account: ProviderAccount, point: HistoryPoint)?
     private var now: Date { store.presentationDate }
-    private var events: [HorizonEvent] { HorizonEvent.events(state: store.state, now: now) }
+    private var events: [HorizonEvent] { future.events(after: now) }
     private var earliestRecordedHistory: Date? { presentation.series.compactMap { $0.points.first?.at }.min() }
     private var timelineAccounts: [ProviderAccount] { AccountPolicy.ordered(store.state, mode: .custom).filter(\.enabled) }
     var body: some View {
@@ -95,6 +96,9 @@ struct HorizonView: View {
             }
         }
         .onAppear { prepareHistory() }
+        .onChange(of: store.state, initial: true) { _, state in
+            future = HorizonFuturePresentation(state: state)
+        }
         .onChange(of: earliestRecordedHistory) { _, _ in update(width: viewport.viewportWidth) }
         .onChange(of: store.historyRevision) { _, _ in prepareHistory() }
         .onChange(of: timelineAccounts) { _, _ in prepareHistory() }
@@ -181,10 +185,9 @@ struct HorizonView: View {
         }.accessibilityLabel("History axis: zero to one hundred percent used")
     }
     private var timelineHeight: Double {
-        let groups = Dictionary(grouping: events, by: { calendar.startOfDay(for: $0.date) })
         let accounts = max(3, store.state.accounts.filter(\.enabled).count)
         let selectors = 16 + Double(accounts * 66 + (accounts - 1) * 6)
-        let future = railY + 21 + Double(max(1, groups.values.map(\.count).max() ?? 0)) * 76
+        let future = railY + 21 + Double(max(1, future.maximumRows(after: now))) * 76
         return max(selectors, future)
     }
     private var heading: some View { HStack(spacing: 12) { ActionIcon(symbol: "clock.arrow.circlepath", size: 30); Text("Reset Horizon").font(.reference(size: 26, weight: .semibold)).referenceFallbackLineMetrics(size: 26) } }
@@ -369,7 +372,7 @@ struct HorizonView: View {
             .onKeyPress(.escape) { clearHistorySample(); return .handled }
 
             ForEach(days.filter { $0 <= calendar.startOfDay(for: viewport.lastEventAt) }, id: \.self) { date in
-                let dayEvents = events.filter { calendar.isDate($0.date, inSameDayAs: date) }
+                let dayEvents = future.events(on: date, after: now)
 
                 Circle()
                     .fill(isToday(date) ? Color(hex: "#D1BEFF") : dayEvents.isEmpty ? Color(hex: "#1C1E24") : Theme.actionAccent)

@@ -86,6 +86,36 @@ final class HorizonPerformanceTests: XCTestCase {
         XCTAssertEqual(enabled.series.flatMap(\.points), disabled.series.flatMap(\.points))
     }
 
+    func testPreparedFutureEventsRetainClockCutoffsIdentityAndDayBuckets() throws {
+        let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-11-01T07:30:00Z"))
+        var state = DemoData.make(now: now).0
+        for zone in ["America/Chicago", "America/Los_Angeles", "Asia/Tokyo"] {
+            state.settings.timeZoneID = zone
+            var calendar = Calendar(identifier: .gregorian); calendar.timeZone = state.settings.zone
+            let prepared = HorizonFuturePresentation(state: state)
+            for hour in [0.0, 2, 4, 24, 96, 240] {
+                let clock = now.addingTimeInterval(hour * 3600)
+                let expected = HorizonEvent.events(state: state, now: clock)
+                XCTAssertEqual(prepared.events(after: clock).map(\.id), expected.map(\.id))
+                XCTAssertEqual(prepared.events(after: clock).map(\.date), expected.map(\.date))
+                let groups = Dictionary(grouping: expected) { calendar.startOfDay(for: $0.date) }
+                XCTAssertEqual(prepared.maximumRows(after: clock), groups.values.map(\.count).max() ?? 0)
+                for (day, values) in groups {
+                    XCTAssertEqual(prepared.events(on: day, after: clock).map(\.id), values.map(\.id))
+                }
+            }
+        }
+        state.accounts[0].subject = "changed-identity"
+        state.accounts[1].enabled = false
+        state.settings.hiddenHistoryAccounts = [state.accounts[2].id]
+        let prepared = HorizonFuturePresentation(state: state)
+        XCTAssertEqual(prepared.events(after: now).map(\.id), HorizonEvent.events(state: state, now: now).map(\.id))
+        XCTAssertTrue(prepared.events(after: now).allSatisfy { $0.account.id == state.accounts[3].id })
+        let cutoff = try XCTUnwrap(prepared.events(after: now).first?.date)
+        XCTAssertFalse(prepared.events(after: cutoff).contains { $0.date == cutoff },
+            "Passing time must expire a cached event without a new provider snapshot")
+    }
+
     func testPreparedHistoryMatchesProjectionAcrossScrolling() {
         let now = Date(timeIntervalSince1970: 1793732400)
         let demo = DemoData.make(now: now)
