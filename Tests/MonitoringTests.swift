@@ -311,6 +311,12 @@ final class MonitoringTests: XCTestCase {
         window.testIsKey = true
         tracker.showPopup(popupText)
         let popup = try XCTUnwrap(NSApp.windows.first { $0.title == "Usage History Details" && $0.isVisible })
+        tracker.setFrameOrigin(CGPoint(x: 40, y: 500))
+        tracker.showPopup(popupText)
+        XCTAssertFalse(popup.isVisible, "An offscreen control must not present its tooltip")
+        tracker.setFrameOrigin(CGPoint(x: 40, y: 50))
+        tracker.showPopup(popupText)
+        XCTAssertTrue(popup.isVisible)
         XCTAssertTrue(popup.ignoresMouseEvents)
         XCTAssertGreaterThan(popup.frame.width, 100)
         XCTAssertLessThanOrEqual(popup.frame.width, 450)

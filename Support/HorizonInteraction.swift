@@ -54,6 +54,12 @@ struct HistoryPointerTracking: NSViewRepresentable {
         func hidePopup() { popup?.orderOut(nil); thresholdPlacement.reset() }
         func showPopup(_ text: String?) {
             guard let text, let window, window.isKeyWindow, let screen = window.screen else { hidePopup(); return }
+            guard !isHiddenOrHasHiddenAncestor,
+                  !bounds.intersection(visibleRect).isEmpty,
+                  !convert(bounds, to: nil).intersection(window.contentLayoutRect).isEmpty else {
+                hidePopup()
+                return
+            }
             if let previous = Self.popupOwner, previous !== self { previous.hidePopup() }
             Self.popupOwner = self
             let panel = popup ?? NSPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
