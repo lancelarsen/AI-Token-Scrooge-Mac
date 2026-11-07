@@ -10,6 +10,7 @@ Add-Type -AssemblyName UIAutomationTypes
 Add-Type -AssemblyName WindowsBase
 Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName PresentationCore
+Add-Type -AssemblyName System.Windows.Forms
 # Resolve the installed classic faces independently of UIA's requested fallback
 # strings. Preserve the actual files so the Mac comparison uses the same version.
 $fontRows = @()
@@ -181,6 +182,20 @@ try {
         width = $width; height = $height; elements = $rows.Count; session = $app.SessionId;
         scope = 'Isolated demo rendering only; no live provider or authentication verification.' } |
         ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $Output 'capture.json')
+    $historyCondition = [System.Windows.Automation.AndCondition]::new(
+        [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, 'Usage History'),
+        [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button))
+    $historyTarget = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $historyCondition)
+    if ($null -eq $historyTarget) { throw 'The usage-history keyboard target was not exposed.' }
+    $historyTarget.SetFocus()
+    [System.Windows.Forms.SendKeys]::SendWait('{RIGHT}')
+    Start-Sleep -Seconds 1
+    $keyboard = Save-ReferenceView -Name 'history-keyboard' -Root $root -Handle $handle -Output $Output
+    if (-not ($keyboard.Rows | Where-Object { $_.type -eq 'ControlType.Text' -and $_.name -match 'Weekly.*% Used' })) {
+        throw 'Keyboard history inspection did not expose a sample readout.'
+    }
+    [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
+    Start-Sleep -Seconds 1
     # Measure the earned-reset dialog separately: its mixed-weight first line
     # and four short paragraphs expose line-height differences hidden by the
     # longer quota popup. Use the real visible expiry action, never a coordinate.
