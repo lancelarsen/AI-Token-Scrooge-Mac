@@ -3,6 +3,51 @@ import Vision
 import XCTest
 
 final class DashboardUITests: XCTestCase {
+    @MainActor func testUnavailableStatusIndicatorAndPrivacy() throws {
+        try verifyStatusIndicator(scenario: "permission", summary: "Some Current Usage Data Is Unavailable")
+    }
+
+    @MainActor func testCriticalStatusIndicatorAndPrivacy() throws {
+        try verifyStatusIndicator(scenario: "healthy", summary: "Critical Alert · Quota Refresh")
+    }
+
+    @MainActor private func verifyStatusIndicator(scenario: String, summary: String) throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", "--reference-wide", "--scenario", scenario]
+        app.launch()
+        defer { app.terminate() }
+        if !app.windows["dashboard"].waitForExistence(timeout: 2) {
+            let windowMenu = app.menuBars.menuBarItems["Window"]
+            windowMenu.click()
+            windowMenu.menuItems["AI Token Scrooge"].click()
+        }
+        XCTAssertTrue(app.buttons["addAccountButton"].waitForExistence(timeout: 10))
+        app.activate()
+        let running = try XCTUnwrap(NSRunningApplication.runningApplications(withBundleIdentifier: "com.lancelarsen.AITokenScrooge")
+            .max { ($0.launchDate ?? .distantPast) < ($1.launchDate ?? .distantPast) })
+        running.activate(options: [.activateIgnoringOtherApps])
+        let item = app.statusItems.firstMatch
+        XCTAssertTrue(item.waitForExistence(timeout: 5), app.debugDescription)
+        // AppKit exposes a status item's title, rather than its XCTest label.
+        let summaryStatus = app.statusItems.matching(NSPredicate(format: "title CONTAINS %@", summary)).firstMatch
+        XCTAssertTrue(summaryStatus.waitForExistence(timeout: 3), item.debugDescription)
+        let view = app.menuBars.menuBarItems["View"]
+        view.click()
+        view.menuItems["Privacy Mode"].click()
+        let hidden = app.statusItems.matching(NSPredicate(format: "title CONTAINS %@", "Account Details Hidden")).firstMatch
+        if scenario == "healthy" {
+            XCTAssertTrue(hidden.waitForExistence(timeout: 3), item.debugDescription)
+            XCTAssertFalse(app.statusItems.matching(NSPredicate(format: "title CONTAINS %@", "Personal")).firstMatch.exists)
+        } else {
+            XCTAssertTrue(summaryStatus.exists, item.debugDescription)
+        }
+        view.click()
+        view.menuItems["Privacy Mode"].click()
+        XCTAssertTrue(hidden.waitForNonExistence(timeout: 3), item.debugDescription)
+        XCTAssertTrue(summaryStatus.exists)
+    }
+
     @MainActor func testDemoHistoryToggleAndExit() throws {
         let app = XCUIApplication()
         app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
