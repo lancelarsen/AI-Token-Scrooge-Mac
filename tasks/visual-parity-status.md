@@ -72,6 +72,23 @@ ConnectionStatusLine used ordinary rounded line heights while the form descripti
 
 Hosted Mac Preview [42402436938](https://github.com/lancelarsen/AI-Token-Scrooge-Mac/actions/runs/42402436938) at8a09bdf completed successfully:183 tests, two installed-CLI skips, zero failures. testConnectionStatusRetainsNativeMultilineMetricsAndEmptyRow explicitly passed, and preview archive build/validation passed. The isolated native harness was stopped/unregistered, and script/build_and_run.sh --verify restored the normal connected app; build/launch passed and exactly one canonical app process remained. This is executed hosted regression plus native component evidence, not authorization-gated local XCTest or live sign-in/error recovery.
 
+### Native floating-panel screen-edge checks — November 7
+
+Compiled the unchanged production TrackingView, tooltip content and placement code into an isolated native harness, redirecting only the variable-font resource lookup. CUA buttons presented actual NSPanel instances against a600x420 owner at the display edges. Panel/target/owner frames were measured after presentation, in AppKit screen points against visible screen(0,70,1496,869):
+
+| Case | Actual result |
+| --- | --- |
+| Help at left edge |278x57 panel begins at screen x0; top placement has zero gap above its complete target. |
+| Help at right edge |278x57 panel ends at screen x1496; zero target gap retained. |
+| Help at top edge |Panel flips below the target; panel maxY and target minY both841. |
+| Earned-reset expiry at right edge |174x110 expiry-content panel ends at x1496 and remains inside the visible display. |
+| History at owner's top-left |183x81 panel at(8,808) remains inside the owner's eight-point inset. |
+| History at owner's bottom-right |183x81 panel at(1305,501) remains inside the owner's eight-point inset. |
+
+All six real-panel geometry checks passed. Read-only CGWindowList metadata independently confirmed the visible history panel. Closing the test owner through CUA removed both the owner and floating panel from the on-screen list; the post-close CUA observation timed out because its target window was gone, so window metadata supplies the result. AX Raise and a title-bar click on the normal app did not transfer application focus: the verifier remained active and its panel remained visible. That attempt is inconclusive for app-deactivation dismissal and is not counted as a failure or a pass. The owner-close check is distinct.
+
+The harness supplies content and anchors directly, with pinning enabled; it does not establish physical hover, pointer-exit delivery or live history selection. App-window screenshots omit the separate floating panel, so these results do not establish full panel raster appearance. Local artifacts/tooltip-edge-native-harness.swift and tooltip-edge-native-measurements.json retain the fixture and transcribed measurements. No production change was needed. The harness was stopped/unregistered and the single canonical connected app remained running. Product code is unchanged from the183-test passing revision8a09bdf; local native XCTest remains authorization-gated.
+
 ### Shared action bounds — November 7
 
 Reserved the source one-point border in shared action buttons: hosted and native header bounds now match Windows Refresh 109×44 and Settings 113×44. Native provider choices remain 54 points high and populated Alert History rows remain 80. Sort icon layout slots now retain the source 22×20 capacity meter and 20×22 Custom Order canvas. Seven hosted checks and five native checks pass; current compact/wide dashboards and history were inspected. This verifies these geometry contracts, not full raster parity.
