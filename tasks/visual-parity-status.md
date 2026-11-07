@@ -53,3 +53,8 @@ Detailed implementation and validation evidence: [visual-parity-audit.md](visual
 ### Shared action icon audit — November 6
 
 Compared Windows Controls/ActionButton.cs with Mac Format.actionGlyph and ActionIcon. The ordered title rules and glyph values agree for shared actions; Mac also recognizes its added Devin provider title. The custom remaining-capacity meters match the source's 22×20 frame, 14-point outline height, 1.5-point stroke, 3-point corner radius, 7-point fill height, 4-point leading inset and 4/14-point fills for Most/Least Remaining. A CoreText check registered the bundled SegoeFluentIcons.ttf and resolved all 29 distinct private-use glyphs referenced by the shared Theme/Format helpers without a missing glyph. This establishes mapping and font coverage. Per-surface optical alignment and final raster comparisons remain open.
+
+
+### Bundled font name resolution — November 6
+
+Registered each of the six bundled font families with CoreText and resolved the names used by ReferenceTypography with NSFont. SegoeUI resolves to SegoeUI; SegoeUI-SemiBold to SegoeUI-SemiBold; SegoeUIVariableStatic-1900000-a8000 and SegoeUIVariableStatic-2580000-a8000 resolve to the regular and semibold Text resources; Segoe Fluent Icons resolves to SegoeFluentIcons; SegoeUISymbol resolves to SegoeUISymbol. None of these requested names returned nil. This rules out a missing-name fallback in the inspected local font resources. Matching the Windows font versions, rasterization and per-surface optical alignment remains open.
