@@ -15,7 +15,7 @@ struct ReferenceHelpTooltip: View {
     }
 
     var body: some View {
-        Text(text).font(.reference(size: 13))
+        ReferenceTooltipText(text: text)
             .foregroundStyle(Color(red: 242 / 255, green: 241 / 255, blue: 245 / 255))
             .padding(.horizontal, 14).padding(.vertical, 10).padding(1)
             .frame(width: width, alignment: .leading)
@@ -66,7 +66,7 @@ struct ReferenceResetTooltip: View {
     let width: CGFloat
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(content.context).font(.reference(size: 13)).foregroundStyle(Color(hex: "#F2F1F5"))
+            ReferenceTooltipText(text: content.context).foregroundStyle(Color(hex: "#F2F1F5"))
             HStack(alignment: .top, spacing: 12) {
                 ResetCountdownIcon(isExpiry: content.isExpiry)
                     .environment(\.actionForeground, Color(hex: content.isExpiry ? "#EAAA51" : "#BDA3F5"))

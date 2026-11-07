@@ -32,6 +32,7 @@
 		3493731F5A08F5675288E835 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66031B2D20D103F7DA4B5042 /* Settings.swift */; };
 		3871C893EC7CDC1282F9F7F2 /* classic-alert.wav in Resources */ = {isa = PBXBuildFile; fileRef = 5C49EF81DDE068F0211F0EF0 /* classic-alert.wav */; };
 		38C9B17D702E34EBC4DAC6C0 /* HorizonViewport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00030CAB4618F55476480A2 /* HorizonViewport.swift */; };
+		4015D1F028EFFFF36D81B8DE /* ReferenceTooltipText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5706177226452E1FF148E7D6 /* ReferenceTooltipText.swift */; };
 		401B7205F4988802A6C66A45 /* ReferenceHistoryTooltip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6A7829BF07D9E66CFB948A /* ReferenceHistoryTooltip.swift */; };
 		411E709C67583AE4D25720F7 /* AccountSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76176BFD681D3CDB853D8895 /* AccountSettingsView.swift */; };
 		43944D356D6CFCE69269F7DA /* HorizonPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00DD87EC6F7F3FE070518237 /* HorizonPerformanceTests.swift */; };
@@ -191,6 +192,7 @@
 		5513D217EE207A1E94C8ABBA /* WindowsColorNames.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = WindowsColorNames.plist; sourceTree = "<group>"; };
 		554E13291A3E3292163BDE97 /* SettingsMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsMigrationTests.swift; sourceTree = "<group>"; };
 		56DAAB4C7C7A488E385EFE67 /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStore.swift; sourceTree = "<group>"; };
+		5706177226452E1FF148E7D6 /* ReferenceTooltipText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceTooltipText.swift; sourceTree = "<group>"; };
 		592A387CC2D554830FF3A7F7 /* classic-snooze.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "classic-snooze.wav"; sourceTree = "<group>"; };
 		59FA3788DAC32DB6AA240532 /* BoundedProcess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoundedProcess.swift; sourceTree = "<group>"; };
 		5B5FE9D875BCE334EAC07010 /* duck-info.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "duck-info.wav"; sourceTree = "<group>"; };
@@ -417,6 +419,7 @@
 				2C3B0557D8B55197325FE987 /* HorizonInteraction.swift */,
 				F5A5186F536026FDE9E8A856 /* ReferenceHelpTooltip.swift */,
 				1E6A7829BF07D9E66CFB948A /* ReferenceHistoryTooltip.swift */,
+				5706177226452E1FF148E7D6 /* ReferenceTooltipText.swift */,
 				9114E87C76735510A121AC43 /* ReferenceTypography.swift */,
 				39135C6BE784A1D2EF821CC5 /* SpectrumSelectionIndicator.swift */,
 				B36386F305B5106D36AA5C9A /* Theme.swift */,
@@ -749,6 +752,7 @@
 				B8C91125DC0237F8F6F95081 /* Quota.swift in Sources */,
 				20BD14722A47969CCB32DC65 /* ReferenceHelpTooltip.swift in Sources */,
 				401B7205F4988802A6C66A45 /* ReferenceHistoryTooltip.swift in Sources */,
+				4015D1F028EFFFF36D81B8DE /* ReferenceTooltipText.swift in Sources */,
 				546E1DFFCEFD0BEB1BC5BF33 /* ReferenceTypography.swift in Sources */,
 				2C8684C261F07C12556DA2B5 /* RefreshSchedule.swift in Sources */,
 				E91992A6469EC4258D7EF341 /* ScroogeApp.swift in Sources */,

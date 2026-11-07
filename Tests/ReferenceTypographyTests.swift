@@ -4,6 +4,24 @@ import XCTest
 @testable import AITokenScrooge
 
 final class ReferenceTypographyTests: XCTestCase {
+    @MainActor func testHelpAndResetTooltipsMatchNativeWindowsBounds() throws {
+        let text = "OpenAI / Personal · Plus\nShow or Hide History, Resets and Refreshes"
+        let width = ReferenceHelpTooltip.width(for: text, availableWidth: 700)
+        let plain = NSHostingView(rootView: ReferenceHelpTooltip(text: text, width: width))
+        // Native Windows run 42364265780: 35-point context + 22 border/padding.
+        XCTAssertEqual(plain.fittingSize, CGSize(width: 278, height: 57))
+        let formatter = ISO8601DateFormatter()
+        let date = try XCTUnwrap(formatter.date(from: "2026-11-09T10:31:00Z"))
+        let now = try XCTUnwrap(formatter.date(from: "2026-11-07T10:31:01Z"))
+        let content = ResetTooltipContent(context: "OpenAI / Personal · Plus\nQuota Refresh · Codex · Weekly",
+                                          date: date, now: now, zone: TimeZone(identifier: "America/Chicago")!)
+        let reset = NSHostingView(rootView: ReferenceResetTooltip(content: content, width: content.width(available: 700)))
+        XCTAssertEqual(reset.fittingSize, CGSize(width: 209, height: 110))
+        // The separately measured countdown keeps its 24-point fallback line.
+        let countdown = NSHostingView(rootView: ResetCountdownText(date: date, now: now, zone: content.zone))
+        XCTAssertEqual(countdown.fittingSize.height, 43, accuracy: 0.5)
+    }
+
     @MainActor func testHistoryReadoutMatchesCapturedWindowsBounds() {
         let host = NSHostingView(rootView: ReferenceHistoryTooltip(
             text: "OpenAI / Personal · Plus\nWeekly · 74% Used\nSat, Nov 7 12:03 AM", width: 183))
