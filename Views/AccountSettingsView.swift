@@ -501,7 +501,7 @@ struct InlineLineColorEditor: View {
         finishChannelEdit()
         hexDraft = normalized
         let nextColor = Color(hex: ColorPickerChannel.hexColor(hexDraft))
-        color = nextColor; loadComponents(nextColor)
+        applyRGBInput(nextColor)
     }
     private func applyChannel(_ index: Int, value: Int, model: String) {
         // Native numeric editing reads the visible integer fields as a
@@ -518,9 +518,19 @@ struct InlineLineColorEditor: View {
             var channels = [rgb.redComponent, rgb.greenComponent, rgb.blueComponent].map { ($0 * 255).rounded() / 255 }
             channels[index] = Double(max(0, min(255, value))) / 255
             let nextColor = Color(red: channels[0], green: channels[1], blue: channels[2])
-            color = nextColor
-            loadComponents(nextColor); hexDraft = nextColor.hex
+            applyRGBInput(nextColor); hexDraft = color.hex
         }
+    }
+    private func applyRGBInput(_ input: Color) {
+        guard let rgb = NSColor(input).usingColorSpace(.sRGB) else { return }
+        let components = ColorPickerChannel.rgbInputComponents(
+            red: Int((rgb.redComponent * 255).rounded()),
+            green: Int((rgb.greenComponent * 255).rounded()),
+            blue: Int((rgb.blueComponent * 255).rounded()))
+        hue = components.hue
+        saturation = components.saturation
+        brightness = components.brightness
+        color = Color(hue: hue, saturation: saturation, brightness: brightness)
     }
     private func publish() {
         let nextColor = Color(hue: hue, saturation: saturation, brightness: brightness)

@@ -270,6 +270,22 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(ColorPickerChannel.hexColor("#abcdef"), "#ABCDEF")
     }
 
+    func testRGBInputMatchesPinnedWindowsHueConstraintTrace() {
+        let cases: [(Int, Int, Int, String)] = [
+            (255, 0, 0, "#FF0000"), (255, 0, 1, "#FF0004"),
+            (255, 0, 4, "#FF0004"), (255, 0, 5, "#FF0005"),
+            (128, 128, 128, "#808080"), (0, 255, 0, "#00FF00"), (0, 0, 255, "#0000FF")
+        ]
+        for (red, green, blue, expected) in cases {
+            let hsv = ColorPickerChannel.rgbInputComponents(red: red, green: green, blue: blue)
+            XCTAssertEqual(Color(hue: hsv.hue, saturation: hsv.saturation, brightness: hsv.brightness).hex, expected)
+        }
+        let edge = ColorPickerChannel.rgbInputComponents(red: 255, green: 0, blue: 1)
+        XCTAssertEqual(edge.hue * 360, 359, accuracy: 1e-10)
+        XCTAssertEqual(edge.saturation, 1)
+        XCTAssertEqual(edge.brightness, 1)
+    }
+
     func testSpectrumSelectionContrastsWithDisplayedHueAndSaturation() {
         XCTAssertTrue(SpectrumSelectionContrast.usesLightStroke(hue: 0, saturation: 1))
         XCTAssertFalse(SpectrumSelectionContrast.usesLightStroke(hue: 1 / 3, saturation: 1))

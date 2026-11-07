@@ -277,3 +277,6 @@ Matched Windows' draft behavior: severity and unit choices remain visible while 
 User confirmed Reset Horizon scrolling is “Smooth now.” Normal perceived scrolling is accepted; unrelated hover/reorder/long-session checks remain separately tracked.
 
 Color numeric inputs now retain invalid/empty drafts without clamping the accepted color and restore the last valid displayed value on blur. RGB/HSV clear actions and three-character numeric limits match the native control. Corrected opaque Hex behavior from the earlier last-color assumption: Windows keeps the # prefix, resolves cleared/malformed Hex to black, and interprets short Hex as an integer (#12 -> #000012). Native trace and source conversion helper establish this behavior. Focus changes no longer re-decode unchanged rounded strings and shift HSV coordinates.
+
+
+November7 RGB/Hex input constraint: pinned Windows run42381576873 confirms #FF0001 and RGB255,0,1 resolve to#FF0004 after the default359-degree HSV bound. Mac now applies that same edit-time constraint and retains fractional HSV through byte rounding. Seven captured edge/primary/gray model vectors, canonical app/test-bundle builds and actual isolated native Hex/Blue/HSV/Cancel checks passed. Native XCTest execution remains OS-auth-gated; see visual-parity-audit.md for scope and remaining picker states.

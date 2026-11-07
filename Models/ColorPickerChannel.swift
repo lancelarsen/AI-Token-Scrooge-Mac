@@ -4,6 +4,22 @@ import Foundation
 /// Spectrum channels wrap only after reaching an endpoint; the brightness
 /// slider clamps. Adapted from Microsoft UI XAML ColorHelpers (MIT).
 enum ColorPickerChannel {
+    /// WinUI applies its default HSV bounds to RGB/Hex edits, before rounding
+    /// back to bytes. Retain the fractional components so MaxHue359 remains
+    /// exactly359 even when its displayed RGB rounds to255,0,4.
+    static func rgbInputComponents(red: Int, green: Int, blue: Int)
+        -> (hue: Double, saturation: Double, brightness: Double) {
+        let r = Double(red) / 255, g = Double(green) / 255, b = Double(blue) / 255
+        let high = max(r, g, b), low = min(r, g, b), chroma = high - low
+        guard chroma > 0 else { return (0, 0, high) }
+        var degrees: Double
+        if high == r { degrees = 60 * (g - b) / chroma }
+        else if high == g { degrees = 120 + 60 * (b - r) / chroma }
+        else { degrees = 240 + 60 * (r - g) / chroma }
+        if degrees < 0 { degrees += 360 }
+        return (min(359, max(0, degrees)) / 360, chroma / high, high)
+    }
+
     /// TextBox edits are drafts: reject invalid values rather than clamping
     /// them into a different color. WinUI restores the accepted value on blur.
     static func inputValue(_ text: String, maximum: Int) -> Int? {
