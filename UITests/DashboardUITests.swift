@@ -324,9 +324,17 @@ final class DashboardUITests: XCTestCase {
     }
 
     @MainActor func testLongUsageDetailsWrapAtWindowsWidthLimit() throws {
+        try verifyLongUsageDetails(compact: false)
+    }
+
+    @MainActor func testCompactLongUsageDetailsKeepTitleAndFooterInsidePopup() throws {
+        try verifyLongUsageDetails(compact: true)
+    }
+
+    @MainActor private func verifyLongUsageDetails(compact: Bool) throws {
         let app = XCUIApplication()
         app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
-        app.launchArguments = ["--demo", "--reference-wide", "--scenario", "long-details"]
+        app.launchArguments = ["--demo", compact ? "--compact" : "--reference-wide", "--scenario", "long-details"]
         app.launch()
         defer { app.terminate() }
         if !app.windows["dashboard"].waitForExistence(timeout: 2) {
@@ -337,6 +345,11 @@ final class DashboardUITests: XCTestCase {
         app.activate()
         let quota = app.buttons["Codex · 5-Hour. Open Details"].firstMatch
         XCTAssertTrue(quota.waitForExistence(timeout: 10))
+        if compact {
+            let dashboard = app.windows["dashboard"]
+            dashboard.scrollBars.firstMatch.hover()
+            dashboard.scrollBars.firstMatch.scroll(byDeltaX: 0, deltaY: -500)
+        }
         quota.click()
         let note = app.staticTexts["quotaSourceNote"].firstMatch
         XCTAssertTrue(note.waitForExistence(timeout: 5))
@@ -344,6 +357,10 @@ final class DashboardUITests: XCTestCase {
         XCTAssertEqual(sheet.frame.width, 548, accuracy: 1)
         XCTAssertGreaterThan(note.frame.height, 38, "Long status text must wrap rather than shrink")
         XCTAssertTrue(sheet.frame.contains(note.frame), "The entire wrapped note must remain inside the popup")
+        let title = app.staticTexts["OpenAI / Personal · Plus"].firstMatch
+        XCTAssertTrue(title.exists)
+        XCTAssertTrue(sheet.frame.contains(title.frame), "Wrapping must not push the title above the popup")
+        XCTAssertTrue(sheet.frame.contains(app.buttons["Close"].frame), "The complete footer action must fit")
         XCTAssertTrue(app.buttons["Close"].isHittable)
         app.buttons["Close"].click()
         XCTAssertTrue(note.waitForNonExistence(timeout: 5))

@@ -131,6 +131,7 @@ struct DetailsDialog<Content: View>: View {
 
     private var hasPrimaryAction: Bool { primaryTitle != nil && primaryAction != nil }
     var body: some View {
+        DialogSizing(width: width, maximumHeight: maximumHeight) {
         VStack(alignment: .leading, spacing: 0) {
             // WinUI ContentDialogTitleMargin is 12 points below the natural
             // title line box; body paragraphs keep their own eight-point gaps.
@@ -171,8 +172,7 @@ struct DetailsDialog<Content: View>: View {
             }.padding(24)
         }
         .padding(1)
-        .frame(width: width)
-        .frame(minWidth: 320, maxWidth: 548, maxHeight: maximumHeight)
+        }
         .fixedSize(horizontal: true, vertical: true)
         .background(Theme.dialogBackground)
         .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -183,6 +183,24 @@ struct DetailsDialog<Content: View>: View {
         }
         .presentationCornerRadius(16)
         .preferredColorScheme(.dark)
+    }
+}
+
+/// Resolve the capped popup width before measuring wrapped content height.
+/// A frame around an unconstrained ideal size can retain the one-line height
+/// after narrowing long messages, clipping the fixed title and footer.
+private struct DialogSizing: Layout {
+    var width: CGFloat?
+    var maximumHeight: CGFloat
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let content = subviews.first else { return .zero }
+        let resolvedWidth = width ?? min(548, max(320, content.sizeThatFits(.unspecified).width))
+        let fitted = content.sizeThatFits(.init(width: resolvedWidth, height: nil))
+        return CGSize(width: resolvedWidth, height: min(maximumHeight, fitted.height))
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, anchor: .topLeading,
+                             proposal: .init(width: bounds.width, height: bounds.height))
     }
 }
 

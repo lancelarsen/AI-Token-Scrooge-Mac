@@ -4,6 +4,35 @@ import XCTest
 @testable import AITokenScrooge
 
 final class ReferenceTypographyTests: XCTestCase {
+    @MainActor func testEarnedResetDialogRetainsMeasuredWindowsGeometry() {
+        let host = NSHostingView(rootView: DetailsDialog(title: "Available resets", close: {}) {
+            VStack(alignment: .leading, spacing: 8) {
+                DetailLine(label: "OpenAI / Personal · Plus", value: "2 reported available")
+                Text("Snapshot fetched 11/4/2026 10:16 AM · Demo").frame(minHeight: 19)
+                Text("• Sun, Nov 8 10:16 AM · available").frame(minHeight: 19)
+                Text("• Fri, Nov 13 10:16 AM · available").frame(minHeight: 19)
+            }
+        })
+        // Windows native run 42361188549: exact outer border 333×285.
+        XCTAssertEqual(host.fittingSize.width, 333, accuracy: 0.5)
+        XCTAssertEqual(host.fittingSize.height, 285, accuracy: 0.5)
+    }
+
+    @MainActor func testDialogMeasuresWrappedBodyAtItsFinalWidth() {
+        let message = String(repeating: "A long provider message must wrap without clipping the title or footer. ", count: 80)
+        let host = NSHostingView(rootView: DetailsDialog(title: "Provider status", close: {}) {
+            Text(message).frame(maxWidth: .infinity, alignment: .leading)
+        })
+        XCTAssertEqual(host.fittingSize.width, 548, accuracy: 0.5)
+        // The body reaches the 420-point scroll cap. The title, title gap,
+        // padding, separator, 44-point footer action and border still need space.
+        XCTAssertEqual(host.fittingSize.height, 605, accuracy: 0.5)
+        let capped = NSHostingView(rootView: DetailsDialog(title: "Provider status", maximumHeight: 300, close: {}) {
+            Text(message).frame(maxWidth: .infinity, alignment: .leading)
+        })
+        XCTAssertEqual(capped.fittingSize.height, 300, accuracy: 0.5)
+    }
+
     @MainActor func testActionButtonsMatchCapturedWindowsBounds() {
         for (title, symbol, width) in [("Settings", "gearshape", 113.0), ("Refresh", "arrow.clockwise", 109.0)] {
             let host = NSHostingView(rootView: Button {} label: { ActionLabel(title: title, symbol: symbol) }
