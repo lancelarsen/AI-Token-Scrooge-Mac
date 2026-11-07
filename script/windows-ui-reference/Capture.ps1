@@ -236,12 +236,7 @@ try {
     if (-not ($keyboard.Rows | Where-Object { $_.type -eq 'ControlType.Text' -and $_.name -match 'Weekly.*% Used' })) {
         throw 'Keyboard history inspection did not expose a sample readout.'
     }
-    Start-Sleep -Milliseconds 500
-    $modelExpansion = $null
-    if ($colorModel.TryGetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern, [ref]$modelExpansion) -and
-        $modelExpansion.Current.ExpandCollapseState -eq [System.Windows.Automation.ExpandCollapseState]::Expanded) {
-        $modelExpansion.Collapse()
-    }
+    [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
     Start-Sleep -Seconds 1
     # Exercise the application's actual immediate-hover tooltips in the fresh
     # runner session. Locate targets through UIA bounds rather than fixed pixels.
@@ -433,7 +428,12 @@ try {
         Start-Sleep -Milliseconds 250
         Save-ReferenceView -Name 'custom-color-picker-model-pressed' -Root $root -Handle $handle -Output $Output | Out-Null
     } finally { [ReferenceWindowNative]::SetLeftButton($false) }
-    [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
+    Start-Sleep -Milliseconds 500
+    $modelExpansion = $null
+    if ($colorModel.TryGetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern, [ref]$modelExpansion) -and
+        $modelExpansion.Current.ExpandCollapseState -eq [System.Windows.Automation.ExpandCollapseState]::Expanded) {
+        $modelExpansion.Collapse()
+    }
     [ReferenceWindowNative]::MovePointer($away.X, $away.Y)
     Start-Sleep -Milliseconds 300
     $brightnessSlider = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,
