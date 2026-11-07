@@ -95,15 +95,15 @@ struct AccountUsageDetailsView: View {
            let snapshot = store.state.snapshots[account.id], snapshot.belongs(to: account) {
             if windowID == nil, let reserve = snapshot.reserve {
                 VStack(alignment: .leading, spacing: 8) {
-                    DetailLine(label: "\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))", value: "\(reserve.availableCount.map(String.init) ?? "Unknown") reported available")
-                    Text("Snapshot fetched \(Format.snapshotDate(snapshot.observedAt, zone: store.state.settings.zone)) · \(account.enabled ? snapshot.health.rawValue.capitalized : "Monitoring paused")").frame(minHeight: 19, alignment: .leading)
-                    if reserve.hasPartialDetails { Text("Provider supplied only partial credit details.").frame(minHeight: 19, alignment: .leading) }
+                    DialogBodyText("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType)): \(reserve.availableCount.map(String.init) ?? "Unknown") reported available")
+                    DialogBodyText("Snapshot fetched \(Format.snapshotDate(snapshot.observedAt, zone: store.state.settings.zone)) · \(account.enabled ? snapshot.health.rawValue.capitalized : "Monitoring paused")")
+                    if reserve.hasPartialDetails { DialogBodyText("Provider supplied only partial credit details.") }
                     if let credits = reserve.credits {
                         ForEach(credits) { credit in
-                            Text("• \(Format.date(credit.expiresAt, zone: store.state.settings.zone)) · \(credit.expiresAt.map { $0 <= store.presentationDate } == true ? "Expired locally — checking provider" : credit.status)").frame(minHeight: 19, alignment: .leading)
+                            DialogBodyText("• \(Format.date(credit.expiresAt, zone: store.state.settings.zone)) · \(credit.expiresAt.map { $0 <= store.presentationDate } == true ? "Expired locally — checking provider" : credit.status)")
                                 .accessibilityIdentifier("resetCredit-\(credit.id)")
                         }
-                    } else { Text("Credit details unavailable").frame(minHeight: 19, alignment: .leading) }
+                    } else { DialogBodyText("Credit details unavailable") }
                 }.font(Theme.dialogBodyFont).frame(maxWidth: .infinity, alignment: .leading)
             } else if let window = snapshot.windows.first(where: { windowID == nil || $0.id == windowID }) {
                 QuotaDetailsView(account: account, window: window, snapshot: snapshot)
@@ -112,7 +112,7 @@ struct AccountUsageDetailsView: View {
     }
     private var unavailableDetails: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("This account or quota window is no longer available. Refresh the dashboard to check current connections.")
+            DialogBodyText("This account or quota window is no longer available. Refresh the dashboard to check current connections.")
         }
     }
 }
@@ -137,6 +137,7 @@ struct DetailsDialog<Content: View>: View {
             // title line box; body paragraphs keep their own eight-point gaps.
             VStack(alignment: .leading, spacing: 12) {
                 Text(title).font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
+                    .referenceNativeTextLineMetrics(size: 22)
                     .fixedSize(horizontal: false, vertical: true)
                 ViewThatFits(in: .vertical) {
                     content().fixedSize(horizontal: false, vertical: true)
@@ -313,7 +314,25 @@ struct DetailLine: View {
     var body: some View {
         let heading = Text(label + ": ").font(ReferenceTypography.nativeTextFont(semibold: true)).foregroundColor(Theme.primaryText)
         Text("\(heading)\(Text(verbatim: value).foregroundColor(Theme.dialogText))")
+            .font(Theme.dialogBodyFont)
+            .referenceNativeTextLineMetrics(size: 14)
             .frame(minHeight: 19, alignment: .leading)
+    }
+}
+
+/// Match native paragraph metrics and its short, non-time label emphasis rule.
+struct DialogBodyText: View {
+    let text: String
+    init(_ text: String) { self.text = text }
+    var body: some View {
+        let parsed = Format.dialogLine(text)
+        if let label = parsed.label {
+            DetailLine(label: label, value: parsed.value)
+        } else {
+            Text(verbatim: parsed.value).font(Theme.dialogBodyFont)
+                .referenceNativeTextLineMetrics(size: 14)
+                .frame(minHeight: 19, alignment: .leading)
+        }
     }
 }
 
@@ -326,12 +345,7 @@ struct DialogMessage: View {
                 if line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     Color.clear.frame(height: 6)
                 } else {
-                    let parsed = Format.dialogLine(line)
-                    if let label = parsed.label {
-                        DetailLine(label: label, value: parsed.value)
-                    } else {
-                        Text(parsed.value).frame(minHeight: 19, alignment: .leading)
-                    }
+                    DialogBodyText(line)
                 }
             }
         }.font(Theme.dialogBodyFont).foregroundStyle(Theme.dialogText)
@@ -353,7 +367,7 @@ struct DialogActionLabel: View {
                     .foregroundStyle(foreground)
                     .accessibilityHidden(true)
             }
-            Text(title).font(Theme.dialogBodyFont)
+            Text(title).font(Theme.dialogBodyFont).referenceNativeTextLineMetrics(size: 14)
         }
     }
 }

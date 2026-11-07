@@ -80,7 +80,7 @@ struct DashboardView: View {
         }
         .sheet(isPresented: Binding(get: { sheet == nil && store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })) {
             DetailsDialog(title: "Scrooge Needs Attention", close: { store.errorMessage = nil }) {
-                Text(store.errorMessage ?? "")
+                DialogMessage(message: store.errorMessage ?? "")
             }
         }
     }
@@ -409,8 +409,8 @@ struct QuotaDetailsView: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(Format.windowTitle(window.name)).frame(minHeight: 19, alignment: .leading)
-            Text("\(Format.usageText(window, provider: account.provider).used) · \(Format.usageText(window, provider: account.provider).left)").frame(minHeight: 19, alignment: .leading)
+            DialogBodyText(Format.windowTitle(window.name))
+            DialogBodyText("\(Format.usageText(window, provider: account.provider).used) · \(Format.usageText(window, provider: account.provider).left)")
             DetailLine(label: "Resets", value: Format.detailDate(window.resetsAt, zone: store.state.settings.zone))
             Color.clear.frame(height: 6)
             if !store.state.settings.privacy {
@@ -420,16 +420,16 @@ struct QuotaDetailsView: View {
             DetailLine(label: "Last successful fetch", value: Format.detailDate(snapshot.observedAt, zone: store.state.settings.zone))
             DetailLine(label: "Provider data as of", value: Format.detailDate(snapshot.providerDataAt, zone: store.state.settings.zone))
             if let note = snapshot.reportingNote(for: account.provider) {
-                Text(note).foregroundStyle(Theme.dialogText)
+                DialogBodyText(note).foregroundStyle(Theme.dialogText)
             }
             if !sourceNote.isEmpty {
                 Color.clear.frame(height: 6)
-                Text(sourceNote).foregroundStyle(Theme.dialogText).frame(minHeight: 19, alignment: .leading)
+                DialogBodyText(sourceNote).foregroundStyle(Theme.dialogText)
                     .accessibilityIdentifier("quotaSourceNote")
             }
             if !store.isDemo, account.usageURL != nil {
                 Color.clear.frame(height: 6)
-                Text("Provider pages use your browser's sign-in. Check its account and workspace before comparing.")
+                DialogBodyText("Provider pages use your browser's sign-in. Check its account and workspace before comparing.")
                     .font(Theme.dialogBodyFont).foregroundStyle(Theme.dialogText)
             }
         }.font(Theme.dialogBodyFont).foregroundStyle(Theme.dialogText).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading).preferredColorScheme(.dark)

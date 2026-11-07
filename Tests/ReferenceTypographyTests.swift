@@ -84,6 +84,52 @@ final class ReferenceTypographyTests: XCTestCase {
         XCTAssertEqual(host.fittingSize.height, 120)
     }
 
+    @MainActor func testNativeFractionalLineMetricsRetainLongTextAcrossFontSizes() throws {
+        let heights: [(CGFloat, [Int])] = [(14, [19, 38, 75, 224, 373]),
+                                           (16, [22, 43, 86, 256, 426]),
+                                           (22, [30, 59, 118, 352, 586])]
+        for (size, expected) in heights {
+            for (count, height) in zip([1, 2, 4, 12, 20], expected) {
+                let text = Array(repeating: "Hg", count: count).joined(separator: "\n")
+                let content = Text(text).font(ReferenceTypography.nativeTextFont(size: size))
+                    .referenceNativeTextLineMetrics(size: size).foregroundStyle(.white)
+                    .frame(width: 100, alignment: .leading).background(.black)
+                XCTAssertEqual(NSHostingView(rootView: content).fittingSize.height, CGFloat(height))
+                let renderer = ImageRenderer(content: content)
+                renderer.scale = 1
+                let image = NSBitmapImageRep(cgImage: try XCTUnwrap(renderer.cgImage))
+                XCTAssertEqual(image.pixelsHigh, height)
+                let rows = inkRows(image)
+                XCTAssertEqual(rows.filter { !rows.contains($0 - 1) }.count, count,
+                               "Every line must remain visible at size \(size)")
+            }
+        }
+    }
+
+    @MainActor func testWrappedDialogTextMatchesCapturedNativeTitleAndParagraph() throws {
+        // Actual Windows run42404838337: five-line22-point title147 high,
+        // four-line14-point regular body75 high, with these exact widths.
+        let nickname = "Personal development and research across multiple workspaces with shared subscriptions, independent production environments, separate evaluation projects, and several collaborative engineering teams"
+        let title = NSHostingView(rootView: Text("OpenAI / " + nickname + " · Plus")
+            .font(Theme.dialogTitleFont).referenceNativeTextLineMetrics(size: 22).frame(width: 478))
+        XCTAssertEqual(title.fittingSize, CGSize(width: 478, height: 147))
+        let paragraph = "OpenAI / " + nickname + " · Plus: 2 reported available"
+        let body = DialogBodyText(paragraph).frame(width: 482)
+        XCTAssertEqual(NSHostingView(rootView: body).fittingSize, CGSize(width: 482, height: 75))
+        XCTAssertNil(Format.dialogLine(paragraph).label, "Windows does not emphasize prefixes45 characters or longer")
+        func pixels<V: View>(_ content: V) throws -> Data {
+            let renderer = ImageRenderer(content: content.foregroundStyle(Theme.dialogText).background(.black))
+            renderer.scale = 1
+            let image = NSBitmapImageRep(cgImage: try XCTUnwrap(renderer.cgImage))
+            return try XCTUnwrap(image.representation(using: .png, properties: [:]))
+        }
+        let regular = Text(verbatim: paragraph).font(Theme.dialogBodyFont)
+            .referenceNativeTextLineMetrics(size: 14).frame(width: 482)
+        XCTAssertEqual(try pixels(body), try pixels(regular), "The captured long account paragraph is entirely regular weight")
+        let action = NSHostingView(rootView: DialogActionLabel(title: "First line\nSecond line\nThird line").frame(width: 370))
+        XCTAssertEqual(action.fittingSize.height, 56)
+    }
+
     @MainActor func testColorEditorMatchesNativeWindowsContentExtent() {
         // Native open-menu run42386108887: 14-point Variable Text yields
         // RGB26×19 and HSV27×19, unlike AppKit's13-point system-menu default.

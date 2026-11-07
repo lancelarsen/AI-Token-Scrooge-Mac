@@ -115,11 +115,11 @@ struct HorizonView: View {
             } else {
                 DetailsDialog(title: event.title, close: { selectedEvent = nil }) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("\(event.account.provider.rawValue) · \(store.state.settings.privacy ? "Account" : event.account.nickname)")
-                        Text(Format.date(event.date, zone: store.state.settings.zone))
+                        DialogBodyText("\(event.account.provider.rawValue) · \(store.state.settings.privacy ? "Account" : event.account.nickname)")
+                        DialogBodyText(Format.date(event.date, zone: store.state.settings.zone))
                         if let reportedAt = event.reportedAt {
-                            Text("Reported \(Format.date(reportedAt, zone: store.state.settings.zone))").foregroundStyle(Theme.secondary)
-                            Text("This is a reported schedule, not confirmation that capacity reset or a credit was redeemed.").font(.reference(size: 14))
+                            DialogBodyText("Reported \(Format.date(reportedAt, zone: store.state.settings.zone))").foregroundStyle(Theme.secondary)
+                            DialogBodyText("This is a reported schedule, not confirmation that capacity reset or a credit was redeemed.")
                         }
                     }
                 }

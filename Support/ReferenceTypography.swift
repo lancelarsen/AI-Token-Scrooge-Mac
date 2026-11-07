@@ -173,8 +173,12 @@ private struct ReferenceFractionalLineBox: Layout {
     let advance: CGFloat
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         guard let text = subviews.first else { return .zero }
-        let natural = text.sizeThatFits(.init(width: proposal.width, height: nil))
-        let lines = max(1, (natural.height / advance.rounded()).rounded())
+        let natural = text.dimensions(in: .init(width: proposal.width, height: nil))
+        // SwiftUI's rounded line box is not always advance.rounded(): the
+        //22-point face uses30 points, while the16-point face uses21. Recover
+        // its actual line box from the first/last baselines before rescaling.
+        let lineHeight = natural.height - (natural[.lastTextBaseline] - natural[.firstTextBaseline])
+        let lines = max(1, (natural.height / max(1, lineHeight)).rounded())
         return CGSize(width: natural.width, height: ceil(lines * advance))
     }
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
