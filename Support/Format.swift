@@ -1,6 +1,49 @@
 import Foundation
 
+/// Keep immutable formatter configurations across redraws. Locking covers both
+/// lookup and formatting; locale changes discard current-locale configurations.
+private final class DateFormattingCache: @unchecked Sendable {
+    private struct Key: Hashable {
+        let pattern: String
+        let zone: TimeZone
+        let posix: Bool
+    }
+    private let lock = NSLock()
+    private var entries: [Key: DateFormatter] = [:]
+    private var localeObserver: NSObjectProtocol?
+
+    init() {
+        localeObserver = NotificationCenter.default.addObserver(forName: NSLocale.currentLocaleDidChangeNotification,
+                                                                object: nil, queue: nil) { [weak self] _ in
+            guard let self else { return }
+            self.lock.lock()
+            self.entries.removeAll()
+            self.lock.unlock()
+        }
+    }
+    deinit {
+        if let localeObserver { NotificationCenter.default.removeObserver(localeObserver) }
+    }
+    func string(_ date: Date, pattern: String, zone: TimeZone, posix: Bool) -> String {
+        lock.lock()
+        defer { lock.unlock() }
+        let key = Key(pattern: pattern, zone: zone, posix: posix)
+        let formatter: DateFormatter
+        if let existing = entries[key] { formatter = existing }
+        else {
+            formatter = DateFormatter()
+            if posix { formatter.locale = Locale(identifier: "en_US_POSIX") }
+            formatter.timeZone = zone
+            formatter.dateFormat = pattern
+            if entries.count >= 32 { entries.removeAll() }
+            entries[key] = formatter
+        }
+        return formatter.string(from: date)
+    }
+}
+
 enum Format {
+    private static let dates = DateFormattingCache()
     /// Windows ActionButton.GlyphFor mapping, also used by themed dialog actions.
     static func actionGlyph(_ title: String) -> String {
         let value = title.lowercased()
@@ -80,30 +123,20 @@ enum Format {
     }
 
     static func historyDate(_ date: Date, zone: TimeZone) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = zone
-        formatter.dateFormat = "MMM d, h:mm a"
-        return formatter.string(from: date)
+        dates.string(date, pattern: "MMM d, h:mm a", zone: zone, posix: true)
     }
 
     static func snapshotDate(_ date: Date, zone: TimeZone) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = zone
-        formatter.dateFormat = "M/d/yyyy h:mm a"
-        return formatter.string(from: date)
+        dates.string(date, pattern: "M/d/yyyy h:mm a", zone: zone, posix: true)
     }
 
     static func updated(_ date: Date, zone: TimeZone) -> String {
         var calendar = Calendar(identifier: .gregorian); calendar.timeZone = zone
         let day = calendar.component(.day, from: date)
         let suffix = (11...13).contains(day) ? "th" : day % 10 == 1 ? "st" : day % 10 == 2 ? "nd" : day % 10 == 3 ? "rd" : "th"
-        let formatter = DateFormatter(); formatter.locale = Locale(identifier: "en_US_POSIX"); formatter.timeZone = zone
-        formatter.dateFormat = "h:mm a"
-        let time = formatter.string(from: date)
-        formatter.dateFormat = "EEEE, MMM"
-        return "Updated \(time) \(zone.abbreviation(for: date) ?? zone.identifier)\n\(formatter.string(from: date)) \(day)\(suffix)"
+        let time = dates.string(date, pattern: "h:mm a", zone: zone, posix: true)
+        let heading = dates.string(date, pattern: "EEEE, MMM", zone: zone, posix: true)
+        return "Updated \(time) \(zone.abbreviation(for: date) ?? zone.identifier)\n\(heading) \(day)\(suffix)"
     }
     static func plan(_ provider: Provider, _ value: String?) -> String {
         let labels: [String: String]
@@ -158,16 +191,10 @@ enum Format {
     }
     static func detailDate(_ date: Date?, zone: TimeZone) -> String {
         guard let date else { return "Not supplied" }
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = zone
-        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss xxx"
-        return formatter.string(from: date)
+        return dates.string(date, pattern: "yyyy-MM-dd HH:mm:ss xxx", zone: zone, posix: true)
     }
     static func date(_ date: Date?, zone: TimeZone) -> String {
         guard let date else { return "Not Supplied by Provider" }
-        let formatter = DateFormatter()
-        formatter.timeZone = zone; formatter.dateFormat = "EEE, MMM d h:mm a"
-        return formatter.string(from: date)
+        return dates.string(date, pattern: "EEE, MMM d h:mm a", zone: zone, posix: false)
     }
 }

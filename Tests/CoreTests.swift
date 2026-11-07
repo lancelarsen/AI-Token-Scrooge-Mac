@@ -3,6 +3,36 @@ import struct SwiftUI.Color
 @testable import AITokenScrooge
 
 final class CoreTests: XCTestCase {
+    func testDateFormattingMatchesFreshFormattersAcrossZonesAndThreads() {
+        let zones = ["UTC", "America/Chicago", "Asia/Kathmandu", "Europe/Berlin", "Pacific/Auckland", "Etc/GMT+12"]
+            .map { TimeZone(identifier: $0)! }
+        let patterns = ["EEE, MMM d h:mm a", "MMM d, h:mm a", "M/d/yyyy h:mm a", "yyyy-MM-dd HH:mm:ss xxx"]
+        DispatchQueue.concurrentPerform(iterations: 192) { index in
+            let zone = zones[index % zones.count]
+            let date = Date(timeIntervalSince1970: 1_793_516_400 + Double(index * 1800))
+            let kind = (index / zones.count) % patterns.count
+            let fresh = DateFormatter()
+            if kind != 0 { fresh.locale = Locale(identifier: "en_US_POSIX") }
+            fresh.timeZone = zone
+            fresh.dateFormat = patterns[kind]
+            let actual: String
+            switch kind {
+            case 0: actual = Format.date(date, zone: zone)
+            case 1: actual = Format.historyDate(date, zone: zone)
+            case 2: actual = Format.snapshotDate(date, zone: zone)
+            default: actual = Format.detailDate(date, zone: zone)
+            }
+            XCTAssertEqual(actual, fresh.string(from: date))
+            if index.isMultiple(of: 17) {
+                NotificationCenter.default.post(name: NSLocale.currentLocaleDidChangeNotification, object: nil)
+            }
+        }
+        XCTAssertEqual(Format.updated(Date(timeIntervalSince1970: 1_793_808_660), zone: TimeZone(identifier: "America/Chicago")!),
+                       "Updated 10:11 AM CST\nWednesday, Nov 4th")
+        XCTAssertEqual(Format.date(nil, zone: zones[0]), "Not Supplied by Provider")
+        XCTAssertEqual(Format.detailDate(nil, zone: zones[0]), "Not supplied")
+    }
+
     func testRefreshCoverageDistinguishesMissingDatesFromZeroUsageForEveryProvider() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
         for provider in Provider.allCases {
