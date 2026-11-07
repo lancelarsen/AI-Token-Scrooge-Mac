@@ -57,6 +57,53 @@ public static class ReferenceWindowNative {
 }
 '@
 [ReferenceWindowNative]::SetProcessDPIAware() | Out-Null
+function Save-ReferenceView {
+    param([string]$Name, [System.Windows.Automation.AutomationElement]$Root, [IntPtr]$Handle, [string]$Output)
+    $elements = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
+    $rows = @()
+    foreach ($element in $elements) {
+        $current = $element.Current
+        $bounds = $current.BoundingRectangle
+        if ($bounds.IsEmpty) { continue }
+        $row = [ordered]@{ name = $current.Name; type = $current.ControlType.ProgrammaticName;
+            x = $bounds.X; y = $bounds.Y; width = $bounds.Width; height = $bounds.Height;
+            enabled = $current.IsEnabled; offscreen = $current.IsOffscreen }
+        $pattern = $null
+        if ($element.TryGetCurrentPattern([System.Windows.Automation.TextPattern]::Pattern, [ref]$pattern)) {
+            $range = $pattern.DocumentRange
+            foreach ($attribute in @('FontName', 'FontSize', 'FontWeight')) {
+                $field = [System.Windows.Automation.TextPattern].GetField($attribute + 'Attribute')
+                $value = $range.GetAttributeValue($field.GetValue($null))
+                if ($value -is [string] -or $value -is [double] -or $value -is [int]) { $row[$attribute] = $value }
+            }
+        }
+        $scroll = $null
+        if ($element.TryGetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern, [ref]$scroll)) {
+            $row['verticalScrollable'] = $scroll.Current.VerticallyScrollable
+            $row['horizontalScrollable'] = $scroll.Current.HorizontallyScrollable
+        }
+        $rows += $row
+    }
+    $rows | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 (Join-Path $Output ($Name + '-elements.json'))
+    $rect = New-Object ReferenceWindowNative+Rect
+    if (-not [ReferenceWindowNative]::GetWindowRect($handle, [ref]$rect)) { throw 'Could not read native window bounds.' }
+    $width = $rect.Right - $rect.Left
+    $height = $rect.Bottom - $rect.Top
+    if ($width -lt 600 -or $height -lt 400) { throw 'Unexpected reference window dimensions.' }
+    $bitmap = New-Object System.Drawing.Bitmap($width, $height)
+    $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+    try {
+        $graphics.CopyFromScreen($rect.Left, $rect.Top, 0, 0, $bitmap.Size)
+        $bitmap.Save((Join-Path $Output ($Name + '.png')), [System.Drawing.Imaging.ImageFormat]::Png)
+        $colors = New-Object 'System.Collections.Generic.HashSet[int]'
+        for ($x = 0; $x -lt $width; $x += 17) {
+            for ($y = 0; $y -lt $height; $y += 17) { [void]$colors.Add($bitmap.GetPixel($x, $y).ToArgb()) }
+        }
+        if ($colors.Count -lt 8) { throw 'The runner returned a blank/unrendered desktop capture.' }
+    } finally { $graphics.Dispose(); $bitmap.Dispose() }
+    return [pscustomobject]@{ Rows = $rows; Width = $width; Height = $height }
+}
+
 $data = Join-Path $Output 'isolated-demo-state'
 $app = $null
 try {
@@ -93,48 +140,42 @@ try {
     Start-Sleep -Seconds 3
     $root = [System.Windows.Automation.AutomationElement]::FromHandle($handle)
     if ($root.Current.ProcessId -ne $app.Id) { throw 'Reference window belongs to a different process.' }
-    $elements = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
-    $rows = @()
-    foreach ($element in $elements) {
-        $current = $element.Current
-        $bounds = $current.BoundingRectangle
-        if ($bounds.IsEmpty) { continue }
-        $row = [ordered]@{ name = $current.Name; type = $current.ControlType.ProgrammaticName;
-            x = $bounds.X; y = $bounds.Y; width = $bounds.Width; height = $bounds.Height;
-            enabled = $current.IsEnabled; offscreen = $current.IsOffscreen }
-        $pattern = $null
-        if ($element.TryGetCurrentPattern([System.Windows.Automation.TextPattern]::Pattern, [ref]$pattern)) {
-            $range = $pattern.DocumentRange
-            foreach ($attribute in @('FontName', 'FontSize', 'FontWeight')) {
-                $field = [System.Windows.Automation.TextPattern].GetField($attribute + 'Attribute')
-                $value = $range.GetAttributeValue($field.GetValue($null))
-                if ($value -is [string] -or $value -is [double] -or $value -is [int]) { $row[$attribute] = $value }
-            }
-        }
-        $rows += $row
-    }
-    $rows | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 (Join-Path $Output 'dashboard-elements.json')
-    $rect = New-Object ReferenceWindowNative+Rect
-    if (-not [ReferenceWindowNative]::GetWindowRect($handle, [ref]$rect)) { throw 'Could not read native window bounds.' }
-    $width = $rect.Right - $rect.Left
-    $height = $rect.Bottom - $rect.Top
-    if ($width -lt 600 -or $height -lt 400) { throw 'Unexpected reference window dimensions.' }
-    $bitmap = New-Object System.Drawing.Bitmap($width, $height)
-    $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-    try {
-        $graphics.CopyFromScreen($rect.Left, $rect.Top, 0, 0, $bitmap.Size)
-        $bitmap.Save((Join-Path $Output 'dashboard.png'), [System.Drawing.Imaging.ImageFormat]::Png)
-        $colors = New-Object 'System.Collections.Generic.HashSet[int]'
-        for ($x = 0; $x -lt $width; $x += 17) {
-            for ($y = 0; $y -lt $height; $y += 17) { [void]$colors.Add($bitmap.GetPixel($x, $y).ToArgb()) }
-        }
-        if ($colors.Count -lt 8) { throw 'The runner returned a blank/unrendered desktop capture.' }
-    } finally { $graphics.Dispose(); $bitmap.Dispose() }
+    $dashboard = Save-ReferenceView -Name 'dashboard' -Root $root -Handle $handle -Output $Output
+    $rows = $dashboard.Rows
+    $width = $dashboard.Width
+    $height = $dashboard.Height
     if (-not ($rows | Where-Object { $_.name -match 'Reset Horizon|Reset horizon' })) { throw 'The captured window did not expose the demo dashboard.' }
     [ordered]@{ release = 'v2026.11.6.006'; source = 'eb042cb1fd9f44e896c2126738121ae8c80d80b0';
         width = $width; height = $height; elements = $rows.Count; session = $app.SessionId;
         scope = 'Isolated demo rendering only; no live provider or authentication verification.' } |
         ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $Output 'capture.json')
+    $scrollTarget = $null
+    foreach ($element in $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)) {
+        $pattern = $null
+        if ($element.Current.BoundingRectangle.Width -ge 600 -and
+            $element.TryGetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern, [ref]$pattern) -and
+            $pattern.Current.VerticallyScrollable -and -not $pattern.Current.HorizontallyScrollable) {
+            $scrollTarget = $pattern; break
+        }
+    }
+    if ($null -eq $scrollTarget) { throw 'No vertical dashboard scroll provider was exposed.' }
+    $scrollTarget.SetScrollPercent([System.Windows.Automation.ScrollPattern]::NoScroll, 40)
+    Start-Sleep -Seconds 2
+    $accounts = Save-ReferenceView -Name 'account-rows' -Root $root -Handle $handle -Output $Output
+    $button = @($accounts.Rows | Where-Object { $_.type -eq 'ControlType.Button' -and $_.name -match '38%' })
+    if ($button.Count -ne 1) { throw 'The expected demo quota detail action was not uniquely visible.' }
+    $condition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $button[0].name)
+    $target = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $condition)
+    $invoke = $null
+    if ($null -eq $target -or -not $target.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern, [ref]$invoke)) {
+        throw 'Demo quota action did not expose Invoke.'
+    }
+    $invoke.Invoke()
+    Start-Sleep -Seconds 2
+    $details = Save-ReferenceView -Name 'usage-details' -Root $root -Handle $handle -Output $Output
+    if (-not ($details.Rows | Where-Object { $_.name -match 'Last successful fetch' })) {
+        throw 'The usage popup body was not exposed after invoking the quota.'
+    }
 } finally {
     if ($null -ne $app -and -not $app.HasExited) { $app.Kill(); $app.WaitForExit() }
     # Only screenshots/geometry leave this fresh runner, never its generated state.
