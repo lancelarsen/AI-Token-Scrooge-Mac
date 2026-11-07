@@ -599,7 +599,7 @@ try {
         # Unpackaged runner delivery may fail. Close only its known test-result
         # dialog, preserving the in-app banner for layout verification.
         $resultAction = @($testResult.Rows | Where-Object { $_.type -eq 'ControlType.Button' -and
-            $_.name -in @('OK', 'Close') -and -not $_.offscreen })
+            $_.name -in @('OK', 'Close') -and $_.height -ge 40 -and -not $_.offscreen })
         if ($resultAction.Count -ne 1) { throw 'Test-result dismissal was not uniquely exposed.' }
         Invoke-ReferenceAction -Name $resultAction[0].name -Root $root
         Start-Sleep -Seconds 1
