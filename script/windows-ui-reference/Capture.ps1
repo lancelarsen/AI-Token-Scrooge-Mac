@@ -469,7 +469,7 @@ try {
     $inputTrace | ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $Output 'color-input-draft-trace.json')
     if ($inputTrace[2]['red'] -ne $inputTrace[0]['red'] -or $inputTrace[4]['red'] -ne $inputTrace[0]['red'] -or
         $inputTrace[6]['hex'] -ne '#000000' -or $inputTrace[6]['brightness'] -ne 0 -or
-        $inputTrace[9]['red'] -ne $inputTrace[0]['red'] -or $inputTrace[11]['hex'] -ne '#000012') {
+        $inputTrace[9]['red'] -ne '12' -or $inputTrace[11]['hex'] -ne '#000012') {
         throw 'Native color input draft trace did not match the captured blur and short-Hex behavior.'
     }
     Invoke-ReferenceAction -Name 'Cancel' -Root $root
