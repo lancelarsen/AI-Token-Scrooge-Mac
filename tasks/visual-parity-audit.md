@@ -1477,3 +1477,12 @@ The native XCTest `testColorPickerKeyboardModeAndExactSwatch` entered #123456, s
 ### Whole-account refresh deadline (Windows eb042cb)
 
 Reviewed the latest Windows refresh orchestration. The Mac already publishes each account independently and preserves identity/persistence checks. Added the Windows 45-second whole-account cancellation deadline around credential renewal and all quota requests. Cancellation remains cooperative; an in-progress protected credential rotation finishes or leaves its durable reconnect marker before returning. A timed-out operation is canceled, retains saved quota values, and uses the existing per-account failure/backoff path. The regression fixture uses a shorter injected deadline and verifies cancellation, an independently successful account, refresh completion, and persisted retained values. All 136 hosted tests passed. This is orchestration verification, not a claim that provider authentication has been restored.
+
+
+### Adaptive Reset Horizon header and heading boundaries
+
+Replaced the two fixed header arrangements with a SwiftUI flow layout that wraps each legend, the History control and its hint independently, matching the Windows FlexLayout's grouping behavior. Kept the capture-backed 44/40/36-point trailing allocations and existing first-row height and row gap; the earlier experiment with literal Windows margins remains rejected. Native 789-point and 1000-point captures show complete controls, with History on the first row at intermediate width and its hint below.
+
+The captures also exposed partial offscreen weekday/date text in the axis gutter. Windows LayoutDayHeadings includes an anchor only when it is inside AxisLeft through AxisLeft+Span. Applied the same viewport-anchor bounds to Mac headings, while retaining the wider overlay that permits a visible left-edge label to extend into the axis gutter. Full visual sign-off remains separate from these layout corrections.
+
+Final native captures: artifacts/header-flow-compact-final.png (789×694 points), header-flow-900-final.png (900×800), header-flow-medium-final.png (1000×800), and header-flow-wide-final.png (1463×866). Inspected all four: controls are complete, the compact History/hint row is retained, intermediate widths wrap the hint independently, the wide header remains one row, and offscreen date fragments are absent. The canonical build and both native UI tests (History toggle/selector/demo exit and Tab history entry from launch) pass. Synthetic demo evidence does not establish live provider behavior or exact raster equivalence.

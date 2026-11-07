@@ -21,23 +21,14 @@ struct HorizonView: View {
     var body: some View {
         ScroogeCard(inset: 0) {
             VStack(spacing: 16) {
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 0) {
+                HStack(alignment: .top, spacing: 8) {
+                    HorizonHeaderFlow {
                         heading.padding(.trailing, 44)
-                        legend.padding(.trailing, 40)
+                        legends
                         historyToggle.padding(.trailing, 36)
                         historyHint
-                        Spacer(minLength: 8)
-                        settingsButton
-                    }
-                    VStack(alignment: .leading, spacing: 16) {
-                        HStack(spacing: 44) { heading; legend; Spacer(minLength: 0); settingsButton }
-                        HStack(spacing: 36) {
-                            historyToggle
-                            historyHint
-                            Spacer(minLength: 0)
-                        }
-                    }
+                    }.frame(maxWidth: .infinity, alignment: .leading)
+                    settingsButton.fixedSize()
                 }
                 .padding(.leading, 12)
                 Divider().overlay(Theme.border).padding(.horizontal, 12)
@@ -216,7 +207,7 @@ struct HorizonView: View {
         if let status = series?.status { text += "\n\(status)" }
         return text
     }
-    private var legend: some View {
+    @ViewBuilder private var legends: some View {
         let visible = timelineAccounts.filter { !store.state.settings.hiddenHistoryAccounts.contains($0.id) }
         let partialRefresh = visible.contains { account in
             guard account.provider == .codex || account.provider == .claude else { return false }
@@ -231,10 +222,10 @@ struct HorizonView: View {
         }
         let refresh = HorizonEvent.legendCount(events.filter { !$0.expiration }.count, incomplete: partialRefresh)
         let expiry = HorizonEvent.legendCount(events.filter(\.expiration).count, incomplete: partialExpiry)
-        return HStack(spacing: 40) {
-            HStack(spacing: 7) { Circle().fill(Theme.actionAccent).frame(width: 10, height: 10); Text("Quota Refresh (\(refresh))") }
-            HStack(spacing: 7) { Circle().fill(Theme.amber).frame(width: 10, height: 10); Text("Reset Expires (\(expiry))") }
-        }.font(.reference(size: 13)).foregroundStyle(Theme.dialogText)
+        HStack(spacing: 7) { Circle().fill(Theme.actionAccent).frame(width: 10, height: 10); Text("Quota Refresh (\(refresh))") }
+            .font(.reference(size: 13)).foregroundStyle(Theme.dialogText).padding(.trailing, 40)
+        HStack(spacing: 7) { Circle().fill(Theme.amber).frame(width: 10, height: 10); Text("Reset Expires (\(expiry))") }
+            .font(.reference(size: 13)).foregroundStyle(Theme.dialogText).padding(.trailing, 40)
     }
     private var historyHint: some View {
         Text(store.state.settings.historyEnabled ? "Scroll Left for History" : "Select Services to Filter Timeline")
@@ -314,7 +305,11 @@ struct HorizonView: View {
     private var dateHeadings: some View {
         GeometryReader { _ in
             ZStack(alignment: .topLeading) {
-                ForEach(days.filter { $0 <= calendar.startOfDay(for: viewport.lastEventAt) }, id: \.self) { date in
+                ForEach(days.filter { date in
+                    let anchor = viewport.dayAnchor(date) - viewport.scrollOffset
+                    return date <= calendar.startOfDay(for: viewport.lastEventAt) &&
+                        anchor >= 0 && anchor <= viewport.viewportWidth
+                }, id: \.self) { date in
                     VStack(spacing: 7) {
                         Text(dayName(date)).font(.reference(size: 14, weight: .semibold))
                             .foregroundStyle(isToday(date) ? Color(hex: "#D1BEFF") : Theme.actionAccent)
@@ -709,4 +704,49 @@ struct HorizonView: View {
 
 private extension Date.FormatStyle {
     func withTimeZone(_ zone: TimeZone) -> Self { var style = self; style.timeZone = zone; return style }
+}
+
+/// Wrap individual header controls, preserving the measured reference gaps.
+/// The first row reserves the settings button's height so compact and wide
+/// layouts retain their existing vertical alignment.
+private struct HorizonHeaderFlow: Layout {
+    private struct Row {
+        var items: [(index: Int, size: CGSize)] = []
+        var width: CGFloat = 0
+        var height: CGFloat = 0
+    }
+
+    private func rows(width: CGFloat, subviews: Subviews) -> [Row] {
+        var result = [Row(height: 44)]
+        for (index, subview) in subviews.enumerated() {
+            let size = subview.sizeThatFits(.unspecified)
+            if !result[result.count - 1].items.isEmpty,
+               result[result.count - 1].width + size.width > width {
+                result.append(Row())
+            }
+            result[result.count - 1].items.append((index, size))
+            result[result.count - 1].width += size.width
+            result[result.count - 1].height = max(result[result.count - 1].height, size.height)
+        }
+        return result
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let rows = rows(width: proposal.width ?? .infinity, subviews: subviews)
+        return CGSize(width: proposal.width ?? rows.map(\.width).max() ?? 0,
+                      height: rows.reduce(0) { $0 + $1.height } + CGFloat(max(0, rows.count - 1)) * 16)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var y = bounds.minY
+        for row in rows(width: bounds.width, subviews: subviews) {
+            var x = bounds.minX
+            for item in row.items {
+                subviews[item.index].place(at: CGPoint(x: x, y: y + (row.height - item.size.height) / 2),
+                                          anchor: .topLeading, proposal: ProposedViewSize(item.size))
+                x += item.size.width
+            }
+            y += row.height + 16
+        }
+    }
 }
