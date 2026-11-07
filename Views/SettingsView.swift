@@ -21,6 +21,9 @@ struct SettingsView: View {
         return CGSize(width: min(1000, max(640, hostSize.width - 48)),
                       height: min(800, max(400, hostSize.height - 64)))
     }
+    private var statusMessage: String? {
+        invalidReminderSections.isEmpty ? (store.settingsSaveError ?? store.errorMessage) : "Enter a Positive Whole Number for Each Reminder"
+    }
     var body: some View {
         VStack(spacing: 0) {
             HStack { HStack(spacing: 10) { ActionIcon(symbol: "gearshape", size: 26).frame(width: 29).environment(\.actionForeground, Theme.accent); Text("Settings").font(.reference(size: 26, weight: .semibold)).referenceFallbackLineMetrics(size: 26) }; Spacer(); SettingsCloseButton(isClosing: $isClosing, canClose: invalidReminderSections.isEmpty) }.padding(.horizontal, 20).padding(.vertical, 12)
@@ -146,10 +149,12 @@ struct SettingsView: View {
                 }.padding(.horizontal, 16).padding(.vertical, 12).frame(width: min(960, panelSize.width - 2 - 24)).frame(maxWidth: .infinity)
             }
             .disabled(isClosing)
-            if let error = invalidReminderSections.isEmpty ? (store.settingsSaveError ?? store.errorMessage) : "Enter a Positive Whole Number for Each Reminder" { Text(error).foregroundStyle(Theme.amber)
-                    .multilineTextAlignment(.trailing)
-                    .frame(maxWidth: .infinity, alignment: .trailing).padding(.horizontal, 24)
-                    .accessibilityIdentifier("settingsSaveStatus") }
+            // The final Windows Grid row retains its 19-point empty Label.
+            Text(statusMessage ?? "").foregroundStyle(Theme.amber)
+                .multilineTextAlignment(.trailing)
+                .frame(maxWidth: .infinity, minHeight: 19, alignment: .trailing).padding(.horizontal, 24)
+                .accessibilityIdentifier("settingsSaveStatus")
+                .accessibilityHidden(statusMessage == nil)
         }.font(.reference(size: 14)).foregroundStyle(Theme.primaryText).referencePanelFrame(size: panelSize).preferredColorScheme(.dark).tint(Theme.accent)
         .interactiveDismissDisabled()
         .onAppear {

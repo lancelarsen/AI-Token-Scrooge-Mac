@@ -121,3 +121,8 @@ GitHub Mac Preview run 42355811148 at `9206eb51d18d3646f8c95561e6c26b1ad5da2792`
 ### Native ordinary-tooltip placement — November 7
 
 Windows run 42365234171 confirms ordinary ToolTip surfaces clamp to the screen edge (x0), not the owner window, and touch the complete target top. Mac help/reset/service-message tooltips now follow that rule through a shared geometry helper; custom history/threshold rules remain separate. Native reference rectangles and 144 translated-display/edge/flip cases pass, and app/native test bundles build. Two hosted placement regressions were added; local native hover execution is still authentication-gated. This supersedes the prior owner-contained ordinary-tooltip adaptation, without claiming full physical-hover or raster acceptance. Detailed measurements and failed-then-successful probe evidence are in visual-parity-audit.md.
+
+
+### Settings viewport/footer status row — November 7
+
+Matched Windows panel geometry revealed a missing empty19-point status row in both Mac settings panels. Restoring it moves maximum-scroll account/global footer actions from504/556 to485/537 points within the741×630 panel, matching native Windows measurements. Button widths649, heights44 and gaps8 are retained. Native invalid-reminder status display, clearing and Close were verified with isolated demo data. Account/global captures and detailed source/coordinate evidence are in visual-parity-audit.md. This closes that inspected footer-position gap, not full raster, physical hover or live provider acceptance.

@@ -127,12 +127,12 @@ struct AccountSettingsView: View {
                     }.padding(.horizontal, 16).padding(.vertical, 12).frame(width: min(960, panelSize.width - 2 - 24)).frame(maxWidth: .infinity)
                 }
             }.disabled(isClosing)
-            if let error = store.settingsSaveError {
-                Text(error).foregroundStyle(Theme.amber)
-                    .multilineTextAlignment(.trailing)
-                    .frame(maxWidth: .infinity, alignment: .trailing).padding(.horizontal, 24)
-                    .accessibilityIdentifier("settingsSaveStatus")
-            }
+            // The final Windows Grid row retains its 19-point empty Label.
+            Text(store.settingsSaveError ?? "").foregroundStyle(Theme.amber)
+                .multilineTextAlignment(.trailing)
+                .frame(maxWidth: .infinity, minHeight: 19, alignment: .trailing).padding(.horizontal, 24)
+                .accessibilityIdentifier("settingsSaveStatus")
+                .accessibilityHidden(store.settingsSaveError == nil)
         }.font(.reference(size: 14)).foregroundStyle(Theme.primaryText).referencePanelFrame(size: panelSize).preferredColorScheme(.dark).tint(Theme.accent)
         .interactiveDismissDisabled()
         .onAppear {
