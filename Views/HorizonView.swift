@@ -219,9 +219,11 @@ struct HorizonView: View {
             return !snapshot.missingWindowNames(for: account.provider).isEmpty || snapshot.windows.contains { $0.resetsAt == nil }
         }
         let partialExpiry = visible.contains { account in
-            if account.provider == .claude { return true } // Claude /usage omits earned resets.
-            guard account.provider == .codex else { return false }
+            guard account.provider == .codex || account.provider == .claude else { return false }
             guard let snapshot = store.state.snapshots[account.id], snapshot.belongs(to: account) else { return true }
+            // The controlled Windows demo omits reserves for services with no
+            // sample credits. Live omissions still mean not reported.
+            if store.isDemo, snapshot.health == .demo, snapshot.reserve == nil { return false }
             return snapshot.expirationDatesIncomplete
         }
         let refresh = HorizonEvent.legendCount(events.filter { !$0.expiration }.count, incomplete: partialRefresh)
