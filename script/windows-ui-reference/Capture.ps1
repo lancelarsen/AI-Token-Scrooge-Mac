@@ -430,10 +430,23 @@ try {
     } finally { [ReferenceWindowNative]::SetLeftButton($false) }
     Start-Sleep -Milliseconds 500
     $modelExpansion = $null
-    if ($colorModel.TryGetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern, [ref]$modelExpansion) -and
-        $modelExpansion.Current.ExpandCollapseState -eq [System.Windows.Automation.ExpandCollapseState]::Expanded) {
-        $modelExpansion.Collapse()
+    if (-not $colorModel.TryGetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern, [ref]$modelExpansion)) {
+        throw 'Native model expansion state was not exposed.'
     }
+    $releasedFocus = [System.Windows.Automation.AutomationElement]::FocusedElement
+    [ordered]@{ expanded = $modelExpansion.Current.ExpandCollapseState.ToString();
+        focusName = $releasedFocus.Current.Name; focusType = $releasedFocus.Current.ControlType.ProgrammaticName } |
+        ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $Output 'color-model-released-state.json')
+    Save-ReferenceView -Name 'custom-color-picker-model-released' -Root $root -Handle $handle -Output $Output | Out-Null
+    if ($modelExpansion.Current.ExpandCollapseState -ne [System.Windows.Automation.ExpandCollapseState]::Expanded) {
+        $modelExpansion.Expand()
+        Start-Sleep -Milliseconds 500
+    }
+    Save-ReferenceView -Name 'custom-color-picker-model-open' -Root $root -Handle $handle -Output $Output | Out-Null
+    [ReferenceWindowNative]::MovePointer($away.X, $away.Y)
+    Start-Sleep -Milliseconds 500
+    Save-ReferenceView -Name 'custom-color-picker-model-open-away' -Root $root -Handle $handle -Output $Output | Out-Null
+    $modelExpansion.Collapse()
     [ReferenceWindowNative]::MovePointer($away.X, $away.Y)
     Start-Sleep -Milliseconds 300
     $brightnessSlider = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,
