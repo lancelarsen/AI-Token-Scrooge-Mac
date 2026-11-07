@@ -80,6 +80,49 @@ final class ReferenceTypographyTests: XCTestCase {
         XCTAssertEqual(host.fittingSize.height, 120)
     }
 
+    @MainActor func testSoundChoicesMatchCapturedWindowsRadioTargets() {
+        for title in ["Duck Sounds", "Classic Chimes"] {
+            let host = NSHostingView(rootView: ReferenceRadioChoice(title: title, selected: false, select: {}))
+            // Native run 42370975807: both radio targets have the 120×32 minimum.
+            XCTAssertEqual(host.fittingSize, CGSize(width: 120, height: 32))
+        }
+    }
+
+    @MainActor func testReferenceControlColorsMatchCapturedWindowsThemes() throws {
+        // Independent normal-state pixels: dark run 42370975807 and the prior
+        // light runner capture 42369557174, both over the same #1C1E24 card.
+        for (scheme, center, offFill, sliderRing) in [
+            (ColorScheme.dark, [0, 0, 0], [25, 27, 32], [69, 69, 69]),
+            (ColorScheme.light, [255, 255, 255], [27, 29, 35], [255, 255, 255])
+        ] {
+            func check<V: View>(_ view: V, samples: [(Int, Int, [Int])]) throws {
+                let renderer = ImageRenderer(content: view.background(Color(hex: "#1C1E24"))
+                    .environment(\.colorScheme, scheme))
+                renderer.scale = 1
+                let image = NSBitmapImageRep(cgImage: try XCTUnwrap(renderer.cgImage))
+                for (x, y, expected) in samples {
+                    // Compare the captured eight-bit sRGB samples directly;
+                    // colorAt's calibrated NSColor conversion changes these values.
+                    var samples = [Int](repeating: 0, count: image.samplesPerPixel)
+                    image.getPixel(&samples, atX: x, y: y)
+                    let actual = Array((image.bitmapFormat.contains(.alphaFirst) ? samples.dropFirst() : samples[...]).prefix(3))
+                    for channel in 0..<3 {
+                        XCTAssertEqual(actual[channel], expected[channel], accuracy: 1,
+                                       "\(scheme) control pixel at \(x),\(y), channel \(channel)")
+                    }
+                }
+            }
+            try check(Toggle("", isOn: .constant(true)).toggleStyle(ScroogeSwitchStyle(showsLabel: false)),
+                      samples: [(30, 10, center), (10, 10, [129, 112, 207])])
+            try check(ReferenceRadioIndicator(selected: true), samples: [(10, 10, center), (3, 10, [169, 144, 237])])
+            try check(ReferenceRadioIndicator(selected: false), samples: [(10, 10, offFill)])
+            try check(ScroogePercentSlider(value: .constant(65), thumbColor: Theme.accent).frame(width: 525, height: 32),
+                      samples: [(330, 16, sliderRing), (338, 16, [195, 173, 248])])
+            try check(Toggle("", isOn: .constant(true)).toggleStyle(ScroogeSwitchStyle(showsLabel: false, thumbColor: Color(hex: "#D1BEFF"))),
+                      samples: [(30, 10, [209, 190, 255])])
+        }
+    }
+
     @MainActor func testHistoryReadoutMatchesCapturedWindowsBounds() {
         let host = NSHostingView(rootView: ReferenceHistoryTooltip(
             text: "OpenAI / Personal · Plus\nWeekly · 74% Used\nSat, Nov 7 12:03 AM", width: 183))

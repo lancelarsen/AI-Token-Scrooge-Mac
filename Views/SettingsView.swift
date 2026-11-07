@@ -173,14 +173,9 @@ struct SettingsView: View {
         .sheet(isPresented: $showAlertHistory) { AlertHistoryView().environment(store) }
     }
     private func soundThemeOption(_ title: String, value: String) -> some View {
-        let selected = store.state.settings.soundTheme == value
-        return Button { store.edit { $0.settings.soundTheme = value } } label: {
-            HStack(spacing: 8) {
-                Circle().strokeBorder(selected ? Color(hex: "#A990ED") : Theme.secondary, lineWidth: selected ? 5 : 1)
-                    .frame(width: 20, height: 20)
-                Text(title).font(ReferenceTypography.nativeTextFont()).foregroundStyle(Theme.primaryText)
-            }.frame(minHeight: 32).contentShape(Rectangle())
-        }.buttonStyle(.plain).accessibilityLabel(title).accessibilityAddTraits(selected ? .isSelected : [])
+        ReferenceRadioChoice(title: title, selected: store.state.settings.soundTheme == value) {
+            store.edit { $0.settings.soundTheme = value }
+        }
     }
     private func settingsSwitch(_ title: String, isOn: Binding<Bool>) -> some View {
         // The Windows native Switch measures 40 high despite its row's 36-point minimum.

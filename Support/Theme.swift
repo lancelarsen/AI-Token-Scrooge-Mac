@@ -355,12 +355,63 @@ struct ActionIcon: View {
     }
 }
 
+/// Captured native WinUI colors depend on the app theme, even when the
+/// surrounding Scrooge panel has the same fixed dark background.
+enum ReferenceControlColors {
+    static func onThumb(_ scheme: ColorScheme) -> Color { scheme == .dark ? .black : .white }
+    static func sliderThumb(_ scheme: ColorScheme) -> Color { scheme == .dark ? Color(hex: "#454545") : .white }
+    static func radioFill(_ scheme: ColorScheme) -> Color { .black.opacity(scheme == .dark ? 25.0 / 255 : 6.0 / 255) }
+    static func radioStroke(_ scheme: ColorScheme) -> Color {
+        scheme == .dark ? .white.opacity(139.0 / 255) : .black.opacity(114.0 / 255)
+    }
+}
+
+struct ReferenceRadioIndicator: View {
+    let selected: Bool
+    @Environment(\.colorScheme) private var colorScheme
+    var body: some View {
+        ZStack {
+            Circle().fill(selected ? Color(hex: "#A990ED") : ReferenceControlColors.radioFill(colorScheme))
+            if selected {
+                Circle().fill(ReferenceControlColors.onThumb(colorScheme)).frame(width: 10, height: 10)
+            } else {
+                Circle().strokeBorder(ReferenceControlColors.radioStroke(colorScheme), lineWidth: 1)
+            }
+        }.frame(width: 20, height: 20).accessibilityHidden(true)
+    }
+}
+
+struct ReferenceRadioChoice: View {
+    let title: String
+    let selected: Bool
+    let select: () -> Void
+    var body: some View {
+        Button(action: select) {
+            HStack(spacing: 8) {
+                ReferenceRadioIndicator(selected: selected)
+                Text(title).font(ReferenceTypography.nativeTextFont()).foregroundStyle(Theme.primaryText)
+            }.frame(minWidth: 120, minHeight: 32, alignment: .leading).contentShape(Rectangle())
+        }.buttonStyle(.plain).accessibilityLabel(title).accessibilityAddTraits(selected ? .isSelected : [])
+    }
+}
+
 /// Matches the reference switch geometry while retaining Toggle accessibility.
 struct ScroogeSwitchStyle: ToggleStyle {
     var showsLabel = true
     var onColor = Color(hex: "#8170CF")
     var thumbColor: Color? = nil
     func makeBody(configuration: Configuration) -> some View {
+        ReferenceSwitchSurface(configuration: configuration, showsLabel: showsLabel, onColor: onColor, thumbColor: thumbColor)
+    }
+}
+
+private struct ReferenceSwitchSurface: View {
+    let configuration: ToggleStyleConfiguration
+    let showsLabel: Bool
+    let onColor: Color
+    let thumbColor: Color?
+    @Environment(\.colorScheme) private var colorScheme
+    var body: some View {
         HStack(spacing: 12) {
             if showsLabel {
                 configuration.label
@@ -370,7 +421,7 @@ struct ScroogeSwitchStyle: ToggleStyle {
                 Capsule().fill(configuration.isOn ? onColor : Theme.control)
                     .overlay(Capsule().stroke(configuration.isOn ? Color.clear : Theme.secondary, lineWidth: 1))
                     .overlay(alignment: configuration.isOn ? .trailing : .leading) {
-                        Circle().fill(thumbColor ?? (configuration.isOn ? Color.white : Theme.secondary))
+                        Circle().fill(thumbColor ?? (configuration.isOn ? ReferenceControlColors.onThumb(colorScheme) : Theme.secondary))
                             .frame(width: 12, height: 12).padding(4)
                     }
                     .frame(width: 40, height: 20)
@@ -385,6 +436,7 @@ struct ScroogeSwitchStyle: ToggleStyle {
 
 struct ScroogePercentSlider: View {
     @Binding var value: Double
+    @Environment(\.colorScheme) private var colorScheme
     var color: Color = Theme.accent
     var thumbColor: Color? = nil
     var roundsValue = true
@@ -401,7 +453,7 @@ struct ScroogePercentSlider: View {
                 // WinUI extends the rail to the control edges; only thumb travel is inset.
                 rail(size.width, Color(hex: "#41434F"))
                 rail(x, color)
-                context.fill(Path(ellipseIn: CGRect(x: x - 10, y: y - 10, width: 20, height: 20)), with: .color(Color(hex: "#41434F")))
+                context.fill(Path(ellipseIn: CGRect(x: x - 10, y: y - 10, width: 20, height: 20)), with: .color(ReferenceControlColors.sliderThumb(colorScheme)))
                 context.fill(Path(ellipseIn: CGRect(x: x - 5, y: y - 5, width: 10, height: 10)), with: .color(thumbColor ?? color))
                 if focused {
                     context.stroke(Path(ellipseIn: CGRect(x: x - 13, y: y - 13, width: 26, height: 26)), with: .color(Theme.accent), lineWidth: 1)
