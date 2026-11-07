@@ -2,6 +2,7 @@ import SwiftUI
 import AppKit
 import UserNotifications
 import Network
+import OSLog
 
 @main struct ScroogeApp: App {
     @NSApplicationDelegateAdaptor(ScroogeAppDelegate.self) private var delegate
@@ -145,6 +146,7 @@ struct MenuBarContent: View {
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
         let id = response.notification.request.identifier
         let action = response.actionIdentifier
+        Logger(subsystem: "com.lancelarsen.AITokenScrooge", category: "notifications").info("Received macOS notification response")
         await Self.handleNotification(id: id, action: action, store: store)
     }
 
