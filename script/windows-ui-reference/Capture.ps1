@@ -109,6 +109,12 @@ function Save-ReferenceView {
         if ($element.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern, [ref]$toggle)) {
             $row['toggleState'] = $toggle.Current.ToggleState.ToString()
         }
+        $rangeValue = $null
+        if ($element.TryGetCurrentPattern([System.Windows.Automation.RangeValuePattern]::Pattern, [ref]$rangeValue)) {
+            $row['rangeValue'] = $rangeValue.Current.Value
+            $row['rangeMinimum'] = $rangeValue.Current.Minimum
+            $row['rangeMaximum'] = $rangeValue.Current.Maximum
+        }
         $pattern = $null
         if ($element.TryGetCurrentPattern([System.Windows.Automation.TextPattern]::Pattern, [ref]$pattern) -and $null -ne $pattern) {
             $range = $pattern.DocumentRange
@@ -390,6 +396,40 @@ try {
         Start-Sleep -Milliseconds 500
     }
     $colorFields = Save-ReferenceView -Name 'custom-color-picker-fields' -Root $root -Handle $handle -Output $Output
+    $hexField = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,
+        [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, 'RGB hex'))
+    if ($null -eq $hexField) { throw 'Native color hex field was not exposed.' }
+    $hexField.SetFocus()
+    [ReferenceWindowNative]::MovePointer($away.X, $away.Y)
+    Start-Sleep -Milliseconds 500
+    $hexFocused = Save-ReferenceView -Name 'custom-color-picker-hex-focused' -Root $root -Handle $handle -Output $Output
+    $colorModel = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,
+        [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, 'Color model'))
+    if ($null -eq $colorModel) { throw 'Native color-model selector was not exposed.' }
+    $colorModel.SetFocus()
+    Start-Sleep -Milliseconds 500
+    $modelFocused = Save-ReferenceView -Name 'custom-color-picker-model-focused' -Root $root -Handle $handle -Output $Output
+    $brightnessSlider = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,
+        [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, 'Value (Brightness)'))
+    $brightnessRange = $null
+    if ($null -eq $brightnessSlider -or -not $brightnessSlider.TryGetCurrentPattern(
+        [System.Windows.Automation.RangeValuePattern]::Pattern, [ref]$brightnessRange)) {
+        throw 'Native brightness slider did not expose its range.'
+    }
+    $brightnessSlider.SetFocus()
+    $keyTrace = @()
+    foreach ($step in @(
+        @{ Key = '{HOME}'; Name = 'home' }, @{ Key = '{END}'; Name = 'end' },
+        @{ Key = '{PGDN}'; Name = 'page-down' }, @{ Key = '{PGUP}'; Name = 'page-up' })) {
+        [System.Windows.Forms.SendKeys]::SendWait($step.Key)
+        Start-Sleep -Milliseconds 300
+        $keyTrace += [ordered]@{ key = $step.Name; value = $brightnessRange.Current.Value;
+            minimum = $brightnessRange.Current.Minimum; maximum = $brightnessRange.Current.Maximum }
+    }
+    $keyTrace | ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $Output 'color-brightness-key-trace.json')
+    if ($keyTrace[0]['value'] -ne $brightnessRange.Current.Minimum -or $keyTrace[1]['value'] -ne $brightnessRange.Current.Maximum) {
+        throw 'Native brightness Home/End did not reach the captured range bounds.'
+    }
     Invoke-ReferenceAction -Name 'Cancel' -Root $root
     Start-Sleep -Seconds 1
     function Scroll-ReferencePanel {

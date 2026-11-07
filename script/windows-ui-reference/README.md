@@ -76,3 +76,5 @@ After the demo checks, the isolated probe exits demo and captures the empty dash
 The global-settings pass exports overlapping `global-settings-sweep-0` through `-100` captures with UIA geometry every ten percent. Compare controls relative to each visible card; equal percentages do not imply equal platform scroll extents. This covers thresholds and both reminder sections without changing their values.
 
 The account-settings pass opens Add Custom Line Color and captures both the initial native color picker and its scrolled numeric fields, then cancels. It never adds a color or edits a saved palette. Native geometry and font attributes accompany both views.
+
+The picker pass additionally captures the focused Hex input and records native brightness Home/End/Page Down/Page Up range values. Range metadata is numeric only, and all edits are cancelled. This checks inherited slider keyboard behavior without any provider or credential operation.
