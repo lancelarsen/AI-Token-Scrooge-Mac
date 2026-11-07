@@ -2,6 +2,48 @@ import XCTest
 @testable import AITokenScrooge
 
 final class HorizonPerformanceTests: XCTestCase {
+    func testPreparedDayGeometryPreservesCalendarProjectionAndRejectsChangedGeometry() throws {
+        let cases = [("2026-11-07T16:00:00Z", "America/Chicago", 23),
+                     ("2026-03-10T16:00:00Z", "America/Chicago", 23),
+                     ("2018-11-11T16:00:00Z", "America/Sao_Paulo", 23),
+                     ("2012-01-02T16:00:00Z", "Pacific/Apia", 24),
+                     ("2026-11-07T16:00:00Z", "UTC", 23)]
+        for (text, zoneID, expectedCount) in cases {
+            let now = try XCTUnwrap(ISO8601DateFormatter().date(from: text))
+            var viewport = HorizonViewport(now: now, furthestFuture: now.addingTimeInterval(14 * 86400),
+                                           zone: TimeZone(identifier: zoneID)!, width: 700)
+            let geometry = HorizonDayGeometry(viewport: viewport)
+            XCTAssertTrue(geometry.matches(viewport))
+            var calendar = Calendar(identifier: .gregorian); calendar.timeZone = viewport.zone
+            XCTAssertEqual(geometry.days.first, calendar.startOfDay(for: viewport.date(at: 0)))
+            XCTAssertEqual(geometry.days.count, expectedCount)
+            for day in geometry.days {
+                XCTAssertEqual(geometry.positions[day], viewport.position(at: day))
+                XCTAssertEqual(geometry.anchors[day], viewport.dayAnchor(day))
+            }
+            viewport.scroll(to: 0)
+            XCTAssertTrue(geometry.matches(viewport), "Panning must reuse day geometry")
+            viewport.scroll(to: viewport.maximumScrollOffset)
+            XCTAssertTrue(geometry.matches(viewport))
+            var resizedViewport = viewport
+            resizedViewport.update(now: now, furthestFuture: viewport.lastEventAt,
+                                   zone: viewport.zone, width: 2000, historyEnabled: true)
+            XCTAssertFalse(geometry.matches(resizedViewport), "Scale changes must invalidate the cache")
+            var extendedViewport = viewport
+            extendedViewport.update(now: now, furthestFuture: now.addingTimeInterval(30 * 86400),
+                                    zone: viewport.zone, width: 700, historyEnabled: true)
+            XCTAssertFalse(geometry.matches(extendedViewport), "Extent changes must invalidate the cache")
+            viewport.update(now: now, furthestFuture: now.addingTimeInterval(30 * 86400),
+                            zone: viewport.zone, width: 1100, historyEnabled: false)
+            XCTAssertFalse(geometry.matches(viewport), "Changed extent/scale must invalidate the cache")
+            let resized = HorizonDayGeometry(viewport: viewport)
+            XCTAssertTrue(resized.matches(viewport))
+            viewport.update(now: now, furthestFuture: viewport.lastEventAt,
+                            zone: TimeZone(secondsFromGMT: 19800)!, width: 1100, historyEnabled: false)
+            XCTAssertFalse(resized.matches(viewport), "Time-zone changes must invalidate the cache")
+        }
+    }
+
     func testNavigatorDragPreservesGrabOffsetAndClamps() {
         let now = Date(timeIntervalSince1970: 1793793600)
         var viewport = HorizonViewport(now: now, furthestFuture: now.addingTimeInterval(30 * 86400),

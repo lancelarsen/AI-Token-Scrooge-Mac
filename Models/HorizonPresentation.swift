@@ -1,5 +1,36 @@
 import Foundation
 
+/// Calendar-day projection is independent of the horizontal scroll offset.
+struct HorizonDayGeometry: Sendable {
+    private struct Key: Equatable, Sendable {
+        let start: Double
+        let end: Double
+        let scale: Double
+        let zone: TimeZone
+        init(_ viewport: HorizonViewport) {
+            start = viewport.startCoordinate; end = viewport.endCoordinate
+            scale = viewport.pixelsPerDay; zone = viewport.zone
+        }
+    }
+    private var key: Key?
+    private(set) var days: [Date] = []
+    private(set) var positions: [Date: Double] = [:]
+    private(set) var anchors: [Date: Double] = [:]
+    init() {}
+    init(viewport: HorizonViewport) {
+        key = Key(viewport)
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = viewport.zone
+        let start = calendar.startOfDay(for: viewport.date(at: 0))
+        let count = min(370, Int(ceil(viewport.contentWidth / viewport.pixelsPerDay)) + 1)
+        days = (0..<count).compactMap { calendar.date(byAdding: .day, value: $0, to: start) }
+        for day in days {
+            positions[day] = viewport.position(at: day)
+            anchors[day] = viewport.dayAnchor(day)
+        }
+    }
+    func matches(_ viewport: HorizonViewport) -> Bool { key == Key(viewport) }
+}
+
 /// Prepared only when history, accounts, or projection geometry changes.
 /// Scrolling reads these results without sorting observations or doing calendar
 /// conversions again for every point on every frame.

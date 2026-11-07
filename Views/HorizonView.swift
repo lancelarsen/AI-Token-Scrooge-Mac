@@ -9,6 +9,7 @@ struct HorizonView: View {
     @State private var selectedEvent: HorizonEvent?
     @State private var selectedHistoricalMarker: HistoricalEventMarker?
     @State private var presentation = HorizonPresentation()
+    @State private var dayGeometry = HorizonDayGeometry()
     @State private var future = HorizonFuturePresentation()
     @State private var historyPinned = false
     @FocusState private var historyFocused: Bool
@@ -312,24 +313,26 @@ struct HorizonView: View {
         return event.expiration ? "Earned Reset Expires\n\(account)" : "\(account)\nQuota Refresh · \(event.title)"
     }
     private func dayHeading(_ date: Date) -> some View {
-        VStack(spacing: 7) {
-            Text(dayName(date)).font(.reference(size: 14, weight: .semibold))
-                .foregroundStyle(isToday(date) ? Color(hex: "#D1BEFF") : Theme.actionAccent)
+        let today = isToday(date)
+        return VStack(spacing: 7) {
+            Text(today ? "Today" : dayName(date)).font(.reference(size: 14, weight: .semibold))
+                .foregroundStyle(today ? Color(hex: "#D1BEFF") : Theme.actionAccent)
                 .referenceFallbackLineMetrics(size: 14)
             Text(date.formatted(Date.FormatStyle().month(.abbreviated).day().withTimeZone(store.state.settings.zone)))
                 .font(.reference(size: 12)).foregroundStyle(Theme.dialogText)
         }
     }
     private var dateHeadings: some View {
-        GeometryReader { _ in
+        let lastDay = calendar.startOfDay(for: viewport.lastEventAt)
+        return GeometryReader { _ in
             ZStack(alignment: .topLeading) {
                 ForEach(days.filter { date in
-                    let anchor = viewport.dayAnchor(date) - viewport.scrollOffset
-                    return date <= calendar.startOfDay(for: viewport.lastEventAt) &&
+                    let anchor = dayAnchor(date) - viewport.scrollOffset
+                    return date <= lastDay &&
                         anchor >= 0 && anchor <= viewport.viewportWidth
                 }, id: \.self) { date in
                     dayHeading(date).frame(width: viewport.pixelsPerDay, height: 40, alignment: .top)
-                        .position(x: 40 + viewport.dayAnchor(date) - viewport.scrollOffset, y: 20)
+                        .position(x: 40 + dayAnchor(date) - viewport.scrollOffset, y: 20)
                 }
             }
         }
@@ -339,7 +342,8 @@ struct HorizonView: View {
     }
 
     private var timeline: some View {
-        ZStack(alignment: .topLeading) {
+        let lastDay = calendar.startOfDay(for: viewport.lastEventAt)
+        return ZStack(alignment: .topLeading) {
             Canvas { context, size in
                 var rail = Path(); rail.move(to: CGPoint(x: 0, y: railY)); rail.addLine(to: CGPoint(x: size.width, y: railY))
                 context.stroke(rail, with: .color(Color(hex: "#8170B7")), lineWidth: 2)
@@ -376,18 +380,19 @@ struct HorizonView: View {
             .onKeyPress(.space) { inspectSample(direction: 0); return .handled }
             .onKeyPress(.escape) { clearHistorySample(); return .handled }
 
-            ForEach(days.filter { $0 <= calendar.startOfDay(for: viewport.lastEventAt) }, id: \.self) { date in
+            ForEach(days.filter { $0 <= lastDay }, id: \.self) { date in
                 let dayEvents = future.events(on: date, after: now)
+                let today = isToday(date)
 
                 Circle()
-                    .fill(isToday(date) ? Color(hex: "#D1BEFF") : dayEvents.isEmpty ? Color(hex: "#1C1E24") : Theme.actionAccent)
-                    .frame(width: isToday(date) ? 16 : 10, height: isToday(date) ? 16 : 10)
+                    .fill(today ? Color(hex: "#D1BEFF") : dayEvents.isEmpty ? Color(hex: "#1C1E24") : Theme.actionAccent)
+                    .frame(width: today ? 16 : 10, height: today ? 16 : 10)
                     .overlay {
-                        if !isToday(date), dayEvents.isEmpty {
+                        if !today, dayEvents.isEmpty {
                             Circle().strokeBorder(Theme.actionAccent, lineWidth: 2)
                         }
                     }
-                    .position(x: viewport.dayAnchor(date), y: railY)
+                    .position(x: dayAnchor(date), y: railY)
                 ForEach(Array((viewport.showsFutureEvents(on: date) ? dayEvents : []).enumerated()), id: \.element.id) { index, event in
                     let accent = Color(hex: event.expiration ? "#EAAA51" : "#B5A0F4")
                     let plan = Format.plan(event.account.provider, event.plan)
@@ -421,7 +426,7 @@ struct HorizonView: View {
                         .modifier(ImmediateResetTooltip(context: eventCountdownContext(event), date: event.date,
                             zone: store.state.settings.zone, accessibilityText: eventTooltip(event),
                             referenceDate: store.isDemo ? now : nil, isExpiry: event.expiration))
-                        .position(x: viewport.dayAnchor(date), y: centerY)
+                        .position(x: dayAnchor(date), y: centerY)
                 }
             }
             // Match Windows: historical markers paint over the day dots and rail.
@@ -607,7 +612,7 @@ struct HorizonView: View {
             context.stroke(line, with: .color(Color(hex: "#343741")), lineWidth: 1)
         }
         for day in days {
-            let x = viewport.position(at: day)
+            let x = dayPosition(day)
             guard x >= 0, x <= nowX else { continue }
             var line = Path()
             line.move(to: CGPoint(x: x, y: plotTop))
@@ -690,7 +695,17 @@ struct HorizonView: View {
         }
     }
     private func prepareHistory() {
+        prepareDayGeometry()
         presentation = HorizonPresentation(accounts: timelineAccounts, runs: store.history, viewport: viewport, now: now)
+    }
+    private func prepareDayGeometry() {
+        if !dayGeometry.matches(viewport) { dayGeometry = HorizonDayGeometry(viewport: viewport) }
+    }
+    private func dayAnchor(_ date: Date) -> Double {
+        dayGeometry.matches(viewport) ? dayGeometry.anchors[date] ?? viewport.dayAnchor(date) : viewport.dayAnchor(date)
+    }
+    private func dayPosition(_ date: Date) -> Double {
+        dayGeometry.matches(viewport) ? dayGeometry.positions[date] ?? viewport.position(at: date) : viewport.position(at: date)
     }
     private func historyX(_ date: Date) -> Double { presentation.positions[date] ?? viewport.position(at: date) }
     private var historicalEvents: [HorizonEvent] {
@@ -703,18 +718,16 @@ struct HorizonView: View {
 
     private var calendar: Calendar { var c = Calendar(identifier: .gregorian); c.timeZone = store.state.settings.zone; return c }
     private var days: [Date] {
-        let start = calendar.startOfDay(for: viewport.date(at: 0))
-        let count = min(370, Int(ceil(viewport.contentWidth / viewport.pixelsPerDay)) + 1)
-        return (0..<count).compactMap { calendar.date(byAdding: .day, value: $0, to: start) }
+        dayGeometry.matches(viewport) ? dayGeometry.days : HorizonDayGeometry(viewport: viewport).days
     }
     private func dayName(_ date: Date) -> String {
-        if isToday(date) { return "Today" }
         return date.formatted(.dateTime.weekday(.abbreviated).withTimeZone(store.state.settings.zone))
     }
     private func isToday(_ date: Date) -> Bool { calendar.isDate(date, inSameDayAs: now) }
     private func update(width: Double) {
         clearHistorySample()
         viewport.update(now: now, furthestFuture: events.map(\.date).max(), zone: store.state.settings.zone, width: width, historyEnabled: store.state.settings.historyEnabled, earliestHistory: earliestRecordedHistory ?? now)
+        prepareDayGeometry()
         position.scrollTo(x: viewport.scrollOffset)
     }
 }
