@@ -2,6 +2,10 @@
 
 Baseline: Windows 3d0330bc528196e583160d587465ea8b9bc5e979.
 
+## User-requested presentation changes
+
+- November 6: quota-row service messages use a yellow warning icon before the quota name instead of an inline paragraph. Hover reveals the full message; activating the icon or title opens usage details. This applies across providers. Healthy rows stay clear, and the demo header identifies synthetic data without repeated row notes. This user-requested presentation supersedes the Windows inline-note layout.
+
 ## Verified milestone
 
 - Xcode Debug build and native app launch succeed on this Mac.

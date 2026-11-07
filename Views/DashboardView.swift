@@ -279,10 +279,28 @@ struct QuotaRow: View {
         }
     }
     private var quotaDetailsButton: some View {
-        Button { showDetails = true } label: {
-            quotaLabel.contentShape(Rectangle())
-        }.buttonStyle(.plain)
-            .accessibilityLabel("\(Format.windowTitle(window.name)). Open Details")
+        HStack(spacing: 6) {
+            if !quotaNote.isEmpty && snapshot.health != .demo {
+                Button { showDetails = true } label: {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 16))
+                        .foregroundStyle(Color(hex: "#F2C94C"))
+                        .frame(width: 20, height: 20)
+                        .accessibilityHidden(true)
+                }.buttonStyle(.plain)
+                    .modifier(ImmediateReferenceTooltip(text: quotaNote))
+                    .accessibilityLabel("Service Message for \(Format.windowTitle(window.name))")
+                    .accessibilityHint(quotaNote)
+                    .accessibilityIdentifier("quotaMessage-\(account.id)-\(window.id)")
+            }
+            Button { showDetails = true } label: {
+                Text(Format.windowTitle(window.name)).font(.reference(size: 14))
+                    .foregroundStyle(Color(hex: "#BEC1D2"))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+            }.buttonStyle(.plain)
+                .accessibilityLabel("\(Format.windowTitle(window.name)). Open Details")
+        }.frame(width: wide ? 156 : nil, alignment: .leading)
     }
     @ViewBuilder private var resetDetailsButton: some View {
         if deadline.at != nil {
@@ -308,14 +326,6 @@ struct QuotaRow: View {
         if account.provider == .codex && snapshot.message == "Workspace identity unavailable from provider" { return "" }
         if account.provider == .claude || snapshot.message == "Allowance reported by GitHub; billing usage may lag." { return "" }
         return snapshot.message ?? (window.allowanceSource == .manual ? "User-entered allowance · Billing data may lag" : "")
-    }
-    private var quotaLabel: some View {
-        VStack(alignment: .leading, spacing: 4) {
-                Text(Format.windowTitle(window.name)).font(.reference(size: 14)).foregroundStyle(Color(hex: "#BEC1D2"))
-                if !quotaNote.isEmpty {
-                    Text(quotaNote).font(.reference(size: 11)).foregroundStyle(Color(hex: "#A5A8BA"))
-                }
-            }.frame(width: wide ? 156 : nil, alignment: .leading)
     }
     private var usageControls: some View {
             HStack(spacing: 8) {

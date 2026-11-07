@@ -384,6 +384,65 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(hex.waitForNonExistence(timeout: 3))
     }
 
+    @MainActor func testQuotaServiceMessageIconHoverAndDetails() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", "--reference-wide", "--scenario", "permission"]
+        app.launch()
+        defer { app.terminate() }
+        let dashboard = app.windows["dashboard"]
+        if !dashboard.waitForExistence(timeout: 2) {
+            let menu = app.menuBars.menuBarItems["Window"]
+            menu.click(); menu.menuItems["AI Token Scrooge"].click()
+        }
+        app.activate()
+        let warning = app.buttons["quotaMessage-demo-0-codex/primary"]
+        XCTAssertTrue(warning.waitForExistence(timeout: 10))
+        let title = app.buttons["Codex · 5-Hour. Open Details"].firstMatch
+        XCTAssertLessThanOrEqual(warning.frame.maxX, title.frame.minX)
+        XCTAssertTrue(app.buttons["quotaMessage-demo-1-copilot/monthly"].exists)
+        XCTAssertTrue(app.buttons["quotaMessage-demo-3-session"].exists)
+        XCTAssertFalse(app.staticTexts["PermissionRequired: Demo: billing read access is unavailable."].exists,
+                       "Service messages must not take up space below the quota title")
+        let header = dashboard.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.12))
+        header.click()
+        let owner = try XCTUnwrap(NSRunningApplication.runningApplications(withBundleIdentifier: "com.lancelarsen.AITokenScrooge")
+            .max { ($0.launchDate ?? .distantPast) < ($1.launchDate ?? .distantPast) }).processIdentifier
+        let initial = Set(Self.visibleWindows(for: owner).keys)
+        warning.hover()
+        func popup() -> CGRect? { Self.visibleWindows(for: owner).first { !initial.contains($0.key) }?.value }
+        let appeared = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in popup() != nil }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [appeared], timeout: 3), .completed)
+        let panel = try XCTUnwrap(popup())
+        XCTAssertTrue(dashboard.frame.contains(panel))
+        let screen = CGDisplayBounds(CGMainDisplayID())
+        let image = XCUIScreen.main.screenshot().image
+        let pixels = try XCTUnwrap(image.cgImage(forProposedRect: nil, context: nil, hints: nil))
+        let bounds = panel.offsetBy(dx: -screen.minX, dy: -screen.minY)
+            .applying(CGAffineTransform(scaleX: CGFloat(pixels.width) / screen.width, y: CGFloat(pixels.height) / screen.height))
+        let crop = try XCTUnwrap(pixels.cropping(to: bounds.integral))
+        let recognition = VNRecognizeTextRequest()
+        recognition.recognitionLevel = .accurate
+        try VNImageRequestHandler(cgImage: crop).perform([recognition])
+        let text = recognition.results?.compactMap { $0.topCandidates(1).first?.string }.joined(separator: " ") ?? ""
+        XCTAssertTrue(text.contains("billing") && text.contains("access"), text)
+        let attachment = XCTAttachment(image: NSImage(cgImage: crop, size: panel.size))
+        attachment.name = "Quota service message at warning icon"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        warning.click()
+        XCTAssertTrue(app.staticTexts["quotaSourceNote"].firstMatch.waitForExistence(timeout: 5))
+        app.buttons["Close"].click()
+        title.click()
+        XCTAssertTrue(app.staticTexts["quotaSourceNote"].firstMatch.waitForExistence(timeout: 5))
+        app.buttons["Close"].click()
+        app.terminate()
+        app.launchArguments = ["--demo", "--reference-wide", "--scenario", "healthy"]
+        app.launch()
+        XCTAssertTrue(app.buttons["Codex · 5-Hour. Open Details"].firstMatch.waitForExistence(timeout: 10))
+        XCTAssertEqual(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "quotaMessage-")).count, 0)
+    }
+
     @MainActor func testTimelineResetTooltipContentPlacementAndClickThrough() throws {
         let app = XCUIApplication()
         app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
