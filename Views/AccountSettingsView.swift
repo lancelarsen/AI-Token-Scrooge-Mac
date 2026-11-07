@@ -260,6 +260,7 @@ struct InlineLineColorEditor: View {
     @State private var brightness = 1.0
     @State private var hexDraft = ""
     @State private var mode = "RGB"
+    @FocusState private var hexFocused: Bool
     @FocusState private var spectrumFocused: Bool
     @State private var spectrumHovered = false
     @State private var spectrumPressed = false
@@ -354,6 +355,12 @@ struct InlineLineColorEditor: View {
                         adjust(.value, increasing: increasing, byName: press.modifiers.contains(.control))
                         publish(); return .handled
                     }
+                    .onKeyPress(.home) {
+                        brightnessKeyboardFocus = true; brightness = 0; publish(); return .handled
+                    }
+                    .onKeyPress(.end) {
+                        brightnessKeyboardFocus = true; brightness = 1; publish(); return .handled
+                    }
                     .accessibilityLabel("Brightness").accessibilityValue(brightnessDescription)
                     .accessibilityAdjustableAction { direction in
                         brightness = min(1, max(0, brightness + (direction == .increment ? 0.01 : -0.01)))
@@ -380,13 +387,14 @@ struct InlineLineColorEditor: View {
                             let nextColor = Color(hex: digits)
                             color = nextColor; loadComponents(nextColor)
                         }
-                    }.modifier(ColorEntryStyle()).frame(width: 132)
+                    }.modifier(ColorEntryStyle(focused: hexFocused, clear: hexDraft.isEmpty ? nil : { hexDraft = ""; hexFocused = true }))
+                    .focused($hexFocused).frame(width: 132)
             }.padding(.bottom, 12)
             VStack(spacing: 12) {
                 ForEach(0..<3) { index in
                     HStack(spacing: 8) {
                         TextField(channelName(index), value: channel(index), format: .number)
-                            .modifier(ColorEntryStyle()).frame(width: 120)
+                            .modifier(ColorEntryStyle(focused: focusedChannel == index)).frame(width: 120)
                             .focused($focusedChannel, equals: index)
                         Text(channelName(index)).font(ReferenceTypography.nativeTextFont())
                         Spacer()
@@ -580,11 +588,24 @@ private enum ColorFocusTip: PreferenceKey {
     }
 }
 
-private struct ColorEntryStyle: ViewModifier {
+struct ColorEntryStyle: ViewModifier {
+    var focused = false
+    var clear: (() -> Void)? = nil
     func body(content: Content) -> some View {
-        content.padding(.horizontal, 12).frame(height: 32)
-            .background(Color(hex: "#2F3036"), in: RoundedRectangle(cornerRadius: 10))
-            .overlay(alignment: .bottom) { Rectangle().fill(Color(hex: "#9A9B9E")).frame(height: 1).padding(.horizontal, 10) }
+        content.padding(.leading, 12).padding(.trailing, focused && clear != nil ? 36 : 12).frame(height: 32)
+            .background(Color(hex: focused ? "#1F1F21" : "#2F3036"), in: RoundedRectangle(cornerRadius: 10))
+            .overlay(alignment: .bottom) {
+                Rectangle().fill(Color(hex: focused ? "#4CC2FF" : "#9A9B9E"))
+                    .frame(height: focused ? 2 : 1).padding(.horizontal, 10)
+            }
+            .overlay(alignment: .trailing) {
+                if focused, let clear {
+                    Button(action: clear) {
+                        Text("\u{E711}").font(ReferenceTypography.iconFont(size: 10)).foregroundStyle(Theme.secondary)
+                            .frame(width: 28, height: 32).contentShape(Rectangle())
+                    }.buttonStyle(.plain).focusable(false).accessibilityLabel("Clear Hex Color")
+                }
+            }
     }
 }
 

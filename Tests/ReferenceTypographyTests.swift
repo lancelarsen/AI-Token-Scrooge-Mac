@@ -155,6 +155,12 @@ final class ReferenceTypographyTests: XCTestCase {
             try check(Toggle("", isOn: .constant(true)).toggleStyle(ScroogeSwitchStyle(showsLabel: false, thumbColor: Color(hex: "#D1BEFF"))),
                       samples: [(30, 10, [209, 190, 255])])
             if scheme == .dark {
+                // Focused native Hex input, run42377781813. The captured
+                // Windows default focus accent is independent of app lavender.
+                try check(Text("").frame(maxWidth: .infinity).modifier(ColorEntryStyle(focused: true)).frame(width: 132),
+                          samples: [(110, 10, [31, 31, 33]), (50, 30, [76, 194, 255]), (50, 31, [76, 194, 255])])
+                try check(Text("").frame(maxWidth: .infinity).modifier(ColorEntryStyle()).frame(width: 132),
+                          samples: [(110, 10, [47, 48, 54]), (50, 31, [154, 155, 158])])
                 // Native color-picker run42376211522: 20-point thumb, white
                 // ten-point center and #454545 outer ring.
                 XCTAssertEqual(NSHostingView(rootView: ColorBrightnessThumb()).fittingSize, CGSize(width: 20, height: 20))

@@ -640,6 +640,45 @@ final class DashboardUITests: XCTestCase {
         app.buttons["Close"].click()
     }
 
+    @MainActor func testColorPickerBrightnessBoundsAndHexClear() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", "--reference-wide"]
+        app.launch()
+        defer { app.terminate() }
+        if !app.windows["dashboard"].waitForExistence(timeout: 2) {
+            let menu = app.menuBars.menuBarItems["Window"]
+            menu.click(); menu.menuItems["AI Token Scrooge"].click()
+        }
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Settings for OpenAI / Personal")).firstMatch.click()
+        app.buttons["Add Custom Line Color"].click()
+        let hex = app.textFields["Hex Color"]
+        XCTAssertTrue(hex.waitForExistence(timeout: 5))
+        let original = hex.value as? String
+        let brightness = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Brightness")).firstMatch
+        brightness.click()
+        brightness.typeKey(.home, modifierFlags: [])
+        XCTAssertEqual(hex.value as? String, "#000000")
+        brightness.typeKey(.end, modifierFlags: [])
+        XCTAssertTrue((brightness.value as? String)?.contains("Value 100") == true)
+        let beforeClear = hex.value as? String
+        hex.click()
+        let clear = app.buttons["Clear Hex Color"]
+        XCTAssertTrue(clear.waitForExistence(timeout: 3))
+        clear.click()
+        XCTAssertEqual(hex.value as? String, "")
+        let selected = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Selected Color")).firstMatch
+        XCTAssertEqual(selected.value as? String, beforeClear, "Clearing the input must not invent a new color")
+        hex.typeText("#123456")
+        XCTAssertEqual(selected.value as? String, "#123456")
+        app.buttons["Cancel"].click()
+        app.buttons["Add Custom Line Color"].click()
+        XCTAssertTrue(hex.waitForExistence(timeout: 5))
+        XCTAssertEqual(hex.value as? String, original)
+        app.buttons["Cancel"].click()
+        app.buttons["Close"].click()
+    }
+
     @MainActor func testColorPickerKeyboardModeAndExactSwatch() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
