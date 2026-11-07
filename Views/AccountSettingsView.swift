@@ -141,9 +141,9 @@ struct AccountSettingsView: View {
         }
         .onDisappear { saveNickname() }
         .sheet(isPresented: $confirmRemove) {
-            ConfirmationDetailsDialog(title: "Remove This Account?",
-                message: "This removes its local history and Scrooge-owned connection. Your other apps stay signed in.",
-                actionTitle: "Remove Account", cancel: { confirmRemove = false }) {
+            ConfirmationDetailsDialog(title: "Remove Account?",
+                message: "This removes the saved connection from Scrooge. Your provider account is unaffected.",
+                actionTitle: "Remove", cancel: { confirmRemove = false }) {
                     confirmRemove = false
                     Task {
                         await store.removeAccount(accountID)
