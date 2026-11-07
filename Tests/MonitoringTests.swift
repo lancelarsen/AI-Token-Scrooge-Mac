@@ -353,6 +353,44 @@ final class MonitoringTests: XCTestCase {
     }
 
     @MainActor
+    func testNativeNotificationActionsPersistOnlyTheirTargetAlert() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("actions.db"))
+        let account = ProviderAccount(provider: .codex, nickname: "Personal", subject: "test", scope: "personal")
+        let identifiers = ["native-dismiss", "button-dismiss", "snoozed", "untouched"]
+        var state = PersistedState()
+        state.accounts = [account]
+        state.alerts = identifiers.map {
+            AlertEvent(id: $0, accountID: account.id, title: "Test", detail: "Test", createdAt: .now)
+        }
+        try await database.save(state)
+        let store = AppStore(database: database)
+        await store.load()
+        let openRequest = store.dashboardOpenRequest
+        let before = Date()
+        for (id, action) in [
+            ("native-dismiss", UNNotificationDismissActionIdentifier),
+            ("button-dismiss", "dismiss"), ("snoozed", "snooze"),
+            ("missing", "dismiss"), ("missing", "snooze"), ("untouched", "unknown")
+        ] {
+            await ScroogeAppDelegate.handleNotification(id: id, action: action, store: store)
+        }
+        await store.waitForPendingMutations()
+        let saved = try await database.load()
+        XCTAssertEqual(saved.alerts.count, 4)
+        XCTAssertTrue(saved.alerts[0].dismissed)
+        XCTAssertTrue(saved.alerts[1].dismissed)
+        let deadline = try XCTUnwrap(saved.alerts[2].snoozedUntil)
+        XCTAssertGreaterThanOrEqual(deadline.timeIntervalSince(before), 3600)
+        XCTAssertLessThanOrEqual(deadline.timeIntervalSinceNow, 3600)
+        XCTAssertEqual(saved.snoozedAccounts[account.id], deadline)
+        XCTAssertEqual(saved.alerts[3], state.alerts[3])
+        XCTAssertEqual(store.state.alerts, saved.alerts)
+        XCTAssertEqual(store.dashboardOpenRequest, openRequest)
+    }
+
+    @MainActor
     func testFailedAlertActionSavePreservesBannerAndStoredState() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
