@@ -20,6 +20,8 @@ jobs:
           persist-credentials: false
       - name: Report toolchain
         run: xcodebuild -version
+      - name: Verify update publication version checks
+        run: python3 -m unittest discover -s script/tests -v
       - name: Run unit and persistence tests
         run: ./script/test.sh -resultBundlePath artifacts/UnitTests.xcresult
       - name: Build and validate preview archive

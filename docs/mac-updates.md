@@ -10,6 +10,8 @@ The public feed is the `appcast.xml` asset on this repository's `mac-updates` re
 
 After a clean committed build and tests, run `./script/publish_update.sh 1` for the first release that day (increment for subsequent releases). This packages and signs without publishing. Add `--publish` to publish the immutable archive first and replace the signed channel feed last. The signing tool is supplied by the resolved, pinned Sparkle package. Publishing requires the existing GitHub CLI repository authorization and local Keychain key. No provider credentials are used.
 
+Before packaging for `--publish`, the script downloads the current channel feed and requires the new integer build number to exceed every published item. Equal/older builds, missing or malformed versions, and channel lookup/download failures stop publication. Only a confirmed HTTP 404 allows initial channel creation. The daily display revision does not make an equal build number newer. Run publishers one at a time. The version checks and mocked publication preflight run in CI with `python3 -m unittest discover -s script/tests -v`.
+
 Inspect the generated feed and verify its signature using Sparkle's `sign_update --account com.lancelarsen.AITokenScrooge.updates --verify PATH/appcast.xml`. Keep previous versioned releases for manual rollback. Installation must be exercised from a disposable installed copy against a newer signed build; unit tests alone do not prove relaunch or install permissions on another Mac.
 
 ## Distribution status

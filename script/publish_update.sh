@@ -14,6 +14,21 @@ if [[ "${2:-}" == '--publish' ]]; then
   if gh release view "$TAG" --repo "$REPO" > /dev/null 2>&1; then
     echo 'That release already exists; use a new commit and revision.' >&2; exit 1
   fi
+  # Sparkle compares CFBundleVersion, not the displayed date/revision label.
+  # Check before packaging/signing, and fail closed if an existing feed is unreadable.
+  FEED_CHECK_DIR="$(mktemp -d)"
+  trap 'rm -rf "$FEED_CHECK_DIR"' EXIT
+  if gh api "repos/$REPO/releases/tags/mac-updates" > /dev/null 2> "$FEED_CHECK_DIR/channel-error"; then
+    gh release download mac-updates --repo "$REPO" --pattern appcast.xml --dir "$FEED_CHECK_DIR"
+    python3 script/check_update_version.py "$((1000 + $(git rev-list --count HEAD)))" "$FEED_CHECK_DIR/appcast.xml"
+  else
+    # A first publication may create the channel. Other lookup failures must not
+    # masquerade as an absent channel and bypass the version comparison.
+    case "$(cat "$FEED_CHECK_DIR/channel-error")" in
+      *"(HTTP 404)"*) ;;
+      *) echo 'Could not verify the existing update channel.' >&2; exit 1;;
+    esac
+  fi
 fi
 SCROOGE_RELEASE_REVISION="$REVISION" ./script/package_preview.sh
 TOOLS='build/SourcePackages/artifacts/sparkle/Sparkle/bin'
