@@ -2,6 +2,31 @@ import XCTest
 @testable import AITokenScrooge
 
 final class HistoryEventTests: XCTestCase {
+    func testCachedMarkerPositionsPreserveGroupingLanesAndClippingAcrossDST() throws {
+        let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-11-04T16:16:00Z"))
+        let account = ProviderAccount(provider: .codex, nickname: "Test", subject: "s", scope: "w")
+        let events: [HorizonEvent] = (0..<240).map { index in
+            let date = now.addingTimeInterval(Double(index / 3 - 75) * 7200)
+            return HorizonEvent(id: String(index), account: account, date: date,
+                         expiration: index % 3 == 0, title: "Event")
+        }
+        for zone in ["America/Chicago", "UTC"] {
+            var viewport = HorizonViewport(now: now, furthestFuture: nil,
+                zone: try XCTUnwrap(TimeZone(identifier: zone)), width: 700)
+            let cached = Dictionary(uniqueKeysWithValues: Set(events.map(\.date)).map { ($0, viewport.position(at: $0)) })
+            for fraction in [0.0, 0.25, 0.5, 0.75, 1] {
+                viewport.scroll(to: viewport.maximumScrollOffset * fraction)
+                let original = HistoricalEventMarker.layout(events: events, viewport: viewport, now: now)
+                let prepared = HistoricalEventMarker.layout(events: events, viewport: viewport, now: now) { cached[$0]! }
+                XCTAssertEqual(prepared.map(\.id), original.map(\.id))
+                XCTAssertEqual(prepared.map(\.x), original.map(\.x))
+                XCTAssertEqual(prepared.map(\.lane), original.map(\.lane))
+                XCTAssertEqual(prepared.map { $0.events.map(\.id) }, original.map { $0.events.map(\.id) })
+                XCTAssertFalse(prepared.isEmpty)
+            }
+        }
+    }
+
     func testFutureDayIconsRespectCurrentTimeBoundaryInBothModes() {
         let day = Date(timeIntervalSince1970: Double(Int(1_800_000_000) / 86_400 * 86_400))
         let zone = TimeZone(secondsFromGMT: 0)!

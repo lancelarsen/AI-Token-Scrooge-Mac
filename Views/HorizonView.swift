@@ -421,7 +421,7 @@ struct HorizonView: View {
             }
             // Match Windows: historical markers paint over the day dots and rail.
             Group {
-                ForEach(HistoricalEventMarker.layout(events: historicalEvents, viewport: viewport, now: now)) { marker in
+                ForEach(HistoricalEventMarker.layout(events: historicalEvents, viewport: viewport, now: now, project: historyX)) { marker in
                     Button { selectedHistoricalMarker = marker } label: {
                         Group {
                             if marker.events.count > 1 {
@@ -635,7 +635,7 @@ struct HorizonView: View {
             flush()
         }
         for event in historicalEvents {
-            let x = viewport.position(at: event.date)
+            let x = historyX(event.date)
             guard x >= viewport.scrollOffset, x <= min(nowX, viewport.scrollOffset + viewport.viewportWidth) else { continue }
             var marker = Path(); marker.move(to: CGPoint(x: x, y: plotTop)); marker.addLine(to: CGPoint(x: x, y: plotTop + chartHeight))
             context.stroke(marker, with: .color((event.expiration ? Theme.amber : Color(hex: "#B99AF8")).opacity(0.6)), style: StrokeStyle(lineWidth: 1, dash: [4,4]))

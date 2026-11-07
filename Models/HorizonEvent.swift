@@ -44,10 +44,14 @@ struct HistoricalEventMarker: Identifiable {
     var id: String { events.map(\.id).sorted().joined(separator: "|") }
     var expiration: Bool { events[0].expiration }
 
-    static func layout(events: [HorizonEvent], viewport: HorizonViewport, now: Date) -> [Self] {
+    static func layout(events: [HorizonEvent], viewport: HorizonViewport, now: Date,
+                       project: ((Date) -> Double)? = nil) -> [Self] {
+        // Panning changes the visible interval, not an event's content position.
+        // The dashboard already prepares these calendar projections with history.
+        let position = project ?? { viewport.position(at: $0) }
         struct Key: Hashable { let date: Date; let expiration: Bool }
         let visible = events.filter {
-            let x = viewport.position(at: $0.date) - viewport.scrollOffset
+            let x = position($0.date) - viewport.scrollOffset
             return $0.date <= now && x >= 10 && x <= viewport.viewportWidth - 10
         }.sorted { $0.date < $1.date }
         // Windows stably sorts visible series by time, then groups in first-seen
@@ -60,7 +64,7 @@ struct HistoricalEventMarker: Identifiable {
         }
         var laneEnds: [Double] = []
         return keys.map { key in
-            let x = viewport.position(at: key.date)
+            let x = position(key.date)
             let lane = laneEnds.firstIndex { x - 11 >= $0 + 2 } ?? laneEnds.count
             if lane == laneEnds.count { laneEnds.append(0) }
             laneEnds[lane] = x + 11
