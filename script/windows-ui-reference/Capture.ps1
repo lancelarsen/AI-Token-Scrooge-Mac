@@ -12,12 +12,46 @@ Add-Type -AssemblyName System.Drawing
 Add-Type @'
 using System;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System.Text;
 public static class ReferenceWindowNative {
     [StructLayout(LayoutKind.Sequential)]
     public struct Rect { public int Left, Top, Right, Bottom; }
     [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
     [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr handle, out Rect rect);
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern IntPtr FindWindow(string className, string title);
+    delegate bool WindowCallback(IntPtr handle, IntPtr argument);
+    [DllImport("user32.dll")] static extern bool EnumWindows(WindowCallback callback, IntPtr argument);
+    [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr handle, out uint processId);
+    [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr handle);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetWindowText(IntPtr handle, StringBuilder text, int count);
+    public static IntPtr FindReferenceWindow(int processId) {
+        IntPtr found = IntPtr.Zero;
+        EnumWindows(delegate(IntPtr handle, IntPtr argument) {
+            uint owner;
+            Rect rect;
+            GetWindowThreadProcessId(handle, out owner);
+            if (owner == processId && IsWindowVisible(handle) && GetWindowRect(handle, out rect)
+                && rect.Right - rect.Left >= 600 && rect.Bottom - rect.Top >= 400) {
+                found = handle; return false;
+            }
+            return true;
+        }, IntPtr.Zero);
+        return found;
+    }
+    public static string[] OwnedWindowTitles(int processId) {
+        var titles = new List<string>();
+        EnumWindows(delegate(IntPtr handle, IntPtr argument) {
+            uint owner;
+            GetWindowThreadProcessId(handle, out owner);
+            if (owner == processId) {
+                var title = new StringBuilder(512);
+                GetWindowText(handle, title, title.Capacity);
+                titles.Add(title.ToString());
+            }
+            return true;
+        }, IntPtr.Zero);
+        return titles.ToArray();
+    }
     [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr handle, int command);
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr handle);
 }
@@ -44,10 +78,16 @@ try {
     [IntPtr]$handle = [IntPtr]::Zero
     while ($handle -eq [IntPtr]::Zero -and [DateTime]::UtcNow -lt $deadline) {
         if ($app.HasExited) { throw "Reference app exited before showing a window (exit $($app.ExitCode))." }
-        $handle = [ReferenceWindowNative]::FindWindow($null, 'AI Token Scrooge')
+        $handle = [ReferenceWindowNative]::FindReferenceWindow($app.Id)
         if ($handle -eq [IntPtr]::Zero) { Start-Sleep -Milliseconds 500 }
     }
-    if ($handle -eq [IntPtr]::Zero) { throw 'No native reference window became available.' }
+    if ($handle -eq [IntPtr]::Zero) {
+        [ordered]@{ userInteractive = [Environment]::UserInteractive; appSession = $app.SessionId;
+            driverSession = [Diagnostics.Process]::GetCurrentProcess().SessionId;
+            ownedWindowTitles = @([ReferenceWindowNative]::OwnedWindowTitles($app.Id)) } |
+            ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $Output 'startup.json')
+        throw 'No visible native reference window became available; see startup.json.'
+    }
     [ReferenceWindowNative]::ShowWindow($handle, 9) | Out-Null
     [ReferenceWindowNative]::SetForegroundWindow($handle) | Out-Null
     Start-Sleep -Seconds 3
