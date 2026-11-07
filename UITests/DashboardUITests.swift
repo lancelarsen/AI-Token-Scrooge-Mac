@@ -641,6 +641,21 @@ final class DashboardUITests: XCTestCase {
         let initialX = marker.frame.midX
         let infoX = info.frame.midX, criticalX = critical.frame.midX
         let span = (criticalX - infoX) / 0.4
+        if compact {
+            // Relative bounds measured from Windows Preview v2026.11.6.006:
+            // identity x230, quota x231, alarm x232, bar content x321.
+            let identity = dashboard.buttons["OpenAI, Personal · Plus. Open details."].firstMatch
+            let title = dashboard.buttons["Codex · Weekly. Open Details"].firstMatch
+            let alarm = dashboard.buttons["Enable Alerts for Codex · Weekly"].firstMatch
+            let usage = dashboard.buttons.matching(NSPredicate(format: "label CONTAINS %@", "74% Used, 26% Left. Open Details")).firstMatch
+            XCTAssertEqual(title.frame.minX - identity.frame.minX, 1, accuracy: 0.5)
+            XCTAssertEqual(alarm.frame.minX - identity.frame.minX, 2, accuracy: 0.5)
+            XCTAssertEqual(usage.frame.minX - identity.frame.minX, 91, accuracy: 0.5)
+            XCTAssertEqual(usage.frame.height, 46, accuracy: 0.5)
+            XCTAssertEqual(marker.frame.height, 48, accuracy: 0.5)
+            XCTAssertEqual(marker.frame.midY, usage.frame.midY, accuracy: 0.5)
+            XCTAssertEqual(span, usage.frame.width - 16, accuracy: 0.5)
+        }
         let dragDistance: CGFloat = compact ? span * 0.04 : 40
         let expectedRemaining = (initialRemaining - dragDistance / span * 100).rounded()
         let initialWindows = Set(Self.visibleWindows(for: running.processIdentifier).keys)

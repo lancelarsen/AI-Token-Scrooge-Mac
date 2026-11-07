@@ -270,6 +270,9 @@ struct QuotaRow: View {
             }
         }
         }
+        // Windows QuotaRowView is a transparent Border; its one-point stroke
+        // still reserves layout space around the row's Grid.
+        .padding(1)
         .frame(minHeight: 56)
         .sheet(isPresented: $showReserve) {
             AccountUsageDialog(accountID: account.id, windowID: nil, close: { showReserve = false })

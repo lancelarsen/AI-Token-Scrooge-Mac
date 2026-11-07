@@ -26,7 +26,7 @@ struct UsageBar: View {
                 RoundedRectangle(cornerRadius: 11).fill(LinearGradient(colors: Theme.colors(window.capacity(current)), startPoint: .leading, endPoint: .trailing))
                     .frame(width: geometry.size.width * window.fill)
                 Button(action: details) {
-                    Color.clear.frame(height: 48).contentShape(Rectangle())
+                    Color.clear.frame(height: geometry.size.height).contentShape(Rectangle())
                 }.buttonStyle(.plain).accessibilityLabel("\(Format.windowTitle(window.name)), \(labels.used), \(labels.left). Open Details")
                 ForEach(alertsEnabled ? ReminderSeverity.allCases : [], id: \.self) { level in
                     let value = value(level, current)
@@ -86,7 +86,7 @@ struct UsageBar: View {
                         }
                         // Keep interaction on the 32×48 thumb; positioning outside it
                         // must not enlarge the gesture/hover surface to the entire bar.
-                        .position(x: 8 + (1 - NSDecimalNumber(decimal: value).doubleValue / 100) * markerSpan, y: 24)
+                        .position(x: 8 + (1 - NSDecimalNumber(decimal: value).doubleValue / 100) * markerSpan, y: geometry.size.height / 2)
                 }
                 // Keep labels above the draggable markers without intercepting input.
                 HStack {
@@ -97,13 +97,13 @@ struct UsageBar: View {
                 }
                 .font(.reference(size: 16)).padding(.horizontal, 15)
                 .allowsHitTesting(false).accessibilityHidden(true)
-            }.coordinateSpace(name: "usageBar").overlay(RoundedRectangle(cornerRadius: 11).stroke(Color(hex: "#515461")))
+            }.coordinateSpace(name: "usageBar")
                 .background {
                     if let level = readoutSeverity {
                         HistoryPointerTracking(severity: level,
                             text: "\(level.rawValue) Alert @ \(Format.percent(value(level, current), fractionDigits: 1)) Left",
                             pinned: true,
-                            anchor: CGPoint(x: 8 + (1 - NSDecimalNumber(decimal: value(level, current)).doubleValue / 100) * markerSpan, y: 0),
+                            anchor: CGPoint(x: 8 + (1 - NSDecimalNumber(decimal: value(level, current)).doubleValue / 100) * markerSpan, y: -1),
                             onMove: { _ in })
                     }
                 }
@@ -119,7 +119,13 @@ struct UsageBar: View {
                     if !enabled { cancelEdit() } else { cancelledDrag = false }
                 }
                 .onDisappear { cancelEdit(); cancelledDrag = false }
-        }.frame(height: 48)
+        }
+        // Match Windows' 48-point outer Border and 46-point content. The
+        // 48-point thumbs stay centered across both border edges.
+        .padding(1)
+        .background(RoundedRectangle(cornerRadius: 11).fill(Color(hex: "#30333E")))
+        .overlay(RoundedRectangle(cornerRadius: 11).strokeBorder(Color(hex: "#515461"), lineWidth: 1))
+        .frame(height: 48)
     }
     private func commitEdit() {
         if let editing, editing != thresholds { changed(editing) }
