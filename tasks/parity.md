@@ -267,3 +267,7 @@ Canonical app and test-bundle builds passed. An optimized executable compiled pr
 Production-parser reproduction found that `1,000% used` and `1,00% used` were interpreted as 0%, and Unicode-minus `−5% used` was interpreted as 5%. Require a complete whitespace-delimited ASCII percentage token instead of accepting a numeric suffix. Malformed session values stay unreported while a separate valid weekly zero remains available. The regression covers twelve malformed tokens (including Unicode signs and slash/label prefixes), genuine zero and a percentage following a progress bar. No quota request or inference is used by these checks.
 
 An optimized executable compiled the production model/parser sources and passed malformed-token, independent-window and valid 0/24/62.5/100 assertions. Canonical build/run and test-bundle compilation were checked. The new hosted XCTest regression is not claimed executed locally while the macOS automation-authentication request is pending. Live signed-in Claude verification remains open.
+
+### Reminder choices during validation — November 7
+
+Matched Windows' draft behavior: severity and unit choices remain visible while the amount is temporarily invalid, then join the accepted update once it is valid. Native isolated0/Hours/Warning ->2/Hours/Warning trace, invalid Close rejection, sorted-row identity and Close/reopen retention passed. Build and UI-test-bundle compilation passed; the added native regression remains execution-gated by macOS authorization.

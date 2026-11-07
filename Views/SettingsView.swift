@@ -245,6 +245,8 @@ struct ReminderEditor: View {
     @Binding var reminders: [TimedReminder]
     var onValidationChange: (Bool) -> Void = { _ in }
     @State private var amountDrafts: [String: String] = [:]
+    @State private var severityDrafts: [String: ReminderSeverity] = [:]
+    @State private var unitDrafts: [String: String] = [:]
     private var amountError: Bool {
         reminders.contains { reminder in
             guard let draft = amountDrafts[reminder.id] else { return false }
@@ -261,31 +263,38 @@ struct ReminderEditor: View {
         VStack(alignment: .leading, spacing: 8) {
             VStack(alignment: .leading, spacing: 6) {
                 ForEach(orderedReminders) { reminder in
+                    let severity = severityDrafts[reminder.id] ?? reminder.severity
+                    let unit = unitDrafts[reminder.id] ?? reminder.unit
                     HStack(spacing: 8) {
                         Menu {
                             ForEach(ReminderSeverity.allCases, id: \.self) { level in
-                                Button(level.rawValue) { update(reminder.id) { $0.severity = level } }
+                                Button(level.rawValue) { severityDrafts[reminder.id] = level; update(reminder.id) }
                             }
                         } label: {
-                            menuLabel(reminder.severity.rawValue, color: severityColor(reminder.severity))
-                        }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Reminder Severity").accessibilityValue(reminder.severity.rawValue)
+                            menuLabel(severity.rawValue, color: severityColor(severity))
+                        }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Reminder Severity").accessibilityValue(severity.rawValue)
+                            .accessibilityIdentifier("reminderSeverity-\(reminder.id)")
                         TextField("Amount", text: Binding(get: { amountDrafts[reminder.id] ?? String(reminder.amount) }, set: { text in
                             amountDrafts[reminder.id] = text
-                            update(reminder.id) { _ in }
+                            update(reminder.id)
                         }))
                             .textFieldStyle(.plain).font(ReferenceTypography.nativeTextFont()).padding(.horizontal, 12).frame(width: 80, height: 44)
                             .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
                             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
                             .accessibilityLabel("Time Before Event")
+                            .accessibilityIdentifier("reminderAmount-\(reminder.id)")
                         Menu {
                             ForEach(["Days", "Hours"], id: \.self) { unit in
-                                Button(unit) { update(reminder.id) { $0.unit = unit } }
+                                Button(unit) { unitDrafts[reminder.id] = unit; update(reminder.id) }
                             }
-                        } label: { menuLabel(reminder.unit) }
-                            .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Days or Hours").accessibilityValue(reminder.unit)
+                        } label: { menuLabel(unit) }
+                            .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).frame(maxWidth: .infinity).accessibilityLabel("Days or Hours").accessibilityValue(unit)
+                            .accessibilityIdentifier("reminderUnit-\(reminder.id)")
                         Button {
                             reminders.removeAll { $0.id == reminder.id }
                             amountDrafts.removeValue(forKey: reminder.id)
+                            severityDrafts.removeValue(forKey: reminder.id)
+                            unitDrafts.removeValue(forKey: reminder.id)
                         } label: {
                             ActionIcon(symbol: "trash", size: 20)
                         }.buttonStyle(ScroogeButtonStyle(horizontalPadding: 11))
@@ -318,7 +327,7 @@ struct ReminderEditor: View {
         case .critical: Color(hex: "#F05B69")
         }
     }
-    private func update(_ id: String, change: (inout TimedReminder) -> Void) {
+    private func update(_ id: String) {
         var copy = reminders
         guard let index = copy.firstIndex(where: { $0.id == id }) else { return }
         let draft = amountDrafts[id] ?? String(copy[index].amount)
@@ -326,7 +335,10 @@ struct ReminderEditor: View {
             return
         }
         copy[index].amount = Int(amount)
-        change(&copy[index])
+        // Like Windows' separate Entry/Picker state, keep all pending fields
+        // visible while invalid and apply the combined edit once it is valid.
+        copy[index].severity = severityDrafts[id] ?? copy[index].severity
+        copy[index].unit = unitDrafts[id] ?? copy[index].unit
         reminders = copy
     }
 }

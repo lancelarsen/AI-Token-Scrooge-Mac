@@ -602,6 +602,44 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(amount.waitForNonExistence(timeout: 5))
     }
 
+    @MainActor func testReminderChoicesSurviveInvalidAmountAndReopening() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", "--reference-wide"]
+        app.launch()
+        defer { app.terminate() }
+        if !app.windows["dashboard"].waitForExistence(timeout: 2) {
+            let menu = app.menuBars.menuBarItems["Window"]
+            menu.click(); menu.menuItems["AI Token Scrooge"].click()
+        }
+        app.buttons["settingsButton"].click()
+        let first = app.textFields["Time Before Event"].firstMatch
+        XCTAssertTrue(first.waitForExistence(timeout: 5))
+        let amountID = first.identifier
+        let rowID = String(amountID.dropFirst("reminderAmount-".count))
+        let amount = app.textFields[amountID]
+        let unit = app.descendants(matching: .any).matching(identifier: "reminderUnit-" + rowID).firstMatch
+        let severity = app.descendants(matching: .any).matching(identifier: "reminderSeverity-" + rowID).firstMatch
+        amount.click(); amount.typeKey("a", modifierFlags: .command); amount.typeText("0")
+        unit.click(); app.menuItems["Hours"].click()
+        severity.click(); app.menuItems["Warning"].click()
+        XCTAssertEqual(unit.value as? String, "Hours")
+        XCTAssertEqual(severity.value as? String, "Warning")
+        app.buttons["Close"].click()
+        XCTAssertTrue(amount.exists, "An invalid amount must still prevent closing")
+        XCTAssertTrue(app.staticTexts["settingsSaveStatus"].waitForExistence(timeout: 3))
+        amount.click(); amount.typeKey("a", modifierFlags: .command); amount.typeText("2")
+        XCTAssertTrue(app.staticTexts["settingsSaveStatus"].waitForNonExistence(timeout: 3))
+        app.buttons["Close"].click()
+        XCTAssertTrue(amount.waitForNonExistence(timeout: 5))
+        app.buttons["settingsButton"].click()
+        XCTAssertTrue(amount.waitForExistence(timeout: 5))
+        XCTAssertEqual(amount.value as? String, "2")
+        XCTAssertEqual(unit.value as? String, "Hours")
+        XCTAssertEqual(severity.value as? String, "Warning")
+        app.buttons["Close"].click()
+    }
+
     @MainActor func testColorPickerKeyboardModeAndExactSwatch() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
