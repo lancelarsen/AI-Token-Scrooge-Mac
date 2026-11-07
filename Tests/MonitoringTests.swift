@@ -332,6 +332,10 @@ final class MonitoringTests: XCTestCase {
         try await Task.sleep(for: .milliseconds(200))
         XCTAssertNotEqual(scroll.contentView.bounds.origin, firstScroll, "Edge scrolling must continue while the pointer is held still")
         XCTAssertNotEqual(scroll.contentView.bounds.origin, originalScroll, "Holding a dragged card at the viewport edge must scroll")
+        try await displaceDrag(to: CGPoint(x: 530, y: 405))
+        let stoppedScroll = scroll.contentView.bounds.origin
+        try await Task.sleep(for: .milliseconds(200))
+        XCTAssertEqual(scroll.contentView.bounds.origin, stoppedScroll, "Dragging outside the viewport must stop edge scrolling")
         let escape = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero,
             modifierFlags: [], timestamp: 0, windowNumber: window.windowNumber,
             context: nil, characters: "\u{1b}", charactersIgnoringModifiers: "\u{1b}",
