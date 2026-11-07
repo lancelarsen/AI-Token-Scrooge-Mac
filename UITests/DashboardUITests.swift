@@ -21,6 +21,29 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(app.buttons["exploreDemoButton"].waitForExistence(timeout: 5))
     }
 
+    @MainActor func testCountUsageDetailsShowOverageAndMissingLimit() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", "--reference-wide", "--scenario", "count-usage",
+                               "--reference-date", "2026-11-04T16:11:00Z"]
+        app.launch()
+        defer { app.terminate() }
+        let allowance = app.buttons["Request Allowance. Open Details"].firstMatch
+        XCTAssertTrue(allowance.waitForExistence(timeout: 10))
+        allowance.click()
+        let overage = app.staticTexts["1,250 Used · 250 Over"].firstMatch
+        XCTAssertTrue(overage.waitForExistence(timeout: 5))
+        let sheet = app.sheets.firstMatch
+        XCTAssertTrue(sheet.frame.contains(overage.frame), "Count details must fit within their popup")
+        app.buttons["Close"].click()
+        app.buttons["Unknown Request Limit. Open Details"].firstMatch.click()
+        let unavailable = app.staticTexts["50 Used · Limit Unavailable"].firstMatch
+        XCTAssertTrue(unavailable.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.sheets.firstMatch.frame.contains(unavailable.frame))
+        app.typeKey(.escape, modifierFlags: [])
+        XCTAssertTrue(unavailable.waitForNonExistence(timeout: 5))
+    }
+
     @MainActor func testCancelReconnectThenAddAccountOffersProviderChoices() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
