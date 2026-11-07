@@ -34,6 +34,10 @@ On November 6, the native Codex dashboard showed one weekly quota and three avai
 - Demo checks establish synthetic UI behavior only. They do not establish provider correctness or background monitoring.
 - The project is not ready to be marked feature-complete while any required acceptance evidence remains missing.
 
+### Latest hosted regression evidence — November 7
+
+GitHub Mac Preview run [42354566656](https://github.com/lancelarsen/AI-Token-Scrooge-Mac/actions/runs/42354566656) completed successfully at `fed2a7d7f71db9d1c4056443280ba76c4255eaf0`. Its test log reports 153 hosted tests, two installed-CLI checks skipped, and zero failures. The log explicitly records passing `testRefreshCoverageDistinguishesMissingDatesFromZeroUsageForEveryProvider` and `testReferenceElapsedClockPreservesDataAndMatchesCapturedCountdowns`; these regressions are now executed evidence rather than local compile-only checks. Claude parser checks for separate windows, unknown reset retention, out-of-window dates, and ambiguous/nonexistent civil times also passed. This does not establish live Claude quotas, installed-CLI behavior on the CI machine, native UI automation, or full visual acceptance. The macOS UI-automation authentication gate remains open.
+
 ## Live Codex transport failure and restart recovery — November 6
 
 Verified in the running native app without disabling the Mac's network. Launched only Scrooge with HTTP/HTTPS/ALL proxy variables pointing to a temporary loopback server that rejects requests with 503 and does not log requests. The actual quota read failed: SQLite marked the Codex snapshot offline while preserving its 5% used / 95% left window and 9:14:54 PM CST last-successful-fetch time. The native quota-details popup displayed the retained values and an Offline message.
