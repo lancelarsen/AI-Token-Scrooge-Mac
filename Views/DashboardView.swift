@@ -108,7 +108,7 @@ struct DashboardView: View {
                 } label: {
                     HStack(spacing: 10) {
                         if refreshing {
-                            ProgressView().controlSize(.small).tint(.white).frame(width: 19, height: 19)
+                            ActionProgressRing(size: 19)
                         } else { ActionIcon(symbol: "arrow.clockwise", size: 19) }
                         Text(refreshDisabled ? "Refreshing…" : "Refresh")
                     }

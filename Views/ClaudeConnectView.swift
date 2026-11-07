@@ -15,6 +15,7 @@ struct ClaudeConnectView: View {
         VStack(alignment: .leading, spacing: 18) {
             ConnectionStatusLine(text: status)
             Button {
+                guard !busy else { return }
                 let credentialID = UUID().uuidString
                 busy = true
                 operation = Task {
@@ -32,9 +33,8 @@ struct ClaudeConnectView: View {
                         status = (error as? ProviderFailure)?.message ?? (error is AccountError ? error.localizedDescription : "Claude connection could not be completed. Please try again.")
                     }
                 }
-            } label: { DialogActionLabel(title: busy ? "Waiting for Claude Sign-In…" : "Sign in with Claude").frame(maxWidth: .infinity, alignment: .leading) }
-            .buttonStyle(ScroogeButtonStyle()).disabled(busy || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            if busy { ProgressView().controlSize(.small) }
+            } label: { DialogActionLabel(title: busy ? "Waiting for Claude Sign-In…" : "Sign In with Claude", processing: busy).frame(maxWidth: .infinity, alignment: .leading) }
+            .buttonStyle(ScroogeButtonStyle(processing: busy)).disabled(busy || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }.onDisappear {
             closed = true
             if !committing { operation?.cancel() }

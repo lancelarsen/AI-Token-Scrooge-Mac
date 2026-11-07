@@ -150,6 +150,22 @@ struct ScroogeButtonStyle: ButtonStyle {
         }
     }
 }
+/// A disabled action must retain the reference's white progress foreground.
+/// Native macOS indicators dim themselves when their parent button is disabled.
+struct ActionProgressRing: View {
+    var size: CGFloat = 20
+    @State private var rotating = false
+    var body: some View {
+        Circle().inset(by: 1).trim(from: 0.08, to: 0.82)
+            .stroke(Color.white, style: StrokeStyle(lineWidth: 2, lineCap: .round))
+            .frame(width: size, height: size)
+            .rotationEffect(.degrees(rotating ? 360 : 0))
+            .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: rotating)
+            .onAppear { rotating = true }
+            .accessibilityHidden(true)
+    }
+}
+
 struct ActionLabel: View {
     let title: String
     let symbol: String
@@ -496,7 +512,7 @@ struct SettingsCloseButton: View {
         } label: {
             if isClosing {
                 HStack(spacing: 9) {
-                    ProgressView().controlSize(.small).tint(.white).frame(width: 20, height: 20)
+                    ActionProgressRing()
                     Text("Closing…")
                 }
             } else { DialogActionLabel(title: "Close") }

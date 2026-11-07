@@ -154,8 +154,8 @@ private struct ConnectionForm: View {
                             token = ""; dismiss()
                         } catch { self.error = error.localizedDescription }
                     }
-                } label: { DialogActionLabel(title: connecting ? "Connecting…" : "Connect Account").frame(maxWidth: .infinity, alignment: .leading) }
-                    .buttonStyle(ScroogeButtonStyle()).disabled(connecting || token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                } label: { DialogActionLabel(title: connecting ? "Connecting…" : "Connect Account", processing: connecting).frame(maxWidth: .infinity, alignment: .leading) }
+                    .buttonStyle(ScroogeButtonStyle(processing: connecting)).disabled(connecting || token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             } else if provider == .devin {
                 Text(original == nil ? "Company workspace URL (optional)" : "Company workspace URL").font(.reference(size: 14))
@@ -185,8 +185,8 @@ private struct ConnectionForm: View {
                         } catch is CancellationError { self.error = "Sign-in canceled." }
                         catch { self.error = (error as? ProviderFailure)?.message ?? (error is AccountError ? error.localizedDescription : "Devin sign-in could not be saved. Try again.") }
                     }
-                } label: { DialogActionLabel(title: connecting ? "Signing In with Devin…" : "Sign In with Devin").frame(maxWidth: .infinity, alignment: .leading) }
-                    .buttonStyle(ScroogeButtonStyle()).disabled(connecting)
+                } label: { DialogActionLabel(title: connecting ? "Signing In with Devin…" : "Sign In with Devin", processing: connecting).frame(maxWidth: .infinity, alignment: .leading) }
+                    .buttonStyle(ScroogeButtonStyle(processing: connecting)).disabled(connecting)
             } else {
                 ClaudeConnectView(nickname: nickname, original: original)
             }

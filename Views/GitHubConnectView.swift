@@ -16,9 +16,8 @@ struct GitHubConnectView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             ConnectionStatusLine(text: status)
-            Button { begin() } label: { DialogActionLabel(title: busy ? "Waiting for GitHub…" : "Sign in with GitHub").frame(maxWidth: .infinity, alignment: .leading) }
-                .buttonStyle(ScroogeButtonStyle()).disabled(busy || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            if busy { ProgressView().controlSize(.small) }
+            Button { begin() } label: { DialogActionLabel(title: busy ? "Waiting for GitHub…" : "Sign In with GitHub", processing: busy).frame(maxWidth: .infinity, alignment: .leading) }
+                .buttonStyle(ScroogeButtonStyle(processing: busy)).disabled(busy || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             if let challenge {
                 VStack(spacing: 10) {
                     Text("Enter this code on GitHub, then approve AI Reset Radar (the registered sign-in app for AI Token Scrooge).")
@@ -51,6 +50,7 @@ struct GitHubConnectView: View {
 
     }
     private func begin() {
+        guard !busy else { return }
         busy = true
         task = Task {
             defer { busy = false; challenge = nil }

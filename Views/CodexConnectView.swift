@@ -10,18 +10,29 @@ struct CodexConnectView: View {
     @State private var loginID: String?
     @State private var status = ""
     @State private var busy = false
+    @State private var actionRequested = false
+    @State private var busyTitle = "Signing In with OpenAI…"
     @State private var committed = false
     @State private var committing = false
     @State private var closed = false
     @State private var listener: Task<Void, Never>?
+    private var working: Bool { busy || actionRequested }
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             ConnectionStatusLine(text: status)
             Button {
-                Task { if connection == nil { await start() } else { await finish() } }
-            } label: { DialogActionLabel(title: connection == nil ? "Sign in with OpenAI" : "Check Sign-In").frame(maxWidth: .infinity, alignment: .leading) }
-            .buttonStyle(ScroogeButtonStyle()).disabled(busy || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            if busy { ProgressView().controlSize(.small) }
+                guard !working, !closed else { return }
+                busyTitle = connection == nil ? "Signing In with OpenAI…" : "Checking Sign-In…"
+                actionRequested = true
+                Task {
+                    defer { actionRequested = false }
+                    if connection == nil { await start() } else { await finish() }
+                }
+            } label: {
+                DialogActionLabel(title: working ? busyTitle : connection == nil ? "Sign In with OpenAI" : "Check Sign-In", processing: working)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .buttonStyle(ScroogeButtonStyle(processing: working)).disabled(working || nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         .onDisappear { closed = true; listener?.cancel(); if !committing && !busy { Task { await cleanup() } } }
     }
@@ -29,6 +40,7 @@ struct CodexConnectView: View {
         guard !busy, !closed else { return }
         let credentialID = UUID().uuidString
         self.credentialID = credentialID
+        busyTitle = "Signing In with OpenAI…"
         busy = true
         defer { busy = false; if closed { Task { await cleanup() } } }
         do {
@@ -56,6 +68,7 @@ struct CodexConnectView: View {
     }
     private func finish() async {
         guard !busy, !closed, let connection, let credentialID else { return }
+        busyTitle = "Checking Sign-In…"
         busy = true
         defer { busy = false; if closed { Task { await cleanup() } } }
         do {

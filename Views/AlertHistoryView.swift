@@ -301,12 +301,17 @@ struct DialogMessage: View {
 struct DialogActionLabel: View {
     @Environment(\.actionForeground) private var foreground
     let title: String
+    var processing = false
     var body: some View {
         HStack(spacing: 9) {
-            Text(Format.actionGlyph(title))
-                .font(ReferenceTypography.iconFont(size: 20))
-                .foregroundStyle(foreground)
-                .accessibilityHidden(true)
+            if processing {
+                ActionProgressRing()
+            } else {
+                Text(Format.actionGlyph(title))
+                    .font(ReferenceTypography.iconFont(size: 20))
+                    .foregroundStyle(foreground)
+                    .accessibilityHidden(true)
+            }
             Text(title).font(Theme.dialogBodyFont)
         }
     }
