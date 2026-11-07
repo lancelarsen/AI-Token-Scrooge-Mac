@@ -150,10 +150,10 @@ struct MenuBarContent: View {
 
     static func handleNotification(id: String, action: String, store: AppStore) async {
         await store.load()
-        guard let alert = store.state.alerts.first(where: { $0.id == id }) else { return }
+        let alert = store.state.alerts.first { $0.id == id }
         switch action {
-        case "snooze": store.snooze(id, minutes: 60)
-        case "dismiss", UNNotificationDismissActionIdentifier: store.dismissAlert(id)
+        case "snooze": if alert != nil { store.snooze(id, minutes: 60) }
+        case "dismiss", UNNotificationDismissActionIdentifier: if alert != nil { store.dismissAlert(id) }
         case "show-info", UNNotificationDefaultActionIdentifier: store.showAlertAccount(alert)
         default: break
         }

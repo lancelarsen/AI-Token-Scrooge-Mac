@@ -25,8 +25,10 @@ import AppKit
     var errorMessage: String?
     var highlightedAccountID: String?
     var accountRevealRequest = UUID()
-    func showAlertAccount(_ alert: AlertEvent) {
-        highlightedAccountID = state.accounts.contains { $0.id == alert.accountID } ? alert.accountID : nil
+    func showAlertAccount(_ alert: AlertEvent?) {
+        highlightedAccountID = alert.flatMap { target in
+            state.accounts.first { $0.id == target.accountID }?.id
+        }
         accountRevealRequest = UUID()
         dashboardOpenRequest = UUID()
     }

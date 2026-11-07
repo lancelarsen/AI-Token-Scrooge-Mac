@@ -348,7 +348,8 @@ final class MonitoringTests: XCTestCase {
         }
         let lastRequest = store.dashboardOpenRequest
         await ScroogeAppDelegate.handleNotification(id: "expired", action: "show-info", store: store)
-        XCTAssertEqual(store.dashboardOpenRequest, lastRequest)
+        XCTAssertNotEqual(store.dashboardOpenRequest, lastRequest)
+        XCTAssertNil(store.highlightedAccountID)
     }
 
     @MainActor
