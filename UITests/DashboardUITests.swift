@@ -484,6 +484,104 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(hex.waitForNonExistence(timeout: 3))
     }
 
+    @MainActor func testThresholdReadoutTracksDragAndDismisses() throws {
+        try verifyThresholdReadout(severity: "Warning", initialRemaining: 30)
+    }
+
+    @MainActor func testInfoThresholdReadoutTracksDragAndDismisses() throws {
+        try verifyThresholdReadout(severity: "Info", initialRemaining: 50)
+    }
+
+    @MainActor func testCriticalThresholdReadoutTracksDragAndDismisses() throws {
+        try verifyThresholdReadout(severity: "Critical", initialRemaining: 10)
+    }
+
+    @MainActor private func verifyThresholdReadout(severity: String, initialRemaining: CGFloat) throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", "--reference-wide", "--reference-date", "2026-11-04T16:16:00Z"]
+        app.launch()
+        defer { app.terminate() }
+        let dashboard = app.windows["dashboard"]
+        if !dashboard.waitForExistence(timeout: 2) {
+            app.menuBars.menuBarItems["Window"].click()
+            app.menuBars.menuBarItems["Window"].menuItems["AI Token Scrooge"].click()
+        }
+        let running = try XCTUnwrap(NSRunningApplication.runningApplications(withBundleIdentifier: "com.lancelarsen.AITokenScrooge")
+            .max { ($0.launchDate ?? .distantPast) < ($1.launchDate ?? .distantPast) })
+        running.activate(options: [.activateIgnoringOtherApps])
+        let header = dashboard.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.08))
+        header.click(); header.hover()
+        let marker = dashboard.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "\(severity) Alert Threshold")).firstMatch
+        XCTAssertTrue(marker.waitForExistence(timeout: 5))
+        if !marker.isHittable { dashboard.scrollBars.firstMatch.scroll(byDeltaX: 0, deltaY: -250) }
+        XCTAssertTrue(marker.isHittable)
+        let info = dashboard.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Info Alert Threshold")).firstMatch
+        let critical = dashboard.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Critical Alert Threshold")).firstMatch
+        let initialX = marker.frame.midX
+        let infoX = info.frame.midX, criticalX = critical.frame.midX
+        let span = (criticalX - infoX) / 0.4
+        let expectedRemaining = (initialRemaining - 40 / span * 100).rounded()
+        let initialWindows = Set(Self.visibleWindows(for: running.processIdentifier).keys)
+        func popup() -> (key: CGWindowID, value: CGRect)? {
+            Self.visibleWindows(for: running.processIdentifier).first {
+                !initialWindows.contains($0.key) && $0.value.width <= 420 && $0.value.height < 100
+            }
+        }
+        func waitForPopup() throws -> (key: CGWindowID, value: CGRect) {
+            let appeared = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in popup() != nil }, object: nil)
+            XCTAssertEqual(XCTWaiter.wait(for: [appeared], timeout: 3), .completed)
+            return try XCTUnwrap(popup())
+        }
+        marker.hover()
+        let first = try waitForPopup()
+        XCTAssertTrue(dashboard.frame.contains(first.value))
+        XCTAssertEqual(first.value.maxY, marker.frame.minY - 2, accuracy: 2,
+            "The readout belongs above the bar with the Windows two-point anchor gap")
+        let origin = marker.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        origin.click(forDuration: 0.1, thenDragTo: origin.withOffset(CGVector(dx: 40, dy: 0)), withVelocity: .slow, thenHoldForDuration: 0.3)
+        XCTAssertEqual(marker.frame.midX, initialX + (initialRemaining - expectedRemaining) / 100 * span, accuracy: 1)
+        if severity != "Info" { XCTAssertEqual(info.frame.midX, infoX, accuracy: 1, "Dragging another marker must leave Info unchanged") }
+        if severity != "Critical" { XCTAssertEqual(critical.frame.midX, criticalX, accuracy: 1, "Dragging another marker must leave Critical unchanged") }
+        marker.hover()
+        let dragged = try waitForPopup()
+        XCTAssertEqual(dragged.value.minY, first.value.minY, accuracy: 1,
+            "Changing the threshold must retain the readout's initial top")
+        let screen = CGDisplayBounds(CGMainDisplayID())
+        guard screen.contains(dragged.value) else { throw XCTSkip("Owned popup is on a secondary display; do not crop another display") }
+        let shot = XCUIScreen.main.screenshot().image
+        let pixels = try XCTUnwrap(shot.cgImage(forProposedRect: nil, context: nil, hints: nil))
+        let rect = dragged.value.offsetBy(dx: -screen.minX, dy: -screen.minY)
+            .applying(CGAffineTransform(scaleX: CGFloat(pixels.width) / screen.width, y: CGFloat(pixels.height) / screen.height))
+        let crop = try XCTUnwrap(pixels.cropping(to: rect.integral))
+        let recognition = VNRecognizeTextRequest()
+        recognition.recognitionLevel = .accurate
+        recognition.recognitionLanguages = ["en-US"]
+        try VNImageRequestHandler(cgImage: crop).perform([recognition])
+        let text = recognition.results?.compactMap { $0.topCandidates(1).first?.string }.joined(separator: " ") ?? ""
+        XCTAssertTrue(text.contains("\(severity) Alert") && text.contains("Left"), text)
+        XCTAssertTrue(text.contains("\(Int(expectedRemaining))%"), "The popup must show the current dragged value: \(text)")
+        let capture = XCTAttachment(image: NSImage(cgImage: crop, size: dragged.value.size))
+        capture.name = "\(severity) threshold readout after native mouse drag"
+        capture.lifetime = .keepAlways
+        add(capture)
+        marker.click()
+        let keyboardStart = marker.frame.midX
+        app.typeKey(.leftArrow, modifierFlags: [])
+        XCTAssertEqual(marker.frame.midX, keyboardStart - span / 100, accuracy: 1,
+            "Pointer selection must focus the same marker for arrow adjustment")
+        app.typeKey(.rightArrow, modifierFlags: [])
+        XCTAssertEqual(marker.frame.midX, keyboardStart, accuracy: 1)
+        app.typeKey(.escape, modifierFlags: [])
+        header.hover()
+        XCTAssertNil(popup(), "Escape and pointer exit dismiss threshold feedback")
+        let usage = dashboard.buttons.matching(NSPredicate(format: "label CONTAINS %@", "38% Used, 62% Left. Open Details")).firstMatch
+        usage.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.5)).click()
+        XCTAssertTrue(app.staticTexts["38% Used · 62% Left"].waitForExistence(timeout: 5),
+            "The space between threshold thumbs must retain the quota-details action")
+        app.buttons["Close"].click()
+    }
+
     @MainActor func testQuotaServiceMessageIconHoverAndDetails() throws {
         let app = XCUIApplication()
         app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"

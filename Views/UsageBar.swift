@@ -57,7 +57,6 @@ struct UsageBar: View {
                             cancelEdit()
                             return .handled
                         }
-                        .position(x: 8 + (1 - NSDecimalNumber(decimal: value).doubleValue / 100) * markerSpan, y: 24)
                         .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .named("usageBar")).onChanged { drag in
                             guard markerSpan > 0, !cancelledDrag, !keyboardEditing else { return }
                             if dragStartPosition == nil {
@@ -79,6 +78,9 @@ struct UsageBar: View {
                         .accessibilityAdjustableAction { direction in
                             var next = thresholds; next.move(level, to: value + (direction == .increment ? 1 : -1)); changed(next)
                         }
+                        // Keep interaction on the 32×48 thumb; positioning outside it
+                        // must not enlarge the gesture/hover surface to the entire bar.
+                        .position(x: 8 + (1 - NSDecimalNumber(decimal: value).doubleValue / 100) * markerSpan, y: 24)
                 }
                 // Keep labels above the draggable markers without intercepting input.
                 HStack {
