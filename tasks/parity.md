@@ -286,3 +286,6 @@ November7 actual model-selector focus: Windows run42382119965 verifies Tab reach
 
 
 November7 current test-banner geometry: native Windows run42383175231 passes with a440×154-point banner, matching the actual isolated Mac test banner. Header lines,38-point logo,18-point padding,20-point margin and three125/153/110×44 actions with8-point gaps agree. Added production AlertBannerView geometry regression; build-for-testing passed. No visual adjustment was needed. Mac test sound muted, test dismissed and normal connected app restored. OS-banner perception, longer content and glyph raster acceptance remain separate. Prior model-focus regression passed hosted run42383175669 (175 tests, two installed-CLI skips, zero failures).
+
+
+November7 pointer palette: passing native Windows run42384048338 supplies model/field hover, held-model-press and stroke samples. Mac production surfaces match them in independent renders; app/test-bundle builds and native selection, edit, direct-pointer keyboard ownership, Tab and Cancel checks passed. Physical hover/held-press delivery and remaining variants stay open. Preceding banner regression explicitly passed hosted42384048628:176 tests, two installed-CLI skips, zero failures.

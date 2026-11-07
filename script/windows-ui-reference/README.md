@@ -82,3 +82,5 @@ The picker pass additionally captures the focused Hex input and records native b
 The picker also records synthetic Red out-of-range/empty drafts and Hex clearing, then focus-loss restoration. The JSON contains only demo color values and brightness; no account/provider payloads are collected. All color changes are cancelled.
 
 The probe also captures the in-app notification-test banner after sending one test in its disposable demo. If Windows popup delivery is disabled, it dismisses only the known Notification test result action (excluding32-point native window chrome), then verifies and captures Show Info, Snooze1Hour and Dismiss. It dismisses the banner before continuing. This checks layout and demo presentation, not OS delivery or provider authentication.
+
+Color-editor pointer captures include unfocused Hex hover, model hover and held model press. Synthetic mouse release is guaranteed in finally; afterward only an actually expanded model menu is collapsed through its UIA pattern. History retains its separate Escape dismissal. These are isolated Windows pointer-state samples, not proof of the corresponding physical Mac event delivery.

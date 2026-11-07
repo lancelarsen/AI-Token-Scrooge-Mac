@@ -262,6 +262,8 @@ struct InlineLineColorEditor: View {
     @State private var channelDrafts: [Int: String] = [:]
     @State private var mode = "RGB"
     @State private var modelKeyboardFocus = false
+    @State private var modelHovered = false
+    @State private var modelPressed = false
     @FocusState private var hexFocused: Bool
     @FocusState private var spectrumFocused: Bool
     @State private var spectrumHovered = false
@@ -377,9 +379,13 @@ struct InlineLineColorEditor: View {
                     Spacer()
                     ReferenceDropdownChevron()
                 }.padding(.horizontal, 12).frame(width: 120, height: 32)
-                    .background(ColorModelFieldSurface(focused: modelKeyboardFocus))
+                    .background(ColorModelFieldSurface(focused: modelKeyboardFocus, hovered: modelHovered, pressed: modelPressed))
                     .accessibilityHidden(true)
-                    .overlay { ColorModelPopup(selection: $mode, focusChanged: { modelKeyboardFocus = $0 }) }
+                    .overlay {
+                        ColorModelPopup(selection: $mode, focusChanged: { modelKeyboardFocus = $0 },
+                                        pressChanged: { modelPressed = $0 })
+                    }
+                    .onHover { modelHovered = $0 }
                 Spacer()
                 TextField("Hex Color", text: Binding(get: { hexDraft }, set: { editHex($0) }))
                     .modifier(ColorEntryStyle(focused: hexFocused, clear: hexDraft.isEmpty ? nil : { editHex("#"); hexFocused = true }))
@@ -557,10 +563,12 @@ struct InlineLineColorEditor: View {
 private struct ColorModelPopup: NSViewRepresentable {
     @Binding var selection: String
     var focusChanged: (Bool) -> Void
+    var pressChanged: (Bool) -> Void
 
     final class Control: NSPopUpButton {
         var didSelect: ((String) -> Void)?
         var didFocus: ((Bool) -> Void)?
+        var didPress: ((Bool) -> Void)?
         override var canBecomeKeyView: Bool { isEnabled && !isHiddenOrHasHiddenAncestor }
         override var acceptsFirstResponder: Bool { isEnabled }
 
@@ -588,11 +596,17 @@ private struct ColorModelPopup: NSViewRepresentable {
         override func resignFirstResponder() -> Bool {
             let resigned = super.resignFirstResponder()
             didFocus?(false)
+            didPress?(false)
             return resigned
         }
 
         override func mouseDown(with event: NSEvent) {
+            // Keep the chosen model as the keyboard target after its menu
+            // closes, independently of the global full-keyboard-access setting.
+            window?.makeFirstResponder(self)
             didFocus?(false)
+            didPress?(true)
+            defer { didPress?(false) }
             super.mouseDown(with: event)
         }
 
@@ -616,6 +630,7 @@ private struct ColorModelPopup: NSViewRepresentable {
     func updateNSView(_ control: Control, context: Context) {
         control.didSelect = { selection = $0 }
         control.didFocus = focusChanged
+        control.didPress = pressChanged
         control.selectItem(withTitle: selection)
     }
 }
@@ -624,11 +639,27 @@ private struct ColorModelPopup: NSViewRepresentable {
 /// two-point outline and the default blue three-by-sixteen selection marker.
 struct ColorModelFieldSurface: View {
     var focused: Bool
+    var hovered = false
+    var pressed = false
+    private var fill: String {
+        if pressed { return "#292A30" }
+        if focused { return "#3B3C42" }
+        return hovered ? "#34353B" : "#2F3036"
+    }
+    private var edge: String { focused ? "#3E3F44" : "#323338" }
+    private var topEdge: String { focused ? "#434349" : pressed ? edge : "#37383D" }
     var body: some View {
-        RoundedRectangle(cornerRadius: 10).fill(Color(hex: focused ? "#3B3C42" : "#2F3036"))
+        RoundedRectangle(cornerRadius: 10).fill(Color(hex: fill))
             .overlay {
+                // Native elevation highlights only the first point; the
+                // vertical sides use the base stroke, not a full-height fade.
+                RoundedRectangle(cornerRadius: 10).strokeBorder(
+                    LinearGradient(stops: [.init(color: Color(hex: topEdge), location: 0),
+                                           .init(color: Color(hex: topEdge), location: 1 / 32),
+                                           .init(color: Color(hex: edge), location: 1 / 32),
+                                           .init(color: Color(hex: edge), location: 1)],
+                                   startPoint: .top, endPoint: .bottom), lineWidth: 1)
                 if focused {
-                    RoundedRectangle(cornerRadius: 10).strokeBorder(Color(hex: "#434349"), lineWidth: 1)
                     RoundedRectangle(cornerRadius: 8).strokeBorder(.white, lineWidth: 2).padding(-4)
                 }
             }
@@ -657,13 +688,11 @@ struct ColorEntryStyle: ViewModifier {
     var focused = false
     var clear: (() -> Void)? = nil
     var clearLabel = "Clear Hex Color"
+    @State private var hovered = false
     func body(content: Content) -> some View {
         content.padding(.leading, 12).padding(.trailing, focused && clear != nil ? 36 : 12).frame(height: 32)
-            .background(Color(hex: focused ? "#1F1F21" : "#2F3036"), in: RoundedRectangle(cornerRadius: 10))
-            .overlay(alignment: .bottom) {
-                Rectangle().fill(Color(hex: focused ? "#4CC2FF" : "#9A9B9E"))
-                    .frame(height: focused ? 2 : 1).padding(.horizontal, 10)
-            }
+            .background(ColorEntryFieldSurface(focused: focused, hovered: hovered))
+            .onHover { hovered = $0 }
             .overlay(alignment: .trailing) {
                 if focused, let clear {
                     Button(action: clear) {
@@ -671,6 +700,20 @@ struct ColorEntryStyle: ViewModifier {
                             .frame(width: 28, height: 32).contentShape(Rectangle())
                     }.buttonStyle(.plain).focusable(false).accessibilityLabel(clearLabel)
                 }
+            }
+    }
+}
+
+/// The native TextBox keeps its stroke/underline while hover changes only fill.
+struct ColorEntryFieldSurface: View {
+    var focused: Bool
+    var hovered = false
+    var body: some View {
+        RoundedRectangle(cornerRadius: 10).fill(Color(hex: focused ? "#1F1F21" : hovered ? "#34353B" : "#2F3036"))
+            .overlay { RoundedRectangle(cornerRadius: 10).strokeBorder(Color(hex: "#323338"), lineWidth: 1) }
+            .overlay(alignment: .bottom) {
+                Rectangle().fill(Color(hex: focused ? "#4CC2FF" : "#9A9B9E"))
+                    .frame(height: focused ? 2 : 1).padding(.horizontal, 10)
             }
     }
 }

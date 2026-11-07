@@ -160,9 +160,20 @@ final class ReferenceTypographyTests: XCTestCase {
                 try check(ColorModelFieldSurface(focused: true).frame(width: 120, height: 32).padding(4),
                           samples: [(20, 20, [59, 60, 66]), (6, 20, [76, 194, 255]),
                                     (126, 20, [255, 255, 255]), (64, 0, [255, 255, 255]),
-                                    (64, 4, [67, 67, 73])])
+                                    (64, 4, [67, 67, 73]), (123, 20, [62, 63, 68])])
                 try check(ColorModelFieldSurface(focused: false).frame(width: 120, height: 32).padding(4),
                           samples: [(20, 20, [47, 48, 54]), (6, 20, [47, 48, 54]), (126, 20, [28, 30, 36])])
+                // Native held-pointer captures: hover fill52/53/59 and
+                // pressed fill41/42/48; normal/hover share the top highlight.
+                try check(ColorModelFieldSurface(focused: false, hovered: true).frame(width: 120, height: 32),
+                          samples: [(60, 16, [52, 53, 59]), (60, 0, [55, 56, 61]), (60, 31, [50, 51, 56]),
+                                    (0, 16, [50, 51, 56])])
+                try check(ColorModelFieldSurface(focused: false, hovered: true, pressed: true).frame(width: 120, height: 32),
+                          samples: [(60, 16, [41, 42, 48]), (60, 0, [50, 51, 56])])
+                try check(ColorEntryFieldSurface(focused: false, hovered: true).frame(width: 132, height: 32),
+                          samples: [(110, 10, [52, 53, 59]), (50, 0, [50, 51, 56]), (50, 31, [154, 155, 158])])
+                try check(ColorEntryFieldSurface(focused: true, hovered: true).frame(width: 132, height: 32),
+                          samples: [(110, 10, [31, 31, 33]), (50, 0, [50, 51, 56]), (50, 31, [76, 194, 255])])
                 // Focused native Hex input, run42377781813. The captured
                 // Windows default focus accent is independent of app lavender.
                 try check(Text("").frame(maxWidth: .infinity).modifier(ColorEntryStyle(focused: true)).frame(width: 132),

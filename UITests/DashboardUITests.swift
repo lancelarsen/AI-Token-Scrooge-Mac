@@ -764,9 +764,14 @@ final class DashboardUITests: XCTestCase {
         app.buttons["Add Custom Line Color"].click()
         let hex = app.textFields.matching(NSPredicate(format: "placeholderValue == %@", "Hex Color")).firstMatch
         XCTAssertTrue(hex.waitForExistence(timeout: 5))
-        hex.click()
-        hex.typeKey("a", modifierFlags: .command)
-        hex.typeText("#123456")
+        let model = app.popUpButtons["Color Model"]
+        model.click(); app.menuItems["HSV"].click()
+        app.typeKey(.leftArrow, modifierFlags: [])
+        XCTAssertEqual(model.value as? String, "RGB", "Pointer selection must retain the model as the keyboard target")
+        app.typeKey(.tab, modifierFlags: [])
+        app.typeKey("a", modifierFlags: .command)
+        app.typeText("#123456")
+        XCTAssertEqual(hex.value as? String, "#123456", "Tab after the model must reach Hex")
 
         app.typeKey(.tab, modifierFlags: .shift)
         app.typeKey(.space, modifierFlags: [])
