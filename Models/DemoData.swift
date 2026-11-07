@@ -17,6 +17,7 @@ enum DemoData {
         case healthy, noReset = "no-reset"
         case alertHistory = "alert-history"
         case countUsage = "count-usage"
+        case longDetails = "long-details"
         case missingPlan = "missing-plan"
         case emptyWindows = "empty-windows"
     }
@@ -72,6 +73,9 @@ enum DemoData {
                     window.limit = offset == 0 ? 1000 : nil
                     return window
                 }
+            case .longDetails:
+                snapshot.health = .offline
+                snapshot.message = String(repeating: "This is a long provider status message used to verify that usage details wrap at the popup width limit without shrinking or clipping text. ", count: 3)
             case .healthy: snapshot.health = .healthy
             case .offline:
                 snapshot.health = .offline

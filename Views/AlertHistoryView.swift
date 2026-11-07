@@ -70,7 +70,7 @@ struct AccountUsageDialog: View {
         return "\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))"
     }
     var body: some View {
-        DetailsDialog(title: title, width: usageURL == nil ? (windowID == nil ? 332 : 342) : 480,
+        DetailsDialog(title: title,
                       primaryTitle: usageURL == nil ? nil : "Open Provider Usage",
                       primaryAction: usageURL.map { url in { openProvider(url) } }, close: close) {
             AccountUsageDetailsView(accountID: accountID, windowID: windowID)
@@ -120,7 +120,7 @@ struct AccountUsageDetailsView: View {
 /// Shared Windows-style detail dialog: content-sized body and a separate action footer.
 struct DetailsDialog<Content: View>: View {
     let title: String
-    var width: CGFloat = 480
+    var width: CGFloat? = nil
     var maximumHeight: CGFloat = 640
     var closeTitle = "Close"
     var tabToFooter = false
@@ -147,8 +147,10 @@ struct DetailsDialog<Content: View>: View {
                 .frame(maxWidth: .infinity, maxHeight: 420, alignment: .leading)
             }.padding(24)
             Rectangle().fill(Color(hex: "#3B3D47")).frame(height: 1)
-            HStack(spacing: 8) {
-                if !hasPrimaryAction { Spacer() }
+            DialogFooterColumns {
+                if !hasPrimaryAction {
+                    Color.clear.frame(height: 44).accessibilityHidden(true)
+                }
                 if tabToFooter, let primaryTitle, let primaryAction {
                     EditorFooterButton(title: primaryTitle, action: primaryAction)
                     EditorFooterButton(title: closeTitle, isCancel: true, action: close)
@@ -164,15 +166,14 @@ struct DetailsDialog<Content: View>: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(ScroogeButtonStyle())
-                    .frame(width: hasPrimaryAction ? nil : (width - 58) / 2)
                     .keyboardShortcut(.cancelAction)
                 }
             }.padding(24)
         }
         .padding(1)
         .frame(width: width)
-        .frame(maxHeight: maximumHeight)
-        .fixedSize(horizontal: false, vertical: true)
+        .frame(minWidth: 320, maxWidth: 548, maxHeight: maximumHeight)
+        .fixedSize(horizontal: true, vertical: true)
         .background(Theme.dialogBackground)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .overlay {
@@ -182,6 +183,29 @@ struct DetailsDialog<Content: View>: View {
         }
         .presentationCornerRadius(16)
         .preferredColorScheme(.dark)
+    }
+}
+
+/// ContentDialog's two star columns have equal widths. Their ideal size also
+/// contributes to the popup's natural width, including a single Close action.
+private struct DialogFooterColumns: Layout {
+    private let spacing: CGFloat = 8
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard !subviews.isEmpty else { return .zero }
+        let count = CGFloat(subviews.count)
+        let ideal = subviews.map { $0.sizeThatFits(.unspecified).width }.max() ?? 0
+        let width = proposal.width ?? (ideal * count + spacing * (count - 1))
+        let column = max(0, (width - spacing * (count - 1)) / count)
+        let height = subviews.map { $0.sizeThatFits(.init(width: column, height: nil)).height }.max() ?? 0
+        return CGSize(width: width, height: height)
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard !subviews.isEmpty else { return }
+        let column = max(0, (bounds.width - spacing * CGFloat(subviews.count - 1)) / CGFloat(subviews.count))
+        for (index, view) in subviews.enumerated() {
+            view.place(at: CGPoint(x: bounds.minX + CGFloat(index) * (column + spacing), y: bounds.minY),
+                       proposal: .init(width: column, height: bounds.height))
+        }
     }
 }
 

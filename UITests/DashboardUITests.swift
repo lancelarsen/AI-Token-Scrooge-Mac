@@ -79,7 +79,10 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(overage.waitForExistence(timeout: 5), "Account identity opens the first quota even when earned resets exist")
         let sheet = app.sheets.firstMatch
         XCTAssertTrue(sheet.frame.contains(overage.frame), "Count details must fit within their popup")
-        XCTAssertEqual(app.buttons["Close"].frame.width, 142, accuracy: 1, "Windows reserves half the footer for a single close action")
+        XCTAssertGreaterThanOrEqual(sheet.frame.width, 320)
+        XCTAssertLessThan(sheet.frame.width, 548, "Short details should use their natural width below the cap")
+        XCTAssertEqual(app.buttons["Close"].frame.width, (sheet.frame.width - 58) / 2, accuracy: 1,
+                       "Windows reserves half the footer for a single close action")
         app.buttons["Close"].click()
         app.buttons["Unknown Request Limit. Open Details"].firstMatch.click()
         let unavailable = app.staticTexts["50 Used · Limit Unavailable"].firstMatch
@@ -87,6 +90,32 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(app.sheets.firstMatch.frame.contains(unavailable.frame))
         app.typeKey(.escape, modifierFlags: [])
         XCTAssertTrue(unavailable.waitForNonExistence(timeout: 5))
+    }
+
+    @MainActor func testLongUsageDetailsWrapAtWindowsWidthLimit() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", "--reference-wide", "--scenario", "long-details"]
+        app.launch()
+        defer { app.terminate() }
+        if !app.windows["dashboard"].waitForExistence(timeout: 2) {
+            let windowMenu = app.menuBars.menuBarItems["Window"]
+            windowMenu.click()
+            windowMenu.menuItems["AI Token Scrooge"].click()
+        }
+        app.activate()
+        let quota = app.buttons["Codex · 5-Hour. Open Details"].firstMatch
+        XCTAssertTrue(quota.waitForExistence(timeout: 10))
+        quota.click()
+        let note = app.staticTexts["quotaSourceNote"].firstMatch
+        XCTAssertTrue(note.waitForExistence(timeout: 5))
+        let sheet = app.sheets.firstMatch
+        XCTAssertEqual(sheet.frame.width, 548, accuracy: 1)
+        XCTAssertGreaterThan(note.frame.height, 38, "Long status text must wrap rather than shrink")
+        XCTAssertTrue(sheet.frame.contains(note.frame), "The entire wrapped note must remain inside the popup")
+        XCTAssertTrue(app.buttons["Close"].isHittable)
+        app.buttons["Close"].click()
+        XCTAssertTrue(note.waitForNonExistence(timeout: 5))
     }
 
     @MainActor func testLongResetDetailsScrollKeepsTitleAndCloseVisible() throws {

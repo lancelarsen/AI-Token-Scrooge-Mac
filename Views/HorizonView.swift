@@ -103,7 +103,7 @@ struct HorizonView: View {
             if event.reportedAt == nil {
                 AccountUsageDialog(accountID: event.account.id, windowID: event.windowID, close: { selectedEvent = nil })
             } else {
-                DetailsDialog(title: event.title, width: 342, close: { selectedEvent = nil }) {
+                DetailsDialog(title: event.title, close: { selectedEvent = nil }) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("\(event.account.provider.rawValue) · \(store.state.settings.privacy ? "Account" : event.account.nickname)")
                         Text(Format.date(event.date, zone: store.state.settings.zone))
