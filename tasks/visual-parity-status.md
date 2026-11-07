@@ -99,6 +99,8 @@ Actual isolated compact demo captures show the complete long title, body and foo
 
 Remaining width gap: Windows reports478/482-point text columns in these two auto-sized dialogs, while the Mac currently retains498-point columns in548-point outer dialogs. Correct line heights and emphasis do not close that separate fit-to-content width issue or full raster acceptance. The Windows artifacts are in artifacts/windows-wrapped-dialog-b4a86c7. Whole-popup automatic width remains open; do not equate these text-metric checks with complete popup parity.
 
+Hosted Mac Preview [42406610982](https://github.com/lancelarsen/AI-Token-Scrooge-Mac/actions/runs/42406610982) at f9e6b64 completed successfully:186 tests, two installed-CLI skips, zero failures. Both new typography regressions explicitly passed, including the regular-weight PNG comparison and15 long-text renders. Preview archive build/validation passed. Canonical script/build_and_run.sh --verify restored the normal connected app; build/launch passed and exactly one canonical process remained. Local native XCTest remains authorization-gated. The isolated demo checks and standalone renders are distinct from hosted test execution and live provider verification.
+
 ### Shared action bounds — November 7
 
 Reserved the source one-point border in shared action buttons: hosted and native header bounds now match Windows Refresh 109×44 and Settings 113×44. Native provider choices remain 54 points high and populated Alert History rows remain 80. Sort icon layout slots now retain the source 22×20 capacity meter and 20×22 Custom Order canvas. Seven hosted checks and five native checks pass; current compact/wide dashboards and history were inspected. This verifies these geometry contracts, not full raster parity.
