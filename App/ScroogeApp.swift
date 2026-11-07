@@ -178,7 +178,9 @@ struct MenuBarContent: View {
 private enum DemoReferenceWindow {
     static var size: NSSize? {
         let arguments = ProcessInfo.processInfo.arguments
-        guard arguments.contains("--demo") else { return nil }
+        // Empty-account reference captures need the same frame without synthetic
+        // accounts. Test launches already use isolated state and disable monitoring.
+        guard arguments.contains("--demo") || ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] == "1" else { return nil }
         if arguments.contains("--compact") { return NSSize(width: 789, height: 694) }
         if arguments.contains("--reference-wide") { return NSSize(width: 1463, height: 866) }
         return nil
