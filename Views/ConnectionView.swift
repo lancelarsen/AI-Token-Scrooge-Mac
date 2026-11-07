@@ -102,6 +102,7 @@ private struct ConnectionForm: View {
             Text("Connect \(provider == .codex ? "OpenAI Codex" : provider.rawValue)").font(.reference(size: 26, weight: .semibold))
                 .referenceFallbackLineMetrics(size: 26)
             Text(connectionDescription).font(.reference(size: 14)).foregroundStyle(Theme.secondary)
+                .referenceClassicLineMetrics(size: 14)
                 .fixedSize(horizontal: false, vertical: true)
             TextField("Account nickname (Personal, Work…)", text: $nickname, prompt: Text("Account nickname (Personal, Work…)").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle())
                 .focused($devinFocus, equals: .nickname).disabled(connecting)

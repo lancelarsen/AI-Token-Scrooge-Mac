@@ -49,7 +49,10 @@ final class ReferenceTypographyTests: XCTestCase {
         for (text, size, width, height) in [
             ("Warning and critical levels are adjusted directly on the dashboard bars.", 13.0, 649.0, 18.0),
             ("Never Waste a Token! Never Miss a Reset!", 16.0, 600.0, 22.0),
-            ("Choose how long to keep recorded usage and alerts. Shortening this period removes older records; increasing it cannot restore deleted records.", 13.0, 649.0, 35.0)
+            ("Choose how long to keep recorded usage and alerts. Shortening this period removes older records; increasing it cannot restore deleted records.", 13.0, 649.0, 35.0),
+            // Native connection forms, Windows run 42374233894.
+            ("Sign in through OpenAI in your browser. Scrooge keeps this account in its own protected Codex profile and only reads usage limits.", 14.0, 550.0, 38.0),
+            ("Advanced connection: use a fine-grained token with Plan read permission for personal billing. Organization billing requires authorized administration access. Your token stays protected on this PC.", 14.0, 534.0, 56.0)
         ] {
             let host = NSHostingView(rootView: Text(text).font(.reference(size: size))
                 .referenceClassicLineMetrics(size: size).frame(width: width)
