@@ -13,6 +13,7 @@ struct UsageBar: View {
     @State private var cancelledDrag = false
     @State private var keyboardEditing = false
     @State private var hoveredSeverity: ReminderSeverity?
+    @State private var pointerSelectedThreshold: ReminderSeverity?
     private var readoutSeverity: ReminderSeverity? { alertsEnabled ? editingSeverity ?? hoveredSeverity ?? focusedThreshold : nil }
     @FocusState private var focusedThreshold: ReminderSeverity?
     var body: some View {
@@ -34,7 +35,8 @@ struct UsageBar: View {
                         .frame(width: 10, height: 36)
                         // Match the Windows Thumb target; the painted marker stays 10 by 36.
                         .frame(width: 32, height: 48).contentShape(Rectangle())
-                        .overlay(RoundedRectangle(cornerRadius: 5).stroke(focusedThreshold == level ? Theme.accent : .clear, lineWidth: 2))
+                        .overlay(RoundedRectangle(cornerRadius: 5).stroke(
+                            focusedThreshold == level && pointerSelectedThreshold != level ? Theme.accent : .clear, lineWidth: 2))
                         .focusable()
                         .focused($focusedThreshold, equals: level)
                         .focusEffectDisabled()
@@ -44,6 +46,7 @@ struct UsageBar: View {
                                 if keyboardEditing { commitEdit() }
                             } else {
                                 guard dragStartPosition == nil else { return .ignored }
+                                pointerSelectedThreshold = nil
                                 let increase = press.key == .leftArrow || press.key == .upArrow
                                 var next = editing ?? thresholds
                                 next.move(level, to: self.value(level, next) + (increase ? 1 : -1))
@@ -59,6 +62,9 @@ struct UsageBar: View {
                         }
                         .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .named("usageBar")).onChanged { drag in
                             guard markerSpan > 0, !cancelledDrag, !keyboardEditing else { return }
+                            // Windows gives a dragged Thumb pointer focus without
+                            // its keyboard focus visual. Arrow input restores it.
+                            pointerSelectedThreshold = level
                             if dragStartPosition == nil {
                                 dragStartPosition = (1 - NSDecimalNumber(decimal: self.value(level, thresholds)).doubleValue / 100) * markerSpan
                             }
@@ -106,6 +112,7 @@ struct UsageBar: View {
                 }
                 .onChange(of: geometry.size) { _, _ in cancelEdit() }
                 .onChange(of: focusedThreshold) { _, newValue in
+                    if newValue != pointerSelectedThreshold { pointerSelectedThreshold = nil }
                     if keyboardEditing, newValue != editingSeverity { cancelEdit() }
                 }
                 .onChange(of: alertsEnabled) { _, enabled in
@@ -130,6 +137,7 @@ struct UsageBar: View {
         keyboardEditing = false
         hoveredSeverity = nil
         focusedThreshold = nil
+        pointerSelectedThreshold = nil
     }
     private func value(_ severity: ReminderSeverity, _ thresholds: AlertThresholds) -> Decimal {
         switch severity { case .info: thresholds.info; case .warning: thresholds.warning; case .critical: thresholds.critical }

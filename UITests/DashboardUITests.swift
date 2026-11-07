@@ -604,10 +604,14 @@ final class DashboardUITests: XCTestCase {
         try verifyThresholdReadout(severity: "Critical", initialRemaining: 10)
     }
 
-    @MainActor private func verifyThresholdReadout(severity: String, initialRemaining: CGFloat) throws {
+    @MainActor func testCompactThresholdReadoutTracksDragAndDismisses() throws {
+        try verifyThresholdReadout(severity: "Warning", initialRemaining: 30, compact: true)
+    }
+
+    @MainActor private func verifyThresholdReadout(severity: String, initialRemaining: CGFloat, compact: Bool = false) throws {
         let app = XCUIApplication()
         app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
-        app.launchArguments = ["--demo", "--reference-wide", "--reference-date", "2026-11-04T16:16:00Z"]
+        app.launchArguments = ["--demo", compact ? "--compact" : "--reference-wide", "--reference-date", "2026-11-04T16:16:00Z"]
         app.launch()
         defer { app.terminate() }
         let dashboard = app.windows["dashboard"]
@@ -620,6 +624,14 @@ final class DashboardUITests: XCTestCase {
         running.activate(options: [.activateIgnoringOtherApps])
         let header = dashboard.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.08))
         header.click(); header.hover()
+        if compact {
+            let sort = dashboard.buttons["Custom Order"]
+            let offset = sort.frame.minY - (dashboard.frame.minY + 200)
+            dashboard.scrollBars.firstMatch.scroll(byDeltaX: 0, deltaY: -offset)
+            let mute = dashboard.buttons["Disable Alerts for Codex · 5-Hour"].firstMatch
+            XCTAssertTrue(mute.isHittable)
+            mute.click()
+        }
         let marker = dashboard.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "\(severity) Alert Threshold")).firstMatch
         XCTAssertTrue(marker.waitForExistence(timeout: 5))
         if !marker.isHittable { dashboard.scrollBars.firstMatch.scroll(byDeltaX: 0, deltaY: -250) }
@@ -629,11 +641,13 @@ final class DashboardUITests: XCTestCase {
         let initialX = marker.frame.midX
         let infoX = info.frame.midX, criticalX = critical.frame.midX
         let span = (criticalX - infoX) / 0.4
-        let expectedRemaining = (initialRemaining - 40 / span * 100).rounded()
+        let dragDistance: CGFloat = compact ? span * 0.04 : 40
+        let expectedRemaining = (initialRemaining - dragDistance / span * 100).rounded()
         let initialWindows = Set(Self.visibleWindows(for: running.processIdentifier).keys)
         func popup() -> (key: CGWindowID, value: CGRect)? {
             Self.visibleWindows(for: running.processIdentifier).first {
-                !initialWindows.contains($0.key) && $0.value.width <= 420 && $0.value.height < 100
+                !initialWindows.contains($0.key) && $0.value.width >= 150 && $0.value.width <= 420
+                    && $0.value.height >= 40 && $0.value.height < 100
             }
         }
         func waitForPopup() throws -> (key: CGWindowID, value: CGRect) {
@@ -647,12 +661,17 @@ final class DashboardUITests: XCTestCase {
         XCTAssertEqual(first.value.maxY, marker.frame.minY - 2, accuracy: 2,
             "The readout belongs above the bar with the Windows two-point anchor gap")
         let origin = marker.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        origin.click(forDuration: 0.1, thenDragTo: origin.withOffset(CGVector(dx: 40, dy: 0)), withVelocity: .slow, thenHoldForDuration: 0.3)
+        // An opt-in longer hold allows an owned-window capture of the native
+        // gesture without changing the runner's screen-capture permissions.
+        let captureHeld = compact && ProcessInfo.processInfo.environment["SCROOGE_CAPTURE_HELD_THRESHOLD"] == "1"
+        if captureHeld { print("SCROOGE_HELD_THRESHOLD_READY") }
+        origin.click(forDuration: 0.1, thenDragTo: origin.withOffset(CGVector(dx: dragDistance, dy: 0)), withVelocity: .slow, thenHoldForDuration: captureHeld ? 20 : 0.3)
         XCTAssertEqual(marker.frame.midX, initialX + (initialRemaining - expectedRemaining) / 100 * span, accuracy: 1)
         if severity != "Info" { XCTAssertEqual(info.frame.midX, infoX, accuracy: 1, "Dragging another marker must leave Info unchanged") }
         if severity != "Critical" { XCTAssertEqual(critical.frame.midX, criticalX, accuracy: 1, "Dragging another marker must leave Critical unchanged") }
         marker.hover()
         let dragged = try waitForPopup()
+        XCTAssertTrue(dashboard.frame.contains(dragged.value), "Dragged feedback must remain inside the dashboard")
         XCTAssertEqual(dragged.value.minY, first.value.minY, accuracy: 1,
             "Changing the threshold must retain the readout's initial top")
         let screen = CGDisplayBounds(CGMainDisplayID())
@@ -673,6 +692,18 @@ final class DashboardUITests: XCTestCase {
         capture.name = "\(severity) threshold readout after native mouse drag"
         capture.lifetime = .keepAlways
         add(capture)
+        if compact {
+            XCTAssertEqual(dashboard.frame.width, 789, accuracy: 1)
+            XCTAssertEqual(dashboard.frame.height, 694, accuracy: 1)
+            let fullFrame = XCTAttachment(screenshot: dashboard.screenshot())
+            fullFrame.name = "Compact dashboard with dragged Warning readout"
+            fullFrame.lifetime = .keepAlways
+            add(fullFrame)
+            let pointerMarker = XCTAttachment(screenshot: marker.screenshot())
+            pointerMarker.name = "Compact Warning marker after pointer selection"
+            pointerMarker.lifetime = .keepAlways
+            add(pointerMarker)
+        }
         marker.click()
         let keyboardStart = marker.frame.midX
         app.typeKey(.leftArrow, modifierFlags: [])
@@ -680,6 +711,12 @@ final class DashboardUITests: XCTestCase {
             "Pointer selection must focus the same marker for arrow adjustment")
         app.typeKey(.rightArrow, modifierFlags: [])
         XCTAssertEqual(marker.frame.midX, keyboardStart, accuracy: 1)
+        if compact {
+            let keyboardMarker = XCTAttachment(screenshot: marker.screenshot())
+            keyboardMarker.name = "Compact Warning marker after keyboard adjustment"
+            keyboardMarker.lifetime = .keepAlways
+            add(keyboardMarker)
+        }
         app.typeKey(.escape, modifierFlags: [])
         header.hover()
         XCTAssertNil(popup(), "Escape and pointer exit dismiss threshold feedback")
