@@ -32,6 +32,29 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(app.buttons["exploreDemoButton"].waitForExistence(timeout: 5))
     }
 
+    @MainActor func testAccountIdentityBlankAreaOpensDetails() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", "--reference-wide"]
+        app.launch()
+        defer { app.terminate() }
+        if !app.windows["dashboard"].waitForExistence(timeout: 2) {
+            let windowMenu = app.menuBars.menuBarItems["Window"]
+            windowMenu.click()
+            windowMenu.menuItems["AI Token Scrooge"].click()
+        }
+        app.activate()
+        let identity = app.buttons["OpenAI, Personal · Plus. Open details."].firstMatch
+        XCTAssertTrue(identity.waitForExistence(timeout: 10))
+        XCTAssertEqual(identity.frame.width, 220, accuracy: 1)
+        // Click beyond the intrinsic logo/name content, beside the plan badge.
+        identity.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.8)).click()
+        let details = app.staticTexts["38% Used · 62% Left"].firstMatch
+        XCTAssertTrue(details.waitForExistence(timeout: 5))
+        app.buttons["Close"].click()
+        XCTAssertTrue(details.waitForNonExistence(timeout: 5))
+    }
+
     @MainActor func testCountUsageDetailsShowOverageAndMissingLimit() throws {
         let app = XCUIApplication()
         app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"

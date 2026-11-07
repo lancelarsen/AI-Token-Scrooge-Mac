@@ -15,6 +15,8 @@ Outputs:
 
 - `dashboard.png`: actual native window capture.
 - `dashboard-elements.json`: element names, rectangles, enabled/offscreen states and available font attributes.
+- `account-rows.png` / `account-rows-elements.json`: scrolled demo account rows and their measured controls.
+- `usage-details.png` / `usage-details-elements.json`: first demo quota popup, opened through UI Automation.
 - `capture.json`: pinned release/source and measured window dimensions.
 - `startup.json`: session/window diagnostics if no visible window appears.
 
@@ -22,4 +24,4 @@ The first successful run is [42335310777](https://github.com/lancelarsen/AI-Toke
 
 UI Automation font-family strings can contain requested fallback lists. They are reported properties, not proof of the resolved physical font file. For example, the 32-point brand label has a 39-point element rectangle, the 26-point section label has a 32-point rectangle, and 14-point weekday labels have 17-point rectangles. The Mac's current bare Semibold Text measurements at those sizes are 43, 35 and 19 points respectively. Those differences merit targeted line-box investigation; this probe does not by itself prove which font or layout adjustment is correct.
 
-This first probe captures the dashboard only. Account-row and popup capture, equivalent visible viewport sizing, font-baseline comparison and final surface acceptance remain open. Synthetic demo screenshots do not establish provider, notification, sleep/wake or distribution behavior.
+Expanded run [42336148115](https://github.com/lancelarsen/AI-Token-Scrooge-Mac/actions/runs/42336148115), harness source `758cbd3`, also passed account-row scrolling and quota-popup invocation. Both screenshots were inspected. The compact OpenAI identity action spans 569×44 points, including blank space beside its content. The 20-point countdown text measures 24 points high; its 12-point date measures 16 points, with a three-point gap. The popup reports Segoe UI Variable, a 22-point title in a 30-point rectangle and 14-point body in 19-point rectangles. These properties supplement the older gallery; they do not prove the physical font selected or equivalent viewport geometry. Equivalent visible viewport sizing, font-baseline comparison and final surface acceptance remain open. Synthetic demo screenshots do not establish provider, notification, sleep/wake or distribution behavior.
