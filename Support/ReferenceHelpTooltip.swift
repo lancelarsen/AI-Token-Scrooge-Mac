@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreText
 
 /// Plain WinUI help is capped at 320 points; history readouts have their own
 /// wider layout. Keeping this surface separate also permits direct rendering
@@ -8,10 +9,29 @@ struct ReferenceHelpTooltip: View {
     let width: CGFloat
 
     static func width(for text: String, availableWidth: CGFloat) -> CGFloat {
-        let longest = text.components(separatedBy: "\n").map {
-            ($0 as NSString).size(withAttributes: [.font: ReferenceTypography.measuringFont(ofSize: 13)]).width
-        }.max() ?? 0
-        return max(0, min(320, availableWidth, ceil(longest + 30)))
+        let cap = max(0, min(320, availableWidth))
+        let contentWidth = cap - 30 // Fourteen-point padding plus border on each side.
+        guard contentWidth > 0 else { return cap }
+        let font = ReferenceTypography.measuringFont(ofSize: 13)
+        let attributed = NSAttributedString(string: text, attributes: [.font: font])
+        let typesetter = CTTypesetterCreateWithAttributedString(attributed)
+        let source = text as NSString
+        var start = 0
+        var longest: CGFloat = 0
+        while start < attributed.length {
+            let count = CTTypesetterSuggestLineBreak(typesetter, start, Double(contentWidth))
+            guard count > 0 else { return cap }
+            let line = source.substring(with: NSRange(location: start, length: count)) as NSString
+            // WinUI's desired width excludes trailing wrap whitespace. Keeping
+            // it would leave an extra blank strip on long ordinary tooltips.
+            let lastInk = line.rangeOfCharacter(from: .whitespacesAndNewlines.inverted, options: .backwards)
+            if lastInk.location != NSNotFound {
+                let visible = line.substring(to: NSMaxRange(lastInk)) as NSString
+                longest = max(longest, visible.size(withAttributes: [.font: font]).width)
+            }
+            start += count
+        }
+        return min(cap, ceil(longest + 30))
     }
 
     var body: some View {

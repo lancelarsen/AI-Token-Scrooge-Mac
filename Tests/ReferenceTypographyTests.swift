@@ -22,6 +22,27 @@ final class ReferenceTypographyTests: XCTestCase {
         XCTAssertEqual(countdown.fittingSize.height, 43, accuracy: 0.5)
     }
 
+    @MainActor func testWrappedPollingTooltipMatchesNativeWindowsDesiredWidth() throws {
+        let text = "How often Scrooge automatically checks this account for updated usage, from 1 to 30 minutes. Shorter intervals show changes sooner; longer intervals make fewer requests. Changes save automatically."
+        let width = ReferenceHelpTooltip.width(for: text, availableWidth: 700)
+        // Native Windows run 42366495646: 284×87 text, 314×109 surface.
+        XCTAssertEqual(width, 314)
+        let renderer = ImageRenderer(content: ReferenceHelpTooltip(text: text, width: width))
+        renderer.scale = 1
+        let image = NSBitmapImageRep(cgImage: try XCTUnwrap(renderer.cgImage))
+        XCTAssertEqual(image.pixelsWide, 314)
+        XCTAssertEqual(image.pixelsHigh, 109)
+        let rows = inkRows(image, minimum: 0.65)
+        XCTAssertEqual(rows.filter { !rows.contains($0 - 1) }.count, 5,
+                       "All five wrapped lines remain visible after desired-width sizing")
+        XCTAssertGreaterThan(try XCTUnwrap(rows.last), 90)
+        for available in [0.0, 20, 160, 240] {
+            let constrained = ReferenceHelpTooltip.width(for: text, availableWidth: available)
+            XCTAssertGreaterThanOrEqual(constrained, 0)
+            XCTAssertLessThanOrEqual(constrained, available)
+        }
+    }
+
     @MainActor func testHistoryReadoutMatchesCapturedWindowsBounds() {
         let host = NSHostingView(rootView: ReferenceHistoryTooltip(
             text: "OpenAI / Personal · Plus\nWeekly · 74% Used\nSat, Nov 7 12:03 AM", width: 183))
