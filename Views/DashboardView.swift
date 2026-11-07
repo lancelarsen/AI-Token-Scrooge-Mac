@@ -79,11 +79,8 @@ struct DashboardView: View {
             .environment(\.dashboardHostSize, hostSize)
         }
         .sheet(isPresented: Binding(get: { sheet == nil && store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })) {
-            DetailsDialog(close: { store.errorMessage = nil }) {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Scrooge Needs Attention").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
-                    Text(store.errorMessage ?? "")
-                }
+            DetailsDialog(title: "Scrooge Needs Attention", close: { store.errorMessage = nil }) {
+                Text(store.errorMessage ?? "")
             }
         }
     }
@@ -380,7 +377,6 @@ struct QuotaDetailsView: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent).frame(minHeight: 32, alignment: .leading)
             Text(Format.windowTitle(window.name)).frame(minHeight: 19, alignment: .leading)
             Text("\(Format.usageText(window, provider: account.provider).used) · \(Format.usageText(window, provider: account.provider).left)").frame(minHeight: 19, alignment: .leading)
             DetailLine(label: "Resets", value: Format.detailDate(window.resetsAt, zone: store.state.settings.zone))

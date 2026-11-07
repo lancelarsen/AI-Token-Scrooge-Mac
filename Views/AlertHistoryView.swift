@@ -61,8 +61,19 @@ struct AccountUsageDialog: View {
     private var usageURL: URL? {
         AccountPolicy.detailUsageURL(accountID: accountID, windowID: windowID, state: store.state, isDemo: store.isDemo)
     }
+    private var title: String {
+        guard let account = store.state.accounts.first(where: { $0.id == accountID }),
+              let snapshot = store.state.snapshots[account.id], snapshot.belongs(to: account) else {
+            return "Usage Details Unavailable"
+        }
+        if windowID == nil, snapshot.reserve != nil { return "Available Resets" }
+        guard snapshot.windows.contains(where: { windowID == nil || $0.id == windowID }) else {
+            return "Usage Details Unavailable"
+        }
+        return "\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))"
+    }
     var body: some View {
-        DetailsDialog(width: usageURL == nil ? (windowID == nil ? 332 : 342) : 480,
+        DetailsDialog(title: title, width: usageURL == nil ? (windowID == nil ? 332 : 342) : 480,
                       primaryTitle: usageURL == nil ? nil : "Open Provider Usage",
                       primaryAction: usageURL.map { url in { openProvider(url) } }, close: close) {
             AccountUsageDetailsView(accountID: accountID, windowID: windowID)
@@ -87,13 +98,13 @@ struct AccountUsageDetailsView: View {
            let snapshot = store.state.snapshots[account.id], snapshot.belongs(to: account) {
             if windowID == nil, let reserve = snapshot.reserve {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Available Resets").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent).frame(minHeight: 32, alignment: .leading)
                     DetailLine(label: "\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType))", value: "\(reserve.availableCount.map(String.init) ?? "Unknown") reported available")
                     Text("Snapshot fetched \(Format.snapshotDate(snapshot.observedAt, zone: store.state.settings.zone)) · \(account.enabled ? snapshot.health.rawValue.capitalized : "Monitoring paused")").frame(minHeight: 19, alignment: .leading)
                     if reserve.hasPartialDetails { Text("Provider supplied only partial credit details.").frame(minHeight: 19, alignment: .leading) }
                     if let credits = reserve.credits {
                         ForEach(credits) { credit in
                             Text("• \(Format.date(credit.expiresAt, zone: store.state.settings.zone)) · \(credit.expiresAt.map { $0 <= store.presentationDate } == true ? "Expired locally — checking provider" : credit.status)").frame(minHeight: 19, alignment: .leading)
+                                .accessibilityIdentifier("resetCredit-\(credit.id)")
                         }
                     } else { Text("Credit details unavailable").frame(minHeight: 19, alignment: .leading) }
                 }.font(Theme.dialogBodyFont).frame(maxWidth: .infinity, alignment: .leading)
@@ -104,7 +115,6 @@ struct AccountUsageDetailsView: View {
     }
     private var unavailableDetails: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Usage Details Unavailable").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
             Text("This account or quota window is no longer available. Refresh the dashboard to check current connections.")
         }
     }
@@ -112,8 +122,9 @@ struct AccountUsageDetailsView: View {
 
 /// Shared Windows-style detail dialog: content-sized body and a separate action footer.
 struct DetailsDialog<Content: View>: View {
+    let title: String
     var width: CGFloat = 480
-    var maximumHeight: CGFloat = 560
+    var maximumHeight: CGFloat = 640
     var closeTitle = "Close"
     var tabToFooter = false
     var primaryTitle: String? = nil
@@ -124,15 +135,19 @@ struct DetailsDialog<Content: View>: View {
     private var hasPrimaryAction: Bool { primaryTitle != nil && primaryAction != nil }
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ViewThatFits(in: .vertical) {
-                content().fixedSize(horizontal: false, vertical: true)
-                ScrollView { content() }
-            }
-            .font(Theme.dialogBodyFont)
-            .foregroundStyle(Theme.dialogText)
-            .textSelection(.enabled)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(24)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(title).font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
+                    .frame(minHeight: 32, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                ViewThatFits(in: .vertical) {
+                    content().fixedSize(horizontal: false, vertical: true)
+                    ScrollView { content() }
+                }
+                .font(Theme.dialogBodyFont)
+                .foregroundStyle(Theme.dialogText)
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, maxHeight: 420, alignment: .leading)
+            }.padding(24)
             Rectangle().fill(Color(hex: "#3B3D47")).frame(height: 1)
             HStack(spacing: 8) {
                 if !hasPrimaryAction { Spacer() }
@@ -304,11 +319,8 @@ struct ConfirmationDetailsDialog: View {
     let cancel: () -> Void
     let confirm: () -> Void
     var body: some View {
-        DetailsDialog(closeTitle: "Cancel", primaryTitle: actionTitle, primaryAction: confirm, close: cancel) {
-            VStack(alignment: .leading, spacing: 16) {
-                Text(title).font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
-                DialogMessage(message: message)
-            }
+        DetailsDialog(title: title, closeTitle: "Cancel", primaryTitle: actionTitle, primaryAction: confirm, close: cancel) {
+            DialogMessage(message: message)
         }
     }
 }

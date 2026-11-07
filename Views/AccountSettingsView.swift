@@ -62,22 +62,19 @@ struct AccountSettingsView: View {
                                     .modifier(ImmediateReferenceTooltip(text: "Add Custom Line Color"))
                                     .accessibilityLabel("Add Custom Line Color")
                                     .sheet(isPresented: $showColor) {
-                                        DetailsDialog(width: 360, maximumHeight: 640, closeTitle: "Cancel", tabToFooter: true, primaryTitle: "Add Color", primaryAction: {
+                                        DetailsDialog(title: "Add Line Color", width: 360, maximumHeight: 640, closeTitle: "Cancel", tabToFooter: true, primaryTitle: "Add Color", primaryAction: {
                                             let hex = newColor.hex; store.edit { state in
                                                 if !state.settings.customColors.contains(hex) { state.settings.customColors.append(hex) }
                                                 if let i = state.accounts.firstIndex(where: { $0.id == accountID }) { state.accounts[i].lineColor = hex }
                                             }; showColor = false
                                         }, close: { showColor = false }) {
-                                            VStack(alignment: .leading, spacing: 16) {
-                                                Text("Add Line Color").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
-                                                ScrollViewReader { proxy in
-                                                    ScrollView {
-                                                        InlineLineColorEditor(color: $newColor) { target in
-                                                            proxy.scrollTo(target, anchor: target == .channels ? .bottom : .top)
-                                                        }
+                                            ScrollViewReader { proxy in
+                                                ScrollView {
+                                                    InlineLineColorEditor(color: $newColor) { target in
+                                                        proxy.scrollTo(target, anchor: target == .channels ? .bottom : .top)
                                                     }
-                                                }.frame(height: 420)
-                                            }
+                                                }
+                                            }.frame(height: 420)
                                         }
                                     }
                             }

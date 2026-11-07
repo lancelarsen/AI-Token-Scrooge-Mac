@@ -12,6 +12,7 @@ enum DemoData {
     enum Scenario: String, CaseIterable {
         case standard, offline, auth, permission, unknown, exhausted, due, partial
         case historyLong = "history-long"
+        case manyResets = "many-resets"
         case reserveOnly = "reserve-only"
         case healthy, noReset = "no-reset"
         case alertHistory = "alert-history"
@@ -52,6 +53,12 @@ enum DemoData {
             var snapshot = QuotaSnapshot(accountID: account.id, subject: account.subject, scope: account.scope, observedAt: now, windows: windows, reserve: reserve, health: .demo, planType: config.2)
             switch scenario {
             case .standard, .alertHistory: break
+            case .manyResets:
+                if index == 0 {
+                    snapshot.reserve = ResetReserve(availableCount: 30, credits: (1...30).map { day in
+                        ResetCredit(id: "demo-reset-\(day)", status: "available", expiresAt: now.addingTimeInterval(Double(day) * 86400))
+                    })
+                }
             case .missingPlan: snapshot.planType = nil
             case .emptyWindows:
                 snapshot.windows = []

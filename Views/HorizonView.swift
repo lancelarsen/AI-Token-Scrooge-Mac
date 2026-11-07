@@ -103,9 +103,8 @@ struct HorizonView: View {
             if event.reportedAt == nil {
                 AccountUsageDialog(accountID: event.account.id, windowID: event.windowID, close: { selectedEvent = nil })
             } else {
-                DetailsDialog(width: 342, close: { selectedEvent = nil }) {
+                DetailsDialog(title: event.title, width: 342, close: { selectedEvent = nil }) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Label(event.title, systemImage: event.expiration ? "hourglass" : "arrow.clockwise").font(.reference(size: 20, weight: .semibold)).foregroundStyle(event.expiration ? Theme.amber : Theme.accent)
                         Text("\(event.account.provider.rawValue) · \(store.state.settings.privacy ? "Account" : event.account.nickname)")
                         Text(Format.date(event.date, zone: store.state.settings.zone))
                         if let reportedAt = event.reportedAt {
@@ -126,11 +125,8 @@ struct HorizonView: View {
         }.joined(separator: "\n\n")
     }
     private func historicalDetails(_ marker: HistoricalEventMarker) -> some View {
-        DetailsDialog(close: { selectedHistoricalMarker = nil }) {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("History Event").font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
-                DialogMessage(message: historicalTooltip(marker))
-            }
+        DetailsDialog(title: "History Event", close: { selectedHistoricalMarker = nil }) {
+            DialogMessage(message: historicalTooltip(marker))
         }
     }
     private var emptyTimeline: some View {

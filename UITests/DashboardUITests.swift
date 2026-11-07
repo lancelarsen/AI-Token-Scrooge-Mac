@@ -39,6 +39,12 @@ final class DashboardUITests: XCTestCase {
                                "--reference-date", "2026-11-04T16:11:00Z"]
         app.launch()
         defer { app.terminate() }
+        if !app.windows["dashboard"].waitForExistence(timeout: 2) {
+            let windowMenu = app.menuBars.menuBarItems["Window"]
+            windowMenu.click()
+            windowMenu.menuItems["AI Token Scrooge"].click()
+        }
+        app.activate()
         let allowance = app.buttons["Request Allowance. Open Details"].firstMatch
         XCTAssertTrue(allowance.waitForExistence(timeout: 10))
         allowance.click()
@@ -58,6 +64,47 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(app.sheets.firstMatch.frame.contains(unavailable.frame))
         app.typeKey(.escape, modifierFlags: [])
         XCTAssertTrue(unavailable.waitForNonExistence(timeout: 5))
+    }
+
+    @MainActor func testLongResetDetailsScrollKeepsTitleAndCloseVisible() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["SCROOGE_TEST_MODE"] = "1"
+        app.launchArguments = ["--demo", "--reference-wide", "--scenario", "many-resets",
+                               "--reference-date", "2026-11-04T16:11:00Z"]
+        app.launch()
+        defer { app.terminate() }
+        if !app.windows["dashboard"].waitForExistence(timeout: 2) {
+            let windowMenu = app.menuBars.menuBarItems["Window"]
+            windowMenu.click()
+            windowMenu.menuItems["AI Token Scrooge"].click()
+        }
+        app.activate()
+        let reset = app.buttons["Reset for Codex · Weekly. Open Details"].firstMatch
+        XCTAssertTrue(reset.waitForExistence(timeout: 10))
+        reset.click()
+        let title = app.staticTexts["Available Resets"].firstMatch
+        XCTAssertTrue(title.waitForExistence(timeout: 5))
+        let titleFrame = title.frame
+        let sheet = app.sheets.firstMatch
+        let body = sheet.scrollViews.firstMatch
+        XCTAssertTrue(body.exists)
+        XCTAssertLessThanOrEqual(body.frame.height, 421)
+        let close = app.buttons["Close"]
+        XCTAssertTrue(close.isHittable)
+        let closeFrame = close.frame
+        body.scroll(byDeltaX: 0, deltaY: -1600)
+        let lastCredit = app.staticTexts["resetCredit-demo-reset-30"].firstMatch
+        XCTAssertTrue(lastCredit.exists)
+        XCTAssertTrue(body.frame.contains(lastCredit.frame), "The last reset must be reachable by scrolling the body")
+        XCTAssertEqual(title.frame, titleFrame, "The dialog title must stay outside the scrolling body")
+        XCTAssertEqual(close.frame, closeFrame, "The footer must stay fixed")
+        XCTAssertTrue(close.isHittable)
+        let capture = XCTAttachment(screenshot: sheet.screenshot())
+        capture.name = "Long reset details after scrolling"
+        capture.lifetime = .keepAlways
+        add(capture)
+        close.click()
+        XCTAssertTrue(title.waitForNonExistence(timeout: 3))
     }
 
     @MainActor func testCancelReconnectThenAddAccountOffersProviderChoices() throws {
