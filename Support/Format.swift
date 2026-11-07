@@ -125,8 +125,8 @@ enum Format {
 
     static func usageText(_ window: QuotaWindow, provider: Provider, locale: Locale = .current) -> (used: String, left: String) {
         if window.unit == .percent || provider == .copilot || provider == .devin {
-            return (window.usedPercent.map { "\(percent($0)) Used" } ?? "Usage Unavailable",
-                    window.remainingPercent.map { "\(percent($0)) Left" } ?? "Left Unavailable")
+            return (window.usedPercent.map { "\(percent($0)) used" } ?? "Usage unavailable",
+                    window.remainingPercent.map { "\(percent($0)) left" } ?? "Left unavailable")
         }
         let formatter = NumberFormatter()
         formatter.locale = locale
@@ -137,8 +137,8 @@ enum Format {
         func count(_ value: Decimal) -> String {
             formatter.string(from: NSDecimalNumber(decimal: value)) ?? NSDecimalNumber(decimal: value).stringValue
         }
-        return (window.used.map { "\(count($0)) Used" } ?? "Usage Unavailable",
-                window.remaining.map { $0 < 0 ? "\(count(-$0)) Over" : "\(count($0)) Left" } ?? "Limit Unavailable")
+        return (window.used.map { "\(count($0)) used" } ?? "Usage unavailable",
+                window.remaining.map { $0 < 0 ? "\(count(-$0)) over" : "\(count($0)) left" } ?? "Limit unavailable")
     }
 
     static func percent(_ value: Decimal?, fractionDigits: Int = 0) -> String {

@@ -325,7 +325,7 @@ struct QuotaRow: View {
     }
     private var quotaNote: String {
         if !account.enabled { return "Monitoring Disabled" }
-        if snapshot.health == .demo { return "Demo Data" }
+        if snapshot.health == .demo { return "Demo data" }
         if snapshot.health != .healthy {
             let name = snapshot.health.rawValue
             let status = name.prefix(1).uppercased() + name.dropFirst()
@@ -399,7 +399,7 @@ struct QuotaDetailsView: View {
     let window: QuotaWindow
     let snapshot: QuotaSnapshot
     private var sourceNote: String {
-        if snapshot.health == .demo { return "Demo Data" }
+        if snapshot.health == .demo { return "Demo data" }
         if snapshot.health != .healthy {
             let status = snapshot.health.rawValue
             return "\(status.prefix(1).uppercased() + status.dropFirst()): \(snapshot.message ?? "")"

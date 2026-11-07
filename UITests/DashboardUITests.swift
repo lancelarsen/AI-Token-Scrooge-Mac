@@ -280,7 +280,7 @@ final class DashboardUITests: XCTestCase {
         XCTAssertEqual(identity.frame.width, 220, accuracy: 1)
         // Click beyond the intrinsic logo/name content, beside the plan badge.
         identity.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: 0.8)).click()
-        let details = app.staticTexts["38% Used · 62% Left"].firstMatch
+        let details = app.staticTexts["38% used · 62% left"].firstMatch
         XCTAssertTrue(details.waitForExistence(timeout: 5))
         app.buttons["Close"].click()
         XCTAssertTrue(details.waitForNonExistence(timeout: 5))
@@ -302,7 +302,7 @@ final class DashboardUITests: XCTestCase {
         let allowance = app.buttons["Request Allowance. Open Details"].firstMatch
         XCTAssertTrue(allowance.waitForExistence(timeout: 10))
         allowance.click()
-        let overage = app.staticTexts["1,250 Used · 250 Over"].firstMatch
+        let overage = app.staticTexts["1,250 used · 250 over"].firstMatch
         XCTAssertTrue(overage.waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["Available Resets"].exists)
         app.buttons["Close"].click()
@@ -316,7 +316,7 @@ final class DashboardUITests: XCTestCase {
                        "Windows reserves half the footer for a single close action")
         app.buttons["Close"].click()
         app.buttons["Unknown Request Limit. Open Details"].firstMatch.click()
-        let unavailable = app.staticTexts["50 Used · Limit Unavailable"].firstMatch
+        let unavailable = app.staticTexts["50 used · Limit unavailable"].firstMatch
         XCTAssertTrue(unavailable.waitForExistence(timeout: 5))
         XCTAssertTrue(app.sheets.firstMatch.frame.contains(unavailable.frame))
         app.typeKey(.escape, modifierFlags: [])
@@ -769,7 +769,7 @@ final class DashboardUITests: XCTestCase {
             let identity = dashboard.buttons["OpenAI, Personal · Plus. Open details."].firstMatch
             let title = dashboard.buttons["Codex · Weekly. Open Details"].firstMatch
             let alarm = dashboard.buttons["Enable Alerts for Codex · Weekly"].firstMatch
-            let usage = dashboard.buttons.matching(NSPredicate(format: "label CONTAINS %@", "74% Used, 26% Left. Open Details")).firstMatch
+            let usage = dashboard.buttons.matching(NSPredicate(format: "label CONTAINS %@", "74% used, 26% left. Open Details")).firstMatch
             XCTAssertEqual(title.frame.minX - identity.frame.minX, 1, accuracy: 0.5)
             XCTAssertEqual(alarm.frame.minX - identity.frame.minX, 2, accuracy: 0.5)
             XCTAssertEqual(usage.frame.minX - identity.frame.minX, 91, accuracy: 0.5)
@@ -857,9 +857,9 @@ final class DashboardUITests: XCTestCase {
         app.typeKey(.escape, modifierFlags: [])
         header.hover()
         XCTAssertNil(popup(), "Escape and pointer exit dismiss threshold feedback")
-        let usage = dashboard.buttons.matching(NSPredicate(format: "label CONTAINS %@", "38% Used, 62% Left. Open Details")).firstMatch
+        let usage = dashboard.buttons.matching(NSPredicate(format: "label CONTAINS %@", "38% used, 62% left. Open Details")).firstMatch
         usage.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.5)).click()
-        XCTAssertTrue(app.staticTexts["38% Used · 62% Left"].waitForExistence(timeout: 5),
+        XCTAssertTrue(app.staticTexts["38% used · 62% left"].waitForExistence(timeout: 5),
             "The space between threshold thumbs must retain the quota-details action")
         app.buttons["Close"].click()
     }
@@ -1004,8 +1004,8 @@ final class DashboardUITests: XCTestCase {
             let account = work ? "OpenAI / Work · Pro" : "OpenAI / Personal · Plus"
             XCTAssertTrue(app.staticTexts[account].exists)
             let weekly = text.contains("Weekly")
-            let usage = work ? (weekly ? "58% Used · 42% Left" : "19% Used · 81% Left") :
-                (weekly ? "74% Used · 26% Left" : "38% Used · 62% Left")
+            let usage = work ? (weekly ? "58% used · 42% left" : "19% used · 81% left") :
+                (weekly ? "74% used · 26% left" : "38% used · 62% left")
             XCTAssertTrue(app.staticTexts[usage].exists, "The hovered event must open its matching quota")
         }
         XCTAssertNil(Self.visibleWindows(for: owner)[reopenedPanel.key], "Clicking an event hides its tooltip")

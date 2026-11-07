@@ -20,14 +20,14 @@ final class DevinTests: XCTestCase {
         let window = try DevinUsage.window(["1,001.5", "900", "1/16 2:00 AM", "America/Chicago"], observed: observed)
         XCTAssertEqual(window.used, 1001.5)
         XCTAssertEqual(window.resetsAt, ISO8601DateFormatter().date(from: "2027-01-16T08:00:00Z"))
-        XCTAssertEqual(Format.usageText(window, provider: .devin).used, "111% Used")
-        XCTAssertEqual(Format.usageText(window, provider: .devin).left, "0% Left")
+        XCTAssertEqual(Format.usageText(window, provider: .devin).used, "111% used")
+        XCTAssertEqual(Format.usageText(window, provider: .devin).left, "0% left")
         XCTAssertEqual(UsageHistory.selectWindow(provider: .devin, windows: [window]).window, window)
         let unknown = try DevinUsage.window(["0", "", "5/16 2:00 AM", "UTC"], observed: observed)
         XCTAssertEqual(unknown.used, 0)
         XCTAssertNil(unknown.limit)
         XCTAssertNil(unknown.resetsAt)
-        XCTAssertEqual(Format.usageText(unknown, provider: .devin).left, "Left Unavailable")
+        XCTAssertEqual(Format.usageText(unknown, provider: .devin).left, "Left unavailable")
         for value in ["Loading", "1,2,34", "-1"] {
             XCTAssertThrowsError(try DevinUsage.window([value, "100", "", ""], observed: observed))
         }
