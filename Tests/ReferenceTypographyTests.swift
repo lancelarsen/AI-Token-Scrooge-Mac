@@ -124,10 +124,41 @@ final class ReferenceTypographyTests: XCTestCase {
             return try XCTUnwrap(image.representation(using: .png, properties: [:]))
         }
         let regular = Text(verbatim: paragraph).font(Theme.dialogBodyFont)
-            .referenceNativeTextLineMetrics(size: 14).frame(width: 482)
+            .referenceNativeTextLineMetrics(size: 14).frame(width: 482, alignment: .leading)
         XCTAssertEqual(try pixels(body), try pixels(regular), "The captured long account paragraph is entirely regular weight")
         let action = NSHostingView(rootView: DialogActionLabel(title: "First line\nSecond line\nThird line").frame(width: 370))
         XCTAssertEqual(action.fittingSize.height, 56)
+    }
+
+    @MainActor func testDialogAutomaticWidthsMatchNativeWrappedTextAndKeepFixedForms() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = AppStore(database: try LocalStore(url: directory.appendingPathComponent("width.db")))
+        store.enterDemo()
+        await store.waitForPendingMutations()
+        let account = try XCTUnwrap(store.state.accounts.first)
+        let nickname = "Personal development and research across multiple workspaces with shared subscriptions, independent production environments, separate evaluation projects, and several collaborative engineering teams"
+        store.edit { state in
+            if let index = state.accounts.firstIndex(where: { $0.id == account.id }) { state.accounts[index].nickname = nickname }
+        }
+        await store.waitForPendingMutations()
+        // Native run42404838337: text columns478/482,24-point padding,
+        // one-point border and two equal footer columns235/237 points wide.
+        for (window, expected) in [(Optional("codex/primary"), CGSize(width: 528, height: 538)),
+                                   (nil, CGSize(width: 532, height: 341))] {
+            let host = NSHostingView(rootView: AccountUsageDialog(accountID: account.id, windowID: window, close: {})
+                .environment(store))
+            XCTAssertEqual(host.fittingSize, expected)
+        }
+        XCTAssertEqual(ReferenceTypography.dialogTextWidth("OpenAI / " + nickname + " · Plus", size: 22, semibold: true), 478)
+        XCTAssertEqual(ReferenceTypography.dialogTextWidth("OpenAI / " + nickname + " · Plus: 2 reported available"), 482)
+        let chooser = NSHostingView(rootView: ConnectionView(original: nil).environment(store))
+        XCTAssertEqual(chooser.fittingSize, CGSize(width: 320, height: 431))
+        let color = NSHostingView(rootView: DetailsDialog(title: "Add Line Color", width: 362, closeTitle: "Cancel",
+            tabToFooter: true, primaryTitle: "Add Color", primaryAction: {}, close: {}) {
+                InlineLineColorEditor(color: .constant(Color(hex: "#D587A5")), reveal: { _ in }).frame(width: 312)
+            })
+        XCTAssertEqual(color.fittingSize, CGSize(width: 362, height: 605))
     }
 
     @MainActor func testColorEditorMatchesNativeWindowsContentExtent() {

@@ -104,7 +104,7 @@ struct AccountUsageDetailsView: View {
                                 .accessibilityIdentifier("resetCredit-\(credit.id)")
                         }
                     } else { DialogBodyText("Credit details unavailable") }
-                }.font(Theme.dialogBodyFont).frame(maxWidth: .infinity, alignment: .leading)
+                }.font(Theme.dialogBodyFont)
             } else if let window = snapshot.windows.first(where: { windowID == nil || $0.id == windowID }) {
                 QuotaDetailsView(account: account, window: window, snapshot: snapshot)
             } else { unavailableDetails }
@@ -132,13 +132,14 @@ struct DetailsDialog<Content: View>: View {
     private var hasPrimaryAction: Bool { primaryTitle != nil && primaryAction != nil }
     var body: some View {
         DialogSizing(width: width, maximumHeight: maximumHeight) {
-        VStack(alignment: .leading, spacing: 0) {
             // WinUI ContentDialogTitleMargin is 12 points below the natural
             // title line box; body paragraphs keep their own eight-point gaps.
             VStack(alignment: .leading, spacing: 12) {
-                Text(title).font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
-                    .referenceNativeTextLineMetrics(size: 22)
-                    .fixedSize(horizontal: false, vertical: true)
+                DialogTextSizing(preferredWidth: ReferenceTypography.dialogTextWidth(title, size: 22, semibold: true)) {
+                    Text(title).font(Theme.dialogTitleFont).foregroundStyle(Theme.accent)
+                        .referenceNativeTextLineMetrics(size: 22)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 ViewThatFits(in: .vertical) {
                     content().fixedSize(horizontal: false, vertical: true)
                     ScrollView { content() }
@@ -146,7 +147,7 @@ struct DetailsDialog<Content: View>: View {
                 .font(Theme.dialogBodyFont)
                 .foregroundStyle(Theme.dialogText)
                 .textSelection(.enabled)
-                .frame(maxWidth: .infinity, maxHeight: 420, alignment: .leading)
+                .frame(maxHeight: 420, alignment: .leading)
             }.padding(24)
             Rectangle().fill(Color(hex: "#3B3D47")).frame(height: 1)
             DialogFooterColumns {
@@ -173,7 +174,6 @@ struct DetailsDialog<Content: View>: View {
             }.padding(24)
         }
         .padding(1)
-        }
         .fixedSize(horizontal: true, vertical: true)
         .background(Theme.dialogBackground)
         .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -194,14 +194,45 @@ private struct DialogSizing: Layout {
     var width: CGFloat?
     var maximumHeight: CGFloat
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        guard let content = subviews.first else { return .zero }
-        let resolvedWidth = width ?? min(548, max(320, content.sizeThatFits(.unspecified).width))
-        let fitted = content.sizeThatFits(.init(width: resolvedWidth, height: nil))
-        return CGSize(width: resolvedWidth, height: min(maximumHeight, fitted.height))
+        guard subviews.count == 3 else { return .zero }
+        let outerWidth: CGFloat
+        if let width { outerWidth = width }
+        else {
+            let ideal = max(subviews[0].sizeThatFits(.unspecified).width,
+                            subviews[2].sizeThatFits(.unspecified).width) + 2
+            outerWidth = min(548, max(320, ideal))
+        }
+        let innerWidth = max(0, outerWidth - 2)
+        let fitted = subviews.map { $0.sizeThatFits(.init(width: innerWidth, height: nil)) }
+        return CGSize(width: innerWidth, height: min(max(0, maximumHeight - 2), fitted.reduce(0) { $0 + $1.height }))
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard subviews.count == 3 else { return }
+        let footerHeight = subviews[2].sizeThatFits(.init(width: bounds.width, height: nil)).height
+        let dividerHeight = subviews[1].sizeThatFits(.init(width: bounds.width, height: nil)).height
+        let headerHeight = max(0, bounds.height - footerHeight - dividerHeight)
+        var y = bounds.minY
+        for (view, height) in zip(subviews, [headerHeight, dividerHeight, footerHeight]) {
+            view.place(at: CGPoint(x: bounds.minX, y: y), anchor: .topLeading,
+                       proposal: .init(width: bounds.width, height: height))
+            y += height
+        }
+    }
+}
+
+/// Report the native text's desired width while retaining narrower parent
+/// proposals. Leading placement keeps trailing wrap whitespace outside the ink.
+private struct DialogTextSizing: Layout {
+    let preferredWidth: CGFloat
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let text = subviews.first else { return .zero }
+        let width = max(0, min(proposal.width ?? preferredWidth, preferredWidth))
+        let fitted = text.sizeThatFits(.init(width: width, height: nil))
+        return CGSize(width: width, height: fitted.height)
     }
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         subviews.first?.place(at: bounds.origin, anchor: .topLeading,
-                             proposal: .init(width: bounds.width, height: bounds.height))
+                             proposal: .init(width: bounds.width, height: nil))
     }
 }
 
@@ -313,10 +344,13 @@ struct DetailLine: View {
     let value: String
     var body: some View {
         let heading = Text(label + ": ").font(ReferenceTypography.nativeTextFont(semibold: true)).foregroundColor(Theme.primaryText)
-        Text("\(heading)\(Text(verbatim: value).foregroundColor(Theme.dialogText))")
-            .font(Theme.dialogBodyFont)
-            .referenceNativeTextLineMetrics(size: 14)
-            .frame(minHeight: 19, alignment: .leading)
+        DialogTextSizing(preferredWidth: ReferenceTypography.dialogTextWidth(label + ": " + value,
+                         prefixLength: (label + ": ").utf16.count)) {
+            Text("\(heading)\(Text(verbatim: value).foregroundColor(Theme.dialogText))")
+                .font(Theme.dialogBodyFont)
+                .referenceNativeTextLineMetrics(size: 14)
+                .frame(minHeight: 19, alignment: .leading)
+        }
     }
 }
 
@@ -329,9 +363,11 @@ struct DialogBodyText: View {
         if let label = parsed.label {
             DetailLine(label: label, value: parsed.value)
         } else {
-            Text(verbatim: parsed.value).font(Theme.dialogBodyFont)
-                .referenceNativeTextLineMetrics(size: 14)
-                .frame(minHeight: 19, alignment: .leading)
+            DialogTextSizing(preferredWidth: ReferenceTypography.dialogTextWidth(parsed.value)) {
+                Text(verbatim: parsed.value).font(Theme.dialogBodyFont)
+                    .referenceNativeTextLineMetrics(size: 14)
+                    .frame(minHeight: 19, alignment: .leading)
+            }
         }
     }
 }
@@ -349,7 +385,6 @@ struct DialogMessage: View {
                 }
             }
         }.font(Theme.dialogBodyFont).foregroundStyle(Theme.dialogText)
-            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

@@ -432,6 +432,6 @@ struct QuotaDetailsView: View {
                 DialogBodyText("Provider pages use your browser's sign-in. Check its account and workspace before comparing.")
                     .font(Theme.dialogBodyFont).foregroundStyle(Theme.dialogText)
             }
-        }.font(Theme.dialogBodyFont).foregroundStyle(Theme.dialogText).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading).preferredColorScheme(.dark)
+        }.font(Theme.dialogBodyFont).foregroundStyle(Theme.dialogText).textSelection(.enabled).preferredColorScheme(.dark)
     }
 }

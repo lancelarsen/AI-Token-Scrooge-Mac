@@ -57,10 +57,40 @@ enum ReferenceTypography {
 
     /// AppKit menus share the same immutable font face and axes as SwiftUI text.
     static func nativeMenuFont(size: CGFloat = 14) -> NSFont {
-        guard let native = nativeTextFonts.font(size: size, semibold: false) else {
-            return measuringFont(ofSize: size)
+        nativeMeasuringFont(size: size)
+    }
+
+    static func nativeMeasuringFont(size: CGFloat = 14, semibold: Bool = false) -> NSFont {
+        guard let native = nativeTextFonts.font(size: size, semibold: semibold) else {
+            return measuringFont(ofSize: size, weight: semibold ? .semibold : .regular)
         }
         return native as NSFont
+    }
+
+    /// ContentDialog measures at its 498-point content cap, then excludes wrap
+    /// whitespace from desired width. Use the same fonts/runs as the text view.
+    static func dialogTextWidth(_ text: String, size: CGFloat = 14, semibold: Bool = false,
+                                prefixLength: Int = 0) -> CGFloat {
+        let maximum: CGFloat = 498 // 548 outer minus two 24-point insets and border.
+        guard !text.isEmpty else { return 0 }
+        let attributed = NSMutableAttributedString(string: text,
+            attributes: [.font: nativeMeasuringFont(size: size, semibold: semibold)])
+        if prefixLength > 0 {
+            attributed.addAttribute(.font, value: nativeMeasuringFont(size: size, semibold: true),
+                                    range: NSRange(location: 0, length: min(prefixLength, attributed.length)))
+        }
+        let typesetter = CTTypesetterCreateWithAttributedString(attributed)
+        var offset = 0
+        var longest: CGFloat = 0
+        while offset < attributed.length {
+            let count = CTTypesetterSuggestLineBreak(typesetter, offset, Double(maximum))
+            guard count > 0 else { return maximum }
+            let line = CTTypesetterCreateLine(typesetter, CFRange(location: offset, length: count))
+            longest = max(longest, CGFloat(CTLineGetTypographicBounds(line, nil, nil, nil)
+                                          - CTLineGetTrailingWhitespaceWidth(line)))
+            offset += count
+        }
+        return min(maximum, ceil(longest))
     }
 
     private static let iconsRegistered: Bool = {
