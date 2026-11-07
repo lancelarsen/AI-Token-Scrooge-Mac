@@ -34,6 +34,9 @@ try {
     foreach ($key in @($start.EnvironmentVariables.Keys)) {
         if ($key -match '^(GH_|GITHUB_|OPENAI_|CODEX_|ANTHROPIC_|CLAUDE_)') { $start.EnvironmentVariables.Remove($key) }
     }
+    # Mirror UpdateInstallation.Launch so the portable app does not hand off
+    # to its launcher and exit before the retained process can be observed.
+    $start.EnvironmentVariables['SCROOGE_LAUNCHED_DIRECTORY'] = [System.IO.Path]::GetFullPath($Release)
     $app = New-Object System.Diagnostics.Process
     $app.StartInfo = $start
     if (-not $app.Start()) { throw 'Reference process did not start.' }
@@ -49,6 +52,7 @@ try {
     [ReferenceWindowNative]::SetForegroundWindow($handle) | Out-Null
     Start-Sleep -Seconds 3
     $root = [System.Windows.Automation.AutomationElement]::FromHandle($handle)
+    if ($root.Current.ProcessId -ne $app.Id) { throw 'Reference window belongs to a different process.' }
     $elements = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
     $rows = @()
     foreach ($element in $elements) {
