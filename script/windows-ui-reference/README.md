@@ -62,3 +62,6 @@ Matched-panel run [42367678432](https://github.com/lancelarsen/AI-Token-Scrooge-
 
 
 `global-settings-quiet-hours` locates the middle control with bounded scroll positions and requires both native time buttons plus its visible duration summary. The screenshot covers canvas ticks too; UIA font attributes distinguish the native button text from the classic summary label. Capturing it does not toggle quiet hours, change times or preview sounds.
+
+
+Quiet-hours run [42369557174](https://github.com/lancelarsen/AI-Token-Scrooge-Mac/actions/runs/42369557174) passed at `3382e87`. The native start/end targets are80×32 inside106-point positioning slots. The classic Segoe16 summary is22 points high;94-point range plus4-point gap plus summary yields120. Time-label normal ink widths are42/35 for12AM/8AM at1x. Native button UIA does not provide resolved physical-font attributes, and the canvas has no separate text nodes; keep those limits distinct from the exposed summary font and control geometry.

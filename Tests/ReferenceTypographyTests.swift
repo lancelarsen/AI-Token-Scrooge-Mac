@@ -74,6 +74,12 @@ final class ReferenceTypographyTests: XCTestCase {
         }
     }
 
+    @MainActor func testQuietHoursRangeMatchesNativeWindowsSummaryHeight() {
+        let host = NSHostingView(rootView: QuietHoursControl(start: .constant(0), end: .constant(8)).frame(width: 649))
+        // Windows run 42369557174: 94-point range, four-point gap, 22-point summary.
+        XCTAssertEqual(host.fittingSize.height, 120)
+    }
+
     @MainActor func testHistoryReadoutMatchesCapturedWindowsBounds() {
         let host = NSHostingView(rootView: ReferenceHistoryTooltip(
             text: "OpenAI / Personal · Plus\nWeekly · 74% Used\nSat, Nov 7 12:03 AM", width: 183))

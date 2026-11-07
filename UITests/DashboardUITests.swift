@@ -689,6 +689,10 @@ final class DashboardUITests: XCTestCase {
             panel.scrollViews.firstMatch.scroll(byDeltaX: 0, deltaY: -200)
         }
         XCTAssertTrue(panel.frame.contains(start.frame))
+        for time in [start, end] {
+            XCTAssertEqual(time.frame.width, 80, accuracy: 0.5)
+            XCTAssertEqual(time.frame.height, 32, accuracy: 0.5)
+        }
         let toggle = panel.switches["Quiet Hours"]
         if !start.isEnabled { toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).click() }
         let enabled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in start.isEnabled }, object: nil)

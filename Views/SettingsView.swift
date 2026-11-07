@@ -406,17 +406,19 @@ struct QuietHoursControl: View {
             }
             .frame(height: closeLabels ? 116 : 94)
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { trackWidth = $0 }
-            Text(summary).font(.reference(size: 16)).foregroundStyle(Theme.accent)
+            Text(summary).font(.reference(size: 16)).referenceClassicLineMetrics(size: 16).foregroundStyle(Theme.accent)
         }
         .onChange(of: isEnabled) { _, enabled in
             if !enabled { focusedBoundary = nil; dragging = false }
         }
     }
     private func handle(value: Binding<Int>, x: CGFloat, width: CGFloat, label: String, labelY: CGFloat) -> some View {
-        Text(hour(value.wrappedValue)).font(.reference(size: 16)).foregroundStyle(Theme.primaryText)
-        .frame(width: 106, height: 32)
+        Button { focusedBoundary = label } label: {
+            Text(hour(value.wrappedValue)).font(ReferenceTypography.nativeTextFont(size: 16))
+                .foregroundStyle(Theme.primaryText).frame(width: 80, height: 32)
+                .contentShape(Rectangle())
+        }.buttonStyle(.plain)
         .focusable().focused($focusedBoundary, equals: label).focusEffectDisabled()
-        .onTapGesture { focusedBoundary = label }
         .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { press in
             guard isEnabled else { return .ignored }
             let change = press.key == .leftArrow || press.key == .downArrow ? -1 : 1

@@ -131,3 +131,8 @@ Matched Windows panel geometry revealed a missing empty19-point status row in bo
 ### Regular classic label metrics — November 7
 
 Current native Windows captures measure classic13-point labels in18-point lines,16-point regular labels in22-point lines and a two-line13-point settings description in35 points. The Mac now reuses its verified fractional tooltip renderer for these measured regular dashboard/settings/timeline/quota labels. Captured bounds and16-point multiline/descender standalone checks pass; app/native test bundles build. Native compact descriptions gain the missing one-point height while footer actions keep485/537-point positions and the two-quota card retains its measured height. Native Variable controls, Semibold fallback, unmeasured canvas/control typography and exact glyph rasterization remain separate; this is not full font/pixel sign-off.
+
+
+### Quiet-hours measured control sizing — November 7
+
+Windows run42369557174 captures80×32 time buttons and a22-point classic16 summary, producing a649×120 range. Mac now uses those target dimensions, native time-button text and the measured summary line, while preserving106-point positioning slots and the overlap threshold. Production rendering matches120-point control height and42/35-pixel time-label ink widths. Native independent Start/End arrow keys, disabled rejection and restoration pass in isolated demo data. App/test bundles build; new hosted geometry and native frame assertions were added. Canvas font resolution, hover/raster and physical drag acceptance remain separate.
