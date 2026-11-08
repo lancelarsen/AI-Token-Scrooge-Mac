@@ -50,7 +50,7 @@ private struct ConnectionForm: View {
     @State private var nickname: String
     @State private var token = ""
     @State private var organization: String
-    @State private var allowance: String
+    private let allowance: String
     private let unit: UsageUnit
     @State private var advanced = false
     @State private var phase = ConnectionPhase.idle
@@ -64,7 +64,7 @@ private struct ConnectionForm: View {
         _nickname = State(initialValue: original?.nickname ?? (provider == .devin ? "Work" : "Personal"))
         unit = original?.unit ?? .credits
         _workspace = State(initialValue: original?.scope ?? "")
-        _allowance = State(initialValue: original?.allowance.map { NSDecimalNumber(decimal: $0).stringValue } ?? "")
+        allowance = original?.allowance.map { NSDecimalNumber(decimal: $0).stringValue } ?? ""
         let prefix = "organization:"
         let scope = original?.scope ?? ""
         _organization = State(initialValue: scope.hasPrefix(prefix) ? String(scope.dropFirst(prefix.count)) : "")
@@ -117,7 +117,6 @@ private struct ConnectionForm: View {
             if provider == .codex {
                 CodexConnectView(nickname: nickname, original: original, phase: $phase)
             } else if provider == .copilot {
-                TextField("Fallback allowance (optional; detected automatically when available)", text: $allowance, prompt: Text("Fallback allowance (optional; detected automatically when available)").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle()).disabled(connecting)
                 if !organizationReconnect {
                 Button { token = ""; error = nil; advanced.toggle() } label: {
                     DialogActionLabel(title: advanced ? "Use Browser Sign-In Instead" : "Use an Access Token Instead")
