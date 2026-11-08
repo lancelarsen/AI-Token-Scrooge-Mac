@@ -51,7 +51,7 @@ private struct ConnectionForm: View {
     @State private var token = ""
     @State private var organization: String
     @State private var allowance: String
-    @State private var unit: UsageUnit
+    private let unit: UsageUnit
     @State private var advanced = false
     @State private var phase = ConnectionPhase.idle
     private var connecting: Bool { phase.isBusy }
@@ -62,7 +62,7 @@ private struct ConnectionForm: View {
         self.provider = provider
         self.original = original
         _nickname = State(initialValue: original?.nickname ?? (provider == .devin ? "Work" : "Personal"))
-        _unit = State(initialValue: original?.unit ?? .credits)
+        unit = original?.unit ?? .credits
         _workspace = State(initialValue: original?.scope ?? "")
         _allowance = State(initialValue: original?.allowance.map { NSDecimalNumber(decimal: $0).stringValue } ?? "")
         let prefix = "organization:"
@@ -106,27 +106,17 @@ private struct ConnectionForm: View {
             Text(connectionDescription).font(.reference(size: 14)).foregroundStyle(Theme.secondary)
                 .referenceClassicLineMetrics(size: 14)
                 .fixedSize(horizontal: false, vertical: true)
-            TextField("Account nickname (Personal, Work…)", text: $nickname, prompt: Text("Account nickname (Personal, Work…)").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle())
-                .focused($devinFocus, equals: .nickname).disabled(connecting)
+            HStack(spacing: 12) {
+                Text("Display Label")
+                    .font(ReferenceTypography.nativeTextFont())
+                TextField("Display Label", text: $nickname, prompt: Text("Personal, Work…").foregroundStyle(Color(hex: "#B6B8C8")))
+                    .modifier(ConnectionFieldStyle())
+                    .accessibilityLabel("Display Label")
+                    .focused($devinFocus, equals: .nickname).disabled(connecting)
+            }
             if provider == .codex {
                 CodexConnectView(nickname: nickname, original: original, phase: $phase)
             } else if provider == .copilot {
-                Menu {
-                    Picker("", selection: $unit) {
-                        Text("AI Credits").font(ReferenceTypography.nativeTextFont()).tag(UsageUnit.credits)
-                        Text("Legacy Premium Requests").font(ReferenceTypography.nativeTextFont()).tag(UsageUnit.requests)
-                    }.labelsHidden().pickerStyle(.inline)
-                } label: {
-                    HStack {
-                        Text(unit == .credits ? "AI Credits" : "Legacy Premium Requests")
-                            .font(ReferenceTypography.nativeTextFont())
-                        Spacer()
-                        ReferenceDropdownChevron()
-                    }.padding(.horizontal, 12).frame(height: 32)
-                        .background(Theme.control, in: RoundedRectangle(cornerRadius: 10))
-                }.menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden)
-                    .accessibilityLabel("Billing Unit").accessibilityValue(unit == .credits ? "AI Credits" : "Legacy Premium Requests")
-                    .disabled(original != nil || connecting)
                 TextField("Fallback allowance (optional; detected automatically when available)", text: $allowance, prompt: Text("Fallback allowance (optional; detected automatically when available)").foregroundStyle(Color(hex: "#B6B8C8"))).modifier(ConnectionFieldStyle()).disabled(connecting)
                 if !organizationReconnect {
                 Button { token = ""; error = nil; advanced.toggle() } label: {
