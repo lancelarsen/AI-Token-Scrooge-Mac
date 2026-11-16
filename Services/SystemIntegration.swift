@@ -72,8 +72,7 @@ enum NotificationError: LocalizedError {
     }
 }
 
-/// Dock badges are always red on macOS, so draw the noncritical Windows-style
-/// status dots over the app icon instead of using a red badge for every alert.
+/// Draw Windows-style status dots over the app icon for every alert severity.
 @MainActor final class DockStatusView: NSView {
     var severity: ReminderSeverity?
 
@@ -82,9 +81,11 @@ enum NotificationError: LocalizedError {
         let diameter = bounds.width * 0.28
         let dot = NSRect(x: bounds.maxX - diameter, y: bounds.maxY - diameter,
                          width: diameter, height: diameter)
-        let color: NSColor = severity == .warning
-            ? NSColor(srgbRed: 1, green: 0.78, blue: 0.20, alpha: 1)
-            : NSColor(srgbRed: 0.29, green: 0.64, blue: 1, alpha: 1)
+        let color: NSColor = switch severity {
+        case .critical: NSColor(srgbRed: 0.95, green: 0.27, blue: 0.30, alpha: 1)
+        case .warning: NSColor(srgbRed: 1, green: 0.78, blue: 0.20, alpha: 1)
+        default: NSColor(srgbRed: 0.29, green: 0.64, blue: 1, alpha: 1)
+        }
         color.setFill()
         NSBezierPath(ovalIn: dot).fill()
     }

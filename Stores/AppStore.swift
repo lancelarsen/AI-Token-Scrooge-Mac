@@ -267,8 +267,8 @@ import AppKit
     private func updateBadge() {
         let severity = iconAlert?.severity
         let dock = NSApp.dockTile
-        dock.badgeLabel = severity == .critical ? "!" : nil
-        if severity == .critical || (severity == nil && !iconUnavailable) {
+        dock.badgeLabel = nil
+        if severity == nil && !iconUnavailable {
             dock.contentView = nil
         } else {
             let indicator = (dock.contentView as? DockStatusView) ?? DockStatusView()

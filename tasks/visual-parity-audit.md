@@ -2278,5 +2278,5 @@ Hosted/package follow-up: Mac Preview42399285587 ata14afe277338fe5fe10992dc89bb2
 ### Dock alert severity (November 16, 2026)
 
 - Compared captured Windows `Platforms/Windows/TrayService.cs`: tray and taskbar overlays select distinct assets by severity. Mac previously mapped every attention state to the native red `!` badge.
-- Dock now reserves the native red `!` for critical alerts; warning uses a custom yellow dot and informational/unavailable status uses a blue dot over the app icon. Healthy/disabled status clears the overlay. Existing alert evaluation and reminder severity remain authoritative.
+- Dock uses colored circles without text for all severities: red for critical, yellow for warning, and blue for informational/unavailable status over the app icon. Healthy/disabled status clears the overlay. Existing alert evaluation and reminder severity remain authoritative.
 - Native Dock rendering is a Mac adaptation; exact Windows asset raster parity and live Dock appearance have not been visually verified.
