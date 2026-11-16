@@ -2274,3 +2274,9 @@ This supersedes the earlier static Variable-font name/version assumptions. It do
 
 
 Hosted/package follow-up: Mac Preview42399285587 ata14afe277338fe5fe10992dc89bb258bfd5b702a passed182 tests, two installed-CLI skips and zero failures, explicitly including testNativeVariableFontMatchesCapturedWindowsVersionAndAxes. Preview packaging/publication also passed. Independently downloaded build1586 passes archive checksum and strict deep signature verification; all27 source font/image/sound/color-name/config resources are byte-identical. The new SegoeUIVariable.ttf is the exact captured2.03 master and both obsolete static files are absent. Archive SHA2563c7151c66b2e2ba4a49dd744156aedf64c82de1df173701cafb058c24302f41d. This is downloaded-bundle integrity/resource evidence; no native Release launch is claimed for this revision. The native UI checks above used the rebuilt canonical app.
+
+### Dock alert severity (November 16, 2026)
+
+- Compared captured Windows `Platforms/Windows/TrayService.cs`: tray and taskbar overlays select distinct assets by severity. Mac previously mapped every attention state to the native red `!` badge.
+- Dock now reserves the native red `!` for critical alerts; warning uses a custom yellow dot and informational/unavailable status uses a blue dot over the app icon. Healthy/disabled status clears the overlay. Existing alert evaluation and reminder severity remain authoritative.
+- Native Dock rendering is a Mac adaptation; exact Windows asset raster parity and live Dock appearance have not been visually verified.

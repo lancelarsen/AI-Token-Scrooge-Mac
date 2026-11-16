@@ -265,8 +265,18 @@ import AppKit
         }
     }
     private func updateBadge() {
-        let count = attentionCount
-        NSApp.dockTile.badgeLabel = count == 0 ? nil : "!"
+        let severity = iconAlert?.severity
+        let dock = NSApp.dockTile
+        dock.badgeLabel = severity == .critical ? "!" : nil
+        if severity == .critical || (severity == nil && !iconUnavailable) {
+            dock.contentView = nil
+        } else {
+            let indicator = (dock.contentView as? DockStatusView) ?? DockStatusView()
+            indicator.frame = NSRect(origin: .zero, size: dock.size)
+            indicator.severity = severity
+            dock.contentView = indicator
+        }
+        dock.display()
     }
     private func pruneHistoryIfNeeded() async {
         guard !isDemo, Date.now.timeIntervalSince(lastPruned) >= 3600 else { return }
