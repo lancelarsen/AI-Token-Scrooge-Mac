@@ -643,15 +643,28 @@ import AppKit
         for task in tasks { await task.value }
     }
 
+    func canRetryKeychainAccess(for account: ProviderAccount) -> Bool {
+        !isDemo && account.enabled && (account.provider == .copilot || account.provider == .devin) &&
+            state.snapshots[account.id]?.health == .keychainUnavailable &&
+            !refreshingCredentials.contains(account.credentialID) &&
+            schedule.shouldRefresh(account.id, now: .now, force: true)
+    }
+
+    func retryKeychainAccess(for account: ProviderAccount) async {
+        guard currentAccount(account, epoch: monitoringEpoch) != nil, canRetryKeychainAccess(for: account) else { return }
+        for task in startRefreshes(force: true, keychainAccount: account) { await task.value }
+    }
+
     // Claim all eligible connections before yielding. The monitor can then tick
     // again while provider I/O is pending, without starting duplicate reads.
     @discardableResult
-    private func startRefreshes(force: Bool) -> [Task<Void, Never>] {
+    private func startRefreshes(force: Bool, keychainAccount: ProviderAccount? = nil) -> [Task<Void, Never>] {
         guard !isDemo, localStateReady else { return [] }
         let epoch = monitoringEpoch
         let now = Date.now
         var tasks: [Task<Void, Never>] = []
         for account in state.accounts where account.enabled && schedule.shouldRefresh(account.id, now: now, force: force) {
+            if let keychainAccount, keychainAccount.id != account.id { continue }
             let credential = account.credentialID
             if refreshingCredentials.contains(credential) {
                 if force { pendingRefreshes[credential] = (account, epoch) }
@@ -660,7 +673,7 @@ import AppKit
             refreshingCredentials.insert(credential)
             tasks.append(Task {
                 defer { refreshingCredentials.remove(credential) }
-                await refresh(account, epoch: epoch)
+                await refresh(account, epoch: epoch, allowKeychainInteraction: keychainAccount != nil)
                 while let queued = pendingRefreshes.removeValue(forKey: credential),
                       let current = currentAccount(queued.account, epoch: queued.epoch),
                       schedule.shouldRefresh(current.id, now: .now, force: true) {
@@ -680,7 +693,7 @@ import AppKit
         }
     }
 
-    private func readQuota(_ account: ProviderAccount) async throws -> QuotaSnapshot {
+    private func readQuota(_ account: ProviderAccount, allowKeychainInteraction: Bool) async throws -> QuotaSnapshot {
         if let refreshAccount { return try await refreshAccount(account) }
         switch account.provider {
         case .codex:
@@ -691,10 +704,10 @@ import AppKit
                 return snapshot
             } catch { await connection.close(); throw error }
         case .copilot:
-            let token = try await githubCredentials.accessToken(for: account)
+            let token = try await githubCredentials.accessToken(for: account, allowKeychainInteraction: allowKeychainInteraction)
             return try await github.read(account: account, token: token)
         case .devin:
-            return try await DevinClient.read(account: account, secrets: secrets, interactive: false)
+            return try await DevinClient.read(account: account, secrets: secrets, interactive: false, allowKeychainInteraction: allowKeychainInteraction)
         case .claude:
             return try await ClaudeClient().refresh(account)
         }
@@ -702,10 +715,10 @@ import AppKit
 
     // One deadline covers credential renewal plus all provider requests, rather
     // than restarting the timeout for each step of an account refresh.
-    private func readQuotaBeforeDeadline(_ account: ProviderAccount) async throws -> QuotaSnapshot {
+    private func readQuotaBeforeDeadline(_ account: ProviderAccount, allowKeychainInteraction: Bool) async throws -> QuotaSnapshot {
         let timeout = refreshTimeout
         return try await withThrowingTaskGroup(of: QuotaSnapshot.self) { group in
-            group.addTask { try await self.readQuota(account) }
+            group.addTask { try await self.readQuota(account, allowKeychainInteraction: allowKeychainInteraction) }
             group.addTask {
                 try await Task.sleep(for: timeout)
                 throw ProviderFailure(message: "Refresh timed out. Last known values are retained.")
@@ -716,11 +729,11 @@ import AppKit
         }
     }
 
-    private func refresh(_ account: ProviderAccount, epoch: UUID) async {
+    private func refresh(_ account: ProviderAccount, epoch: UUID, allowKeychainInteraction: Bool = false) async {
         guard currentAccount(account, epoch: epoch) != nil else { return }
         let response: Result<QuotaSnapshot, Error>
         do {
-            let snapshot = try await readQuotaBeforeDeadline(account)
+            let snapshot = try await readQuotaBeforeDeadline(account, allowKeychainInteraction: allowKeychainInteraction)
             guard snapshot.belongs(to: account) else { throw AccountError.differentIdentity }
             response = .success(snapshot)
         } catch { response = .failure(error) }
@@ -741,8 +754,8 @@ import AppKit
                 let keychainError = error as? SecretStoreError
                 schedule.failed(current.id, now: .now, retryAt: failure?.retryAt)
                 snapshot = prior ?? QuotaSnapshot(accountID: current.id, subject: current.subject, scope: current.scope, observedAt: .now, windows: [])
-                snapshot.health = failure?.health ?? (keychainError != nil ? .permissionRequired : error is AccountError ? .authenticationRequired : .offline)
-                snapshot.message = failure?.message ?? keychainError?.localizedDescription ?? "Refresh failed. Last known values are retained."
+                snapshot.health = failure?.health ?? keychainError?.health ?? (error is AccountError ? .authenticationRequired : .offline)
+                snapshot.message = failure?.message ?? keychainError?.localizedDescription ?? (error as? AccountError)?.localizedDescription ?? "Refresh failed. Last known values are retained."
             }
 
             let alerts = AlertEvaluator.evaluate(account: current, previous: prior, current: snapshot, settings: candidate.settings, now: .now)

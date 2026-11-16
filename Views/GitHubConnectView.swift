@@ -66,7 +66,7 @@ struct GitHubConnectView: View {
                 try await store.connectGitHub(nickname: nickname.trimmingCharacters(in: .whitespacesAndNewlines), token: tokens.accessToken, allowance: amount, unit: unit, organization: "", appTokens: tokens, replacing: original, onCommitting: { phase = .committing })
                 dismiss()
             } catch {
-                status = (error as? ProviderFailure)?.message ?? (error is AccountError || error is StoreError ? error.localizedDescription : "GitHub sign-in could not be completed. Please try again.")
+                status = (error as? ProviderFailure)?.message ?? (error is SecretStoreError || error is AccountError || error is StoreError ? error.localizedDescription : "GitHub sign-in could not be completed. Please try again.")
             }
         }
     }

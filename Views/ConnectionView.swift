@@ -169,7 +169,7 @@ private struct ConnectionForm: View {
                             try await store.connectDevin(nickname: nickname, workspace: workspace, replacing: original, onCommitting: { phase = .committing })
                             dismiss()
                         } catch is CancellationError { self.error = "Sign-in canceled." }
-                        catch { self.error = (error as? ProviderFailure)?.message ?? (error is AccountError ? error.localizedDescription : "Devin sign-in could not be saved. Try again.") }
+                        catch { self.error = (error as? ProviderFailure)?.message ?? (error is SecretStoreError || error is AccountError ? error.localizedDescription : "Devin sign-in could not be saved. Try again.") }
                     }
                 } label: { DialogActionLabel(title: connecting ? "Signing In with Devin…" : "Sign In with Devin", processing: connecting).frame(maxWidth: .infinity, alignment: .leading) }
                     .buttonStyle(ScroogeButtonStyle(processing: connecting)).disabled(connecting)

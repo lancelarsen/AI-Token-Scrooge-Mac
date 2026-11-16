@@ -122,7 +122,21 @@ struct AccountSettingsView: View {
                             ruleToggle("Reset Expiry Reminders", path: \.expiry, help: "Remind you before an unused earned reset expires, using Earned Reset Expiration Alerts in global Settings. Expiration does not refresh your quota. At least one dashboard row alarm for this account must be on.")
                         }
                         SettingsCard(title: "Connection", symbol: "link", help: "Sign in again to renew the connection while keeping settings. Removing the connection only removes it from Scrooge; your provider account is unaffected.") {
-                            Text("Sign in again only if this account needs a new connection. Your saved settings stay in place.").font(.reference(size: 13)).referenceClassicLineMetrics(size: 13).foregroundStyle(Theme.secondary)
+                            if let snapshot = store.state.snapshots[accountID], snapshot.belongs(to: account),
+                               snapshot.health == .keychainUnavailable {
+                                Text(snapshot.message ?? snapshot.health.title)
+                                    .font(.reference(size: 13)).foregroundStyle(Theme.amber)
+                                Button {
+                                    Task { await store.retryKeychainAccess(for: account) }
+                                } label: {
+                                    DialogActionLabel(title: "Retry Keychain Access").frame(maxWidth: .infinity, alignment: .leading)
+                                }.buttonStyle(ScroogeButtonStyle()).disabled(!store.canRetryKeychainAccess(for: account))
+                            } else {
+                                Text(store.state.snapshots[accountID]?.health == .authenticationRequired
+                                     ? "Sign in again to resume monitoring this account."
+                                     : "Sign in again only if this account needs a new connection. Your saved settings stay in place.")
+                                    .font(.reference(size: 13)).referenceClassicLineMetrics(size: 13).foregroundStyle(Theme.secondary)
+                            }
                             Button {
                                 guard !isClosing else { return }
                                 isClosing = true

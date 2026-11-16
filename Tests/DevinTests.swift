@@ -49,6 +49,23 @@ final class DevinTests: XCTestCase {
         XCTAssertNil(DevinClient.responseFailure(200))
     }
 
+    @MainActor func testTenantLoginRedirectDuringRefreshRequiresSignIn() async throws {
+        let host = "fixture.devinenterprise.com"
+        let login = URL(string: "https://" + host + "/login")!
+        let client = DevinClient { view, _ in
+            let response = HTTPURLResponse(url: login, statusCode: 200, httpVersion: nil,
+                                           headerFields: ["Content-Type": "text/html"])!
+            view.loadSimulatedRequest(URLRequest(url: login), response: response, responseData: Data("<p>Sign in</p>".utf8))
+        }
+        let account = ProviderAccount(provider: .devin, nickname: "Work", subject: "user", scope: host)
+        do {
+            _ = try await client.observe(account: account, session: nil, interactive: false)
+            XCTFail("A login redirect must require sign-in")
+        } catch let failure as ProviderFailure {
+            XCTAssertEqual(failure.health, .authenticationRequired)
+        }
+    }
+
     @MainActor func testCancellingPendingSignInClosesOwnedBrowser() async throws {
         let navigated = expectation(description: "Isolated sign-in browser opened")
         var signInWindow: NSWindow?

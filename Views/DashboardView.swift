@@ -223,7 +223,7 @@ struct AccountCard: View {
     private var accountStatus: String {
         let name = store.state.settings.privacy ? "Account" : account.nickname
         let status = !account.enabled ? "Monitoring disabled" :
-            (snapshot?.belongs(to: account) == true ? snapshot.flatMap { $0.message ?? $0.reportingNote(for: account.provider) } : nil) ?? "Waiting for usage data"
+            (snapshot?.belongs(to: account) == true ? snapshot.flatMap { $0.warningText ?? $0.message ?? $0.reportingNote(for: account.provider) } : nil) ?? "Waiting for usage data"
         return "\(account.provider.rawValue) / \(name) · \(status) · Manage account"
     }
     private var identity: some View {
@@ -291,10 +291,11 @@ struct QuotaRow: View {
         HStack(spacing: 6) {
             if !quotaNote.isEmpty && snapshot.health != .demo {
                 Button { showDetails = true } label: {
-                    Image(systemName: "exclamationmark.triangle.fill")
+                    Image(systemName: warningSymbol)
                         .font(.system(size: 16))
                         .foregroundStyle(Color(hex: "#F2C94C"))
                         .frame(width: 20, height: 20)
+                        .contentShape(Rectangle())
                         .accessibilityHidden(true)
                 }.buttonStyle(.plain)
                     .modifier(ImmediateReferenceTooltip(text: quotaNote))
@@ -323,14 +324,17 @@ struct QuotaRow: View {
             Color.clear.frame(height: 0).accessibilityHidden(true)
         }
     }
+    private var warningSymbol: String {
+        switch snapshot.health {
+        case .keychainUnavailable: "lock.fill"
+        case .authenticationRequired: "person.crop.circle.badge.exclamationmark"
+        default: "exclamationmark.triangle.fill"
+        }
+    }
     private var quotaNote: String {
         if !account.enabled { return "Monitoring Disabled" }
         if snapshot.health == .demo { return "Demo data" }
-        if snapshot.health != .healthy {
-            let name = snapshot.health.rawValue
-            let status = name.prefix(1).uppercased() + name.dropFirst()
-            return "\(status): \(snapshot.message ?? "")"
-        }
+        if let warning = snapshot.warningText { return warning }
         if snapshot.usageAllowed == false { return "Provider reports usage is paused" }
         if account.provider == .codex && snapshot.message == "Workspace identity unavailable from provider" { return "" }
         if account.provider == .claude || snapshot.message == "Allowance reported by GitHub; billing usage may lag." { return "" }
@@ -400,10 +404,7 @@ struct QuotaDetailsView: View {
     let snapshot: QuotaSnapshot
     private var sourceNote: String {
         if snapshot.health == .demo { return "Demo data" }
-        if snapshot.health != .healthy {
-            let status = snapshot.health.rawValue
-            return "\(status.prefix(1).uppercased() + status.dropFirst()): \(snapshot.message ?? "")"
-        }
+        if let warning = snapshot.warningText { return warning }
         if snapshot.usageAllowed == false { return "Provider reports usage is paused" }
         return snapshot.message ?? (window.allowanceSource == .manual ? "User-entered allowance · Billing data may lag" : "")
     }

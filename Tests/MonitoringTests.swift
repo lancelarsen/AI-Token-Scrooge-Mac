@@ -1,3 +1,4 @@
+import Security
 import XCTest
 import Observation
 import AppKit
@@ -191,7 +192,7 @@ final class MonitoringTests: XCTestCase {
     }
 
     @MainActor
-    func testKeychainReadFailurePreservesQuotaAndReportsPermission() async throws {
+    func testKeychainReadFailurePreservesQuotaAndReportsLocalAccessProblem() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
         let database = try LocalStore(url: directory.appendingPathComponent("keychain.db"))
@@ -202,16 +203,45 @@ final class MonitoringTests: XCTestCase {
             scope: account.scope, observedAt: .now,
             windows: [QuotaWindow(id: "monthly", name: "Monthly", unit: .credits, used: 40, limit: 100)])
         try await database.save(initial)
-        let store = AppStore(database: database, refreshAccount: { _ in throw SecretStoreError.unavailable })
+        let store = AppStore(database: database, refreshAccount: { _ in throw SecretStoreError.keychain(.read, errSecInteractionNotAllowed) })
         await store.load()
         await store.refreshByUser()
         let snapshot = try XCTUnwrap(store.state.snapshots[account.id])
-        XCTAssertEqual(snapshot.health, .permissionRequired)
+        XCTAssertEqual(snapshot.health, .keychainUnavailable)
+        XCTAssertEqual(snapshot.observedAt, initial.snapshots[account.id]?.observedAt)
+        XCTAssertTrue(snapshot.warningText?.contains("Retry Keychain Access") == true)
+        XCTAssertTrue(snapshot.warningText?.contains(String(errSecInteractionNotAllowed)) == true)
+        XCTAssertTrue(store.canRetryKeychainAccess(for: account))
         XCTAssertTrue(snapshot.message?.contains("Keychain") == true)
         XCTAssertEqual(snapshot.windows, initial.snapshots[account.id]?.windows)
         XCTAssertFalse(store.isRefreshing)
         let saved = try await database.load()
         XCTAssertEqual(saved.snapshots[account.id], snapshot)
+    }
+
+    @MainActor
+    func testRetryKeychainAccessChecksOnlySelectedAccountAndCanRevealExpiredSignIn() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("retry.db"))
+        let devin = ProviderAccount(provider: .devin, nickname: "Work", subject: "devin", scope: "work")
+        let github = ProviderAccount(provider: .copilot, nickname: "Work", subject: "github", scope: "personal")
+        var initial = PersistedState()
+        initial.accounts = [devin, github]
+        try await database.save(initial)
+        let fixture = KeychainRetryFixture()
+        let store = AppStore(database: database, refreshAccount: { try await fixture.read($0) })
+        await store.load()
+        await store.refresh(force: false)
+        XCTAssertTrue(store.canRetryKeychainAccess(for: devin))
+        await store.retryKeychainAccess(for: devin)
+        let snapshot = try XCTUnwrap(store.state.snapshots[devin.id])
+        XCTAssertEqual(snapshot.health, .authenticationRequired)
+        XCTAssertTrue(snapshot.warningText?.hasPrefix("Sign-in required") == true)
+        XCTAssertFalse(store.canRetryKeychainAccess(for: devin))
+        XCTAssertTrue(store.canRetryKeychainAccess(for: github))
+        let calls = await fixture.calls
+        XCTAssertEqual(calls, [devin.id: 2, github.id: 1])
     }
 
     @MainActor
@@ -1091,4 +1121,14 @@ private actor NotificationDeliveryFixture: NotificationDelivering {
         await withCheckedContinuation { cancellationWaiter = $0 }
     }
     func finishCancellation() { cancellationGate?.resume(); cancellationGate = nil }
+}
+
+private actor KeychainRetryFixture {
+    private(set) var calls: [String: Int] = [:]
+
+    func read(_ account: ProviderAccount) throws -> QuotaSnapshot {
+        calls[account.id, default: 0] += 1
+        if calls[account.id] == 1 { throw SecretStoreError.keychain(.read, errSecInteractionNotAllowed) }
+        throw ProviderFailure(message: "Your sign-in expired.", health: .authenticationRequired)
+    }
 }

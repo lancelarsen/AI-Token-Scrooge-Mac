@@ -27,12 +27,14 @@ import WebKit
     private static let expired = ProviderFailure(message: "Your Devin sign-in expired. Sign in again.", health: .authenticationRequired)
     private static let unsupported = ProviderFailure(message: "Devin did not show the expected account or monthly usage. Check My Analytics in your workspace.", health: .unsupported)
 
-    static func read(account: ProviderAccount, secrets: SecretStore, interactive: Bool) async throws -> QuotaSnapshot {
-        let previous = interactive ? nil : try await secrets.read(account.credentialID)
-        if !interactive && previous == nil { throw expired }
+    static func read(account: ProviderAccount, secrets: SecretStore, interactive: Bool, allowKeychainInteraction: Bool = false) async throws -> QuotaSnapshot {
+        let previous = interactive ? nil : try await secrets.read(account.credentialID, allowInteraction: allowKeychainInteraction)
+        if !interactive && previous == nil {
+            throw ProviderFailure(message: "There is no saved Devin session. Use Sign In Again in account settings.", health: .authenticationRequired)
+        }
         let result = try await DevinClient().observe(account: account, session: previous, interactive: interactive)
         try Task.checkCancellation()
-        try await secrets.save(result.session, id: account.credentialID, allowInteraction: interactive)
+        try await secrets.save(result.session, id: account.credentialID, allowInteraction: interactive || allowKeychainInteraction)
         return result.snapshot
     }
 
@@ -124,9 +126,8 @@ import WebKit
         return try PropertyListEncoder().encode(Session(host: host, storage: storage, cookieProperties: encoded))
     }
     private func restore(_ bytes: Data, host: String) async throws {
-        let session = try PropertyListDecoder().decode(Session.self, from: bytes)
-        guard session.host == host,
-              let rows = try PropertyListSerialization.propertyList(from: session.cookieProperties, format: nil) as? [[String: Any]]
+        guard let session = try? PropertyListDecoder().decode(Session.self, from: bytes), session.host == host,
+              let rows = try? PropertyListSerialization.propertyList(from: session.cookieProperties, format: nil) as? [[String: Any]]
         else { throw Self.expired }
         try await dataStore.restoreData(session.storage)
         for row in rows {
@@ -160,7 +161,7 @@ import WebKit
                     if url.host == target.host && url.path.hasPrefix("/org/") && !retried { retried = true; navigate() }
                     continue
                 }
-                if url.host != target.host || url.path.hasPrefix("/auth/") { throw Self.expired }
+                if url.host != target.host || url.path == "/login" || url.path.hasPrefix("/auth/") { throw Self.expired }
                 throw ProviderFailure(message: "Your account could not open Devin My Analytics.", health: .permissionRequired)
             }
             let first = arrived ?? .now

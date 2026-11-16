@@ -9,7 +9,7 @@ enum Provider: String, Codable, CaseIterable, Identifiable, Sendable {
 
 enum UsageUnit: String, Codable, Sendable { case percent, credits, requests, acus }
 enum SourceHealth: String, Codable, Sendable {
-    case healthy, loading, stale, offline, authenticationRequired, permissionRequired, unsupported, demo
+    case healthy, loading, stale, offline, authenticationRequired, keychainUnavailable, permissionRequired, unsupported, demo
 }
 enum QuotaAmount {
     /// Foundation's decimal initializer also accepts numeric prefixes, such as the "1" in "1,000".

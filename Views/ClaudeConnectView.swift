@@ -29,7 +29,7 @@ struct ClaudeConnectView: View {
                         try await store.acceptConnection(account, snapshot: snapshot, replacing: original)
                         dismiss()
                     } catch {
-                        status = (error as? ProviderFailure)?.message ?? (error is AccountError ? error.localizedDescription : "Claude connection could not be completed. Please try again.")
+                        status = (error as? ProviderFailure)?.message ?? (error is SecretStoreError || error is AccountError ? error.localizedDescription : "Claude connection could not be completed. Please try again.")
                     }
                 }
             } label: { DialogActionLabel(title: busy ? "Waiting for Claude Sign-In…" : "Sign In with Claude", processing: busy).frame(maxWidth: .infinity, alignment: .leading) }

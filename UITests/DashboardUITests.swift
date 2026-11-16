@@ -1030,18 +1030,21 @@ final class DashboardUITests: XCTestCase {
         app.launch()
         defer { app.terminate() }
         let dashboard = app.windows["dashboard"]
-        if !dashboard.waitForExistence(timeout: 2) {
-            let menu = app.menuBars.menuBarItems["Window"]
-            menu.click(); menu.menuItems["AI Token Scrooge"].click()
+        func showDashboard() {
+            if !dashboard.waitForExistence(timeout: 2) {
+                let menu = app.menuBars.menuBarItems["Window"]
+                menu.click(); menu.menuItems["AI Token Scrooge"].click()
+            }
+            app.activate()
         }
-        app.activate()
+        showDashboard()
         let warning = app.buttons["quotaMessage-demo-0-codex/primary"]
         XCTAssertTrue(warning.waitForExistence(timeout: 10))
         let title = app.buttons["Codex · 5-Hour. Open Details"].firstMatch
         XCTAssertLessThanOrEqual(warning.frame.maxX, title.frame.minX)
         XCTAssertTrue(app.buttons["quotaMessage-demo-1-copilot/monthly"].exists)
         XCTAssertTrue(app.buttons["quotaMessage-demo-3-session"].exists)
-        XCTAssertFalse(app.staticTexts["PermissionRequired: Demo: billing read access is unavailable."].exists,
+        XCTAssertFalse(app.staticTexts["Provider permission required · Demo: billing read access is unavailable."].exists,
                        "Service messages must not take up space below the quota title")
         let header = dashboard.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.12))
         header.click()
@@ -1080,6 +1083,7 @@ final class DashboardUITests: XCTestCase {
         app.terminate()
         app.launchArguments = ["--demo", "--reference-wide", "--scenario", "healthy"]
         app.launch()
+        showDashboard()
         XCTAssertTrue(app.buttons["Codex · 5-Hour. Open Details"].firstMatch.waitForExistence(timeout: 10))
         XCTAssertEqual(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "quotaMessage-")).count, 0)
     }

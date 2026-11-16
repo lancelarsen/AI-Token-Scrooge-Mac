@@ -2,8 +2,41 @@ import Foundation
 import Security
 
 enum SecretStoreError: LocalizedError {
-    case invalidID, unavailable
-    var errorDescription: String? { "Scrooge could not access its saved credentials in Keychain. Unlock Keychain or use Sign In Again to authorize access." }
+    enum Operation: String {
+        case read, save, remove
+        case configure = "configure access to"
+    }
+    case invalidID
+    case keychain(Operation, OSStatus)
+
+    var health: SourceHealth {
+        switch self {
+        case .invalidID: .authenticationRequired
+        case .keychain: .keychainUnavailable
+        }
+    }
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidID:
+            return "The saved connection identifier is invalid. Use Sign In Again in account settings."
+        case let .keychain(operation, status):
+            let reason: String
+            switch status {
+            case errSecInteractionNotAllowed, errSecInteractionRequired:
+                reason = "macOS requires interaction"
+            case errSecAuthFailed, errSecUserCanceled:
+                reason = "macOS did not grant access"
+            default:
+                reason = "macOS returned an error"
+            }
+            return "Scrooge could not \(operation.rawValue) the saved Keychain credential because \(reason) (\(status))."
+        }
+    }
+
+    static func check(_ status: OSStatus, _ operation: Operation) throws {
+        guard status == errSecSuccess else { throw Self.keychain(operation, status) }
+    }
 }
 actor SecretStore {
     // The legacy login Keychain's interaction policy is process-wide. Keep every
@@ -27,10 +60,8 @@ actor SecretStore {
                     // Legacy login-Keychain policy is process-wide. Scope it to
                     // this serialized operation, including background writes.
                     var previous = DarwinBoolean(false)
-                    guard SecKeychainGetUserInteractionAllowed(&previous) == errSecSuccess,
-                          SecKeychainSetUserInteractionAllowed(allowInteraction) == errSecSuccess else {
-                        throw SecretStoreError.unavailable
-                    }
+                    try SecretStoreError.check(SecKeychainGetUserInteractionAllowed(&previous), .configure)
+                    try SecretStoreError.check(SecKeychainSetUserInteractionAllowed(allowInteraction), .configure)
                     defer { _ = SecKeychainSetUserInteractionAllowed(previous.boolValue) }
                     return try operation(query)
                 })
@@ -38,14 +69,15 @@ actor SecretStore {
         }
     }
 
-    func read(_ id: String) async throws -> Data? {
-        try await perform(id) { query in
+    func read(_ id: String, allowInteraction: Bool = false) async throws -> Data? {
+        try await perform(id, allowInteraction: allowInteraction) { query in
             var request = query
             request[kSecReturnData as String] = true; request[kSecMatchLimit as String] = kSecMatchLimitOne
             var value: CFTypeRef?
             let result = SecItemCopyMatching(request as CFDictionary, &value)
             if result == errSecItemNotFound { return nil }
-            guard result == errSecSuccess, let data = value as? Data else { throw SecretStoreError.unavailable }
+            try SecretStoreError.check(result, .read)
+            guard let data = value as? Data else { throw SecretStoreError.keychain(.read, errSecDecode) }
             return data
         }
     }
@@ -57,15 +89,15 @@ actor SecretStore {
                 var request = query
                 request[kSecValueData as String] = data
                 request[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-                guard SecItemAdd(request as CFDictionary, nil) == errSecSuccess else { throw SecretStoreError.unavailable }
-            } else if result != errSecSuccess { throw SecretStoreError.unavailable }
+                try SecretStoreError.check(SecItemAdd(request as CFDictionary, nil), .save)
+            } else { try SecretStoreError.check(result, .save) }
         }
     }
 
     func remove(_ id: String) async throws {
         try await perform(id) { query in
             let result = SecItemDelete(query as CFDictionary)
-            guard result == errSecSuccess || result == errSecItemNotFound else { throw SecretStoreError.unavailable }
+            if result != errSecItemNotFound { try SecretStoreError.check(result, .remove) }
         }
     }
 }

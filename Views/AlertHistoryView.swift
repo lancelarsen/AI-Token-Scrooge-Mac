@@ -96,7 +96,7 @@ struct AccountUsageDetailsView: View {
             if windowID == nil, let reserve = snapshot.reserve {
                 VStack(alignment: .leading, spacing: 8) {
                     DialogBodyText("\(account.provider.rawValue) / \(store.state.settings.privacy ? "Account" : account.nickname) · \(Format.plan(account.provider, snapshot.planType)): \(reserve.availableCount.map(String.init) ?? "Unknown") reported available")
-                    DialogBodyText("Snapshot fetched \(Format.snapshotDate(snapshot.observedAt, zone: store.state.settings.zone)) · \(account.enabled ? snapshot.health.rawValue.capitalized : "Monitoring paused")")
+                    DialogBodyText("Snapshot fetched \(Format.snapshotDate(snapshot.observedAt, zone: store.state.settings.zone)) · \(account.enabled ? snapshot.health.title : "Monitoring paused")")
                     if reserve.hasPartialDetails { DialogBodyText("Provider supplied only partial credit details.") }
                     if let credits = reserve.credits {
                         ForEach(credits) { credit in

@@ -198,3 +198,24 @@ enum Format {
         return dates.string(date, pattern: "EEE, MMM d h:mm a", zone: zone, posix: false)
     }
 }
+
+extension SourceHealth {
+    var title: String {
+        switch self {
+        case .keychainUnavailable: "Keychain access needed"
+        case .authenticationRequired: "Sign-in required"
+        case .permissionRequired: "Provider permission required"
+        default: rawValue.capitalized
+        }
+    }
+}
+
+extension QuotaSnapshot {
+    var warningText: String? {
+        guard health != .healthy && health != .demo else { return nil }
+        var parts = [health.title]
+        if let message, !message.isEmpty { parts.append(message) }
+        if health == .keychainUnavailable { parts.append("Choose Retry Keychain Access in account settings.") }
+        return parts.joined(separator: " · ")
+    }
+}

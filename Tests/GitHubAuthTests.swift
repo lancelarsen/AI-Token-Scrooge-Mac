@@ -1,3 +1,4 @@
+import Security
 import XCTest
 @testable import AITokenScrooge
 
@@ -34,6 +35,7 @@ private actor RenewalFixture {
     var data: Data?
     var saves = 0
     var interactions: [Bool] = []
+    var readInteractions: [Bool] = []
     var refreshes = 0
     var failSave: Int?
     var failRefresh = false
@@ -41,11 +43,14 @@ private actor RenewalFixture {
     func configure(save: Int? = nil, refresh: Bool = false) { failSave = save; failRefresh = refresh }
     func setIdentity(_ value: String) { identity = value }
     func identify() -> String { identity }
-    func read() -> Data? { data }
+    func read(interaction: Bool) -> Data? {
+        readInteractions.append(interaction)
+        return data
+    }
     func save(_ value: Data, interaction: Bool) throws {
         saves += 1
         interactions.append(interaction)
-        if saves == failSave { throw SecretStoreError.unavailable }
+        if saves == failSave { throw SecretStoreError.keychain(.save, errSecInteractionNotAllowed) }
         data = value
     }
     func remove() { data = nil }
@@ -58,7 +63,7 @@ private actor RenewalFixture {
     }
     func count() -> Int { refreshes }
     var dependencies: GitHubCredentialManager.Dependencies {
-        .init(read: { _ in await self.read() }, save: { value, _, interaction in try await self.save(value, interaction: interaction) },
+        .init(read: { _, interaction in await self.read(interaction: interaction) }, save: { value, _, interaction in try await self.save(value, interaction: interaction) },
               remove: { _ in await self.remove() }, refresh: { try await self.refresh($0) }, identify: { _ in await self.identify() })
     }
 }
@@ -109,7 +114,10 @@ extension GitHubAuthTests {
         let account = ProviderAccount(provider: .copilot, nickname: "Test", subject: "subject", scope: "scope")
         try await manager.saveApp(id: account.credentialID, subject: account.subject, tokens: expiringTokens())
         await fixture.configure(save: 3) // Initial save, renewal intent, then replacement.
-        do { _ = try await manager.accessToken(for: account); XCTFail("Expected write failure") } catch {}
+        do { _ = try await manager.accessToken(for: account); XCTFail("Expected write failure") } catch let failure as ProviderFailure {
+            XCTAssertEqual(failure.health, .keychainUnavailable)
+            XCTAssertTrue(failure.message.contains(String(errSecInteractionNotAllowed)))
+        }
         let token = try await manager.accessToken(for: account)
         XCTAssertEqual(token, "renewed-fixture")
         let rotations = await fixture.count()
@@ -121,6 +129,19 @@ extension GitHubAuthTests {
         XCTAssertEqual(interactions.first, true, "Explicit sign-in may request Keychain authorization")
         XCTAssertTrue(interactions.dropFirst().allSatisfy { !$0 }, "Renewal writes must never request authentication UI")
     }
+    func testKeychainRetryAllowsPromptForExistingCredentialAndRenewal() async throws {
+        let fixture = RenewalFixture()
+        let manager = GitHubCredentialManager(dependencies: await fixture.dependencies)
+        let account = ProviderAccount(provider: .copilot, nickname: "Test", subject: "subject", scope: "scope")
+        try await manager.saveApp(id: account.credentialID, subject: account.subject, tokens: expiringTokens())
+        _ = try await manager.accessToken(for: account, allowKeychainInteraction: true)
+        _ = try await manager.accessToken(for: account)
+        let reads = await fixture.readInteractions
+        let writes = await fixture.interactions
+        XCTAssertEqual(reads, [true, false])
+        XCTAssertEqual(writes, [true, true, true, true])
+    }
+
     func testAmbiguousNetworkFailureLeavesDurableReconnectMarker() async throws {
         let fixture = RenewalFixture()
         let manager = GitHubCredentialManager(dependencies: await fixture.dependencies)
