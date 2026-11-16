@@ -129,6 +129,8 @@ struct MenuBarContent: View {
         ], intentIdentifiers: [], options: .customDismissAction)
         center.setNotificationCategories([category])
         guard ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] != "1" else { return }
+        // Clear persisted notification badging as well as the AppKit tile label.
+        Task { try? await center.setBadgeCount(0) }
         // Keep presentation independent of the monitoring loop's persistence waits.
         dockStatusTask = Task { @MainActor [weak self] in
             while !Task.isCancelled {

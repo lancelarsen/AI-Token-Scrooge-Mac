@@ -266,7 +266,7 @@ import AppKit
     func updateDockStatus() {
         let severity = iconAlert?.severity
         let dock = NSApp.dockTile
-        dock.badgeLabel = nil
+        dock.badgeLabel = ""
         if severity == nil && !iconUnavailable {
             dock.contentView = nil
         } else {
