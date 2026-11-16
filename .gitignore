@@ -16,3 +16,4 @@ DevinProfiles/
 DevinTrials/
 
 __pycache__/
+Config/DebugSigning.local.xcconfig

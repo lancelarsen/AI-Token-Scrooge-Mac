@@ -22,6 +22,15 @@ Open `AITokenScrooge.xcodeproj` in Xcode and choose the `AITokenScrooge` scheme,
 
 The same command is available through Codex's Run action. `--build` builds without opening the app, and `--verify` checks that the launched process exists. `--debug`, `--logs`, and `--telemetry` support development inspection.
 
+To keep Keychain access across local rebuilds, set the following in `Config/DebugSigning.local.xcconfig` for this checkout.
+
+```xcconfig
+CODE_SIGN_IDENTITY = <SHA-1 fingerprint of your Apple Development certificate>
+DEVELOPMENT_TEAM = <Apple Developer Team ID>
+```
+
+Xcode and `./script/build_and_run.sh` use these settings for Debug builds. The file is ignored by Git. After switching from ad-hoc signing, choose **Retry Keychain Access** in each affected account’s settings and approve **Always Allow** if macOS offers it.
+
 For optimized local Release profiling, run `./script/package_preview.sh` and use `build/package/Build/Products/Release/AI Token Scrooge.app` with isolated test/demo storage. The preview workflow validates bundled resources and nested signatures and applies the existing ad-hoc development signing policy. A plain Release build with hardened runtime and no signing Team ID cannot load Sparkle under library validation. Developer ID distribution uses the packager's `SCROOGE_SIGNING_IDENTITY` path, which keeps hardened runtime enabled; local profiling is not a notarization or clean-Mac trust check.
 
 `project.yml` is the XcodeGen source. Run `xcodegen generate` after changing targets, resources, or adding source files. The generated project is checked in so XcodeGen is not needed for ordinary builds.

@@ -227,6 +227,7 @@
 		92B062BF3AD452CDB321E56D /* GitHubTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubTransport.swift; sourceTree = "<group>"; };
 		97D9C485C181A33B6B701DD9 /* ScroogeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScroogeApp.swift; sourceTree = "<group>"; };
 		9899342C79AC822060AA3775 /* MonitoringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringTests.swift; sourceTree = "<group>"; };
+		9AE6A8D066ACA8B52E437F88 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		9C463B5BEBBC88684B0BE0AE /* WindowsColorNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsColorNames.swift; sourceTree = "<group>"; };
 		A1EFDF115E7709BB9A4B0763 /* duck-snooze.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "duck-snooze.wav"; sourceTree = "<group>"; };
 		A5E296A644421B5FD6A43424 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
@@ -282,6 +283,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		033F4ADF87748F9324266DD4 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				9AE6A8D066ACA8B52E437F88 /* Debug.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
 		05BE38CA54CB84E7F7459FCA /* Tests */ = {
 			isa = PBXGroup;
 			children = (
@@ -436,6 +445,7 @@
 			isa = PBXGroup;
 			children = (
 				CA2A219C5235EC6C28B9BFE6 /* App */,
+				033F4ADF87748F9324266DD4 /* Config */,
 				3051E0A4A87CA1FA35186625 /* Models */,
 				0A8E54BE46E588F98CC3F8C9 /* Resources */,
 				FC6FEBF22BE9D307D9291FDB /* Services */,
@@ -947,6 +957,7 @@
 		};
 		D1E44CD2AD03D98A0BCB1463 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9AE6A8D066ACA8B52E437F88 /* Debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = arm64;
@@ -979,7 +990,6 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 100;

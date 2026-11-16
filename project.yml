@@ -7,17 +7,21 @@ packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     exactVersion: 2.10.1
+configFiles:
+  Debug: Config/Debug.xcconfig
 settings:
   base:
     SWIFT_VERSION: '6.0'
     ARCHS: arm64
-    CODE_SIGN_IDENTITY: '-'
     CODE_SIGN_STYLE: Manual
     ENABLE_APP_SANDBOX: NO
     ENABLE_HARDENED_RUNTIME: YES
     MARKETING_VERSION: '2026.11.3'
     CURRENT_PROJECT_VERSION: 100
     SCROOGE_DISPLAY_VERSION: v2026.11.3.000
+  configs:
+    Release:
+      CODE_SIGN_IDENTITY: '-'
 targets:
   AITokenScrooge:
     productName: AI Token Scrooge
