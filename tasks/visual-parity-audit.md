@@ -2280,3 +2280,10 @@ Hosted/package follow-up: Mac Preview42399285587 ata14afe277338fe5fe10992dc89bb2
 - Compared captured Windows `Platforms/Windows/TrayService.cs`: tray and taskbar overlays select distinct assets by severity. Mac previously mapped every attention state to the native red `!` badge.
 - Dock uses colored circles without text for all severities: red for critical, yellow for warning, and blue for informational/unavailable status over the app icon. Healthy/disabled status clears the overlay. Existing alert evaluation and reminder severity remain authoritative.
 - Native Dock rendering is a Mac adaptation; exact Windows asset raster parity and live Dock appearance have not been visually verified.
+
+### Dock badge refresh follow-up (November 16, 2026)
+
+- User reported the native red `!` persisted after restart. Dock presentation was updated only inside the monitoring loop, after awaiting the persistent mutation queue.
+- Clear and render Dock status immediately at launch, then update in an independent presentation task so monitoring/persistence waits cannot delay badge removal or severity changes.
+- Hosted regression passed: seed a legacy `!`, then verify info, warning and critical produce `DockStatusView` with no native badge; disabling icon alerts removes the custom view. Canonical build/run verification passed.
+- Computer control verified the restarted dashboard. Capturing the Dock itself timed out; the user's reported Dock rendering remains pending visual confirmation.

@@ -12,6 +12,41 @@ private final class TooltipTestWindow: NSWindow {
 
 final class MonitoringTests: XCTestCase {
     @MainActor
+    func testDockStatusClearsLegacyBadgeAndUsesCirclesForAllSeverities() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let database = try LocalStore(url: directory.appendingPathComponent("dock.db"))
+        let store = AppStore(database: database)
+        await store.load()
+        let dock = NSApp.dockTile
+        let previousView = dock.contentView
+        let previousBadge = dock.badgeLabel
+        defer { dock.contentView = previousView; dock.badgeLabel = previousBadge; dock.display() }
+        let now = Date.now
+        for (remaining, severity) in [(40, ReminderSeverity.info), (25, .warning), (5, .critical)] {
+            let account = ProviderAccount(provider: .copilot, nickname: "Test", subject: "test", scope: "test")
+            let snapshot = QuotaSnapshot(accountID: account.id, subject: account.subject, scope: account.scope,
+                observedAt: now, windows: [QuotaWindow(id: "monthly", name: "Monthly", unit: .percent,
+                    used: Decimal(100 - remaining), limit: 100)], health: .healthy)
+            store.edit {
+                $0.accounts = [account]
+                $0.snapshots = [account.id: snapshot]
+                $0.settings.alertOnIcon = true
+            }
+            await store.waitForPendingMutations()
+            dock.badgeLabel = "!"
+            store.updateDockStatus()
+            XCTAssertTrue(dock.badgeLabel?.isEmpty != false)
+            XCTAssertEqual((dock.contentView as? DockStatusView)?.severity, severity)
+        }
+        store.edit { $0.settings.alertOnIcon = false }
+        await store.waitForPendingMutations()
+        store.updateDockStatus()
+        XCTAssertNil(dock.contentView)
+        XCTAssertTrue(dock.badgeLabel?.isEmpty != false)
+    }
+
+    @MainActor
     func testManualRefreshPublishesAndPersistsFastAccountWhileFirstAccountIsPending() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

@@ -76,6 +76,7 @@ struct MenuBarContent: View {
 @MainActor final class ScroogeAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     let store = AppStore()
     private var pathMonitor: NWPathMonitor?
+    private var dockStatusTask: Task<Void, Never>?
     private var wakeObserver: NSObjectProtocol?
     private var networkWasAvailable: Bool?
     private var refreshAfterWindowUpdate = false
@@ -108,6 +109,7 @@ struct MenuBarContent: View {
         activationRefreshTask = nil
     }
     func applicationWillTerminate(_ notification: Notification) {
+        dockStatusTask?.cancel()
         refreshAfterWindowUpdate = false
         activationRefreshTask?.cancel()
         activationRefreshTask = nil
@@ -115,6 +117,8 @@ struct MenuBarContent: View {
         if let wakeObserver { NSWorkspace.shared.notificationCenter.removeObserver(wakeObserver) }
     }
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Clear any old system badge before loading accounts or waiting for I/O.
+        store.updateDockStatus()
         Task { await store.load() }
         let center = UNUserNotificationCenter.current()
         center.delegate = self
@@ -125,6 +129,14 @@ struct MenuBarContent: View {
         ], intentIdentifiers: [], options: .customDismissAction)
         center.setNotificationCategories([category])
         guard ProcessInfo.processInfo.environment["SCROOGE_TEST_MODE"] != "1" else { return }
+        // Keep presentation independent of the monitoring loop's persistence waits.
+        dockStatusTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                guard let self else { return }
+                store.updateDockStatus()
+                do { try await Task.sleep(for: .seconds(1)) } catch { return }
+            }
+        }
         _ = AppUpdater.shared
         wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor [weak self] in self?.refreshAfterResume() }

@@ -215,7 +215,6 @@ import AppKit
                         maintenanceTask = nil
                     }
                 }
-                updateBadge()
                 do { try await Task.sleep(for: .seconds(1)) } catch { return }
             }
         }
@@ -264,7 +263,7 @@ import AppKit
             } catch { }
         }
     }
-    private func updateBadge() {
+    func updateDockStatus() {
         let severity = iconAlert?.severity
         let dock = NSApp.dockTile
         dock.badgeLabel = nil
