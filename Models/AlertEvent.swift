@@ -26,13 +26,14 @@ enum AlertEvaluator {
         }
         return true
     }
-    static func evaluate(account: ProviderAccount, previous: QuotaSnapshot?, current: QuotaSnapshot, settings: RadarSettings, now: Date) -> [AlertEvent] {
-        guard current.health == .healthy else { return [] }
+    static func evaluate(account: ProviderAccount, previous: QuotaSnapshot?, current: QuotaSnapshot, settings: RadarSettings, now: Date, includeCachedCapacity: Bool = false) -> [AlertEvent] {
+        let fresh = current.health == .healthy
+        guard fresh || includeCachedCapacity else { return [] }
         var alerts: [AlertEvent] = []
         for window in current.windows {
             guard settings.capacityAlertsEnabled(accountID: account.id, windowID: window.id) else { continue }
             let before = previous?.windows.first { $0.id == window.id }
-            if let reset = window.resetsAt, let reminder = TimedReminder.due(settings.quotaRefreshReminders, at: reset, now: now) {
+            if fresh, let reset = window.resetsAt, let reminder = TimedReminder.due(settings.quotaRefreshReminders, at: reset, now: now) {
                 let movingEstimate = before?.resetsAt.map { prior in
                     prior != reset && prior > now && abs(reset.timeIntervalSince(prior)) <= 600
                     && previous.map { TimedReminder.due(settings.quotaRefreshReminders, at: prior, now: $0.observedAt)?.id == reminder.id } == true
@@ -52,12 +53,12 @@ enum AlertEvaluator {
                                          title: title, detail: "\(Format.percent(window.remainingPercent)) Left · \(account.provider.rawValue) / \(account.nickname)", createdAt: now,
                                          severity: state == .info ? .info : state == .low ? .warning : .critical))
             }
-            if rule.restored, before?.capacity() == .exhausted, let left = window.remainingPercent, left > 0, current.usageAllowed == true {
+            if fresh, rule.restored, before?.capacity() == .exhausted, let left = window.remainingPercent, left > 0, current.usageAllowed == true {
                 alerts.append(AlertEvent(id: "\(account.id)/\(window.id)/\(period)/restored", accountID: account.id, windowID: window.id,
                                          title: "\(window.name) Is Available Again", detail: "Provider confirmed capacity · \(account.provider.rawValue) / \(account.nickname)", createdAt: now))
             }
         }
-        if settings.rule(accountID: account.id).expiry, current.reserve?.availableCount != 0 {
+        if fresh, settings.rule(accountID: account.id).expiry, current.reserve?.availableCount != 0 {
             for credit in current.reserve?.credits ?? [] where credit.status == "available" {
                 if let expiry = credit.expiresAt, let reminder = TimedReminder.due(settings.resetExpiryReminders, at: expiry, now: now) {
                     alerts.append(makeReminder(account: account, windowID: nil, target: credit.id, at: expiry, reminder: reminder, refresh: false, now: now, name: "Earned Reset", settings: settings))
@@ -85,7 +86,7 @@ enum IconAlertPolicy {
         var highest: AlertEvent?
         for account in state.accounts where account.enabled {
             guard let snapshot = state.snapshots[account.id], snapshot.belongs(to: account) else { continue }
-            for alert in AlertEvaluator.evaluate(account: account, previous: nil, current: snapshot, settings: state.settings, now: now) {
+            for alert in AlertEvaluator.evaluate(account: account, previous: nil, current: snapshot, settings: state.settings, now: now, includeCachedCapacity: true) {
                 if rank(alert.severity) > rank(highest?.severity) { highest = alert }
             }
         }

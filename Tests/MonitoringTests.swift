@@ -934,6 +934,10 @@ final class MonitoringTests: XCTestCase {
         state.snapshots[account.id] = QuotaSnapshot(accountID: account.id, subject: "s", scope: "w", observedAt: now,
             windows: [QuotaWindow(id: "q", name: "q", unit: .percent, used: 95)])
         XCTAssertEqual(IconAlertPolicy.evaluate(state: state, now: now)?.severity, .critical)
+        state.snapshots[account.id]?.health = .stale
+        state.snapshots[account.id]?.windows[0].used = 75
+        XCTAssertEqual(IconAlertPolicy.evaluate(state: state, now: now)?.severity, .warning)
+        XCTAssertTrue(AlertEvaluator.evaluate(account: account, previous: nil, current: state.snapshots[account.id]!, settings: state.settings, now: now).isEmpty)
         state.accounts[0].enabled = false
         XCTAssertNil(IconAlertPolicy.evaluate(state: state, now: now))
         state.accounts[0].enabled = true
